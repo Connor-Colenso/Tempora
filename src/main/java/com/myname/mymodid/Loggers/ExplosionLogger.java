@@ -1,13 +1,15 @@
 package com.myname.mymodid.Loggers;
 
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import net.minecraft.entity.Entity;
-import net.minecraft.world.World;
-import net.minecraftforge.event.world.ExplosionEvent;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+
+import net.minecraft.entity.Entity;
+import net.minecraft.world.World;
+import net.minecraftforge.event.world.ExplosionEvent;
+
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
 public class ExplosionLogger {
 
@@ -21,16 +23,15 @@ public class ExplosionLogger {
     private void initDatabase() {
         try {
             conn = DriverManager.getConnection(url);
-            String sql = "CREATE TABLE IF NOT EXISTS ExplosionEvents (" +
-                "id INTEGER PRIMARY KEY AUTOINCREMENT," +
-                "x REAL NOT NULL," +
-                "y REAL NOT NULL," +
-                "z REAL NOT NULL," +
-                "strength REAL NOT NULL," +
-                "exploder TEXT," +
-                "dimensionID INTEGER DEFAULT 0," +
-                "timestamp DATETIME DEFAULT CURRENT_TIMESTAMP" +
-                ");";
+            String sql = "CREATE TABLE IF NOT EXISTS ExplosionEvents (" + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+                + "x REAL NOT NULL,"
+                + "y REAL NOT NULL,"
+                + "z REAL NOT NULL,"
+                + "strength REAL NOT NULL,"
+                + "exploder TEXT,"
+                + "dimensionID INTEGER DEFAULT 0,"
+                + "timestamp DATETIME DEFAULT CURRENT_TIMESTAMP"
+                + ");";
             PreparedStatement pstmt = conn.prepareStatement(sql);
             pstmt.execute();
         } catch (SQLException e) {
