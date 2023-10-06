@@ -34,4 +34,10 @@
  * For more details, see https://docs.gradle.org/8.0.1/userguide/java_library_plugin.html#sec:java_library_configurations_graph
  */
 dependencies {
+    implementation('org.xerial:sqlite-jdbc:3.34.0')
+
+    api("org.jetbrains:annotations:23.0.0")
+    api("com.github.GTNewHorizons:NotEnoughItems:2.3.50-GTNH:dev")
+
+    compileOnly("com.github.GTNewHorizons:Hodgepodge:2.2.5:dev") { transitive = false }
 }
