@@ -1,15 +1,17 @@
 package com.myname.mymodid.Loggers;
 
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.entity.player.PlayerUseItemEvent;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
+
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
 public class ItemUseLogger {
 
@@ -23,17 +25,16 @@ public class ItemUseLogger {
     private void initDatabase() {
         try {
             conn = DriverManager.getConnection(url);
-            String sql = "CREATE TABLE IF NOT EXISTS ItemUseEvents (" +
-                "id INTEGER PRIMARY KEY AUTOINCREMENT," +
-                "playerName TEXT NOT NULL," +
-                "item TEXT NOT NULL," +
-                "itemMetadata INTEGER," +
-                "x INTEGER NOT NULL," +
-                "y INTEGER NOT NULL," +
-                "z INTEGER NOT NULL," +
-                "dimensionID INTEGER DEFAULT 0," +
-                "timestamp DATETIME DEFAULT CURRENT_TIMESTAMP" +
-                ");";
+            String sql = "CREATE TABLE IF NOT EXISTS ItemUseEvents (" + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+                + "playerName TEXT NOT NULL,"
+                + "item TEXT NOT NULL,"
+                + "itemMetadata INTEGER,"
+                + "x INTEGER NOT NULL,"
+                + "y INTEGER NOT NULL,"
+                + "z INTEGER NOT NULL,"
+                + "dimensionID INTEGER DEFAULT 0,"
+                + "timestamp DATETIME DEFAULT CURRENT_TIMESTAMP"
+                + ");";
             PreparedStatement pstmt = conn.prepareStatement(sql);
             pstmt.execute();
         } catch (SQLException e) {
@@ -44,7 +45,8 @@ public class ItemUseLogger {
     @SubscribeEvent
     @SuppressWarnings("unused")
     public void onItemInteract(PlayerInteractEvent event) {
-        if (event.action == PlayerInteractEvent.Action.RIGHT_CLICK_AIR || event.action == PlayerInteractEvent.Action.RIGHT_CLICK_BLOCK) {
+        if (event.action == PlayerInteractEvent.Action.RIGHT_CLICK_AIR
+            || event.action == PlayerInteractEvent.Action.RIGHT_CLICK_BLOCK) {
             logItemUse(event.entityPlayer);
         }
     }
@@ -68,7 +70,10 @@ public class ItemUseLogger {
                 String sql = "INSERT INTO ItemUseEvents(playerName, item, itemMetadata, x, y, z, dimensionID) VALUES(?, ?, ?, ?, ?, ?, ?)";
                 PreparedStatement pstmt = conn.prepareStatement(sql);
                 pstmt.setString(1, player.getDisplayName());
-                pstmt.setString(2, usedItem.getItem().getUnlocalizedName());
+                pstmt.setString(
+                    2,
+                    usedItem.getItem()
+                        .getUnlocalizedName());
                 pstmt.setInt(3, usedItem.getItemDamage());
                 pstmt.setInt(4, x);
                 pstmt.setInt(5, y);
@@ -80,7 +85,6 @@ public class ItemUseLogger {
             }
         }
     }
-
 
     public void closeDatabase() {
         try {

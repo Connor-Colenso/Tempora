@@ -1,15 +1,18 @@
 package com.myname.mymodid;
 
-import com.myname.mymodid.Loggers.BlockBreakLogger;
-import com.myname.mymodid.Loggers.ExplosionLogger;
-import com.myname.mymodid.Loggers.ItemUseLogger;
-import cpw.mods.fml.common.event.*;
 import net.minecraftforge.common.MinecraftForge;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.myname.mymodid.Commands.QueryEventsCommand;
+import com.myname.mymodid.Loggers.BlockBreakLogger;
+import com.myname.mymodid.Loggers.ExplosionLogger;
+import com.myname.mymodid.Loggers.ItemUseLogger;
+
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.SidedProxy;
+import cpw.mods.fml.common.event.*;
 
 @SuppressWarnings("unused")
 @Mod(modid = Tags.MODID, version = Tags.VERSION, name = Tags.MODNAME, acceptedMinecraftVersions = "[1.7.10]")
