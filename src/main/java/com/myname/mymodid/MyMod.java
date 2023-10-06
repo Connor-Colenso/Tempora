@@ -2,6 +2,7 @@ package com.myname.mymodid;
 
 import com.myname.mymodid.Loggers.BlockBreakLogger;
 import com.myname.mymodid.Loggers.ExplosionLogger;
+import com.myname.mymodid.Loggers.ItemUseLogger;
 import cpw.mods.fml.common.event.*;
 import net.minecraftforge.common.MinecraftForge;
 import org.apache.logging.log4j.LogManager;
@@ -28,16 +29,18 @@ public class MyMod {
 
     BlockBreakLogger blockBreakLogger;
     ExplosionLogger explosionLogger;
+    ItemUseLogger itemUseLogger;
 
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
         blockBreakLogger = new BlockBreakLogger();
         explosionLogger = new ExplosionLogger();
+        itemUseLogger = new ItemUseLogger();
 
         // Register the block break logger to capture events
         MinecraftForge.EVENT_BUS.register(blockBreakLogger);
         MinecraftForge.EVENT_BUS.register(explosionLogger);
-
+        MinecraftForge.EVENT_BUS.register(itemUseLogger);
     }
 
     @Mod.EventHandler
@@ -60,6 +63,10 @@ public class MyMod {
 
         if (explosionLogger != null) {
             explosionLogger.closeDatabase();
+        }
+
+        if (itemUseLogger != null) {
+            itemUseLogger.closeDatabase();
         }
     }
 }
