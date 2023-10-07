@@ -1,26 +1,28 @@
 package com.myname.mymodid.Loggers;
 
-import com.myname.mymodid.TemporaUtils;
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraftforge.event.world.BlockEvent;
-import org.jetbrains.annotations.NotNull;
+import static com.myname.mymodid.TemporaUtils.isClientSide;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
-import static com.myname.mymodid.TemporaUtils.isClientSide;
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraftforge.event.world.BlockEvent;
 
-public class BlockBreakLogger extends GenericLogger{
+import org.jetbrains.annotations.NotNull;
+
+import com.myname.mymodid.TemporaUtils;
+
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+
+public class BlockBreakLogger extends GenericLogger {
 
     @Override
     public Connection initDatabase() {
         try {
             conn = DriverManager.getConnection(databaseURL());
-            final String sql = "CREATE TABLE IF NOT EXISTS BlockBreakEvents ("
-                + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+            final String sql = "CREATE TABLE IF NOT EXISTS BlockBreakEvents (" + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
                 + "playerName TEXT NOT NULL,"
                 + "blockType TEXT NOT NULL,"
                 + "metadata INTEGER,"
@@ -38,7 +40,6 @@ public class BlockBreakLogger extends GenericLogger{
 
         return conn;
     }
-
 
     @Override
     protected String databaseURL() {

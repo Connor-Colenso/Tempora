@@ -1,24 +1,29 @@
 package com.myname.mymodid.Loggers;
 
-import com.myname.mymodid.TemporaUtils;
-import cpw.mods.fml.common.FMLCommonHandler;
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import cpw.mods.fml.common.gameevent.TickEvent;
-import cpw.mods.fml.common.gameevent.TickEvent.PlayerTickEvent;
-import net.minecraft.entity.player.EntityPlayerMP;
-import org.jetbrains.annotations.NotNull;
+import static com.myname.mymodid.TemporaUtils.isClientSide;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
-import static com.myname.mymodid.TemporaUtils.isClientSide;
+import net.minecraft.entity.player.EntityPlayerMP;
+
+import org.jetbrains.annotations.NotNull;
+
+import com.myname.mymodid.TemporaUtils;
+
+import cpw.mods.fml.common.FMLCommonHandler;
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.common.gameevent.TickEvent;
+import cpw.mods.fml.common.gameevent.TickEvent.PlayerTickEvent;
 
 public class PlayerMovementLogger extends GenericLogger {
 
     public PlayerMovementLogger() {
-        FMLCommonHandler.instance().bus().register(this);
+        FMLCommonHandler.instance()
+            .bus()
+            .register(this);
         loggerList.add(this);
     }
 
@@ -57,7 +62,9 @@ public class PlayerMovementLogger extends GenericLogger {
         if (event.phase != TickEvent.Phase.START) return;
 
         // Trigger this tracking every 5 seconds. Todo make this timer changeable in the config.
-        if (FMLCommonHandler.instance().getMinecraftServerInstance().getTickCounter() % 100 != 0) return;
+        if (FMLCommonHandler.instance()
+            .getMinecraftServerInstance()
+            .getTickCounter() % 100 != 0) return;
 
         // Now we do actual processing of this event.
         if (event.player instanceof EntityPlayerMP) {

@@ -1,4 +1,5 @@
 package com.myname.mymodid.Particle;
+
 import net.minecraft.client.particle.EntityFX;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.world.World;
@@ -18,7 +19,8 @@ public class RedBoxParticle extends EntityFX {
     // Override other necessary methods if needed
 
     @Override
-    public void renderParticle(Tessellator tessellator, float partialTicks, float rotX, float rotZ, float rotYZ, float rotXY, float rotXZ) {
+    public void renderParticle(Tessellator tessellator, float partialTicks, float rotX, float rotZ, float rotYZ,
+        float rotXY, float rotXZ) {
         float minU = 0.0F;
         float maxU = 1.0F;
         float minV = 0.0F;
@@ -29,10 +31,30 @@ public class RedBoxParticle extends EntityFX {
         float zPos = (float) (this.prevPosZ + (this.posZ - this.prevPosZ) * partialTicks - interpPosZ);
 
         tessellator.setColorRGBA_F(this.particleRed, this.particleGreen, this.particleBlue, this.particleAlpha);
-        tessellator.addVertexWithUV(xPos - rotX * scale - rotXY * scale, yPos - rotZ * scale, zPos - rotYZ * scale - rotXZ * scale, maxU, maxV);
-        tessellator.addVertexWithUV(xPos - rotX * scale + rotXY * scale, yPos + rotZ * scale, zPos - rotYZ * scale + rotXZ * scale, maxU, minV);
-        tessellator.addVertexWithUV(xPos + rotX * scale + rotXY * scale, yPos + rotZ * scale, zPos + rotYZ * scale + rotXZ * scale, minU, minV);
-        tessellator.addVertexWithUV(xPos + rotX * scale - rotXY * scale, yPos - rotZ * scale, zPos + rotYZ * scale - rotXZ * scale, minU, maxV);
+        tessellator.addVertexWithUV(
+            xPos - rotX * scale - rotXY * scale,
+            yPos - rotZ * scale,
+            zPos - rotYZ * scale - rotXZ * scale,
+            maxU,
+            maxV);
+        tessellator.addVertexWithUV(
+            xPos - rotX * scale + rotXY * scale,
+            yPos + rotZ * scale,
+            zPos - rotYZ * scale + rotXZ * scale,
+            maxU,
+            minV);
+        tessellator.addVertexWithUV(
+            xPos + rotX * scale + rotXY * scale,
+            yPos + rotZ * scale,
+            zPos + rotYZ * scale + rotXZ * scale,
+            minU,
+            minV);
+        tessellator.addVertexWithUV(
+            xPos + rotX * scale - rotXY * scale,
+            yPos - rotZ * scale,
+            zPos + rotYZ * scale - rotXZ * scale,
+            minU,
+            maxV);
     }
 
 }

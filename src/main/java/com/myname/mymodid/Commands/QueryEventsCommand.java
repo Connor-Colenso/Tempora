@@ -1,10 +1,8 @@
 package com.myname.mymodid.Commands;
 
 import java.sql.*;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import com.myname.mymodid.TemporaUtils;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
@@ -13,6 +11,8 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.network.play.server.S28PacketEffect;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.world.World;
+
+import com.myname.mymodid.TemporaUtils;
 
 public class QueryEventsCommand extends CommandBase {
 
@@ -53,7 +53,7 @@ public class QueryEventsCommand extends CommandBase {
     }
 
     private void queryDatabase(ICommandSender sender, int radius, long seconds) {
-        try (Connection conn = DriverManager.getConnection(TemporaUtils.databaseDirectory()  + "blockBreakEvents.db")) {
+        try (Connection conn = DriverManager.getConnection(TemporaUtils.databaseDirectory() + "blockBreakEvents.db")) {
 
             final String sql = "SELECT playerName, blockType, x, y, z, timestamp FROM BlockBreakEvents "
                 + "WHERE ABS(x - ?) <= ? AND ABS(y - ?) <= ? AND ABS(z - ?) <= ? AND "
