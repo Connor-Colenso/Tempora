@@ -32,6 +32,7 @@ public class MyMod {
         new ExplosionLogger();
         new ItemUseLogger();
         new PlayerMovementLogger();
+        new CommandLogger();
     }
 
     @Mod.EventHandler

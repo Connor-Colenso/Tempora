@@ -17,21 +17,10 @@ public class TemporaUtils {
         // Create the directory if it doesn't exist.
         final File directory = new File(path);
         if (!directory.exists()) {
-            if (directory.mkdirs()) {
-                System.out.println("Directory was created successfully");
-            } else {
-                System.out.println("Failed to create the directory");
-            }
-        } else {
-            System.out.println("Directory already exists");
+            directory.mkdirs();
         }
 
         return "jdbc:sqlite:" + path;
-    }
-
-    public static boolean isServerSide() {
-        return FMLCommonHandler.instance()
-            .getEffectiveSide() == Side.SERVER;
     }
 
     /**
