@@ -7,11 +7,16 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.TimeZone;
 
 public abstract class GenericLogger {
 
+    static {
+        TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
+    }
+
     public static final List<Connection> databaseList = new ArrayList<>();
-    private static final List<GenericLogger> loggerList = new ArrayList<>();
+    protected static final List<GenericLogger> loggerList = new ArrayList<>();
     protected Connection conn;
 
     public GenericLogger() {

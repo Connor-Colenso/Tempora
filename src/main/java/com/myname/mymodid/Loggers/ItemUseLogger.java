@@ -14,6 +14,8 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
+import static com.myname.mymodid.TemporaUtils.isClientSide;
+
 public class ItemUseLogger extends GenericLogger {
 
     @Override
@@ -47,6 +49,9 @@ public class ItemUseLogger extends GenericLogger {
     @SubscribeEvent
     @SuppressWarnings("unused")
     public void onItemInteract(final @NotNull PlayerInteractEvent event) {
+        // Server side only.
+        if (isClientSide()) return;
+
         if (event.action == PlayerInteractEvent.Action.RIGHT_CLICK_AIR
             || event.action == PlayerInteractEvent.Action.RIGHT_CLICK_BLOCK) {
             logItemUse(event.entityPlayer);
