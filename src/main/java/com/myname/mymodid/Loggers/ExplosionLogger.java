@@ -1,29 +1,24 @@
 package com.myname.mymodid.Loggers;
 
+import com.myname.mymodid.TemporaUtils;
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import net.minecraft.entity.Entity;
+import net.minecraft.world.World;
+import net.minecraftforge.event.world.ExplosionEvent;
+import org.jetbrains.annotations.NotNull;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
-import net.minecraft.entity.Entity;
-import net.minecraft.world.World;
-import net.minecraftforge.event.world.ExplosionEvent;
+public class ExplosionLogger extends GenericLogger{
 
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-
-public class ExplosionLogger {
-
-    private Connection conn;
-    private static final String url = "jdbc:sqlite:./explosionEvents.db";
-
-    public ExplosionLogger() {
-        initDatabase();
-    }
-
-    private void initDatabase() {
+    @Override
+    public Connection initDatabase() {
         try {
-            conn = DriverManager.getConnection(url);
-            String sql = "CREATE TABLE IF NOT EXISTS ExplosionEvents (" + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+            conn = DriverManager.getConnection(databaseURL());
+            final String sql = "CREATE TABLE IF NOT EXISTS ExplosionEvents (" + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
                 + "x REAL NOT NULL,"
                 + "y REAL NOT NULL,"
                 + "z REAL NOT NULL,"
@@ -32,27 +27,34 @@ public class ExplosionLogger {
                 + "dimensionID INTEGER DEFAULT 0,"
                 + "timestamp DATETIME DEFAULT CURRENT_TIMESTAMP"
                 + ");";
-            PreparedStatement pstmt = conn.prepareStatement(sql);
+            final PreparedStatement pstmt = conn.prepareStatement(sql);
             pstmt.execute();
         } catch (SQLException e) {
             e.printStackTrace();
         }
+
+        return conn;
+    }
+
+    @Override
+    protected String databaseURL() {
+        return TemporaUtils.databaseDirectory() + "explosionEvents.db";
     }
 
     @SubscribeEvent
     @SuppressWarnings("unused")
-    public void onExplosion(ExplosionEvent.Detonate event) {
-        World world = event.world;
-        float strength = event.explosion.explosionSize;
-        double x = event.explosion.explosionX;
-        double y = event.explosion.explosionY;
-        double z = event.explosion.explosionZ;
-        Entity exploder = event.explosion.getExplosivePlacedBy();
-        String exploderName = (exploder != null) ? exploder.getCommandSenderName() : "Unknown";
+    public void onExplosion(final @NotNull ExplosionEvent.Detonate event) {
+        final World world = event.world;
+        final float strength = event.explosion.explosionSize;
+        final double x = Math.round(event.explosion.explosionX);
+        final double y = Math.round(event.explosion.explosionY);
+        final double z = Math.round(event.explosion.explosionZ);
+        final Entity exploder = event.explosion.getExplosivePlacedBy();
+        final String exploderName = (exploder != null) ? exploder.getCommandSenderName() : "Unknown";
 
         try {
-            String sql = "INSERT INTO ExplosionEvents(x, y, z, strength, exploder, dimensionID) VALUES(?, ?, ?, ?, ?, ?)";
-            PreparedStatement pstmt = conn.prepareStatement(sql);
+            final String sql = "INSERT INTO ExplosionEvents(x, y, z, strength, exploder, dimensionID) VALUES(?, ?, ?, ?, ?, ?)";
+            final PreparedStatement pstmt = conn.prepareStatement(sql);
             pstmt.setDouble(1, x);
             pstmt.setDouble(2, y);
             pstmt.setDouble(3, z);
@@ -60,18 +62,9 @@ public class ExplosionLogger {
             pstmt.setString(5, exploderName);
             pstmt.setInt(6, world.provider.dimensionId);
             pstmt.executeUpdate();
-        } catch (SQLException e) {
+        } catch (final SQLException e) {
             e.printStackTrace();
         }
     }
 
-    public void closeDatabase() {
-        try {
-            if (conn != null) {
-                conn.close();
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
 }
