@@ -69,15 +69,15 @@ public class PlayerMovementLogger extends GenericLogger {
         // Now we do actual processing of this event.
         if (event.player instanceof EntityPlayerMP) {
             try {
-                String sql = "INSERT INTO PlayerMovementEvents(playerName, x, y, z, dimensionID) VALUES(?, ?, ?, ?, ?)";
-                PreparedStatement pstmt = conn.prepareStatement(sql);
+                final String sql = "INSERT INTO PlayerMovementEvents(playerName, x, y, z, dimensionID) VALUES(?, ?, ?, ?, ?)";
+                final PreparedStatement pstmt = conn.prepareStatement(sql);
                 pstmt.setString(1, event.player.getDisplayName());
                 pstmt.setDouble(2, event.player.posX);
                 pstmt.setDouble(3, event.player.posY);
                 pstmt.setDouble(4, event.player.posZ);
                 pstmt.setInt(5, event.player.worldObj.provider.dimensionId);
                 pstmt.executeUpdate();
-            } catch (SQLException e) {
+            } catch (final SQLException e) {
                 e.printStackTrace();
             }
         }
