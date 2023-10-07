@@ -1,7 +1,9 @@
 package com.myname.mymodid.Loggers;
 
 import com.myname.mymodid.TemporaUtils;
+import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.common.gameevent.TickEvent;
 import net.minecraft.entity.Entity;
 import net.minecraft.world.World;
 import net.minecraftforge.event.world.ExplosionEvent;
@@ -11,6 +13,8 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+
+import static com.myname.mymodid.TemporaUtils.isClientSide;
 
 public class ExplosionLogger extends GenericLogger{
 
@@ -44,6 +48,9 @@ public class ExplosionLogger extends GenericLogger{
     @SubscribeEvent
     @SuppressWarnings("unused")
     public void onExplosion(final @NotNull ExplosionEvent.Detonate event) {
+        // Server side only.
+        if (isClientSide()) return;
+
         final World world = event.world;
         final float strength = event.explosion.explosionSize;
         final double x = Math.round(event.explosion.explosionX);

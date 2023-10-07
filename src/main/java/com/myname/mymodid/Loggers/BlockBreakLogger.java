@@ -11,13 +11,16 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
+import static com.myname.mymodid.TemporaUtils.isClientSide;
+
 public class BlockBreakLogger extends GenericLogger{
 
     @Override
     public Connection initDatabase() {
         try {
             conn = DriverManager.getConnection(databaseURL());
-            final String sql = "CREATE TABLE IF NOT EXISTS BlockBreakEvents (" + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+            final String sql = "CREATE TABLE IF NOT EXISTS BlockBreakEvents ("
+                + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
                 + "playerName TEXT NOT NULL,"
                 + "blockType TEXT NOT NULL,"
                 + "metadata INTEGER,"
@@ -36,6 +39,7 @@ public class BlockBreakLogger extends GenericLogger{
         return conn;
     }
 
+
     @Override
     protected String databaseURL() {
         return TemporaUtils.databaseDirectory() + "blockBreakEvents.db";
@@ -44,6 +48,9 @@ public class BlockBreakLogger extends GenericLogger{
     @SubscribeEvent
     @SuppressWarnings("unused")
     public void onBlockBreak(final @NotNull BlockEvent.BreakEvent event) {
+        // Server side only.
+        if (isClientSide()) return;
+
         if (event.getPlayer() instanceof EntityPlayerMP) {
             try {
                 final String sql = "INSERT INTO BlockBreakEvents(playerName, blockType, metadata, x, y, z, dimensionID) VALUES(?, ?, ?, ?, ?, ?, ?)";

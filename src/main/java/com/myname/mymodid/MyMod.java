@@ -1,10 +1,7 @@
 package com.myname.mymodid;
 
 import com.myname.mymodid.Commands.QueryEventsCommand;
-import com.myname.mymodid.Loggers.BlockBreakLogger;
-import com.myname.mymodid.Loggers.ExplosionLogger;
-import com.myname.mymodid.Loggers.GenericLogger;
-import com.myname.mymodid.Loggers.ItemUseLogger;
+import com.myname.mymodid.Loggers.*;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.SidedProxy;
 import cpw.mods.fml.common.event.*;
@@ -32,6 +29,7 @@ public class MyMod {
         new BlockBreakLogger();
         new ExplosionLogger();
         new ItemUseLogger();
+        new PlayerMovementLogger();
     }
 
     @Mod.EventHandler

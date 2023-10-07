@@ -4,6 +4,7 @@ import java.sql.*;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import com.myname.mymodid.TemporaUtils;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
@@ -14,8 +15,6 @@ import net.minecraft.util.ChatComponentText;
 import net.minecraft.world.World;
 
 public class QueryEventsCommand extends CommandBase {
-
-    private static final String DB_URL = "jdbc:sqlite:./blockBreakEvents.db";
 
     @Override
     public String getCommandName() {
@@ -54,16 +53,17 @@ public class QueryEventsCommand extends CommandBase {
     }
 
     private void queryDatabase(ICommandSender sender, int radius, long seconds) {
-        try (Connection conn = DriverManager.getConnection(DB_URL)) {
-            String sql = "SELECT playerName, blockType, x, y, z, timestamp FROM BlockBreakEvents "
+        try (Connection conn = DriverManager.getConnection(TemporaUtils.databaseDirectory()  + "blockBreakEvents.db")) {
+
+            final String sql = "SELECT playerName, blockType, x, y, z, timestamp FROM BlockBreakEvents "
                 + "WHERE ABS(x - ?) <= ? AND ABS(y - ?) <= ? AND ABS(z - ?) <= ? AND "
                 + "timestamp >= datetime(CURRENT_TIMESTAMP, ? || ' seconds')";
             PreparedStatement pstmt = conn.prepareStatement(sql);
-            pstmt.setInt(1, (int) sender.getPlayerCoordinates().posX);
+            pstmt.setInt(1, sender.getPlayerCoordinates().posX);
             pstmt.setInt(2, radius);
-            pstmt.setInt(3, (int) sender.getPlayerCoordinates().posY);
+            pstmt.setInt(3, sender.getPlayerCoordinates().posY);
             pstmt.setInt(4, radius);
-            pstmt.setInt(5, (int) sender.getPlayerCoordinates().posZ);
+            pstmt.setInt(5, sender.getPlayerCoordinates().posZ);
             pstmt.setInt(6, radius);
             pstmt.setLong(7, -seconds); // Negate seconds for the "ago" behavior.
 
@@ -88,9 +88,9 @@ public class QueryEventsCommand extends CommandBase {
     }
 
     private void spawnParticleAt(int x, int y, int z, World world) {
-        int PARTICLE_ID = 2003; // The ID for the "block dust" particle effect.
+        int PARTICLE_ID = 2006;
 
-        for (EntityPlayer player : (List<EntityPlayer>) world.playerEntities) {
+        for (EntityPlayer player : world.playerEntities) {
             double distanceSquared = player.getDistanceSq(x + 0.5D, y + 0.5D, z + 0.5D);
             if (distanceSquared < 4096) { // If within 64 blocks
                 S28PacketEffect packet = new S28PacketEffect(PARTICLE_ID, x, y, z, 0, false);
