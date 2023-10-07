@@ -41,7 +41,7 @@ public class CommandLogger extends GenericLogger {
 
     @Override
     protected String databaseURL() {
-        return TemporaUtils.databaseDirectory() + "commandEvents.db";
+        return TemporaUtils.databaseDirectory() + "commandLogger.db";
     }
 
     @SubscribeEvent
