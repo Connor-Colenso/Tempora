@@ -1,18 +1,15 @@
 package com.myname.mymodid;
 
-import net.minecraftforge.common.MinecraftForge;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import com.myname.mymodid.Commands.QueryEventsCommand;
 import com.myname.mymodid.Loggers.BlockBreakLogger;
 import com.myname.mymodid.Loggers.ExplosionLogger;
+import com.myname.mymodid.Loggers.GenericLogger;
 import com.myname.mymodid.Loggers.ItemUseLogger;
-
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.SidedProxy;
 import cpw.mods.fml.common.event.*;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 @SuppressWarnings("unused")
 @Mod(modid = Tags.MODID, version = Tags.VERSION, name = Tags.MODNAME, acceptedMinecraftVersions = "[1.7.10]")
@@ -30,20 +27,11 @@ public class MyMod {
         proxy.preInit(event);
     }
 
-    BlockBreakLogger blockBreakLogger;
-    ExplosionLogger explosionLogger;
-    ItemUseLogger itemUseLogger;
-
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
-        blockBreakLogger = new BlockBreakLogger();
-        explosionLogger = new ExplosionLogger();
-        itemUseLogger = new ItemUseLogger();
-
-        // Register the block break logger to capture events
-        MinecraftForge.EVENT_BUS.register(blockBreakLogger);
-        MinecraftForge.EVENT_BUS.register(explosionLogger);
-        MinecraftForge.EVENT_BUS.register(itemUseLogger);
+        new BlockBreakLogger();
+        new ExplosionLogger();
+        new ItemUseLogger();
     }
 
     @Mod.EventHandler
@@ -56,21 +44,16 @@ public class MyMod {
     // register server commands in this event handler (Remove if not needed)
     public void serverStarting(FMLServerStartingEvent event) {
         proxy.serverStarting(event);
+        registerNewCommands(event);
+        GenericLogger.onServerStart();
+    }
+
+    private void registerNewCommands(FMLServerStartingEvent event) {
         event.registerServerCommand(new QueryEventsCommand());
     }
 
     @Mod.EventHandler
     public void serverStopping(FMLServerStoppingEvent event) {
-        if (blockBreakLogger != null) {
-            blockBreakLogger.closeDatabase();
-        }
-
-        if (explosionLogger != null) {
-            explosionLogger.closeDatabase();
-        }
-
-        if (itemUseLogger != null) {
-            itemUseLogger.closeDatabase();
-        }
+        GenericLogger.onServerClose();
     }
 }
