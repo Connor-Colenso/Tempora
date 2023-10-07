@@ -1,22 +1,23 @@
 package com.myname.mymodid.Loggers;
 
-import com.myname.mymodid.TemporaUtils;
-import cpw.mods.fml.common.FMLCommonHandler;
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import cpw.mods.fml.common.gameevent.TickEvent;
-import net.minecraft.entity.Entity;
-import net.minecraft.world.World;
-import net.minecraftforge.event.world.ExplosionEvent;
-import org.jetbrains.annotations.NotNull;
+import static com.myname.mymodid.TemporaUtils.isClientSide;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
-import static com.myname.mymodid.TemporaUtils.isClientSide;
+import net.minecraft.entity.Entity;
+import net.minecraft.world.World;
+import net.minecraftforge.event.world.ExplosionEvent;
 
-public class ExplosionLogger extends GenericLogger{
+import org.jetbrains.annotations.NotNull;
+
+import com.myname.mymodid.TemporaUtils;
+
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+
+public class ExplosionLogger extends GenericLogger {
 
     @Override
     public Connection initDatabase() {

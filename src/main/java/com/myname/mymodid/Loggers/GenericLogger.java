@@ -1,13 +1,14 @@
 package com.myname.mymodid.Loggers;
 
-import net.minecraftforge.common.MinecraftForge;
-import org.jetbrains.annotations.NotNull;
-
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TimeZone;
+
+import net.minecraftforge.common.MinecraftForge;
+
+import org.jetbrains.annotations.NotNull;
 
 public abstract class GenericLogger {
 
@@ -25,14 +26,16 @@ public abstract class GenericLogger {
     }
 
     public static void onServerStart() {
-        for (@NotNull final GenericLogger logger : loggerList) {
+        for (@NotNull
+        final GenericLogger logger : loggerList) {
             Connection conn = logger.initDatabase();
             databaseList.add(conn);
         }
     }
 
     public static void onServerClose() {
-        for (@NotNull final Connection conn : databaseList) {
+        for (@NotNull
+        final Connection conn : databaseList) {
             try {
                 conn.close();
             } catch (SQLException exception) {
@@ -43,6 +46,7 @@ public abstract class GenericLogger {
     }
 
     public abstract Connection initDatabase();
+
     protected abstract String databaseURL();
 
 }
