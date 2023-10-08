@@ -24,7 +24,10 @@ public class TempNameHandler implements IMessageHandler<TempName, IMessage> {
         double y = message.getY();
         double z = message.getZ();
         long time = message.getTime();
-        // TODO: Write your client-side code here for handling the received data.
+
+        if (message.firstPacket()) {
+            RenderEvent.clearBuffer();
+        }
 
         RenderEvent.tasks.add(new PlayerPosition(x, y, z, time));
     }

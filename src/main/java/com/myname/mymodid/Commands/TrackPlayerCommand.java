@@ -47,22 +47,26 @@ public class TrackPlayerCommand extends CommandBase {
 
             ResultSet rs = pstmt.executeQuery();
             sender.addChatMessage(new ChatComponentText("Tracking player " + playerName + "."));
+
+            // We use this firstPacket info to make sure we know we can clear the client side buffer.
+            boolean firstPacket = true;
             while (rs.next()) {
                 EntityPlayerMP player = (EntityPlayerMP) sender.getEntityWorld().getPlayerEntityByName(sender.getCommandSenderName());
-                sendTempNamePacket(player, rs.getDouble("x"), rs.getDouble("y"), rs.getDouble("z"), rs.getLong("timestamp"));
+
+                double x = rs.getDouble("x");
+                double y = rs.getDouble("y");
+                double z = rs.getDouble("z");
+                long timestamp = rs.getLong("timestamp");
+
+                TempName packet = new TempName(x, y, z, timestamp, firstPacket);
+                Tempora.NETWORK.sendTo(packet, player);
+                firstPacket = false;
             }
 
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
-
-    private void sendTempNamePacket(EntityPlayerMP player, double x, double y, double z, long time) {
-        TempName packet = new TempName(x, y, z, time);
-
-        Tempora.NETWORK.sendTo(packet, player);
-    }
-
 
     @Override
     public int getRequiredPermissionLevel() {
