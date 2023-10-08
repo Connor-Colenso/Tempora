@@ -1,7 +1,6 @@
 package com.myname.mymodid.Particle;
 
 import net.minecraft.block.Block;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.particle.EntityFX;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.init.Blocks;
@@ -25,20 +24,19 @@ public class RedBoxParticle extends EntityFX {
 
     // Override other necessary methods if needed
 
+    private static final float scale = 0.5f;
+
     @Override
     public void renderParticle(Tessellator tessellator, float partialTicks, float x, float y, float z,
         float rotXY, float rotXZ) {
 
         GL11.glPushMatrix();
-        tessellator.draw();
-        tessellator.startDrawingQuads();
-        GL11.glScalef(1, 1 ,1);
-        GL11.glTranslated(x, y, z);
+        GL11.glScalef(scale, scale, scale);
+        GL11.glTranslated(x, y-0.5, z);
+        GL11.glColor3f(1f, 0f, 0f);
         addRenderedBlockInWorld(Blocks.stone, 0, 0, 0, 0);
-        tessellator.draw();
         GL11.glPopMatrix();
 
-        tessellator.startDrawingQuads();
     }
 
     static final double[] BLOCK_X = { -0.5, -0.5, +0.5, +0.5, +0.5, +0.5, -0.5, -0.5 };
