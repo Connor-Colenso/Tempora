@@ -13,7 +13,7 @@ import java.util.PriorityQueue;
 
 public class PlayerTrackerRenderer {
 
-    public static final PriorityQueue<PlayerPosition> tasks = new PriorityQueue<>(Comparator.comparingDouble(task -> task.time));
+    public static PriorityQueue<PlayerPosition> tasks = new PriorityQueue<>(Comparator.comparingDouble(task -> task.time));
 
     public static void clearBuffer() {
         tasks.clear();
