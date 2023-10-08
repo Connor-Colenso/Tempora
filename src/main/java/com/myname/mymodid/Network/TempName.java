@@ -7,16 +7,18 @@ public class TempName implements IMessage {
 
     private double x, y, z;
     private long time;
+    private boolean firstPacket;
 
     // A default constructor is necessary for forge's network code to reconstruct the packet on reception.
     @SuppressWarnings("unused")
     public TempName() {}
 
-    public TempName(double x, double y, double z, long time) {
+    public TempName(double x, double y, double z, long time, boolean firstPacket) {
         this.x = x;
         this.y = y;
         this.z = z;
         this.time = time;
+        this.firstPacket = firstPacket;
     }
 
     @Override
@@ -26,6 +28,7 @@ public class TempName implements IMessage {
         y = buf.readDouble();
         z = buf.readDouble();
         time = buf.readLong();
+        firstPacket = buf.readBoolean();
     }
 
     @Override
@@ -35,6 +38,7 @@ public class TempName implements IMessage {
         buf.writeDouble(y);
         buf.writeDouble(z);
         buf.writeLong(time);
+        buf.writeBoolean(firstPacket);
     }
 
     public double getX() {
@@ -51,5 +55,9 @@ public class TempName implements IMessage {
 
     public long getTime() {
         return time;
+    }
+
+    public boolean firstPacket() {
+        return firstPacket;
     }
 }
