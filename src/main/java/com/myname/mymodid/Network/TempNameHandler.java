@@ -1,6 +1,8 @@
 package com.myname.mymodid.Network;
 
 import com.myname.mymodid.Particle.RedBoxParticle;
+import com.myname.mymodid.Rendering.PlayerPosition;
+import com.myname.mymodid.Rendering.RenderEvent;
 import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import cpw.mods.fml.common.network.simpleimpl.IMessageHandler;
 import cpw.mods.fml.common.network.simpleimpl.MessageContext;
@@ -29,7 +31,9 @@ public class TempNameHandler implements IMessageHandler<TempName, IMessage> {
 
         // TODO: Write your client-side code here for handling the received data.
 
-        EntityFX particle = new RedBoxParticle(Minecraft.getMinecraft().theWorld, x, y, z);
-        Minecraft.getMinecraft().effectRenderer.addEffect(particle);
+        RenderEvent.tasks.add(new PlayerPosition(x,y,z));
+
+//        EntityFX particle = new RedBoxParticle(Minecraft.getMinecraft().theWorld, x, y, z);
+//        Minecraft.getMinecraft().effectRenderer.addEffect(particle);
     }
 }
