@@ -20,6 +20,8 @@ public class PlayerPositionPacketHandler implements IMessageHandler<PlayerPositi
         return null;
     }
 
+    PriorityQueue<PlayerPosition> newTasks = new PriorityQueue<>(Comparator.comparingDouble(task -> task.time));
+
     private void handleClientSide(PlayerPositionPacket message) {
         // Data received.
         double[] xs = message.getX();
@@ -27,16 +29,20 @@ public class PlayerPositionPacketHandler implements IMessageHandler<PlayerPositi
         double[] zs = message.getZ();
         long[] times = message.getTime();
 
-        PriorityQueue<PlayerPosition> newTasks = new PriorityQueue<>(Comparator.comparingDouble(task -> task.time));
+        // This seems a bit convoluted but exists for two reaosns.
+        // 1. Stops packets from being excessively large and causing OPs to get kicked.
+        // 2. Stops flickering when processing a new packet
 
-/*        if (message.isFirstPacket()) {
-            PlayerTrackerRenderer.clearBuffer();
-        }*/
+        if (message.firstPacket) {
+            newTasks.clear();
+        }
 
         for (int i = 0; i < xs.length; i++) {
             newTasks.add(new PlayerPosition(xs[i], ys[i], zs[i], times[i]));
         }
 
-        PlayerTrackerRenderer.tasks = newTasks;
+        if (message.lastPacket) {
+            PlayerTrackerRenderer.tasks = newTasks;
+        }
     }
 }
