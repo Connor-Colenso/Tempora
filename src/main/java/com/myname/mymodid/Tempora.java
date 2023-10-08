@@ -3,10 +3,9 @@ package com.myname.mymodid;
 import com.myname.mymodid.Commands.QueryEventsCommand;
 import com.myname.mymodid.Commands.TemporaCommand;
 import com.myname.mymodid.Commands.TrackPlayer.TrackPlayerCommand;
-import com.myname.mymodid.Commands.TrackPlayer.TrackPlayerUpdater;
 import com.myname.mymodid.Loggers.*;
-import com.myname.mymodid.Network.TempName;
-import com.myname.mymodid.Network.TempNameHandler;
+import com.myname.mymodid.Network.PlayerPositionPacket;
+import com.myname.mymodid.Network.PlayerPositionPacketHandler;
 import com.myname.mymodid.Commands.TrackPlayer.PlayerTrackerRenderer;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.SidedProxy;
@@ -41,7 +40,7 @@ public class Tempora {
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
 
-        NETWORK.registerMessage(TempNameHandler.class, TempName.class, 0, Side.CLIENT);
+        NETWORK.registerMessage(PlayerPositionPacketHandler.class, PlayerPositionPacket.class, 0, Side.CLIENT);
 
         new BlockBreakLogger();
         new ExplosionLogger();

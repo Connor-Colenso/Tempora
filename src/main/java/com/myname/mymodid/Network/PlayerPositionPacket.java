@@ -3,7 +3,7 @@ package com.myname.mymodid.Network;
 import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import io.netty.buffer.ByteBuf;
 
-public class TempName implements IMessage {
+public class PlayerPositionPacket implements IMessage {
 
     private double x, y, z;
     private long time;
@@ -11,9 +11,9 @@ public class TempName implements IMessage {
 
     // A default constructor is necessary for forge's network code to reconstruct the packet on reception.
     @SuppressWarnings("unused")
-    public TempName() {}
+    public PlayerPositionPacket() {}
 
-    public TempName(double x, double y, double z, long time, boolean firstPacket) {
+    public PlayerPositionPacket(double x, double y, double z, long time, boolean firstPacket) {
         this.x = x;
         this.y = y;
         this.z = z;
