@@ -6,10 +6,10 @@ import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import cpw.mods.fml.common.network.simpleimpl.IMessageHandler;
 import cpw.mods.fml.common.network.simpleimpl.MessageContext;
 
-public class TempNameHandler implements IMessageHandler<TempName, IMessage> {
+public class PlayerPositionPacketHandler implements IMessageHandler<PlayerPositionPacket, IMessage> {
 
     @Override
-    public IMessage onMessage(TempName message, MessageContext ctx) {
+    public IMessage onMessage(PlayerPositionPacket message, MessageContext ctx) {
         if (ctx.side.isClient()) {
             handleClientSide(message);
         }
@@ -17,7 +17,7 @@ public class TempNameHandler implements IMessageHandler<TempName, IMessage> {
         return null;
     }
 
-    private void handleClientSide(TempName message) {
+    private void handleClientSide(PlayerPositionPacket message) {
         // Data received.
 
         double x = message.getX();

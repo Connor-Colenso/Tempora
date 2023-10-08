@@ -5,9 +5,8 @@ import java.sql.*;
 import com.myname.mymodid.TemporaUtils;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.ChatComponentText;
 import net.minecraft.entity.player.EntityPlayerMP;
-import com.myname.mymodid.Network.TempName;
+import com.myname.mymodid.Network.PlayerPositionPacket;
 import com.myname.mymodid.Tempora;
 
 public class PlayerTrackerUtil {
@@ -35,7 +34,7 @@ public class PlayerTrackerUtil {
                 double z = rs.getDouble("z");
                 long timestamp = rs.getLong("timestamp");
 
-                TempName packet = new TempName(x, y, z, timestamp, firstPacket);
+                PlayerPositionPacket packet = new PlayerPositionPacket(x, y, z, timestamp, firstPacket);
                 Tempora.NETWORK.sendTo(packet, player);
                 firstPacket = false;
             }
