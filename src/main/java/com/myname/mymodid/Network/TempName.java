@@ -6,14 +6,17 @@ import io.netty.buffer.ByteBuf;
 public class TempName implements IMessage {
 
     private double x, y, z;
+    private long time;
 
     // A default constructor is necessary for forge's network code to reconstruct the packet on reception.
+    @SuppressWarnings("unused")
     public TempName() {}
 
-    public TempName(double x, double y, double z) {
+    public TempName(double x, double y, double z, long time) {
         this.x = x;
         this.y = y;
         this.z = z;
+        this.time = time;
     }
 
     @Override
@@ -22,6 +25,7 @@ public class TempName implements IMessage {
         x = buf.readDouble();
         y = buf.readDouble();
         z = buf.readDouble();
+        time = buf.readLong();
     }
 
     @Override
@@ -30,6 +34,7 @@ public class TempName implements IMessage {
         buf.writeDouble(x);
         buf.writeDouble(y);
         buf.writeDouble(z);
+        buf.writeLong(time);
     }
 
     public double getX() {
@@ -42,5 +47,9 @@ public class TempName implements IMessage {
 
     public double getZ() {
         return z;
+    }
+
+    public long getTime() {
+        return time;
     }
 }

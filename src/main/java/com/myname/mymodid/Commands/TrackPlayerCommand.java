@@ -2,16 +2,13 @@ package com.myname.mymodid.Commands;
 
 import java.sql.*;
 
-import com.myname.mymodid.MyMod;
+import com.myname.mymodid.Tempora;
 import com.myname.mymodid.Network.TempName;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.network.Packet;
 import net.minecraft.util.ChatComponentText;
-import net.minecraft.world.World;
 
 import com.myname.mymodid.TemporaUtils;
 
@@ -49,17 +46,10 @@ public class TrackPlayerCommand extends CommandBase {
             pstmt.setDouble(4, sender.getPlayerCoordinates().posZ);
 
             ResultSet rs = pstmt.executeQuery();
+            sender.addChatMessage(new ChatComponentText("Tracking player " + playerName + "."));
             while (rs.next()) {
-                String result = String.format(
-                    "%s was at [%f, %f, %f] on %s",
-                    rs.getString("playerName"),
-                    rs.getDouble("x"),
-                    rs.getDouble("y"),
-                    rs.getDouble("z"),
-                    rs.getString("timestamp"));
-                sender.addChatMessage(new ChatComponentText(result));
-
-                sendTempNamePacket(sender.getEntityWorld(), playerName, rs.getDouble("x"), rs.getDouble("y"), rs.getDouble("z"));
+                EntityPlayerMP player = (EntityPlayerMP) sender.getEntityWorld().getPlayerEntityByName(sender.getCommandSenderName());
+                sendTempNamePacket(player, rs.getDouble("x"), rs.getDouble("y"), rs.getDouble("z"), rs.getLong("timestamp"));
             }
 
         } catch (SQLException e) {
@@ -67,14 +57,10 @@ public class TrackPlayerCommand extends CommandBase {
         }
     }
 
-    private void sendTempNamePacket(World world, String playerName, double x, double y, double z) {
-        TempName packet = new TempName(x, y, z);
+    private void sendTempNamePacket(EntityPlayerMP player, double x, double y, double z, long time) {
+        TempName packet = new TempName(x, y, z, time);
 
-        for (EntityPlayer player : world.playerEntities) {
-            double distanceSquared = player.getDistanceSq(x, y, z);
-            // If within 100 blocks
-            if (distanceSquared < 10_000) MyMod.NETWORK.sendTo(packet, (EntityPlayerMP) player);
-        }
+        Tempora.NETWORK.sendTo(packet, player);
     }
 
 

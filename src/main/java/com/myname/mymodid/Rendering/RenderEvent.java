@@ -16,14 +16,13 @@ import java.util.PriorityQueue;
 
 public class RenderEvent {
 
-    private static final Comparator<PlayerPosition> comparator = new Comparator<PlayerPosition>() {
-        @Override
-        public int compare(PlayerPosition task1, PlayerPosition task2) {
-            return Double.compare(task1.time, task2.time);
-        }
-    };
 
-    public static final PriorityQueue<PlayerPosition> tasks = new PriorityQueue<>(comparator);
+    public static final PriorityQueue<PlayerPosition> tasks = new PriorityQueue<>(Comparator.comparingDouble(task -> task.time));
+
+
+    public static void clearBuffer() {
+        tasks.clear();
+    }
 
     @SubscribeEvent
     @SuppressWarnings("unused")
@@ -40,21 +39,57 @@ public class RenderEvent {
             tempList.add(tasks.poll());
         }
 
-        // Render positions
-        Tessellator.instance.startDrawingQuads();
+        // ---
+
+        // Render lines connecting positions
         GL11.glPushMatrix();
         GL11.glTranslated(-playerX, -playerY, -playerZ);  // Translate to the correct position in the world
 
+
+        // Save the current OpenGL state.
+        GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
+        GL11.glPushMatrix();
+
+        // Disable lighting and texture rendering.
+        GL11.glDisable(GL11.GL_LIGHTING);
+        GL11.glDisable(GL11.GL_TEXTURE_2D);
+
+        // Set the line color.
+        GL11.glColor4f(1.0F, 0.0F, 0.0F, 1.0F); // For a red line.
+
+        // Set line width.
+        GL11.glLineWidth(3.0F);
+
+        // Start drawing.
+        GL11.glBegin(GL11.GL_LINE_STRIP);
+
         for (PlayerPosition position : tempList) {
-            // Render the block at the specified position
-            addRenderedBlockInWorld(Blocks.stone, 0, position.x, position.y, position.z);
+            GL11.glVertex3d(position.x, position.y + 1f, position.z);
+        }
+
+        // End drawing.
+        GL11.glEnd();
+
+        // Restore the OpenGL state.
+        GL11.glPopMatrix();
+        GL11.glPopAttrib();
+
+        // ----
+
+
+        // Block Rendering
+        Tessellator.instance.startDrawingQuads();
+        for (PlayerPosition position : tempList) {
+            addRenderedBlockInWorld(Blocks.stone, 0, position.x, position.y + 1f, position.z);
         }
         Tessellator.instance.draw();
+
         GL11.glPopMatrix();
 
         // Re-insert positions back into the queue
         tasks.addAll(tempList);
     }
+
 
 
     static final double[] BLOCK_X = { -0.5, -0.5, +0.5, +0.5, +0.5, +0.5, -0.5, -0.5 };

@@ -32,4 +32,8 @@ public class TemporaUtils {
         return FMLCommonHandler.instance()
             .getEffectiveSide() == Side.CLIENT;
     }
+
+    public static String defaultDimID() {
+        return "999";
+    }
 }

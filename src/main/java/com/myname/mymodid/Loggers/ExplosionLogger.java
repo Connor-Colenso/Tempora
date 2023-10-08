@@ -29,7 +29,7 @@ public class ExplosionLogger extends GenericLogger {
                 + "z REAL NOT NULL,"
                 + "strength REAL NOT NULL,"
                 + "exploder TEXT,"
-                + "dimensionID INTEGER DEFAULT 0,"
+                + "dimensionID INTEGER DEFAULT " + TemporaUtils.defaultDimID() + ","
                 + "timestamp DATETIME DEFAULT CURRENT_TIMESTAMP"
                 + ");";
             final PreparedStatement pstmt = conn.prepareStatement(sql);

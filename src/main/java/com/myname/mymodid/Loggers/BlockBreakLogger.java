@@ -29,7 +29,7 @@ public class BlockBreakLogger extends GenericLogger {
                 + "x INTEGER NOT NULL,"
                 + "y INTEGER NOT NULL,"
                 + "z INTEGER NOT NULL,"
-                + "dimensionID INTEGER DEFAULT 0,"
+                + "dimensionID INTEGER DEFAULT " + TemporaUtils.defaultDimID() + ","
                 + "timestamp DATETIME DEFAULT CURRENT_TIMESTAMP"
                 + ");";
             final PreparedStatement pstmt = conn.prepareStatement(sql);

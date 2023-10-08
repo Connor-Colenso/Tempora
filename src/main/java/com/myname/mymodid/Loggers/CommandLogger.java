@@ -24,10 +24,10 @@ public class CommandLogger extends GenericLogger {
                 + "playerName TEXT NOT NULL,"
                 + "command TEXT NOT NULL,"
                 + "arguments TEXT,"
-                + "x DOUBLE,"
-                + "y DOUBLE,"
-                + "z DOUBLE,"
-                + "dimensionID INTEGER DEFAULT 0,"
+                + "x REAL,"
+                + "y REAL,"
+                + "z REAL,"
+                + "dimensionID INTEGER DEFAULT " + TemporaUtils.defaultDimID() + ","
                 + "timestamp DATETIME DEFAULT CURRENT_TIMESTAMP"
                 + ");";
             final PreparedStatement pstmt = conn.prepareStatement(sql);
@@ -50,8 +50,7 @@ public class CommandLogger extends GenericLogger {
         // Server side only.
         if (isClientSide()) return;
 
-        if (event.sender instanceof EntityPlayerMP) {
-            EntityPlayerMP player = (EntityPlayerMP) event.sender;
+        if (event.sender instanceof EntityPlayerMP player) {
             ICommand command = event.command;
             String[] args = event.parameters;
 
