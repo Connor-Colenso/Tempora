@@ -1,5 +1,6 @@
 package com.myname.mymodid.Loggers;
 
+import com.myname.mymodid.Commands.TrackPlayer.TrackPlayerUpdater;
 import com.myname.mymodid.TemporaUtils;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
@@ -18,6 +19,8 @@ import static com.myname.mymodid.TemporaUtils.isClientSide;
 public class PlayerMovementLogger extends GenericLogger {
 
     public PlayerMovementLogger() {
+        new TrackPlayerUpdater();
+
         FMLCommonHandler.instance()
             .bus()
             .register(this);

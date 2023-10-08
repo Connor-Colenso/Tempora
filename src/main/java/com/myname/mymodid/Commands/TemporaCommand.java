@@ -15,7 +15,6 @@ import com.gtnewhorizons.modularui.common.widget.textfield.TextFieldWidget;
 import com.myname.mymodid.TemporaUtils;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
-import net.minecraft.command.WrongUsageException;
 import net.minecraft.util.ChatComponentText;
 
 import java.sql.*;
