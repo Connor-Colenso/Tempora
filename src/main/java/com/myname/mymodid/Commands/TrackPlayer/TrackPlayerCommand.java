@@ -1,4 +1,4 @@
-package com.myname.mymodid.Commands;
+package com.myname.mymodid.Commands.TrackPlayer;
 
 import java.sql.*;
 
