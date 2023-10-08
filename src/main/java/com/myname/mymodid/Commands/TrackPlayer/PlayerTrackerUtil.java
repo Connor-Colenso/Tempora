@@ -1,6 +1,8 @@
 package com.myname.mymodid.Utils;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.myname.mymodid.TemporaUtils;
 import net.minecraft.command.ICommandSender;
@@ -10,6 +12,8 @@ import com.myname.mymodid.Network.PlayerPositionPacket;
 import com.myname.mymodid.Tempora;
 
 public class PlayerTrackerUtil {
+
+    private static final int MAX_POINTS_PER_PACKET = 500;
 
     public static void queryAndSendDataToPlayer(ICommandSender sender, String playerName) {
         try (Connection conn = DriverManager.getConnection(TemporaUtils.databaseDirectory() + "playerMovementEvents.db")) {
@@ -25,16 +29,29 @@ public class PlayerTrackerUtil {
 
             ResultSet rs = pstmt.executeQuery();
 
-            boolean firstPacket = true;
+            List<Double> xs = new ArrayList<>();
+            List<Double> ys = new ArrayList<>();
+            List<Double> zs = new ArrayList<>();
+            List<Long> timestamps = new ArrayList<>();
+
             while (rs.next()) {
-                EntityPlayerMP player = (EntityPlayerMP) sender.getEntityWorld().getPlayerEntityByName(sender.getCommandSenderName());
+                xs.add(rs.getDouble("x"));
+                ys.add(rs.getDouble("y"));
+                zs.add(rs.getDouble("z"));
+                timestamps.add(rs.getLong("timestamp"));
+            }
 
-                double x = rs.getDouble("x");
-                double y = rs.getDouble("y");
-                double z = rs.getDouble("z");
-                long timestamp = rs.getLong("timestamp");
+            EntityPlayerMP player = (EntityPlayerMP) sender.getEntityWorld().getPlayerEntityByName(sender.getCommandSenderName());
 
-                PlayerPositionPacket packet = new PlayerPositionPacket(x, y, z, timestamp, firstPacket);
+            boolean firstPacket = true;
+            for (int i = 0; i < xs.size(); i += MAX_POINTS_PER_PACKET) {
+                int endIndex = Math.min(i + MAX_POINTS_PER_PACKET, xs.size());
+                double[] xArray = xs.subList(i, endIndex).stream().mapToDouble(Double::doubleValue).toArray();
+                double[] yArray = ys.subList(i, endIndex).stream().mapToDouble(Double::doubleValue).toArray();
+                double[] zArray = zs.subList(i, endIndex).stream().mapToDouble(Double::doubleValue).toArray();
+                long[] timeArray = timestamps.subList(i, endIndex).stream().mapToLong(Long::longValue).toArray();
+
+                PlayerPositionPacket packet = new PlayerPositionPacket(xArray, yArray, zArray, timeArray, firstPacket);
                 Tempora.NETWORK.sendTo(packet, player);
                 firstPacket = false;
             }

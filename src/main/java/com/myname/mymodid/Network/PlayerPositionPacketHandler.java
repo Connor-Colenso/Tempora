@@ -6,6 +6,9 @@ import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import cpw.mods.fml.common.network.simpleimpl.IMessageHandler;
 import cpw.mods.fml.common.network.simpleimpl.MessageContext;
 
+import java.util.Comparator;
+import java.util.PriorityQueue;
+
 public class PlayerPositionPacketHandler implements IMessageHandler<PlayerPositionPacket, IMessage> {
 
     @Override
@@ -19,16 +22,21 @@ public class PlayerPositionPacketHandler implements IMessageHandler<PlayerPositi
 
     private void handleClientSide(PlayerPositionPacket message) {
         // Data received.
+        double[] xs = message.getX();
+        double[] ys = message.getY();
+        double[] zs = message.getZ();
+        long[] times = message.getTime();
 
-        double x = message.getX();
-        double y = message.getY();
-        double z = message.getZ();
-        long time = message.getTime();
+        PriorityQueue<PlayerPosition> newTasks = new PriorityQueue<>(Comparator.comparingDouble(task -> task.time));
 
-        if (message.firstPacket()) {
+/*        if (message.isFirstPacket()) {
             PlayerTrackerRenderer.clearBuffer();
+        }*/
+
+        for (int i = 0; i < xs.length; i++) {
+            newTasks.add(new PlayerPosition(xs[i], ys[i], zs[i], times[i]));
         }
 
-        PlayerTrackerRenderer.tasks.add(new PlayerPosition(x, y, z, time));
+        PlayerTrackerRenderer.tasks = newTasks;
     }
 }
