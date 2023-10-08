@@ -3,10 +3,11 @@ package com.myname.mymodid;
 import com.myname.mymodid.Commands.QueryEventsCommand;
 import com.myname.mymodid.Commands.TemporaCommand;
 import com.myname.mymodid.Commands.TrackPlayer.TrackPlayerCommand;
+import com.myname.mymodid.Commands.TrackPlayer.TrackPlayerUpdater;
 import com.myname.mymodid.Loggers.*;
 import com.myname.mymodid.Network.TempName;
 import com.myname.mymodid.Network.TempNameHandler;
-import com.myname.mymodid.Rendering.RenderEvent;
+import com.myname.mymodid.Commands.TrackPlayer.PlayerTrackerRenderer;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.SidedProxy;
 import cpw.mods.fml.common.event.*;
@@ -48,7 +49,8 @@ public class Tempora {
         new PlayerMovementLogger();
         new CommandLogger();
 
-        MinecraftForge.EVENT_BUS.register(new RenderEvent());
+
+        MinecraftForge.EVENT_BUS.register(new PlayerTrackerRenderer());
     }
 
     @Mod.EventHandler
@@ -73,7 +75,7 @@ public class Tempora {
 
     @Mod.EventHandler
     public void serverStopping(FMLServerStoppingEvent event) {
-        RenderEvent.clearBuffer();
+        PlayerTrackerRenderer.clearBuffer();
         GenericLogger.onServerClose();
     }
 }

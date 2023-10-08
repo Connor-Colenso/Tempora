@@ -1,7 +1,7 @@
 package com.myname.mymodid.Network;
 
 import com.myname.mymodid.Rendering.PlayerPosition;
-import com.myname.mymodid.Rendering.RenderEvent;
+import com.myname.mymodid.Commands.TrackPlayer.PlayerTrackerRenderer;
 import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import cpw.mods.fml.common.network.simpleimpl.IMessageHandler;
 import cpw.mods.fml.common.network.simpleimpl.MessageContext;
@@ -26,9 +26,9 @@ public class TempNameHandler implements IMessageHandler<TempName, IMessage> {
         long time = message.getTime();
 
         if (message.firstPacket()) {
-            RenderEvent.clearBuffer();
+            PlayerTrackerRenderer.clearBuffer();
         }
 
-        RenderEvent.tasks.add(new PlayerPosition(x, y, z, time));
+        PlayerTrackerRenderer.tasks.add(new PlayerPosition(x, y, z, time));
     }
 }
