@@ -8,6 +8,7 @@ import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ChatComponentText;
 
 import com.myname.mymodid.TemporaUtils;
@@ -37,8 +38,11 @@ public class TrackPlayerCommand extends CommandBase {
     private void queryDatabase(ICommandSender sender, String playerName) {
         try (Connection conn = DriverManager.getConnection(TemporaUtils.databaseDirectory() + "playerMovementEvents.db")) {
 
+            MinecraftServer server = MinecraftServer.getServer();
+            int renderDistance = server.getConfigurationManager().getViewDistance() * 16; // 16 blocks per chunk
+
             final String sql = "SELECT playerName, x, y, z, timestamp FROM PlayerMovementEvents "
-                + "WHERE playerName = ? AND ABS(x - ?) <= 100 AND ABS(y - ?) <= 100 AND ABS(z - ?) <= 100";
+                + "WHERE playerName = ? AND ABS(x - ?) <= " + renderDistance + " AND ABS(y - ?) <= 255 AND ABS(z - ?) <= " + renderDistance;
             PreparedStatement pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, playerName);
             pstmt.setDouble(2, sender.getPlayerCoordinates().posX);
@@ -46,7 +50,7 @@ public class TrackPlayerCommand extends CommandBase {
             pstmt.setDouble(4, sender.getPlayerCoordinates().posZ);
 
             ResultSet rs = pstmt.executeQuery();
-            sender.addChatMessage(new ChatComponentText("Tracking player " + playerName + "."));
+            sender.addChatMessage(new ChatComponentText("Now tracking player " + playerName + ". Run command again to stop tracking."));
 
             // We use this firstPacket info to make sure we know we can clear the client side buffer.
             boolean firstPacket = true;

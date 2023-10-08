@@ -1,6 +1,7 @@
 package com.myname.mymodid;
 
 import com.myname.mymodid.Commands.QueryEventsCommand;
+import com.myname.mymodid.Commands.TemporaCommand;
 import com.myname.mymodid.Commands.TrackPlayerCommand;
 import com.myname.mymodid.Loggers.*;
 import com.myname.mymodid.Network.TempName;
@@ -67,6 +68,7 @@ public class Tempora {
     private void registerNewCommands(FMLServerStartingEvent event) {
         event.registerServerCommand(new QueryEventsCommand());
         event.registerServerCommand(new TrackPlayerCommand());
+        event.registerServerCommand(new TemporaCommand());
     }
 
     @Mod.EventHandler

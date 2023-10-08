@@ -38,6 +38,7 @@ dependencies {
 
     api("org.jetbrains:annotations:23.0.0")
     api("com.github.GTNewHorizons:NotEnoughItems:2.3.50-GTNH:dev")
+    api("com.github.GTNewHorizons:ModularUI:1.1.18:dev")
 
     compileOnly("com.github.GTNewHorizons:Hodgepodge:2.2.5:dev") { transitive = false }
 }
