@@ -1,5 +1,11 @@
 package com.myname.mymodid;
 
+import com.myname.mymodid.Commands.TrackPlayerCommand;
+import com.myname.mymodid.Network.TempName;
+import com.myname.mymodid.Network.TempNameHandler;
+import cpw.mods.fml.common.network.NetworkRegistry;
+import cpw.mods.fml.common.network.simpleimpl.SimpleNetworkWrapper;
+import cpw.mods.fml.relauncher.Side;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -10,11 +16,16 @@ import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.SidedProxy;
 import cpw.mods.fml.common.event.*;
 
+import static com.myname.mymodid.Tags.MODID;
+
 @SuppressWarnings("unused")
-@Mod(modid = Tags.MODID, version = Tags.VERSION, name = Tags.MODNAME, acceptedMinecraftVersions = "[1.7.10]")
+@Mod(modid = MODID, version = Tags.VERSION, name = Tags.MODNAME, acceptedMinecraftVersions = "[1.7.10]")
 public class MyMod {
 
-    public static final Logger LOG = LogManager.getLogger(Tags.MODID);
+    // Define your SimpleNetworkWrapper instance
+    public static final SimpleNetworkWrapper NETWORK = NetworkRegistry.INSTANCE.newSimpleChannel(MODID);
+
+    public static final Logger LOG = LogManager.getLogger(MODID);
 
     @SidedProxy(clientSide = "com.myname.mymodid.ClientProxy", serverSide = "com.myname.mymodid.CommonProxy")
     public static CommonProxy proxy;
@@ -28,6 +39,10 @@ public class MyMod {
 
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
+
+        int packetId = 0; // Start with a unique ID and increment for each new packet type
+        NETWORK.registerMessage(TempNameHandler.class, TempName.class, packetId++, Side.CLIENT);
+
         new BlockBreakLogger();
         new ExplosionLogger();
         new ItemUseLogger();
@@ -51,6 +66,7 @@ public class MyMod {
 
     private void registerNewCommands(FMLServerStartingEvent event) {
         event.registerServerCommand(new QueryEventsCommand());
+        event.registerServerCommand(new TrackPlayerCommand());
     }
 
     @Mod.EventHandler

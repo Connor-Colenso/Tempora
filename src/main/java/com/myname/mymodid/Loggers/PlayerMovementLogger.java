@@ -61,11 +61,7 @@ public class PlayerMovementLogger extends GenericLogger {
     @SuppressWarnings("unused")
     public void onPlayerTick(final @NotNull PlayerTickEvent event) {
         // Events are only logged server side every 5 seconds at the start of a tick.
-        if (isClientSide())  {
-            EntityFX particle = new RedBoxParticle(event.player.worldObj, event.player.posX, event.player.posY, event.player.posZ);
-            Minecraft.getMinecraft().effectRenderer.addEffect(particle);
-            return;
-        }
+        if (isClientSide()) return;
         if (event.phase != TickEvent.Phase.START) return;
 
         // Trigger this tracking every 5 seconds. Todo make this timer changeable in the config.
