@@ -10,19 +10,23 @@ import org.lwjgl.opengl.GL11;
 
 public class RedBoxParticle extends EntityFX {
 
+    double trueX;
+    double trueY;
+    double trueZ;
+
     public RedBoxParticle(World world, double x, double y, double z) {
         super(world, x, y, z);
+        this.trueX = x;
+        this.trueY = y;
+        this.trueZ = z;
         this.particleAlpha = 1.0F;
-        this.particleScale = 0.9F; // Slightly smaller than a block
+        this.particleScale = 0.9F;
     }
 
     @Override
     public int getFXLayer() {
-        return 1; // This means the blocks texture atlas will be used
+        return 1;
     }
-
-
-    // Override other necessary methods if needed
 
     private static final float scale = 0.5f;
 
@@ -31,12 +35,10 @@ public class RedBoxParticle extends EntityFX {
         float rotXY, float rotXZ) {
 
         GL11.glPushMatrix();
-        GL11.glScalef(scale, scale, scale);
-        GL11.glTranslated(x, y-0.5, z);
+        //GL11.glTranslated(x, y, z);
         GL11.glColor3f(1f, 0f, 0f);
-        addRenderedBlockInWorld(Blocks.stone, 0, 0, 0, 0);
+        addRenderedBlockInWorld(Blocks.stone, 0, trueX, trueY, trueZ);
         GL11.glPopMatrix();
-
     }
 
     static final double[] BLOCK_X = { -0.5, -0.5, +0.5, +0.5, +0.5, +0.5, -0.5, -0.5 };
