@@ -2,7 +2,7 @@ package com.myname.mymodid;
 
 import com.myname.mymodid.Commands.QueryEventsCommand;
 import com.myname.mymodid.Commands.TemporaCommand;
-import com.myname.mymodid.Commands.TrackPlayerCommand;
+import com.myname.mymodid.Commands.TrackPlayer.TrackPlayerCommand;
 import com.myname.mymodid.Loggers.*;
 import com.myname.mymodid.Network.TempName;
 import com.myname.mymodid.Network.TempNameHandler;
