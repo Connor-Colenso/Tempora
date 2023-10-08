@@ -7,18 +7,19 @@ public class PlayerPositionPacket implements IMessage {
 
     private double[] x, y, z;
     private long[] time;
-    private boolean firstPacket;
+
+    public boolean firstPacket;
+    public boolean lastPacket;
 
     // A default constructor is necessary for forge's network code to reconstruct the packet on reception.
     @SuppressWarnings("unused")
     public PlayerPositionPacket() {}
 
-    public PlayerPositionPacket(double[] x, double[] y, double[] z, long[] time, boolean firstPacket) {
+    public PlayerPositionPacket(double[] x, double[] y, double[] z, long[] time) {
         this.x = x;
         this.y = y;
         this.z = z;
         this.time = time;
-        this.firstPacket = firstPacket;
     }
 
     @Override
@@ -35,7 +36,9 @@ public class PlayerPositionPacket implements IMessage {
             z[i] = buf.readDouble();
             time[i] = buf.readLong();
         }
+
         firstPacket = buf.readBoolean();
+        lastPacket = buf.readBoolean();
     }
 
     @Override
@@ -47,7 +50,9 @@ public class PlayerPositionPacket implements IMessage {
             buf.writeDouble(z[i]);
             buf.writeLong(time[i]);
         }
+
         buf.writeBoolean(firstPacket);
+        buf.writeBoolean(lastPacket);
     }
 
     public double[] getX() {
@@ -68,6 +73,10 @@ public class PlayerPositionPacket implements IMessage {
 
     public boolean isFirstPacket() {
         return firstPacket;
+    }
+
+    public boolean isLastPacket() {
+        return lastPacket;
     }
 
 }

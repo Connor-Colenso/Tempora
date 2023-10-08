@@ -46,13 +46,19 @@ public class PlayerTrackerUtil {
             boolean firstPacket = true;
             for (int i = 0; i < xs.size(); i += MAX_POINTS_PER_PACKET) {
                 int endIndex = Math.min(i + MAX_POINTS_PER_PACKET, xs.size());
+                boolean lastPacket = endIndex >= xs.size();
+
                 double[] xArray = xs.subList(i, endIndex).stream().mapToDouble(Double::doubleValue).toArray();
                 double[] yArray = ys.subList(i, endIndex).stream().mapToDouble(Double::doubleValue).toArray();
                 double[] zArray = zs.subList(i, endIndex).stream().mapToDouble(Double::doubleValue).toArray();
                 long[] timeArray = timestamps.subList(i, endIndex).stream().mapToLong(Long::longValue).toArray();
 
-                PlayerPositionPacket packet = new PlayerPositionPacket(xArray, yArray, zArray, timeArray, firstPacket);
+                PlayerPositionPacket packet = new PlayerPositionPacket(xArray, yArray, zArray, timeArray);
+                packet.firstPacket = firstPacket;
+                packet.lastPacket = lastPacket;
+
                 Tempora.NETWORK.sendTo(packet, player);
+
                 firstPacket = false;
             }
 
