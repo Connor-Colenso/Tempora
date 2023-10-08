@@ -12,16 +12,19 @@ public class CommonProxy {
     public void preInit(FMLPreInitializationEvent event) {
         Config.synchronizeConfiguration(event.getSuggestedConfigurationFile());
 
-        MyMod.LOG.info(Config.greeting);
-        MyMod.LOG.info("I am " + Tags.MODNAME + " at version " + Tags.VERSION);
+        Tempora.LOG.info(Config.greeting);
+        Tempora.LOG.info("I am " + Tags.MODNAME + " at version " + Tags.VERSION);
     }
 
     // load "Do your mod setup. Build whatever data structures you care about. Register recipes." (Remove if not needed)
+    @SuppressWarnings("unused")
     public void init(FMLInitializationEvent event) {}
 
     // postInit "Handle interaction with other mods, complete your setup based on this." (Remove if not needed)
+    @SuppressWarnings("unused")
     public void postInit(FMLPostInitializationEvent event) {}
 
     // register server commands in this event handler (Remove if not needed)
+    @SuppressWarnings("unused")
     public void serverStarting(FMLServerStartingEvent event) {}
 }
