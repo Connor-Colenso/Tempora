@@ -61,9 +61,9 @@ public class PlayerMovementLogger extends GenericLogger {
         if (event.phase != TickEvent.Phase.START) return;
 
         // Trigger this tracking every 5 seconds. Todo make this timer changeable in the config.
-        if (FMLCommonHandler.instance()
-            .getMinecraftServerInstance()
-            .getTickCounter() % 100 != 0) return;
+//        if (FMLCommonHandler.instance()
+//            .getMinecraftServerInstance()
+//            .getTickCounter() % 100 != 0) return;
 
         // Now we do actual processing of this event.
         if (event.player instanceof EntityPlayerMP) {

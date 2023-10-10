@@ -11,7 +11,7 @@ import java.util.HashMap;
 import static com.myname.mymodid.Commands.HeatMap.HeatMapUtil.queryAndSendDataToPlayer;
 import static com.myname.mymodid.TemporaUtils.isClientSide;
 
-public class TrackPlayerUpdater {
+public class HeatMapUpdater {
 
     // Operator -> Person to be tracked.
     static final HashMap<String, String> trackerList = new HashMap<>();
@@ -20,7 +20,7 @@ public class TrackPlayerUpdater {
         return trackerList.containsKey(OPName);
     }
 
-    public TrackPlayerUpdater() {
+    public HeatMapUpdater() {
         FMLCommonHandler.instance()
             .bus()
             .register(this);

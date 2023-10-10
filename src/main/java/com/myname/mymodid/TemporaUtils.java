@@ -1,6 +1,11 @@
 package com.myname.mymodid;
 
 import java.io.File;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.concurrent.TimeUnit;
 
 import net.minecraft.server.MinecraftServer;
 
@@ -35,5 +40,31 @@ public class TemporaUtils {
 
     public static String defaultDimID() {
         return "999";
+    }
+
+    public static long parseTime(String time) {
+        char timeSpecifier = time.charAt(time.length() - 1);
+        int value = Integer.parseInt(time.substring(0, time.length() - 1));
+
+        return switch (timeSpecifier) {
+            case 's' -> value;
+            case 'm' -> TimeUnit.MINUTES.toSeconds(value);
+            case 'h' -> TimeUnit.HOURS.toSeconds(value);
+            case 'd' -> TimeUnit.DAYS.toSeconds(value);
+            default -> throw new IllegalArgumentException("Invalid time format.");
+            // Needs better handling.
+        };
+    }
+
+    // Todo localise these depending on users date.
+    // Unix epoch in miliseconds -> Date
+    public static String parseUnix(long timestamp) {
+        Instant instant = Instant.ofEpochMilli(timestamp);
+        ZonedDateTime zdt = ZonedDateTime.ofInstant(instant, ZoneId.systemDefault());
+        return zdt.format(DateTimeFormatter.ISO_INSTANT);
+    }
+
+    public static String parseUnix(String timestamp) {
+        return parseUnix(Long.parseLong(timestamp));
     }
 }

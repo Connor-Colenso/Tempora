@@ -9,10 +9,7 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.server.MinecraftServer;
 
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class HeatMapUtil {
 
@@ -42,7 +39,7 @@ public class HeatMapUtil {
             }
 
             // Get the maximum intensity from the map
-            double maxIntensity = pointIntensity.values().stream().mapToDouble(Double::doubleValue).sum();
+            double maxIntensity = Collections.max(pointIntensity.values());
 
             // Normalize each intensity value in the map by the maximum intensity
             pointIntensity.replaceAll((k, v) -> pointIntensity.get(k) / maxIntensity);
@@ -76,7 +73,6 @@ public class HeatMapUtil {
 
                 Tempora.NETWORK.sendTo(packet, operator);
             }
-
 
         } catch (SQLException e) {
             e.printStackTrace();
