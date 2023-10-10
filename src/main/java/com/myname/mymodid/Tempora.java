@@ -1,13 +1,14 @@
 package com.myname.mymodid;
 
+import com.myname.mymodid.Commands.HeatMap.HeatMapCommand;
 import com.myname.mymodid.Commands.QueryEventsCommand;
 import com.myname.mymodid.Commands.TemporaCommand;
 import com.myname.mymodid.Commands.TrackPlayer.TrackPlayerCommand;
 import com.myname.mymodid.Loggers.*;
-import com.myname.mymodid.Network.HeatMapPacket;
-import com.myname.mymodid.Network.HeatMapPacketHandler;
-import com.myname.mymodid.Network.PlayerPositionPacket;
-import com.myname.mymodid.Network.PlayerPositionPacketHandler;
+import com.myname.mymodid.Commands.HeatMap.Network.HeatMapPacket;
+import com.myname.mymodid.Commands.HeatMap.Network.HeatMapPacketHandler;
+import com.myname.mymodid.Commands.TrackPlayer.Network.PlayerPositionPacket;
+import com.myname.mymodid.Commands.TrackPlayer.Network.PlayerPositionPacketHandler;
 import com.myname.mymodid.Commands.TrackPlayer.PlayerTrackerRenderer;
 import com.myname.mymodid.Rendering.RenderInWorldDispatcher;
 import cpw.mods.fml.common.Mod;
@@ -73,6 +74,7 @@ public class Tempora {
     private void registerNewCommands(FMLServerStartingEvent event) {
         event.registerServerCommand(new QueryEventsCommand());
         event.registerServerCommand(new TrackPlayerCommand());
+        event.registerServerCommand(new HeatMapCommand());
         event.registerServerCommand(new TemporaCommand());
     }
 

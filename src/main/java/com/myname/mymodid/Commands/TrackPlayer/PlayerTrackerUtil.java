@@ -1,6 +1,6 @@
 package com.myname.mymodid.Commands.TrackPlayer;
 
-import com.myname.mymodid.Network.PlayerPositionPacket;
+import com.myname.mymodid.Commands.TrackPlayer.Network.PlayerPositionPacket;
 import com.myname.mymodid.Tempora;
 import com.myname.mymodid.TemporaUtils;
 import net.minecraft.command.ICommandSender;

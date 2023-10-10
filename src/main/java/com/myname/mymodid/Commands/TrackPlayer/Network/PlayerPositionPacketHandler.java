@@ -1,4 +1,4 @@
-package com.myname.mymodid.Network;
+package com.myname.mymodid.Commands.TrackPlayer.Network;
 
 import com.myname.mymodid.Commands.TrackPlayer.PlayerTrackerRenderer;
 import cpw.mods.fml.common.network.simpleimpl.IMessage;

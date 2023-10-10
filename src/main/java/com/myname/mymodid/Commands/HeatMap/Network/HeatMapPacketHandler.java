@@ -1,7 +1,6 @@
-package com.myname.mymodid.Network;
+package com.myname.mymodid.Commands.HeatMap.Network;
 
 import com.myname.mymodid.Commands.HeatMap.HeatMapRenderer;
-import com.myname.mymodid.Commands.TrackPlayer.PlayerTrackerRenderer;
 import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import cpw.mods.fml.common.network.simpleimpl.IMessageHandler;
 import cpw.mods.fml.common.network.simpleimpl.MessageContext;

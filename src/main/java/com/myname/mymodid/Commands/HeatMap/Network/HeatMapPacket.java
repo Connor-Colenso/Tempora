@@ -1,4 +1,4 @@
-package com.myname.mymodid.Network;
+package com.myname.mymodid.Commands.HeatMap.Network;
 
 import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import io.netty.buffer.ByteBuf;
@@ -7,15 +7,6 @@ public class HeatMapPacket implements IMessage {
 
     private int[] x, y, z;
     private double[] intensity;
-
-    public boolean isFirstPacket() {
-        return firstPacket;
-    }
-
-    public boolean isLastPacket() {
-        return lastPacket;
-    }
-
     private boolean firstPacket, lastPacket;
 
     // A default constructor is necessary for forge's network code to reconstruct the packet on reception.
@@ -38,12 +29,17 @@ public class HeatMapPacket implements IMessage {
         x = new int[length];
         y = new int[length];
         z = new int[length];
+        intensity = new double[length];
 
         for (int i = 0; i < length; i++) {
             x[i] = buf.readInt();
             y[i] = buf.readInt();
             z[i] = buf.readInt();
+            intensity[i] = buf.readDouble();
         }
+
+        firstPacket = buf.readBoolean();
+        lastPacket = buf.readBoolean();
     }
 
     @Override
@@ -56,6 +52,9 @@ public class HeatMapPacket implements IMessage {
             buf.writeInt(z[i]);
             buf.writeDouble(intensity[i]);
         }
+
+        buf.writeBoolean(firstPacket);
+        buf.writeBoolean(lastPacket);
     }
 
     public int[] getX() {
@@ -73,5 +72,14 @@ public class HeatMapPacket implements IMessage {
     public double[] getIntensity() {
         return intensity;
     }
+
+    public boolean isFirstPacket() {
+        return firstPacket;
+    }
+
+    public boolean isLastPacket() {
+        return lastPacket;
+    }
+
 
 }
