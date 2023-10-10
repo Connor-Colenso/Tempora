@@ -1,6 +1,7 @@
 package com.myname.mymodid;
 
 import com.myname.mymodid.Commands.HeatMap.HeatMapCommand;
+import com.myname.mymodid.Commands.LastInDimension;
 import com.myname.mymodid.Commands.QueryEventsCommand;
 import com.myname.mymodid.Commands.TemporaCommand;
 import com.myname.mymodid.Commands.TrackPlayer.TrackPlayerCommand;
@@ -76,6 +77,7 @@ public class Tempora {
         event.registerServerCommand(new TrackPlayerCommand());
         event.registerServerCommand(new HeatMapCommand());
         event.registerServerCommand(new TemporaCommand());
+        event.registerServerCommand(new LastInDimension());
     }
 
     @Mod.EventHandler

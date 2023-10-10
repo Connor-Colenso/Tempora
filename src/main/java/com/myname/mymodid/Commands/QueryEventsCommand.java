@@ -14,6 +14,8 @@ import net.minecraft.world.World;
 
 import com.myname.mymodid.TemporaUtils;
 
+import static com.myname.mymodid.TemporaUtils.parseTime;
+
 public class QueryEventsCommand extends CommandBase {
 
     @Override
@@ -38,19 +40,6 @@ public class QueryEventsCommand extends CommandBase {
         queryDatabase(sender, radius, seconds);
     }
 
-    private long parseTime(String time) {
-        char timeSpecifier = time.charAt(time.length() - 1);
-        int value = Integer.parseInt(time.substring(0, time.length() - 1));
-
-        return switch (timeSpecifier) {
-            case 's' -> value;
-            case 'm' -> TimeUnit.MINUTES.toSeconds(value);
-            case 'h' -> TimeUnit.HOURS.toSeconds(value);
-            case 'd' -> TimeUnit.DAYS.toSeconds(value);
-            default -> throw new IllegalArgumentException("Invalid time format.");
-            // Needs better handling.
-        };
-    }
 
     private void queryDatabase(ICommandSender sender, int radius, long seconds) {
         try (Connection conn = DriverManager.getConnection(TemporaUtils.databaseDirectory() + "blockBreakEvents.db")) {

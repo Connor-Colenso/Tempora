@@ -26,7 +26,7 @@ public class HeatMapCommand extends CommandBase {
         String playerName = args[0];
         sender.addChatMessage(new ChatComponentText("Now tracking player " + playerName + " with heatmap. Run command again to stop tracking."));
         HeatMapUtil.queryAndSendDataToPlayer(sender, playerName);
-        TrackPlayerUpdater.addTracking(sender.getCommandSenderName(), playerName);
+        HeatMapUpdater.addTracking(sender.getCommandSenderName(), playerName);
     }
 
     @Override
