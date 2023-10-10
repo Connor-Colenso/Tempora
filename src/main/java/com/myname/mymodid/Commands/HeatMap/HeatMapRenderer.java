@@ -28,17 +28,21 @@ public class HeatMapRenderer {
         Tessellator tessellator = Tessellator.instance;
         tessellator.startDrawingQuads();
 
-        //GL11.glTranslated(0.5, 0.5, 0.5);
+        GL11.glTranslated(0.5, 0.5, 0.5);
+        GL11.glEnable(GL11.GL_BLEND);
+        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 
         // Draw actual blocks
         for (HeatMapPacketHandler.PlayerPostion postion : tasks) {
             GL11.glPushMatrix();
-            GL11.glColor4f(1.0F, 0.0F, 0.0F, 1.0f);
+            GL11.glColor4f(1.0F, 0.0F, 0.0F, (float) Math.max(postion.getIntensity(), 0.3));
             addRenderedBlockInWorld(Blocks.stone, 0, postion.getX(), postion.getY(), postion.getZ());
             GL11.glPopMatrix();
         }
 
         tessellator.draw();
+
+        GL11.glDisable(GL11.GL_BLEND);
 
         GL11.glPopMatrix();
     }
