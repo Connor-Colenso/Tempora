@@ -7,6 +7,7 @@ import com.myname.mymodid.Loggers.*;
 import com.myname.mymodid.Network.PlayerPositionPacket;
 import com.myname.mymodid.Network.PlayerPositionPacketHandler;
 import com.myname.mymodid.Commands.TrackPlayer.PlayerTrackerRenderer;
+import com.myname.mymodid.Rendering.RenderInWorldDispatcher;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.SidedProxy;
 import cpw.mods.fml.common.event.*;
@@ -49,7 +50,7 @@ public class Tempora {
         new CommandLogger();
 
 
-        MinecraftForge.EVENT_BUS.register(new PlayerTrackerRenderer());
+        MinecraftForge.EVENT_BUS.register(new RenderInWorldDispatcher());
     }
 
     @Mod.EventHandler
