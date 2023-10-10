@@ -5,7 +5,7 @@ import io.netty.buffer.ByteBuf;
 
 public class PlayerPositionPacket implements IMessage {
 
-    private int[] x, y, z;
+    private double[] x, y, z;
     private long[] time;
 
     public boolean firstPacket;
@@ -14,7 +14,7 @@ public class PlayerPositionPacket implements IMessage {
     // A default constructor is necessary for forge's network code to reconstruct the packet on reception.
     public PlayerPositionPacket() {}
 
-    public PlayerPositionPacket(int[] x, int[] y, int[] z, long[] time, boolean firstPacket, boolean lastPacket) {
+    public PlayerPositionPacket(double[] x, double[] y, double[] z, long[] time, boolean firstPacket, boolean lastPacket) {
         this.x = x;
         this.y = y;
         this.z = z;
@@ -26,15 +26,15 @@ public class PlayerPositionPacket implements IMessage {
     @Override
     public void fromBytes(ByteBuf buf) {
         int length = buf.readInt();
-        x = new int[length];
-        y = new int[length];
-        z = new int[length];
+        x = new double[length];
+        y = new double[length];
+        z = new double[length];
         time = new long[length];
 
         for (int i = 0; i < length; i++) {
-            x[i] = buf.readInt();
-            y[i] = buf.readInt();
-            z[i] = buf.readInt();
+            x[i] = buf.readDouble();
+            y[i] = buf.readDouble();
+            z[i] = buf.readDouble();
             time[i] = buf.readLong();
         }
 
@@ -46,9 +46,9 @@ public class PlayerPositionPacket implements IMessage {
     public void toBytes(ByteBuf buf) {
         buf.writeInt(x.length);
         for (int i = 0; i < x.length; i++) {
-            buf.writeInt(x[i]);
-            buf.writeInt(y[i]);
-            buf.writeInt(z[i]);
+            buf.writeDouble(x[i]);
+            buf.writeDouble(y[i]);
+            buf.writeDouble(z[i]);
             buf.writeLong(time[i]);
         }
 
@@ -56,15 +56,15 @@ public class PlayerPositionPacket implements IMessage {
         buf.writeBoolean(lastPacket);
     }
 
-    public int[] getX() {
+    public double[] getX() {
         return x;
     }
 
-    public int[] getY() {
+    public double[] getY() {
         return y;
     }
 
-    public int[] getZ() {
+    public double[] getZ() {
         return z;
     }
 

@@ -2,7 +2,7 @@ package com.myname.mymodid.Rendering;
 
 public class PlayerPosition {
 
-    public PlayerPosition(int x, int y, int z, long time) {
+    public PlayerPosition(double x, double y, double z, long time) {
         this.x = x;
         this.y = y;
         this.z = z;
@@ -10,8 +10,8 @@ public class PlayerPosition {
     }
 
     public long time;
-    public int x;
-    public int y;
-    public int z;
+    public double x;
+    public double y;
+    public double z;
 
 }

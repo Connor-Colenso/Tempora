@@ -24,9 +24,9 @@ public class PlayerPositionPacketHandler implements IMessageHandler<PlayerPositi
 
     private void handleClientSide(PlayerPositionPacket message) {
         // Data received.
-        int[] xs = message.getX();
-        int[] ys = message.getY();
-        int[] zs = message.getZ();
+        double[] xs = message.getX();
+        double[] ys = message.getY();
+        double[] zs = message.getZ();
         long[] times = message.getTime();
 
         // This seems a bit convoluted but exists for two reaosns.
