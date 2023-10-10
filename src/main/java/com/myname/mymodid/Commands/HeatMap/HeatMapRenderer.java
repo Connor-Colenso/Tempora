@@ -33,7 +33,7 @@ public class HeatMapRenderer {
         // Draw actual blocks
         for (HeatMapPacketHandler.PlayerPostion postion : tasks) {
             GL11.glPushMatrix();
-            GL11.glColor4f(1.0F, 0.0F, 0.0F, (float) postion.getIntensity());
+            GL11.glColor4f(1.0F, 0.0F, 0.0F, 1.0f);
             addRenderedBlockInWorld(Blocks.stone, 0, postion.getX(), postion.getY(), postion.getZ());
             GL11.glPopMatrix();
         }
