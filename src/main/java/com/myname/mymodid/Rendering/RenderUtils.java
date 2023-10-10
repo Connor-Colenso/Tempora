@@ -13,16 +13,6 @@ public abstract class RenderUtils {
     static final double[] BLOCK_Y = { +0.5, -0.5, -0.5, +0.5, +0.5, -0.5, -0.5, +0.5 };
     static final double[] BLOCK_Z = { +0.5, +0.5, +0.5, +0.5, -0.5, -0.5, -0.5, -0.5 };
 
-
-/*    private void renderBlocksAtPositions(List<PlayerPosition> positions) {
-        Tessellator.instance.startDrawingQuads();
-        for (PlayerPosition position : positions) {
-            addRenderedBlockInWorld(Blocks.stone, 0, position.x, position.y + 1f
-                , position.z);
-        }
-        Tessellator.instance.draw();
-    }*/
-
     public static void addRenderedBlockInWorld(final Block block, final int meta, final double x, final double y,
                                                final double z) {
         final Tessellator tes = Tessellator.instance;

@@ -1,6 +1,5 @@
 package com.myname.mymodid.Network;
 
-import com.myname.mymodid.Rendering.PlayerPosition;
 import com.myname.mymodid.Commands.TrackPlayer.PlayerTrackerRenderer;
 import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import cpw.mods.fml.common.network.simpleimpl.IMessageHandler;
@@ -44,5 +43,21 @@ public class PlayerPositionPacketHandler implements IMessageHandler<PlayerPositi
         if (message.lastPacket) {
             PlayerTrackerRenderer.tasks = newTasks;
         }
+    }
+
+    public static class PlayerPosition {
+
+        public PlayerPosition(double x, double y, double z, long time) {
+            this.x = x;
+            this.y = y;
+            this.z = z;
+            this.time = time;
+        }
+
+        public long time;
+        public double x;
+        public double y;
+        public double z;
+
     }
 }

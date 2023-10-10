@@ -5,16 +5,16 @@ import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
 import net.minecraft.util.ChatComponentText;
 
-public class TrackPlayerCommand extends CommandBase {
+public class HeatMapCommand extends CommandBase {
 
     @Override
     public String getCommandName() {
-        return "trackplayer";
+        return "heatmap";
     }
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/trackplayer <name>";
+        return "/heatmap <name>";
     }
 
     @Override
@@ -24,8 +24,8 @@ public class TrackPlayerCommand extends CommandBase {
         }
 
         String playerName = args[0];
-        sender.addChatMessage(new ChatComponentText("Now tracking player " + playerName + ". Run command again to stop tracking."));
-        PlayerTrackerUtil.queryAndSendDataToPlayer(sender, playerName);
+        sender.addChatMessage(new ChatComponentText("Now tracking player " + playerName + " with heatmap. Run command again to stop tracking."));
+        HeatMapUtil.queryAndSendDataToPlayer(sender, playerName);
         TrackPlayerUpdater.addTracking(sender.getCommandSenderName(), playerName);
     }
 

@@ -1,15 +1,15 @@
-package com.myname.mymodid.Utils;
+package com.myname.mymodid.Commands.TrackPlayer;
+
+import com.myname.mymodid.Network.PlayerPositionPacket;
+import com.myname.mymodid.Tempora;
+import com.myname.mymodid.TemporaUtils;
+import net.minecraft.command.ICommandSender;
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.server.MinecraftServer;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
-
-import com.myname.mymodid.TemporaUtils;
-import net.minecraft.command.ICommandSender;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.entity.player.EntityPlayerMP;
-import com.myname.mymodid.Network.PlayerPositionPacket;
-import com.myname.mymodid.Tempora;
 
 public class PlayerTrackerUtil {
 
