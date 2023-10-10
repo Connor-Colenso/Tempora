@@ -13,15 +13,13 @@ import java.util.PriorityQueue;
 
 public class PlayerTrackerRenderer {
 
-    public static PriorityQueue<PlayerPosition> tasks = new PriorityQueue<>(Comparator.comparingDouble(task -> task.time));
+    public static PriorityQueue<PlayerPosition> tasks = new PriorityQueue<>(Comparator.comparingLong(task -> task.time));
 
     public static void clearBuffer() {
         tasks.clear();
     }
 
-    @SubscribeEvent
-    @SuppressWarnings("unused")
-    public void onRenderWorldLast(RenderWorldLastEvent event) {
+    public static void renderInWorld(RenderWorldLastEvent event) {
         Minecraft mc = Minecraft.getMinecraft();
         double playerX = mc.thePlayer.lastTickPosX + (mc.thePlayer.posX - mc.thePlayer.lastTickPosX) * event.partialTicks;
         double playerY = mc.thePlayer.lastTickPosY + (mc.thePlayer.posY - mc.thePlayer.lastTickPosY) * event.partialTicks;
@@ -46,7 +44,7 @@ public class PlayerTrackerRenderer {
         tasks.addAll(tempList);
     }
 
-    private void renderLinesConnectingPositions(List<PlayerPosition> positions) {
+    private static void renderLinesConnectingPositions(List<PlayerPosition> positions) {
         GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
         GL11.glPushMatrix();
 
@@ -65,7 +63,7 @@ public class PlayerTrackerRenderer {
             float red = 1.0f - ratio;
 
             GL11.glColor4f(red, ratio, 0.0F, 1.0F);
-            GL11.glVertex3d(position.x, position.y + 1f, position.z);
+            GL11.glVertex3d(position.x, position.y + 1, position.z);
         }
 
         GL11.glEnd();

@@ -33,9 +33,9 @@ public class PlayerMovementLogger extends GenericLogger {
             conn = DriverManager.getConnection(databaseURL());
             final String sql = "CREATE TABLE IF NOT EXISTS PlayerMovementEvents ("
                 + "playerName TEXT NOT NULL,"
-                + "x REAL NOT NULL,"
-                + "y REAL NOT NULL,"
-                + "z REAL NOT NULL,"
+                + "x INTEGER NOT NULL,"
+                + "y INTEGER NOT NULL,"
+                + "z INTEGER NOT NULL,"
                 + "dimensionID INTEGER DEFAULT " + TemporaUtils.defaultDimID() + ","
                 + "timestamp BIGINT DEFAULT 0"
                 + ");";
@@ -71,9 +71,9 @@ public class PlayerMovementLogger extends GenericLogger {
                 final String sql = "INSERT INTO PlayerMovementEvents(playerName, x, y, z, dimensionID, timestamp) VALUES(?, ?, ?, ?, ?, ?)";
                 final PreparedStatement pstmt = conn.prepareStatement(sql);
                 pstmt.setString(1, event.player.getDisplayName());
-                pstmt.setDouble(2, event.player.posX);
-                pstmt.setDouble(3, event.player.posY);
-                pstmt.setDouble(4, event.player.posZ);
+                pstmt.setInt(2, (int) Math.round(event.player.posX));
+                pstmt.setInt(3, (int) Math.round(event.player.posY));
+                pstmt.setInt(4, (int) Math.round(event.player.posZ));
                 pstmt.setInt(5, event.player.worldObj.provider.dimensionId);
                 pstmt.setLong(6, System.currentTimeMillis());  // Set the timestamp with millisecond precision
                 pstmt.executeUpdate();

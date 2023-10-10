@@ -5,35 +5,36 @@ import io.netty.buffer.ByteBuf;
 
 public class PlayerPositionPacket implements IMessage {
 
-    private double[] x, y, z;
+    private int[] x, y, z;
     private long[] time;
 
     public boolean firstPacket;
     public boolean lastPacket;
 
     // A default constructor is necessary for forge's network code to reconstruct the packet on reception.
-    @SuppressWarnings("unused")
     public PlayerPositionPacket() {}
 
-    public PlayerPositionPacket(double[] x, double[] y, double[] z, long[] time) {
+    public PlayerPositionPacket(int[] x, int[] y, int[] z, long[] time, boolean firstPacket, boolean lastPacket) {
         this.x = x;
         this.y = y;
         this.z = z;
         this.time = time;
+        this.firstPacket = firstPacket;
+        this.lastPacket = lastPacket;
     }
 
     @Override
     public void fromBytes(ByteBuf buf) {
         int length = buf.readInt();
-        x = new double[length];
-        y = new double[length];
-        z = new double[length];
+        x = new int[length];
+        y = new int[length];
+        z = new int[length];
         time = new long[length];
 
         for (int i = 0; i < length; i++) {
-            x[i] = buf.readDouble();
-            y[i] = buf.readDouble();
-            z[i] = buf.readDouble();
+            x[i] = buf.readInt();
+            y[i] = buf.readInt();
+            z[i] = buf.readInt();
             time[i] = buf.readLong();
         }
 
@@ -43,11 +44,11 @@ public class PlayerPositionPacket implements IMessage {
 
     @Override
     public void toBytes(ByteBuf buf) {
-        buf.writeInt(x.length); // assuming x, y, z, and time all have the same length
+        buf.writeInt(x.length);
         for (int i = 0; i < x.length; i++) {
-            buf.writeDouble(x[i]);
-            buf.writeDouble(y[i]);
-            buf.writeDouble(z[i]);
+            buf.writeInt(x[i]);
+            buf.writeInt(y[i]);
+            buf.writeInt(z[i]);
             buf.writeLong(time[i]);
         }
 
@@ -55,28 +56,20 @@ public class PlayerPositionPacket implements IMessage {
         buf.writeBoolean(lastPacket);
     }
 
-    public double[] getX() {
+    public int[] getX() {
         return x;
     }
 
-    public double[] getY() {
+    public int[] getY() {
         return y;
     }
 
-    public double[] getZ() {
+    public int[] getZ() {
         return z;
     }
 
     public long[] getTime() {
         return time;
-    }
-
-    public boolean isFirstPacket() {
-        return firstPacket;
-    }
-
-    public boolean isLastPacket() {
-        return lastPacket;
     }
 
 }
