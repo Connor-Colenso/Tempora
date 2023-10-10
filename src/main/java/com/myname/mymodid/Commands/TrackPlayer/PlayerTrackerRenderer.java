@@ -1,7 +1,6 @@
 package com.myname.mymodid.Commands.TrackPlayer;
 
-import com.myname.mymodid.Rendering.PlayerPosition;
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import com.myname.mymodid.Network.PlayerPositionPacketHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import org.lwjgl.opengl.GL11;
@@ -13,7 +12,7 @@ import java.util.PriorityQueue;
 
 public class PlayerTrackerRenderer {
 
-    public static PriorityQueue<PlayerPosition> tasks = new PriorityQueue<>(Comparator.comparingLong(task -> task.time));
+    public static PriorityQueue<PlayerPositionPacketHandler.PlayerPosition> tasks = new PriorityQueue<>(Comparator.comparingLong(task -> task.time));
 
     public static void clearBuffer() {
         tasks.clear();
@@ -25,7 +24,7 @@ public class PlayerTrackerRenderer {
         double playerY = mc.thePlayer.lastTickPosY + (mc.thePlayer.posY - mc.thePlayer.lastTickPosY) * event.partialTicks;
         double playerZ = mc.thePlayer.lastTickPosZ + (mc.thePlayer.posZ - mc.thePlayer.lastTickPosZ) * event.partialTicks;
 
-        List<PlayerPosition> tempList = new ArrayList<>();
+        List<PlayerPositionPacketHandler.PlayerPosition> tempList = new ArrayList<>();
 
         // Retrieve positions in their priority order
         while (!tasks.isEmpty()) {
@@ -44,7 +43,7 @@ public class PlayerTrackerRenderer {
         tasks.addAll(tempList);
     }
 
-    private static void renderLinesConnectingPositions(List<PlayerPosition> positions) {
+    private static void renderLinesConnectingPositions(List<PlayerPositionPacketHandler.PlayerPosition> positions) {
         GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
         GL11.glPushMatrix();
 
@@ -56,7 +55,7 @@ public class PlayerTrackerRenderer {
 
         int size = positions.size();
         for (int i = 0; i < size; i++) {
-            PlayerPosition position = positions.get(i);
+            PlayerPositionPacketHandler.PlayerPosition position = positions.get(i);
 
             // Calculate color based on the index.
             float ratio = (float) i / (float) size;

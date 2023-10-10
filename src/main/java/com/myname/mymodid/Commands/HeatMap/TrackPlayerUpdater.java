@@ -8,8 +8,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 
+import static com.myname.mymodid.Commands.HeatMap.HeatMapUtil.queryAndSendDataToPlayer;
 import static com.myname.mymodid.TemporaUtils.isClientSide;
-import static com.myname.mymodid.Utils.PlayerTrackerUtil.queryAndSendDataToPlayer;
 
 public class TrackPlayerUpdater {
 

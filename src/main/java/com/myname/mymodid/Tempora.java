@@ -4,6 +4,8 @@ import com.myname.mymodid.Commands.QueryEventsCommand;
 import com.myname.mymodid.Commands.TemporaCommand;
 import com.myname.mymodid.Commands.TrackPlayer.TrackPlayerCommand;
 import com.myname.mymodid.Loggers.*;
+import com.myname.mymodid.Network.HeatMapPacket;
+import com.myname.mymodid.Network.HeatMapPacketHandler;
 import com.myname.mymodid.Network.PlayerPositionPacket;
 import com.myname.mymodid.Network.PlayerPositionPacketHandler;
 import com.myname.mymodid.Commands.TrackPlayer.PlayerTrackerRenderer;
@@ -42,6 +44,7 @@ public class Tempora {
     public void init(FMLInitializationEvent event) {
 
         NETWORK.registerMessage(PlayerPositionPacketHandler.class, PlayerPositionPacket.class, 0, Side.CLIENT);
+        NETWORK.registerMessage(HeatMapPacketHandler.class, HeatMapPacket.class, 1, Side.CLIENT);
 
         new BlockBreakLogger();
         new ExplosionLogger();
