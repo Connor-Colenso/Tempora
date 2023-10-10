@@ -8,6 +8,7 @@ import cpw.mods.fml.common.gameevent.PlayerEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.common.gameevent.TickEvent.PlayerTickEvent;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.Connection;
@@ -18,6 +19,12 @@ import java.sql.SQLException;
 import static com.myname.mymodid.TemporaUtils.isClientSide;
 
 public class PlayerMovementLogger extends GenericLogger {
+
+    // This class logs three items to the same database.
+    // 1. Player movement every n ticks. By default, n = 100 ticks.
+    // 2. Player teleporation between dimensions. Prevents users from evading the above detector by switching dims very quickly.
+    // 3. Player login, prevents the user from being logged into a dimension and quickly switching dims, this would cause the dimension
+    //    to load, which we want to keep track of.
 
     public PlayerMovementLogger() {
         new TrackPlayerUpdater();
@@ -79,6 +86,16 @@ public class PlayerMovementLogger extends GenericLogger {
 
         saveData(player);
     }
+
+    @SubscribeEvent
+    @SuppressWarnings("unused")
+    public void onEntityJoinWorld(EntityJoinWorldEvent event) {
+        if (isClientSide()) return;
+        if (!(event.entity instanceof EntityPlayerMP player)) return;
+
+        saveData(player);
+    }
+
 
     private void saveData(final EntityPlayerMP player) {
         try {
