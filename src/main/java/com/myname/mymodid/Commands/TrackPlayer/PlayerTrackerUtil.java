@@ -29,15 +29,15 @@ public class PlayerTrackerUtil {
 
             ResultSet rs = pstmt.executeQuery();
 
-            List<Integer> xs = new ArrayList<>();
-            List<Integer> ys = new ArrayList<>();
-            List<Integer> zs = new ArrayList<>();
+            List<Double> xs = new ArrayList<>();
+            List<Double> ys = new ArrayList<>();
+            List<Double> zs = new ArrayList<>();
             List<Long> timestamps = new ArrayList<>();
 
             while (rs.next()) {
-                xs.add(rs.getInt("x"));
-                ys.add(rs.getInt("y"));
-                zs.add(rs.getInt("z"));
+                xs.add(rs.getDouble("x"));
+                ys.add(rs.getDouble("y"));
+                zs.add(rs.getDouble("z"));
                 timestamps.add(rs.getLong("timestamp"));
             }
 
@@ -48,9 +48,9 @@ public class PlayerTrackerUtil {
                 int endIndex = Math.min(i + MAX_POINTS_PER_PACKET, xs.size());
                 boolean lastPacket = endIndex == xs.size();
 
-                int[] xArray = xs.subList(i, endIndex).stream().mapToInt(Integer::intValue).toArray();
-                int[] yArray = ys.subList(i, endIndex).stream().mapToInt(Integer::intValue).toArray();
-                int[] zArray = zs.subList(i, endIndex).stream().mapToInt(Integer::intValue).toArray();
+                double[] xArray = xs.subList(i, endIndex).stream().mapToDouble(Double::doubleValue).toArray();
+                double[] yArray = ys.subList(i, endIndex).stream().mapToDouble(Double::doubleValue).toArray();
+                double[] zArray = zs.subList(i, endIndex).stream().mapToDouble(Double::doubleValue).toArray();
                 long[] timeArray = timestamps.subList(i, endIndex).stream().mapToLong(Long::longValue).toArray();
 
                 PlayerPositionPacket packet = new PlayerPositionPacket(xArray, yArray, zArray, timeArray, firstPacket, lastPacket);
