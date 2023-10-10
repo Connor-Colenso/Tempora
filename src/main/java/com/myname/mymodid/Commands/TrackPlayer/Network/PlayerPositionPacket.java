@@ -1,4 +1,4 @@
-package com.myname.mymodid.Network;
+package com.myname.mymodid.Commands.TrackPlayer.Network;
 
 import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import io.netty.buffer.ByteBuf;

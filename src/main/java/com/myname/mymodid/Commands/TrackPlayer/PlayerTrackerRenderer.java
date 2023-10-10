@@ -1,6 +1,6 @@
 package com.myname.mymodid.Commands.TrackPlayer;
 
-import com.myname.mymodid.Network.PlayerPositionPacketHandler;
+import com.myname.mymodid.Commands.TrackPlayer.Network.PlayerPositionPacketHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import org.lwjgl.opengl.GL11;

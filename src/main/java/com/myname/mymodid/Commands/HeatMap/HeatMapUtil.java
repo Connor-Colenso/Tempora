@@ -1,19 +1,18 @@
 package com.myname.mymodid.Commands.HeatMap;
 
 import codechicken.lib.vec.BlockCoord;
-import com.myname.mymodid.Network.HeatMapPacket;
-import com.myname.mymodid.Network.PlayerPositionPacket;
+import com.myname.mymodid.Commands.HeatMap.Network.HeatMapPacket;
 import com.myname.mymodid.Tempora;
 import com.myname.mymodid.TemporaUtils;
-import net.minecraft.block.Block;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.server.MinecraftServer;
-import scala.Int;
 
-import javax.vecmath.Vector3d;
 import java.sql.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class HeatMapUtil {
 
