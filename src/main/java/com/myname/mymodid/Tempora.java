@@ -3,8 +3,8 @@ package com.myname.mymodid;
 import com.myname.mymodid.Commands.HeatMap.HeatMapCommand;
 import com.myname.mymodid.Commands.LastInDimension;
 import com.myname.mymodid.Commands.QueryEventsCommand;
-import com.myname.mymodid.Commands.TemporaCommand;
 import com.myname.mymodid.Commands.TrackPlayer.TrackPlayerCommand;
+import com.myname.mymodid.Items.TemporaScannerItem;
 import com.myname.mymodid.Loggers.*;
 import com.myname.mymodid.Commands.HeatMap.Network.HeatMapPacket;
 import com.myname.mymodid.Commands.HeatMap.Network.HeatMapPacketHandler;
@@ -17,6 +17,7 @@ import cpw.mods.fml.common.SidedProxy;
 import cpw.mods.fml.common.event.*;
 import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.network.simpleimpl.SimpleNetworkWrapper;
+import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.relauncher.Side;
 import net.minecraftforge.common.MinecraftForge;
 import org.apache.logging.log4j.LogManager;
@@ -38,7 +39,7 @@ public class Tempora {
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {
         Config.synchronizeConfiguration(event.getSuggestedConfigurationFile());
-
+        GameRegistry.registerItem(new TemporaScannerItem(), "tempora_scanner");
         Tempora.LOG.info("I am " + Tags.MODNAME + " at version " + Tags.VERSION);
     }
 
@@ -71,7 +72,6 @@ public class Tempora {
         event.registerServerCommand(new QueryEventsCommand());
         event.registerServerCommand(new TrackPlayerCommand());
         event.registerServerCommand(new HeatMapCommand());
-        event.registerServerCommand(new TemporaCommand());
         event.registerServerCommand(new LastInDimension());
     }
 
