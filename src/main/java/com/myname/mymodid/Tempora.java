@@ -53,7 +53,7 @@ public class Tempora {
         new ItemUseLogger();
         new PlayerMovementLogger();
         new CommandLogger();
-
+        new EntityLogger();
 
         MinecraftForge.EVENT_BUS.register(new RenderInWorldDispatcher());
     }
