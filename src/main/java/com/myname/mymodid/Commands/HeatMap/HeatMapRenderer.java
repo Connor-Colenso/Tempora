@@ -45,7 +45,7 @@ public class HeatMapRenderer {
             // Translate by half of the block, scale, and translate back
             GL11.glTranslated(0.5, 0.5, 0.5);
             GL11.glScalef(0.5f, 0.5f ,0.5f);
-            GL11.glTranslated(-0.5, -0.5, -0.5);
+            GL11.glTranslated(-2, 0, -2);
 
             GL11.glColor4f(1.0F, 0.0F, 0.0F, (float) Math.max(position.getIntensity(), 0.3));
 
