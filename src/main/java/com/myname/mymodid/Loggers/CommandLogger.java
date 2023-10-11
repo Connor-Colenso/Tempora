@@ -1,6 +1,7 @@
 package com.myname.mymodid.Loggers;
 
 import com.myname.mymodid.TemporaUtils;
+import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import net.minecraft.command.ICommand;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -44,7 +45,7 @@ public class CommandLogger extends GenericLogger {
         return TemporaUtils.databaseDirectory() + "commandLogger.db";
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.LOWEST)
     @SuppressWarnings("unused")
     public void onCommand(final CommandEvent event) {
         // Server side only.

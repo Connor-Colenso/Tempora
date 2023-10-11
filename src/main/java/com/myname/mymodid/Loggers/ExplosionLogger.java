@@ -7,6 +7,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
+import cpw.mods.fml.common.eventhandler.EventPriority;
 import net.minecraft.entity.Entity;
 import net.minecraft.world.World;
 import net.minecraftforge.event.world.ExplosionEvent;
@@ -46,7 +47,7 @@ public class ExplosionLogger extends GenericLogger {
         return TemporaUtils.databaseDirectory() + "explosionEvents.db";
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.LOWEST)
     @SuppressWarnings("unused")
     public void onExplosion(final @NotNull ExplosionEvent.Detonate event) {
         // Server side only.

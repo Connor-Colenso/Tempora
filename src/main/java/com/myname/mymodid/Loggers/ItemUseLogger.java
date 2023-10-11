@@ -7,6 +7,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
+import cpw.mods.fml.common.eventhandler.EventPriority;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
@@ -49,7 +50,7 @@ public class ItemUseLogger extends GenericLogger {
         return TemporaUtils.databaseDirectory() + "itemUseEvents.db";
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.LOWEST)
     @SuppressWarnings("unused")
     public void onItemInteract(final @NotNull PlayerInteractEvent event) {
         // Server side only.
@@ -61,7 +62,7 @@ public class ItemUseLogger extends GenericLogger {
         }
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.LOWEST)
     @SuppressWarnings("unused")
     public void onItemUseStart(final @NotNull PlayerUseItemEvent.Start event) {
         logItemUse(event.entityPlayer);

@@ -1,5 +1,6 @@
 package com.myname.mymodid.Loggers;
 
+import com.myname.mymodid.Commands.HeatMap.HeatMapUpdater;
 import com.myname.mymodid.Commands.TrackPlayer.TrackPlayerUpdater;
 import com.myname.mymodid.TemporaUtils;
 import cpw.mods.fml.common.FMLCommonHandler;
@@ -28,6 +29,7 @@ public class PlayerMovementLogger extends GenericLogger {
 
     public PlayerMovementLogger() {
         new TrackPlayerUpdater();
+        new HeatMapUpdater();
 
         FMLCommonHandler.instance()
             .bus()
