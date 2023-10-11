@@ -25,7 +25,7 @@ public class HeatMapRenderer {
         double playerX = mc.thePlayer.lastTickPosX + (mc.thePlayer.posX - mc.thePlayer.lastTickPosX) * event.partialTicks;
         double playerY = mc.thePlayer.lastTickPosY + (mc.thePlayer.posY - mc.thePlayer.lastTickPosY) * event.partialTicks;
         double playerZ = mc.thePlayer.lastTickPosZ + (mc.thePlayer.posZ - mc.thePlayer.lastTickPosZ) * event.partialTicks;
-        GL11.glTranslated(-playerX, -playerY, -playerZ);  // Translate the block to not follow the camera in the world.
+        GL11.glTranslated(-playerX, -playerY, -playerZ);
 
         Tessellator tessellator = Tessellator.instance;
 
@@ -42,23 +42,22 @@ public class HeatMapRenderer {
             // Translate to the position
             GL11.glTranslated(blockX, blockY, blockZ);
 
-            // Translate by half of the block, scale, and translate back
-            GL11.glTranslated(0.5, 0.5, 0.5);
-            GL11.glScalef(0.5f, 0.5f ,0.5f);
-            GL11.glTranslated(-2, 0, -2);
+            // Translate by half of the block, scale, and translate back based on the scale factor
+            //GL11.glTranslated(0.5, 0.5, 0.5);
+            GL11.glScaled(SCALE_FACTOR, SCALE_FACTOR, SCALE_FACTOR);
+            GL11.glTranslated(-0.5 / SCALE_FACTOR, -0.5 / SCALE_FACTOR, -0.5 / SCALE_FACTOR);
 
             GL11.glColor4f(1.0F, 0.0F, 0.0F, (float) Math.max(position.getIntensity(), 0.3));
 
             tessellator.startDrawingQuads();
-            addRenderedBlockInWorld(Blocks.stone, 0, 0, 0, 0); // Rendering at (0,0,0) because we've translated
+            addRenderedBlockInWorld(Blocks.stone, 0, 0, 0, 0);
             tessellator.draw();
 
             GL11.glPopMatrix();
         }
 
         GL11.glDisable(GL11.GL_BLEND);
-
         GL11.glPopMatrix();
     }
-
 }
+
