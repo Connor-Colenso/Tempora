@@ -7,6 +7,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
+import cpw.mods.fml.common.eventhandler.EventPriority;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.event.world.BlockEvent;
 
@@ -46,7 +47,7 @@ public class BlockBreakLogger extends GenericLogger {
         return TemporaUtils.databaseDirectory() + "blockBreakEvents.db";
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.LOWEST)
     @SuppressWarnings("unused")
     public void onBlockBreak(final @NotNull BlockEvent.BreakEvent event) {
         // Server side only.

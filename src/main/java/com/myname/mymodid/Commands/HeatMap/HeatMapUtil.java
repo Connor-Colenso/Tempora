@@ -23,6 +23,7 @@ public class HeatMapUtil {
             final String sql = "SELECT playerName, x, y, z, timestamp FROM PlayerMovementEvents "
                 + "WHERE playerName = ? AND ABS(x - ?) <= " + renderDistance + " AND ABS(z - ?) <= " + renderDistance;
             PreparedStatement pstmt = conn.prepareStatement(sql);
+            pstmt.setFetchSize(1000);
             pstmt.setString(1, playerName);
             pstmt.setDouble(2, sender.getPlayerCoordinates().posX);
             pstmt.setDouble(3, sender.getPlayerCoordinates().posZ);

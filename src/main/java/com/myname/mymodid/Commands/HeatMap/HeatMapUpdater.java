@@ -30,18 +30,15 @@ public class HeatMapUpdater {
         trackerList.put(operatorName, playerToBeTracked);
     }
 
-
     @SubscribeEvent
     @SuppressWarnings("unused")
     public void onPlayerTick(final @NotNull PlayerTickEvent event) {
         // Events are only logged server side every 5 seconds at the start of a tick.
         if (isClientSide()) return;
-        if (event.phase != TickEvent.Phase.START) return;
+        if (event.phase != TickEvent.Phase.END) return;
 
         // Trigger this update every 5 seconds.
-        if (FMLCommonHandler.instance()
-            .getMinecraftServerInstance()
-            .getTickCounter() % 100 != 0) return;
+        if (event.player.ticksExisted % 100 != 0) return;
 
         final String OPName = event.player.getDisplayName();
 

@@ -36,10 +36,10 @@ public class Tempora {
     public static CommonProxy proxy;
 
     @Mod.EventHandler
-    // preInit "Run before anything else. Read your config, create blocks, items, etc, and register them with the
-    // GameRegistry." (Remove if not needed)
     public void preInit(FMLPreInitializationEvent event) {
-        proxy.preInit(event);
+        Config.synchronizeConfiguration(event.getSuggestedConfigurationFile());
+
+        Tempora.LOG.info("I am " + Tags.MODNAME + " at version " + Tags.VERSION);
     }
 
     @Mod.EventHandler
@@ -59,15 +59,10 @@ public class Tempora {
     }
 
     @Mod.EventHandler
-    // postInit "Handle interaction with other mods, complete your setup based on this." (Remove if not needed)
-    public void postInit(FMLPostInitializationEvent event) {
-        proxy.postInit(event);
-    }
+    public void postInit(FMLPostInitializationEvent event) { }
 
     @Mod.EventHandler
-    // register server commands in this event handler (Remove if not needed)
     public void serverStarting(FMLServerStartingEvent event) {
-        proxy.serverStarting(event);
         registerNewCommands(event);
         GenericLogger.onServerStart();
     }

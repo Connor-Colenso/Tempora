@@ -2,8 +2,11 @@ package com.myname.mymodid.Loggers;
 
 import com.myname.mymodid.TemporaUtils;
 import cpw.mods.fml.common.FMLCommonHandler;
+import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.common.gameevent.TickEvent;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
 import net.minecraftforge.event.entity.living.LivingSpawnEvent;
@@ -52,26 +55,34 @@ public class EntityLogger extends GenericLogger {
         return TemporaUtils.databaseDirectory() + "entityEvents.db";
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.LOWEST)
     @SuppressWarnings("unused")
     public void onEntitySpawn(LivingSpawnEvent.SpecialSpawn event) {
         if (isClientSide()) return;
+        if (event.entityLiving instanceof EntityPlayerMP) return;
         if (event.isCanceled()) return;
+
         saveEntityData(event.entityLiving, "Spawn");
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.LOWEST)
     @SuppressWarnings("unused")
     public void onEntityDeath(LivingDeathEvent event) {
         if (isClientSide()) return;
+        if (event.entityLiving instanceof EntityPlayerMP) return;
+        if (event.isCanceled()) return;
+
         saveEntityData(event.entityLiving, "Death");
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.LOWEST)
     @SuppressWarnings("unused")
     public void onEntityUpdate(LivingUpdateEvent event) {
         if (isClientSide()) return;
+        if (event.isCanceled()) return;
         if (event.entityLiving.ticksExisted % 20 * 20 != 0) return;  // As an example, track every 20 seconds.
+        if (event.entityLiving instanceof EntityPlayerMP) return; // Do not track players here, we do this elsewhere.
+
         saveEntityData(event.entityLiving, "Movement");
     }
 
