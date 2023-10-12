@@ -15,18 +15,25 @@ public class HeatMapUtil {
 
     private static final int MAX_POINTS_PER_PACKET = 500;
 
-    public static void queryAndSendDataToPlayer(ICommandSender sender, String playerName) {
+    public static void queryAndSendDataToPlayer(ICommandSender sender, long maxTimeToLookBackInSeconds, String playerName) {
         try (Connection conn = DriverManager.getConnection(TemporaUtils.databaseDirectory() + "playerMovementEvents.db")) {
 
             int renderDistance = MinecraftServer.getServer().getConfigurationManager().getViewDistance() * 16; // 16 blocks per chunk
 
+            // Calculate the minimum timestamp based on maxTimeToLookBackInSeconds
+            long currentTimestamp = System.currentTimeMillis();
+            long minTimestamp = currentTimestamp - maxTimeToLookBackInSeconds * 1000;  // Convert maxTimeToLookBackInSeconds to milliseconds
+
+            // Update the SQL query to incorporate the timestamp filter
             final String sql = "SELECT playerName, x, y, z, timestamp FROM PlayerMovementEvents "
-                + "WHERE playerName = ? AND ABS(x - ?) <= " + renderDistance + " AND ABS(z - ?) <= " + renderDistance;
+                + "WHERE playerName = ? AND ABS(x - ?) <= " + renderDistance + " AND ABS(z - ?) <= " + renderDistance
+                + " AND timestamp >= ?";
             PreparedStatement pstmt = conn.prepareStatement(sql);
             pstmt.setFetchSize(1000);
             pstmt.setString(1, playerName);
             pstmt.setDouble(2, sender.getPlayerCoordinates().posX);
             pstmt.setDouble(3, sender.getPlayerCoordinates().posZ);
+            pstmt.setLong(4, minTimestamp);
 
             ResultSet rs = pstmt.executeQuery();
 

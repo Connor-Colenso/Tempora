@@ -5,6 +5,7 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.common.gameevent.TickEvent.PlayerTickEvent;
 import org.jetbrains.annotations.NotNull;
+import scala.Int;
 
 import java.util.HashMap;
 
@@ -14,10 +15,12 @@ import static com.myname.mymodid.TemporaUtils.isClientSide;
 public class HeatMapUpdater {
 
     // Operator -> Person to be tracked.
-    static final HashMap<String, String> trackerList = new HashMap<>();
+    static final HashMap<String, String> trackerNameList = new HashMap<>();
+    // Operator -> Duration to look back for.
+    static final HashMap<String, Long> trackerTimeList = new HashMap<>();
 
     public static boolean isUserTrackingAnotherPlayer(String OPName) {
-        return trackerList.containsKey(OPName);
+        return trackerNameList.containsKey(OPName);
     }
 
     public HeatMapUpdater() {
@@ -26,8 +29,9 @@ public class HeatMapUpdater {
             .register(this);
     }
 
-    public static void addTracking(String operatorName, String playerToBeTracked) {
-        trackerList.put(operatorName, playerToBeTracked);
+    public static void addTracking(String operatorName, long time, String playerToBeTracked) {
+        trackerNameList.put(operatorName, playerToBeTracked);
+        trackerTimeList.put(operatorName, time);
     }
 
     @SubscribeEvent
@@ -44,6 +48,6 @@ public class HeatMapUpdater {
 
         if (!isUserTrackingAnotherPlayer(OPName)) return;
 
-        queryAndSendDataToPlayer(event.player, trackerList.get(OPName));
+        queryAndSendDataToPlayer(event.player, trackerTimeList.get(OPName), trackerNameList.get(OPName));
     }
 }
