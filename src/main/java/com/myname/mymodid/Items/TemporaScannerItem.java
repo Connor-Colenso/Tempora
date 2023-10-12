@@ -2,7 +2,19 @@ package com.myname.mymodid.Items;
 
 import static com.gtnewhorizons.modularui.common.widget.textfield.BaseTextFieldWidget.WHOLE_NUMS;
 
+import com.gtnewhorizons.modularui.api.UIInfos;
+import com.gtnewhorizons.modularui.api.drawable.Text;
+import com.gtnewhorizons.modularui.api.drawable.UITexture;
+import com.gtnewhorizons.modularui.api.math.CrossAxisAlignment;
+import com.gtnewhorizons.modularui.api.math.MainAxisAlignment;
+import com.gtnewhorizons.modularui.api.math.Pos2d;
+import com.gtnewhorizons.modularui.common.widget.ButtonWidget;
+import com.gtnewhorizons.modularui.common.widget.CycleButtonWidget;
+import com.gtnewhorizons.modularui.common.widget.Row;
+import com.gtnewhorizons.modularui.common.widget.TextWidget;
+import com.myname.mymodid.TemporaUtils;
 import net.minecraft.creativetab.CreativeTabs;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 
@@ -18,6 +30,9 @@ import com.gtnewhorizons.modularui.api.widget.Widget;
 import com.gtnewhorizons.modularui.common.widget.MultiChildWidget;
 import com.gtnewhorizons.modularui.common.widget.TabContainer;
 import com.gtnewhorizons.modularui.common.widget.textfield.TextFieldWidget;
+import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.Vec3;
+import net.minecraft.world.World;
 
 public class TemporaScannerItem extends Item implements IItemWithModularUI {
 
@@ -34,8 +49,6 @@ public class TemporaScannerItem extends Item implements IItemWithModularUI {
         this.setUnlocalizedName("tempora_scanner"); // This is used for localization.
     }
 
-    private int serverValue = 0;
-    private final String textFieldValue = "";
     private static final AdaptableUITexture DISPLAY = AdaptableUITexture
         .of("modularui:gui/background/display", 143, 75, 2);
 
@@ -49,60 +62,22 @@ public class TemporaScannerItem extends Item implements IItemWithModularUI {
         return builder.widget(new TabContainer().addPage(createPage()))
             .build();
     }
+    private int serverValue = 0;
 
     private Widget createPage() {
 
-        int xCoord = 30;
-        int yCoord = 25;
-
-        int textboxWidth = 30;
-        int textboxHeight = 14;
-        int spacing = 4;
-
         return new MultiChildWidget()
-            // Scale factor.
-            .addChild(
-                new TextFieldWidget().setGetter(this::getScaleFactor)
-                    .setSetter(this::setScaleFactor)
-                    .setPattern(WHOLE_NUMS)
-                    .setTextColor(Color.WHITE.dark(1))
-                    .setTextAlignment(Alignment.Center)
-                    .setScrollBar()
-                    .setBackground(DISPLAY.withOffset(-2, -2, 4, 4))
-                    .setSize(textboxWidth, textboxHeight)
-                    .setPos(xCoord, 25))
+            .addChild(                new CycleButtonWidget().setLength(2).setGetter(() -> serverValue)
+                .setSetter(val -> this.serverValue = val)
+                .setTexture(UITexture.fullImage("tempora", "gui/button"))
+                .addTooltip(
+                    0,
+                    "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum.")
+                .addTooltip(
+                    1,
+                    "Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.")
+                .setTooltipHasSpaceAfterFirstLine(false).setPos(new Pos2d(68, 0)));
 
-            // Rotations.
-            .addChild(
-                new TextFieldWidget().setGetter(this::getxAngle)
-                    .setSetter(this::setxAngle)
-                    .setPattern(WHOLE_NUMS)
-                    .setTextColor(Color.WHITE.dark(1))
-                    .setTextAlignment(Alignment.Center)
-                    .setScrollBar()
-                    .setBackground(DISPLAY.withOffset(-2, -2, 4, 4))
-                    .setSize(textboxWidth, textboxHeight)
-                    .setPos(xCoord, 25 + (textboxHeight + spacing) * 2))
-            .addChild(
-                new TextFieldWidget().setGetter(this::getyAngle)
-                    .setSetter(this::setyAngle)
-                    .setPattern(WHOLE_NUMS)
-                    .setTextColor(Color.WHITE.dark(1))
-                    .setTextAlignment(Alignment.Center)
-                    .setScrollBar()
-                    .setBackground(DISPLAY.withOffset(-2, -2, 4, 4))
-                    .setSize(textboxWidth, textboxHeight)
-                    .setPos(xCoord, 25 + (textboxHeight + spacing) * 3))
-            .addChild(
-                new TextFieldWidget().setGetter(this::getzAngle)
-                    .setSetter(this::setzAngle)
-                    .setPattern(WHOLE_NUMS)
-                    .setTextColor(Color.WHITE.dark(1))
-                    .setTextAlignment(Alignment.Center)
-                    .setScrollBar()
-                    .setBackground(DISPLAY.withOffset(-2, -2, 4, 4))
-                    .setSize(textboxWidth, textboxHeight)
-                    .setPos(xCoord, 25 + (textboxHeight + spacing) * 4));
     }
 
     double scaleFactor;
@@ -153,4 +128,13 @@ public class TemporaScannerItem extends Item implements IItemWithModularUI {
         } catch (Exception ignored) {}
     }
 
+    @Override
+    public boolean onItemUse(ItemStack p_77648_1_, EntityPlayer player, World world, int p_77648_4_, int p_77648_5_, int p_77648_6_, int p_77648_7_, float p_77648_8_, float p_77648_9_, float p_77648_10_) {
+        if (TemporaUtils.isClientSide()) {
+            UIInfos.PLAYER_HELD_ITEM_UI
+                .open(player, world, Vec3.createVectorHelper(10, 10, 10));
+        }
+        return true;
+
+    }
 }

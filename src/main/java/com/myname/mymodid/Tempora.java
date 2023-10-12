@@ -2,18 +2,6 @@ package com.myname.mymodid;
 
 import static com.myname.mymodid.Tags.MODID;
 
-import com.myname.mymodid.Loggers.BlockBreakLogger;
-import com.myname.mymodid.Loggers.CommandLogger;
-import com.myname.mymodid.Loggers.EntityLogger;
-import com.myname.mymodid.Loggers.ExplosionLogger;
-import com.myname.mymodid.Loggers.GenericLogger;
-import com.myname.mymodid.Loggers.ItemUseLogger;
-import com.myname.mymodid.Loggers.PlayerMovementLogger;
-import cpw.mods.fml.common.event.FMLInitializationEvent;
-import cpw.mods.fml.common.event.FMLPostInitializationEvent;
-import cpw.mods.fml.common.event.FMLPreInitializationEvent;
-import cpw.mods.fml.common.event.FMLServerStartingEvent;
-import cpw.mods.fml.common.event.FMLServerStoppingEvent;
 import net.minecraftforge.common.MinecraftForge;
 
 import org.apache.logging.log4j.LogManager;
@@ -29,10 +17,22 @@ import com.myname.mymodid.Commands.TrackPlayer.Network.PlayerPositionPacketHandl
 import com.myname.mymodid.Commands.TrackPlayer.PlayerTrackerRenderer;
 import com.myname.mymodid.Commands.TrackPlayer.TrackPlayerCommand;
 import com.myname.mymodid.Items.TemporaScannerItem;
+import com.myname.mymodid.Loggers.BlockBreakLogger;
+import com.myname.mymodid.Loggers.CommandLogger;
+import com.myname.mymodid.Loggers.EntityLogger;
+import com.myname.mymodid.Loggers.ExplosionLogger;
+import com.myname.mymodid.Loggers.GenericLogger;
+import com.myname.mymodid.Loggers.ItemUseLogger;
+import com.myname.mymodid.Loggers.PlayerMovementLogger;
 import com.myname.mymodid.Rendering.RenderInWorldDispatcher;
 
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.SidedProxy;
+import cpw.mods.fml.common.event.FMLInitializationEvent;
+import cpw.mods.fml.common.event.FMLPostInitializationEvent;
+import cpw.mods.fml.common.event.FMLPreInitializationEvent;
+import cpw.mods.fml.common.event.FMLServerStartingEvent;
+import cpw.mods.fml.common.event.FMLServerStoppingEvent;
 import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.network.simpleimpl.SimpleNetworkWrapper;
 import cpw.mods.fml.common.registry.GameRegistry;

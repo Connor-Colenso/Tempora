@@ -37,20 +37,18 @@ public class HeatMapRenderer {
 
         // Sort tasks based on distance from player.
         // We must do this each render frame because the player may move.
-        tasks.sort((a, b) -> {
-            double da = Math.pow(a.getX() - playerX, 2) + Math.pow(a.getY() - playerY, 2)
-                + Math.pow(a.getZ() - playerZ, 2);
-            double db = Math.pow(b.getX() - playerX, 2) + Math.pow(b.getY() - playerY, 2)
-                + Math.pow(b.getZ() - playerZ, 2);
+        tasks.sort((HeatMapPacketHandler.PlayerPostion a, HeatMapPacketHandler.PlayerPostion b) -> {
+            double da = Math.pow(a.x - playerX, 2) + Math.pow(a.y - playerY, 2) + Math.pow(a.z - playerZ, 2);
+            double db = Math.pow(b.x - playerX, 2) + Math.pow(b.y - playerY, 2) + Math.pow(b.z - playerZ, 2);
             return Double.compare(db, da); // Sort in descending order so the furthest blocks are rendered first.
         });
 
         for (HeatMapPacketHandler.PlayerPostion position : tasks) {
             GL11.glPushMatrix();
 
-            double blockX = position.getX();
-            double blockY = position.getY();
-            double blockZ = position.getZ();
+            double blockX = position.x;
+            double blockY = position.y;
+            double blockZ = position.z;
 
             // Translate to the position
             GL11.glTranslated(blockX, blockY, blockZ);
@@ -59,7 +57,7 @@ public class HeatMapRenderer {
             GL11.glScaled(SCALE_FACTOR, SCALE_FACTOR, SCALE_FACTOR);
             GL11.glTranslated(-0.5 / SCALE_FACTOR, 0.5 / SCALE_FACTOR, -0.5 / SCALE_FACTOR);
 
-            GL11.glColor4f(1.0F, 0.0F, 0.0F, (float) Math.max(position.getIntensity(), 0.3));
+            GL11.glColor4f(1.0F, 0.0F, 0.0F, (float) Math.max(position.intensity, 0.3));
 
             tessellator.startDrawingQuads();
             addRenderedBlockInWorld(Blocks.stone, 0, 0, 0, 0);
