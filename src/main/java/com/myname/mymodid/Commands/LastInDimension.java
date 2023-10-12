@@ -2,7 +2,6 @@ package com.myname.mymodid.Commands;
 
 import static com.myname.mymodid.TemporaUtils.parseUnix;
 
-import java.sql.*;
 
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
@@ -10,6 +9,12 @@ import net.minecraft.command.WrongUsageException;
 import net.minecraft.util.ChatComponentText;
 
 import com.myname.mymodid.TemporaUtils;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 public class LastInDimension extends CommandBase {
 
