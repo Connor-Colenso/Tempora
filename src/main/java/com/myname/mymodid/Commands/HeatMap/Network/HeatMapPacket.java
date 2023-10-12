@@ -81,5 +81,4 @@ public class HeatMapPacket implements IMessage {
         return lastPacket;
     }
 
-
 }

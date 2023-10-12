@@ -14,7 +14,8 @@ public class PlayerPositionPacket implements IMessage {
     // A default constructor is necessary for forge's network code to reconstruct the packet on reception.
     public PlayerPositionPacket() {}
 
-    public PlayerPositionPacket(double[] x, double[] y, double[] z, long[] time, boolean firstPacket, boolean lastPacket) {
+    public PlayerPositionPacket(double[] x, double[] y, double[] z, long[] time, boolean firstPacket,
+        boolean lastPacket) {
         this.x = x;
         this.y = y;
         this.z = z;

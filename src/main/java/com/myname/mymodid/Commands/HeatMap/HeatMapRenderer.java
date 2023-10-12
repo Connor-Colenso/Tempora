@@ -1,16 +1,17 @@
 package com.myname.mymodid.Commands.HeatMap;
 
-import com.myname.mymodid.Commands.HeatMap.Network.HeatMapPacketHandler;
+import static com.myname.mymodid.Rendering.RenderUtils.addRenderedBlockInWorld;
+
+import java.util.ArrayList;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.init.Blocks;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
+
 import org.lwjgl.opengl.GL11;
 
-import java.util.ArrayList;
-
-import static com.myname.mymodid.Rendering.RenderUtils.addRenderedBlockInWorld;
-
+import com.myname.mymodid.Commands.HeatMap.Network.HeatMapPacketHandler;
 
 public class HeatMapRenderer {
 
@@ -21,9 +22,12 @@ public class HeatMapRenderer {
         GL11.glPushMatrix();
 
         Minecraft mc = Minecraft.getMinecraft();
-        double playerX = mc.thePlayer.lastTickPosX + (mc.thePlayer.posX - mc.thePlayer.lastTickPosX) * event.partialTicks;
-        double playerY = mc.thePlayer.lastTickPosY + (mc.thePlayer.posY - mc.thePlayer.lastTickPosY) * event.partialTicks;
-        double playerZ = mc.thePlayer.lastTickPosZ + (mc.thePlayer.posZ - mc.thePlayer.lastTickPosZ) * event.partialTicks;
+        double playerX = mc.thePlayer.lastTickPosX
+            + (mc.thePlayer.posX - mc.thePlayer.lastTickPosX) * event.partialTicks;
+        double playerY = mc.thePlayer.lastTickPosY
+            + (mc.thePlayer.posY - mc.thePlayer.lastTickPosY) * event.partialTicks;
+        double playerZ = mc.thePlayer.lastTickPosZ
+            + (mc.thePlayer.posZ - mc.thePlayer.lastTickPosZ) * event.partialTicks;
         GL11.glTranslated(-playerX, -playerY, -playerZ);
 
         Tessellator tessellator = Tessellator.instance;
@@ -34,8 +38,10 @@ public class HeatMapRenderer {
         // Sort tasks based on distance from player.
         // We must do this each render frame because the player may move.
         tasks.sort((a, b) -> {
-            double da = Math.pow(a.getX() - playerX, 2) + Math.pow(a.getY() - playerY, 2) + Math.pow(a.getZ() - playerZ, 2);
-            double db = Math.pow(b.getX() - playerX, 2) + Math.pow(b.getY() - playerY, 2) + Math.pow(b.getZ() - playerZ, 2);
+            double da = Math.pow(a.getX() - playerX, 2) + Math.pow(a.getY() - playerY, 2)
+                + Math.pow(a.getZ() - playerZ, 2);
+            double db = Math.pow(b.getX() - playerX, 2) + Math.pow(b.getY() - playerY, 2)
+                + Math.pow(b.getZ() - playerZ, 2);
             return Double.compare(db, da); // Sort in descending order so the furthest blocks are rendered first.
         });
 
@@ -65,6 +71,5 @@ public class HeatMapRenderer {
         GL11.glDisable(GL11.GL_BLEND);
         GL11.glPopMatrix();
     }
-
 
 }

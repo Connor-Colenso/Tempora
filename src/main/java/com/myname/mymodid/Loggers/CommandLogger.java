@@ -1,18 +1,20 @@
 package com.myname.mymodid.Loggers;
 
-import com.myname.mymodid.TemporaUtils;
-import cpw.mods.fml.common.eventhandler.EventPriority;
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import net.minecraft.command.ICommand;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraftforge.event.CommandEvent;
+import static com.myname.mymodid.TemporaUtils.isClientSide;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
-import static com.myname.mymodid.TemporaUtils.isClientSide;
+import net.minecraft.command.ICommand;
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraftforge.event.CommandEvent;
+
+import com.myname.mymodid.TemporaUtils;
+
+import cpw.mods.fml.common.eventhandler.EventPriority;
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
 public class CommandLogger extends GenericLogger {
 
@@ -20,15 +22,16 @@ public class CommandLogger extends GenericLogger {
     public Connection initDatabase() {
         try {
             conn = DriverManager.getConnection(databaseURL());
-            final String sql = "CREATE TABLE IF NOT EXISTS CommandEvents ("
-                + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+            final String sql = "CREATE TABLE IF NOT EXISTS CommandEvents (" + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
                 + "playerName TEXT NOT NULL,"
                 + "command TEXT NOT NULL,"
                 + "arguments TEXT,"
                 + "x REAL,"
                 + "y REAL,"
                 + "z REAL,"
-                + "dimensionID INTEGER DEFAULT " + TemporaUtils.defaultDimID() + ","
+                + "dimensionID INTEGER DEFAULT "
+                + TemporaUtils.defaultDimID()
+                + ","
                 + "timestamp DATETIME DEFAULT CURRENT_TIMESTAMP"
                 + ");";
             final PreparedStatement pstmt = conn.prepareStatement(sql);

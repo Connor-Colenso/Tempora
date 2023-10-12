@@ -1,18 +1,21 @@
 package com.myname.mymodid.Commands.TrackPlayer;
 
-import com.myname.mymodid.Commands.TrackPlayer.Network.PlayerPositionPacketHandler;
-import net.minecraft.client.Minecraft;
-import net.minecraftforge.client.event.RenderWorldLastEvent;
-import org.lwjgl.opengl.GL11;
-
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.PriorityQueue;
 
+import net.minecraft.client.Minecraft;
+import net.minecraftforge.client.event.RenderWorldLastEvent;
+
+import org.lwjgl.opengl.GL11;
+
+import com.myname.mymodid.Commands.TrackPlayer.Network.PlayerPositionPacketHandler;
+
 public class PlayerTrackerRenderer {
 
-    public static PriorityQueue<PlayerPositionPacketHandler.PlayerPosition> tasks = new PriorityQueue<>(Comparator.comparingLong(task -> task.time));
+    public static PriorityQueue<PlayerPositionPacketHandler.PlayerPosition> tasks = new PriorityQueue<>(
+        Comparator.comparingLong(task -> task.time));
 
     public static void clearBuffer() {
         tasks.clear();
@@ -20,9 +23,12 @@ public class PlayerTrackerRenderer {
 
     public static void renderInWorld(RenderWorldLastEvent event) {
         Minecraft mc = Minecraft.getMinecraft();
-        double playerX = mc.thePlayer.lastTickPosX + (mc.thePlayer.posX - mc.thePlayer.lastTickPosX) * event.partialTicks;
-        double playerY = mc.thePlayer.lastTickPosY + (mc.thePlayer.posY - mc.thePlayer.lastTickPosY) * event.partialTicks;
-        double playerZ = mc.thePlayer.lastTickPosZ + (mc.thePlayer.posZ - mc.thePlayer.lastTickPosZ) * event.partialTicks;
+        double playerX = mc.thePlayer.lastTickPosX
+            + (mc.thePlayer.posX - mc.thePlayer.lastTickPosX) * event.partialTicks;
+        double playerY = mc.thePlayer.lastTickPosY
+            + (mc.thePlayer.posY - mc.thePlayer.lastTickPosY) * event.partialTicks;
+        double playerZ = mc.thePlayer.lastTickPosZ
+            + (mc.thePlayer.posZ - mc.thePlayer.lastTickPosZ) * event.partialTicks;
 
         List<PlayerPositionPacketHandler.PlayerPosition> tempList = new ArrayList<>();
 
@@ -32,10 +38,10 @@ public class PlayerTrackerRenderer {
         }
 
         GL11.glPushMatrix();
-        GL11.glTranslated(-playerX, -playerY, -playerZ);  // Translate to the correct position in the world
+        GL11.glTranslated(-playerX, -playerY, -playerZ); // Translate to the correct position in the world
 
         renderLinesConnectingPositions(tempList);
-        //renderBlocksAtPositions(tempList);
+        // renderBlocksAtPositions(tempList);
 
         GL11.glPopMatrix();
 

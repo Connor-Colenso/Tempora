@@ -1,14 +1,15 @@
 package com.myname.mymodid.Commands;
 
-import com.myname.mymodid.TemporaUtils;
+import static com.myname.mymodid.TemporaUtils.parseUnix;
+
+import java.sql.*;
+
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
 import net.minecraft.util.ChatComponentText;
 
-import java.sql.*;
-
-import static com.myname.mymodid.TemporaUtils.parseUnix;
+import com.myname.mymodid.TemporaUtils;
 
 public class LastInDimension extends CommandBase {
 
@@ -34,7 +35,8 @@ public class LastInDimension extends CommandBase {
     }
 
     private void queryDatabase(ICommandSender sender, int dimensionID) {
-        try (Connection conn = DriverManager.getConnection(TemporaUtils.databaseDirectory() + "playerMovementEvents.db")) {
+        try (Connection conn = DriverManager
+            .getConnection(TemporaUtils.databaseDirectory() + "playerMovementEvents.db")) {
 
             final String sql = "SELECT playerName, x, y, z, timestamp FROM PlayerMovementEvents "
                 + "WHERE dimensionID = ? "

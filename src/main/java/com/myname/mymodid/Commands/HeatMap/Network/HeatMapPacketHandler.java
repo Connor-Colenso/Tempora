@@ -1,11 +1,12 @@
 package com.myname.mymodid.Commands.HeatMap.Network;
 
+import java.util.ArrayList;
+
 import com.myname.mymodid.Commands.HeatMap.HeatMapRenderer;
+
 import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import cpw.mods.fml.common.network.simpleimpl.IMessageHandler;
 import cpw.mods.fml.common.network.simpleimpl.MessageContext;
-
-import java.util.ArrayList;
 
 public class HeatMapPacketHandler implements IMessageHandler<HeatMapPacket, IMessage> {
 
@@ -45,6 +46,7 @@ public class HeatMapPacketHandler implements IMessageHandler<HeatMapPacket, IMes
     }
 
     public static class PlayerPostion {
+
         int x;
         int y;
         int z;

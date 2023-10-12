@@ -7,7 +7,6 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
-import cpw.mods.fml.common.eventhandler.EventPriority;
 import net.minecraft.entity.Entity;
 import net.minecraft.world.World;
 import net.minecraftforge.event.world.ExplosionEvent;
@@ -16,6 +15,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.myname.mymodid.TemporaUtils;
 
+import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
 public class ExplosionLogger extends GenericLogger {
@@ -30,7 +30,9 @@ public class ExplosionLogger extends GenericLogger {
                 + "z REAL NOT NULL,"
                 + "strength REAL NOT NULL,"
                 + "exploder TEXT,"
-                + "dimensionID INTEGER DEFAULT " + TemporaUtils.defaultDimID() + ","
+                + "dimensionID INTEGER DEFAULT "
+                + TemporaUtils.defaultDimID()
+                + ","
                 + "timestamp DATETIME DEFAULT CURRENT_TIMESTAMP"
                 + ");";
             final PreparedStatement pstmt = conn.prepareStatement(sql);

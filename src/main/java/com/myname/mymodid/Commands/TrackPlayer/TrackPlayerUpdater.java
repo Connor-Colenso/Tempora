@@ -1,15 +1,16 @@
 package com.myname.mymodid.Commands.TrackPlayer;
 
+import static com.myname.mymodid.Commands.TrackPlayer.PlayerTrackerUtil.queryAndSendDataToPlayer;
+import static com.myname.mymodid.TemporaUtils.isClientSide;
+
+import java.util.HashMap;
+
+import org.jetbrains.annotations.NotNull;
+
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.common.gameevent.TickEvent.PlayerTickEvent;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.HashMap;
-
-import static com.myname.mymodid.Commands.TrackPlayer.PlayerTrackerUtil.queryAndSendDataToPlayer;
-import static com.myname.mymodid.TemporaUtils.isClientSide;
 
 public class TrackPlayerUpdater {
 
@@ -29,7 +30,6 @@ public class TrackPlayerUpdater {
     public static void addTracking(String operatorName, String playerToBeTracked) {
         trackerList.put(operatorName, playerToBeTracked);
     }
-
 
     @SubscribeEvent
     @SuppressWarnings("unused")

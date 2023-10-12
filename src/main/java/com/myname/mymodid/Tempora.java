@@ -1,17 +1,25 @@
 package com.myname.mymodid;
 
+import static com.myname.mymodid.Tags.MODID;
+
+import net.minecraftforge.common.MinecraftForge;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.myname.mymodid.Commands.HeatMap.HeatMapCommand;
-import com.myname.mymodid.Commands.LastInDimension;
-import com.myname.mymodid.Commands.QueryEventsCommand;
-import com.myname.mymodid.Commands.TrackPlayer.TrackPlayerCommand;
-import com.myname.mymodid.Items.TemporaScannerItem;
-import com.myname.mymodid.Loggers.*;
 import com.myname.mymodid.Commands.HeatMap.Network.HeatMapPacket;
 import com.myname.mymodid.Commands.HeatMap.Network.HeatMapPacketHandler;
+import com.myname.mymodid.Commands.LastInDimension;
+import com.myname.mymodid.Commands.QueryEventsCommand;
 import com.myname.mymodid.Commands.TrackPlayer.Network.PlayerPositionPacket;
 import com.myname.mymodid.Commands.TrackPlayer.Network.PlayerPositionPacketHandler;
 import com.myname.mymodid.Commands.TrackPlayer.PlayerTrackerRenderer;
+import com.myname.mymodid.Commands.TrackPlayer.TrackPlayerCommand;
+import com.myname.mymodid.Items.TemporaScannerItem;
+import com.myname.mymodid.Loggers.*;
 import com.myname.mymodid.Rendering.RenderInWorldDispatcher;
+
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.SidedProxy;
 import cpw.mods.fml.common.event.*;
@@ -19,11 +27,6 @@ import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.network.simpleimpl.SimpleNetworkWrapper;
 import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.relauncher.Side;
-import net.minecraftforge.common.MinecraftForge;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-import static com.myname.mymodid.Tags.MODID;
 
 @SuppressWarnings("unused")
 @Mod(modid = MODID, version = Tags.VERSION, name = Tags.MODNAME, acceptedMinecraftVersions = "[1.7.10]")
@@ -60,7 +63,7 @@ public class Tempora {
     }
 
     @Mod.EventHandler
-    public void postInit(FMLPostInitializationEvent event) { }
+    public void postInit(FMLPostInitializationEvent event) {}
 
     @Mod.EventHandler
     public void serverStarting(FMLServerStartingEvent event) {

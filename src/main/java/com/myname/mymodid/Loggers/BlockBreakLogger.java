@@ -7,7 +7,6 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
-import cpw.mods.fml.common.eventhandler.EventPriority;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.event.world.BlockEvent;
 
@@ -15,6 +14,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.myname.mymodid.TemporaUtils;
 
+import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
 public class BlockBreakLogger extends GenericLogger {
@@ -30,7 +30,9 @@ public class BlockBreakLogger extends GenericLogger {
                 + "x INTEGER NOT NULL,"
                 + "y INTEGER NOT NULL,"
                 + "z INTEGER NOT NULL,"
-                + "dimensionID INTEGER DEFAULT " + TemporaUtils.defaultDimID() + ","
+                + "dimensionID INTEGER DEFAULT "
+                + TemporaUtils.defaultDimID()
+                + ","
                 + "timestamp DATETIME DEFAULT CURRENT_TIMESTAMP"
                 + ");";
             final PreparedStatement pstmt = conn.prepareStatement(sql);
