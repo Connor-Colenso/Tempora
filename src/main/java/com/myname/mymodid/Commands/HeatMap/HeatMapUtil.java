@@ -72,8 +72,11 @@ public class HeatMapUtil {
             pointIntensity.replaceAll((k, v) -> pointIntensity.get(k) / maxIntensity);
 
             // Operator who issued the command.
+
+
             EntityPlayerMP operator = (EntityPlayerMP) sender.getEntityWorld()
                 .getPlayerEntityByName(sender.getCommandSenderName());
+
 
             List<Map.Entry<BlockCoord, Double>> entries = new ArrayList<>(pointIntensity.entrySet());
 

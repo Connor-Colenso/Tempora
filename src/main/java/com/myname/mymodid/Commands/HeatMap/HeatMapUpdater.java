@@ -1,23 +1,28 @@
 package com.myname.mymodid.Commands.HeatMap;
 
-import static com.myname.mymodid.Commands.HeatMap.HeatMapUtil.queryAndSendDataToPlayer;
-import static com.myname.mymodid.TemporaUtils.isClientSide;
-
-import java.util.HashMap;
-
-import org.jetbrains.annotations.NotNull;
-
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.common.gameevent.TickEvent.PlayerTickEvent;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+
+import static com.myname.mymodid.TemporaUtils.isClientSide;
 
 public class HeatMapUpdater {
 
     // Operator -> Person to be tracked.
-    static final HashMap<String, String> trackerNameList = new HashMap<>();
+    static final ConcurrentHashMap<String, String> trackerNameList = new ConcurrentHashMap<>();
     // Operator -> Duration to look back for.
-    static final HashMap<String, Long> trackerTimeList = new HashMap<>();
+    static final ConcurrentHashMap<String, Long> trackerTimeList = new ConcurrentHashMap<>();
+    // Operator -> Future of the ongoing task
+    private final ConcurrentHashMap<String, Future<?>> ongoingTasks = new ConcurrentHashMap<>();
+    // Operator -> ExecutorService for the operator's tasks
+    private final ConcurrentHashMap<String, ExecutorService> executorServices = new ConcurrentHashMap<>();
 
     public static boolean isUserTrackingAnotherPlayer(String OPName) {
         return trackerNameList.containsKey(OPName);
@@ -46,8 +51,24 @@ public class HeatMapUpdater {
 
         final String OPName = event.player.getDisplayName();
 
-        if (!isUserTrackingAnotherPlayer(OPName)) return;
+        if (!isUserTrackingAnotherPlayer(OPName)) {
+            // If the operator is not tracking, shut down their executor service if they have one
+            ExecutorService executor = executorServices.remove(OPName);
+            if (executor != null) {
+                executor.shutdown();
+            }
+            return;
+        }
 
-        queryAndSendDataToPlayer(event.player, trackerTimeList.get(OPName), trackerNameList.get(OPName));
+        // Ensure the operator has an executor service
+        executorServices.putIfAbsent(OPName, Executors.newSingleThreadExecutor());
+
+        // Check if the ongoing task for this operator is done or if there's no task yet.
+        Future<?> operatorTask = ongoingTasks.get(OPName);
+        if (operatorTask == null || operatorTask.isDone()) {
+            // Submit the new task and update the ongoingTask future for this operator.
+            operatorTask = executorServices.get(OPName).submit(() -> HeatMapUtil.queryAndSendDataToPlayer(event.player, trackerTimeList.get(OPName), trackerNameList.get(OPName)));
+            ongoingTasks.put(OPName, operatorTask);
+        }
     }
 }
