@@ -19,7 +19,7 @@ public class HeatMapPacketHandler implements IMessageHandler<HeatMapPacket, IMes
         return null;
     }
 
-    ArrayList<HeatMapPacketHandler.PlayerPostion> newTasks = new ArrayList<>();
+    final ArrayList<HeatMapPacketHandler.PlayerPostion> newTasks = new ArrayList<>();
 
     private void handleClientSide(HeatMapPacket message) {
         // Data received.
@@ -47,10 +47,8 @@ public class HeatMapPacketHandler implements IMessageHandler<HeatMapPacket, IMes
 
     public static class PlayerPostion {
 
-        int x;
-        int y;
-        int z;
-        double intensity;
+        public final int x, y, z;
+        public final double intensity;
 
         public PlayerPostion(int x, int y, int z, double intensity) {
             this.x = x;
@@ -59,20 +57,5 @@ public class HeatMapPacketHandler implements IMessageHandler<HeatMapPacket, IMes
             this.intensity = intensity;
         }
 
-        public int getX() {
-            return x;
-        }
-
-        public int getY() {
-            return y;
-        }
-
-        public int getZ() {
-            return z;
-        }
-
-        public double getIntensity() {
-            return intensity;
-        }
     }
 }
