@@ -1,16 +1,16 @@
 package com.myname.mymodid.Commands.HeatMap;
 
+import static com.myname.mymodid.Commands.HeatMap.HeatMapUtil.queryAndSendDataToPlayer;
+import static com.myname.mymodid.TemporaUtils.isClientSide;
+
+import java.util.HashMap;
+
+import org.jetbrains.annotations.NotNull;
+
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.common.gameevent.TickEvent.PlayerTickEvent;
-import org.jetbrains.annotations.NotNull;
-import scala.Int;
-
-import java.util.HashMap;
-
-import static com.myname.mymodid.Commands.HeatMap.HeatMapUtil.queryAndSendDataToPlayer;
-import static com.myname.mymodid.TemporaUtils.isClientSide;
 
 public class HeatMapUpdater {
 

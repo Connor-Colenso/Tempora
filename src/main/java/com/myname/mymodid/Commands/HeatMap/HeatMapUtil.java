@@ -1,32 +1,43 @@
 package com.myname.mymodid.Commands.HeatMap;
 
-import codechicken.lib.vec.BlockCoord;
-import com.myname.mymodid.Commands.HeatMap.Network.HeatMapPacket;
-import com.myname.mymodid.Tempora;
-import com.myname.mymodid.TemporaUtils;
+import java.sql.*;
+import java.util.*;
+
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.server.MinecraftServer;
 
-import java.sql.*;
-import java.util.*;
+import com.myname.mymodid.Commands.HeatMap.Network.HeatMapPacket;
+import com.myname.mymodid.Tempora;
+import com.myname.mymodid.TemporaUtils;
+
+import codechicken.lib.vec.BlockCoord;
 
 public class HeatMapUtil {
 
     private static final int MAX_POINTS_PER_PACKET = 500;
 
-    public static void queryAndSendDataToPlayer(ICommandSender sender, long maxTimeToLookBackInSeconds, String playerName) {
-        try (Connection conn = DriverManager.getConnection(TemporaUtils.databaseDirectory() + "playerMovementEvents.db")) {
+    public static void queryAndSendDataToPlayer(ICommandSender sender, long maxTimeToLookBackInSeconds,
+        String playerName) {
+        try (Connection conn = DriverManager
+            .getConnection(TemporaUtils.databaseDirectory() + "playerMovementEvents.db")) {
 
-            int renderDistance = MinecraftServer.getServer().getConfigurationManager().getViewDistance() * 16; // 16 blocks per chunk
+            int renderDistance = MinecraftServer.getServer()
+                .getConfigurationManager()
+                .getViewDistance() * 16; // 16 blocks per chunk
 
             // Calculate the minimum timestamp based on maxTimeToLookBackInSeconds
             long currentTimestamp = System.currentTimeMillis();
-            long minTimestamp = currentTimestamp - maxTimeToLookBackInSeconds * 1000;  // Convert maxTimeToLookBackInSeconds to milliseconds
+            long minTimestamp = currentTimestamp - maxTimeToLookBackInSeconds * 1000; // Convert
+                                                                                      // maxTimeToLookBackInSeconds to
+                                                                                      // milliseconds
 
             // Update the SQL query to incorporate the timestamp filter
             final String sql = "SELECT playerName, x, y, z, timestamp FROM PlayerMovementEvents "
-                + "WHERE playerName = ? AND ABS(x - ?) <= " + renderDistance + " AND ABS(z - ?) <= " + renderDistance
+                + "WHERE playerName = ? AND ABS(x - ?) <= "
+                + renderDistance
+                + " AND ABS(z - ?) <= "
+                + renderDistance
                 + " AND timestamp >= ?";
             PreparedStatement pstmt = conn.prepareStatement(sql);
             pstmt.setFetchSize(1000);
@@ -53,7 +64,8 @@ public class HeatMapUtil {
             pointIntensity.replaceAll((k, v) -> pointIntensity.get(k) / maxIntensity);
 
             // Operator who issued the command.
-            EntityPlayerMP operator = (EntityPlayerMP) sender.getEntityWorld().getPlayerEntityByName(sender.getCommandSenderName());
+            EntityPlayerMP operator = (EntityPlayerMP) sender.getEntityWorld()
+                .getPlayerEntityByName(sender.getCommandSenderName());
 
             List<Map.Entry<BlockCoord, Double>> entries = new ArrayList<>(pointIntensity.entrySet());
 
@@ -77,7 +89,13 @@ public class HeatMapUtil {
                 boolean isFirstPacket = i == 0;
                 boolean isLastPacket = endIndex >= entries.size();
 
-                HeatMapPacket packet = new HeatMapPacket(xArray, yArray, zArray, intensityArray, isFirstPacket, isLastPacket);
+                HeatMapPacket packet = new HeatMapPacket(
+                    xArray,
+                    yArray,
+                    zArray,
+                    intensityArray,
+                    isFirstPacket,
+                    isLastPacket);
 
                 Tempora.NETWORK.sendTo(packet, operator);
             }

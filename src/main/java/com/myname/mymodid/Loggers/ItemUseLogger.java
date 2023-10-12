@@ -7,7 +7,6 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
-import cpw.mods.fml.common.eventhandler.EventPriority;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
@@ -18,6 +17,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.myname.mymodid.TemporaUtils;
 
+import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
 public class ItemUseLogger extends GenericLogger {
@@ -33,7 +33,9 @@ public class ItemUseLogger extends GenericLogger {
                 + "x INTEGER NOT NULL,"
                 + "y INTEGER NOT NULL,"
                 + "z INTEGER NOT NULL,"
-                + "dimensionID INTEGER DEFAULT " + TemporaUtils.defaultDimID() + ","
+                + "dimensionID INTEGER DEFAULT "
+                + TemporaUtils.defaultDimID()
+                + ","
                 + "timestamp DATETIME DEFAULT CURRENT_TIMESTAMP"
                 + ");";
             final PreparedStatement pstmt = conn.prepareStatement(sql);

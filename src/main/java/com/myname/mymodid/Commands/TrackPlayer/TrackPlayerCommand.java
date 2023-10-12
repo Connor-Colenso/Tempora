@@ -24,7 +24,8 @@ public class TrackPlayerCommand extends CommandBase {
         }
 
         String playerName = args[0];
-        sender.addChatMessage(new ChatComponentText("Now tracking player " + playerName + ". Run command again to stop tracking."));
+        sender.addChatMessage(
+            new ChatComponentText("Now tracking player " + playerName + ". Run command again to stop tracking."));
         PlayerTrackerUtil.queryAndSendDataToPlayer(sender, playerName);
         TrackPlayerUpdater.addTracking(sender.getCommandSenderName(), playerName);
     }

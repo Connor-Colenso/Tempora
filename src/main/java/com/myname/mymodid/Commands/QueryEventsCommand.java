@@ -1,7 +1,8 @@
 package com.myname.mymodid.Commands;
 
+import static com.myname.mymodid.TemporaUtils.parseTime;
+
 import java.sql.*;
-import java.util.concurrent.TimeUnit;
 
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
@@ -13,8 +14,6 @@ import net.minecraft.util.ChatComponentText;
 import net.minecraft.world.World;
 
 import com.myname.mymodid.TemporaUtils;
-
-import static com.myname.mymodid.TemporaUtils.parseTime;
 
 public class QueryEventsCommand extends CommandBase {
 
@@ -39,7 +38,6 @@ public class QueryEventsCommand extends CommandBase {
 
         queryDatabase(sender, radius, seconds);
     }
-
 
     private void queryDatabase(ICommandSender sender, int radius, long seconds) {
         try (Connection conn = DriverManager.getConnection(TemporaUtils.databaseDirectory() + "blockBreakEvents.db")) {

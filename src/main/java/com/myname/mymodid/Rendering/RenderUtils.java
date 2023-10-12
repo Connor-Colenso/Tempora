@@ -2,10 +2,7 @@ package com.myname.mymodid.Rendering;
 
 import net.minecraft.block.Block;
 import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.init.Blocks;
 import net.minecraft.util.IIcon;
-
-import java.util.List;
 
 public abstract class RenderUtils {
 
@@ -14,7 +11,7 @@ public abstract class RenderUtils {
     static final double[] BLOCK_Z = { +0.5, +0.5, +0.5, +0.5, -0.5, -0.5, -0.5, -0.5 };
 
     public static void addRenderedBlockInWorld(final Block block, final int meta, final double x, final double y,
-                                               final double z) {
+        final double z) {
         final Tessellator tes = Tessellator.instance;
         IIcon texture;
         double minU;

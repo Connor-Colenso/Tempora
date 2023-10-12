@@ -1,21 +1,23 @@
 package com.myname.mymodid.Loggers;
 
-import com.myname.mymodid.TemporaUtils;
-import cpw.mods.fml.common.FMLCommonHandler;
-import cpw.mods.fml.common.eventhandler.EventPriority;
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraftforge.event.entity.living.LivingDeathEvent;
-import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
-import net.minecraftforge.event.entity.living.LivingSpawnEvent;
+import static com.myname.mymodid.TemporaUtils.isClientSide;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
-import static com.myname.mymodid.TemporaUtils.isClientSide;
+import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraftforge.event.entity.living.LivingDeathEvent;
+import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
+import net.minecraftforge.event.entity.living.LivingSpawnEvent;
+
+import com.myname.mymodid.TemporaUtils;
+
+import cpw.mods.fml.common.FMLCommonHandler;
+import cpw.mods.fml.common.eventhandler.EventPriority;
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
 public class EntityLogger extends GenericLogger {
 
@@ -30,12 +32,13 @@ public class EntityLogger extends GenericLogger {
     public Connection initDatabase() {
         try {
             conn = DriverManager.getConnection(databaseURL());
-            final String sql = "CREATE TABLE IF NOT EXISTS EntityEvents ("
-                + "entityName TEXT NOT NULL,"
+            final String sql = "CREATE TABLE IF NOT EXISTS EntityEvents (" + "entityName TEXT NOT NULL,"
                 + "x REAL NOT NULL,"
                 + "y REAL NOT NULL,"
                 + "z REAL NOT NULL,"
-                + "dimensionID INTEGER DEFAULT " + TemporaUtils.defaultDimID() + ","
+                + "dimensionID INTEGER DEFAULT "
+                + TemporaUtils.defaultDimID()
+                + ","
                 + "eventType TEXT NOT NULL,"
                 + "timestamp BIGINT DEFAULT 0"
                 + ");";
@@ -47,7 +50,6 @@ public class EntityLogger extends GenericLogger {
 
         return conn;
     }
-
 
     @Override
     protected String databaseURL() {
@@ -79,7 +81,7 @@ public class EntityLogger extends GenericLogger {
     public void onEntityUpdate(LivingUpdateEvent event) {
         if (isClientSide()) return;
         if (event.isCanceled()) return;
-        if (event.entityLiving.ticksExisted % 20 * 20 != 0) return;  // As an example, track every 20 seconds.
+        if (event.entityLiving.ticksExisted % 20 * 20 != 0) return; // As an example, track every 20 seconds.
         if (event.entityLiving instanceof EntityPlayerMP) return; // Do not track players here, we do this elsewhere.
 
         saveEntityData(event.entityLiving, "Movement");
