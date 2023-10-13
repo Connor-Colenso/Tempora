@@ -1,6 +1,9 @@
 package com.myname.mymodid.Commands.TrackPlayer.Network;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
 import java.util.PriorityQueue;
 
 import com.myname.mymodid.Commands.TrackPlayer.PlayerTrackerRenderer;
@@ -20,7 +23,7 @@ public class PlayerPositionPacketHandler implements IMessageHandler<PlayerPositi
         return null;
     }
 
-    PriorityQueue<PlayerPosition> newTasks = new PriorityQueue<>(Comparator.comparingDouble(task -> task.time));
+    List<PlayerPosition> newTasks = new ArrayList<>();
 
     private void handleClientSide(PlayerPositionPacket message) {
         // Data received.

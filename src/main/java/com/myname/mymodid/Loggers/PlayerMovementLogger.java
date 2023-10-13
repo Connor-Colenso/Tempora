@@ -6,6 +6,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.Statement;
 
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
@@ -46,17 +47,28 @@ public class PlayerMovementLogger extends GenericLogger {
     public Connection initDatabase() {
         try {
             conn = DriverManager.getConnection(databaseURL());
-            final String sql = "CREATE TABLE IF NOT EXISTS PlayerMovementEvents (" + "playerName TEXT NOT NULL,"
-                + "x REAL NOT NULL,"
-                + "y REAL NOT NULL,"
-                + "z REAL NOT NULL,"
-                + "dimensionID INTEGER DEFAULT "
-                + TemporaUtils.defaultDimID()
-                + ","
-                + "timestamp BIGINT DEFAULT 0"
-                + ");";
-            final PreparedStatement pstmt = conn.prepareStatement(sql);
-            pstmt.execute();
+            // Create table if not exists
+            try (PreparedStatement pstmt = conn.prepareStatement(
+                "CREATE TABLE IF NOT EXISTS PlayerMovementEvents (" +
+                    "playerName TEXT NOT NULL," +
+                    "x REAL NOT NULL," +
+                    "y REAL NOT NULL," +
+                    "z REAL NOT NULL," +
+                    "dimensionID INTEGER DEFAULT " + TemporaUtils.defaultDimID() + "," +
+                    "timestamp BIGINT DEFAULT 0" +
+                    ");")) {
+                pstmt.execute();
+            }
+
+            // Execute index creation statements
+            try (Statement stmt = conn.createStatement()) {
+                stmt.execute("CREATE INDEX IF NOT EXISTS idx_playerName ON PlayerMovementEvents(playerName);");
+                stmt.execute("CREATE INDEX IF NOT EXISTS idx_x ON PlayerMovementEvents(x);");
+                stmt.execute("CREATE INDEX IF NOT EXISTS idx_z ON PlayerMovementEvents(z);");
+                stmt.execute("CREATE INDEX IF NOT EXISTS idx_dimensionID ON PlayerMovementEvents(dimensionID);");
+                stmt.execute("CREATE INDEX IF NOT EXISTS idx_timestamp ON PlayerMovementEvents(timestamp);");
+            }
+
         } catch (final SQLException e) {
             e.printStackTrace();
         }

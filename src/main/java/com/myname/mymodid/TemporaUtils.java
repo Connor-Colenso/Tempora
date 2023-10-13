@@ -38,6 +38,10 @@ public class TemporaUtils {
             .getEffectiveSide() == Side.CLIENT;
     }
 
+    public static boolean isServerSide() {
+        return !isClientSide();
+    }
+
     public static String defaultDimID() {
         return "999";
     }
