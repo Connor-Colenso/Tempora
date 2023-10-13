@@ -62,14 +62,18 @@ public class Tempora {
         NETWORK.registerMessage(PlayerPositionPacketHandler.class, PlayerPositionPacket.class, 0, Side.CLIENT);
         NETWORK.registerMessage(HeatMapPacketHandler.class, HeatMapPacket.class, 1, Side.CLIENT);
 
-        new BlockBreakLogger();
-        new ExplosionLogger();
-        new ItemUseLogger();
-        new PlayerMovementLogger();
-        new CommandLogger();
-        new EntityLogger();
+        if (TemporaUtils.isServerSide()) {
+            new BlockBreakLogger();
+            new ExplosionLogger();
+            new ItemUseLogger();
+            new PlayerMovementLogger();
+            new CommandLogger();
+            new EntityLogger();
+        }
 
-        MinecraftForge.EVENT_BUS.register(new RenderInWorldDispatcher());
+        if (TemporaUtils.isClientSide()) {
+            MinecraftForge.EVENT_BUS.register(new RenderInWorldDispatcher());
+        }
     }
 
     @Mod.EventHandler
@@ -78,7 +82,10 @@ public class Tempora {
     @Mod.EventHandler
     public void serverStarting(FMLServerStartingEvent event) {
         registerNewCommands(event);
-        GenericLogger.onServerStart();
+
+        if (TemporaUtils.isServerSide()) {
+            GenericLogger.onServerStart();
+        }
     }
 
     private void registerNewCommands(FMLServerStartingEvent event) {
@@ -90,7 +97,13 @@ public class Tempora {
 
     @Mod.EventHandler
     public void serverStopping(FMLServerStoppingEvent event) {
-        PlayerTrackerRenderer.clearBuffer();
-        GenericLogger.onServerClose();
+        if (TemporaUtils.isServerSide()) {
+            PlayerTrackerRenderer.clearBuffer();
+        }
+
+        if (TemporaUtils.isServerSide())
+        {
+            GenericLogger.onServerClose();
+        }
     }
 }

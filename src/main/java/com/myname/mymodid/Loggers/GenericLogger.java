@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.TimeZone;
 
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraftforge.common.MinecraftForge;
 
 import org.jetbrains.annotations.NotNull;

@@ -31,21 +31,23 @@ public class TrackPlayerUpdater {
         trackerList.put(operatorName, playerToBeTracked);
     }
 
+    int lastTriggered;
+
     @SubscribeEvent
     @SuppressWarnings("unused")
     public void onPlayerTick(final @NotNull PlayerTickEvent event) {
         // Events are only logged server side every 5 seconds at the start of a tick.
-        if (isClientSide()) return;
         if (event.phase != TickEvent.Phase.START) return;
 
         // Trigger this update every 5 seconds.
-        if (FMLCommonHandler.instance()
-            .getMinecraftServerInstance()
-            .getTickCounter() % 100 != 0) return;
+        if (event.player.ticksExisted % 100 != 0) return;
 
         final String OPName = event.player.getDisplayName();
 
         if (!isUserTrackingAnotherPlayer(OPName)) return;
+
+        if (lastTriggered == event.player.ticksExisted) return;
+        lastTriggered = event.player.ticksExisted;
 
         queryAndSendDataToPlayer(event.player, trackerList.get(OPName));
     }
