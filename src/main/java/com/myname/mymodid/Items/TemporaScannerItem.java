@@ -1,35 +1,24 @@
 package com.myname.mymodid.Items;
 
-import static com.gtnewhorizons.modularui.common.widget.textfield.BaseTextFieldWidget.WHOLE_NUMS;
-
-import com.gtnewhorizons.modularui.api.UIInfos;
-import com.gtnewhorizons.modularui.api.drawable.Text;
-import com.gtnewhorizons.modularui.api.drawable.UITexture;
-import com.gtnewhorizons.modularui.api.math.CrossAxisAlignment;
-import com.gtnewhorizons.modularui.api.math.MainAxisAlignment;
-import com.gtnewhorizons.modularui.api.math.Pos2d;
-import com.gtnewhorizons.modularui.common.widget.ButtonWidget;
-import com.gtnewhorizons.modularui.common.widget.CycleButtonWidget;
-import com.gtnewhorizons.modularui.common.widget.Row;
-import com.gtnewhorizons.modularui.common.widget.TextWidget;
-import com.myname.mymodid.TemporaUtils;
-import net.minecraft.creativetab.CreativeTabs;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-
 import com.gtnewhorizons.modularui.api.ModularUITextures;
-import com.gtnewhorizons.modularui.api.drawable.AdaptableUITexture;
-import com.gtnewhorizons.modularui.api.math.Alignment;
-import com.gtnewhorizons.modularui.api.math.Color;
+import com.gtnewhorizons.modularui.api.UIInfos;
+import com.gtnewhorizons.modularui.api.drawable.UITexture;
+import com.gtnewhorizons.modularui.api.math.Pos2d;
 import com.gtnewhorizons.modularui.api.math.Size;
 import com.gtnewhorizons.modularui.api.screen.IItemWithModularUI;
 import com.gtnewhorizons.modularui.api.screen.ModularWindow;
 import com.gtnewhorizons.modularui.api.screen.UIBuildContext;
 import com.gtnewhorizons.modularui.api.widget.Widget;
+import com.gtnewhorizons.modularui.common.widget.CycleButtonWidget;
 import com.gtnewhorizons.modularui.common.widget.MultiChildWidget;
 import com.gtnewhorizons.modularui.common.widget.TabContainer;
-import com.gtnewhorizons.modularui.common.widget.textfield.TextFieldWidget;
+import com.gtnewhorizons.modularui.common.widget.TextWidget;
+import com.gtnewhorizons.modularui.common.widget.VanillaButtonWidget;
+import com.myname.mymodid.TemporaUtils;
+import net.minecraft.creativetab.CreativeTabs;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
@@ -49,9 +38,6 @@ public class TemporaScannerItem extends Item implements IItemWithModularUI {
         this.setUnlocalizedName("tempora_scanner"); // This is used for localization.
     }
 
-    private static final AdaptableUITexture DISPLAY = AdaptableUITexture
-        .of("modularui:gui/background/display", 143, 75, 2);
-
     @Override
     public ModularWindow createWindow(UIBuildContext buildContext, ItemStack stack) {
         ModularWindow.Builder builder = ModularWindow.builder(new Size(176, 272));
@@ -59,82 +45,119 @@ public class TemporaScannerItem extends Item implements IItemWithModularUI {
         builder.setBackground(ModularUITextures.VANILLA_BACKGROUND)
             .bindPlayerInventory(buildContext.getPlayer());
 
-        return builder.widget(new TabContainer().addPage(createPage()))
-            .build();
+        return builder.widget(new TabContainer().addPage(createPage())).build();
     }
-    private int serverValue = 0;
+
+    // Event variables and getters/setters
+    private boolean requestEntityMovement = false;
+    private boolean requestEntityDeath = false;
+    private boolean requestBlockBreaks = false;
+    private boolean requestBlockPlace = false;
+    private boolean requestCommands = false;
+    private boolean requestPlayerMovement = false;
+    private boolean requestPlayerDeath = false;
+    private boolean requestExplosions = false;
+    private boolean requestItemUse = false;
+
+    private void setEventState(String eventName, int value) {
+        switch (eventName) {
+            case "EntityMovement" -> requestEntityMovement = value != 0;
+            case "EntityDeath" -> requestEntityDeath = value != 0;
+            case "BlockBreaks" -> requestBlockBreaks = value != 0;
+            case "BlockPlace" -> requestBlockPlace = value != 0;
+            case "Commands" -> requestCommands = value != 0;
+            case "PlayerMovement" -> requestPlayerMovement = value != 0;
+            case "PlayerDeath" -> requestPlayerDeath = value != 0;
+            case "Explosions" -> requestExplosions = value != 0;
+            case "ItemUse" -> requestItemUse = value != 0;
+        }
+    }
+
+    private int getEventState(String eventName) {
+        return switch (eventName) {
+            case "Entity Movement" -> requestEntityMovement ? 1 : 0;
+            case "Entity Death" -> requestEntityDeath ? 1 : 0;
+            case "Block Breaks" -> requestBlockBreaks ? 1 : 0;
+            case "Block Place" -> requestBlockPlace ? 1 : 0;
+            case "Commands" -> requestCommands ? 1 : 0;
+            case "Player Movement" -> requestPlayerMovement ? 1 : 0;
+            case "Player Death" -> requestPlayerDeath ? 1 : 0;
+            case "Explosions" -> requestExplosions ? 1 : 0;
+            case "Item Use" -> requestItemUse ? 1 : 0;
+            default -> 0;
+        };
+    }
+
+    static final String[] eventNames = {
+        "Entity Movement",
+        "Entity Death",
+        "Block Breaks",
+        "Block Place",
+        "Commands",
+        "Player Movement",
+        "Player Death",
+        "Explosions",
+        "Item Use"
+    };
+
 
     private Widget createPage() {
 
-        return new MultiChildWidget()
-            .addChild(                new CycleButtonWidget().setLength(2).setGetter(() -> serverValue)
-                .setSetter(val -> this.serverValue = val)
+        MultiChildWidget mcw = new MultiChildWidget();
+
+        // Entity Movement
+        // Entity Death
+        // Block breaks
+        // Block place
+        // Commands
+        // Player Movement
+        // Player Death
+        // Explosions
+        // Item use
+
+        for (int i = 0; i < eventNames.length; i++) {
+            final int eventIndex = i;
+            mcw.addChild(new CycleButtonWidget().setLength(2)
+                .setSetter(value -> setEventState(eventNames[eventIndex], value))
+                .setGetter(() -> getEventState(eventNames[eventIndex]))
                 .setTexture(UITexture.fullImage("tempora", "gui/button"))
                 .addTooltip(
                     0,
-                    "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum.")
+                    "Not selected")
                 .addTooltip(
                     1,
-                    "Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.")
-                .setTooltipHasSpaceAfterFirstLine(false).setPos(new Pos2d(68, 0)));
+                    "Selected")
+                .setTooltipHasSpaceAfterFirstLine(false).setPos(new Pos2d(8, 8 + 20 * i)));
 
-    }
+            mcw.addChild(new TextWidget(eventNames[eventIndex]).setPos(new Pos2d(30, 15 + 20 * i)));
+        }
 
-    double scaleFactor;
+        // Do other CycleButtonWidgets here
 
-    private String getScaleFactor() {
-        return Double.toString(scaleFactor);
-    }
 
-    private void setScaleFactor(String string) {
-        try {
-            scaleFactor = Double.parseDouble(string);
-        } catch (Exception ignored) {}
-    }
+        mcw.addChild(
+        new VanillaButtonWidget()
+            .setDisplayString("Submit")
+            .setOnClick((clickData, widget) -> {
+                if (!widget.isClient()) {
+                    // Send packet here.
+                    widget.getContext().getPlayer().addChatMessage(
+                        new ChatComponentText("Internal Name: " + widget.getInternalName()));
 
-    double xAngle;
 
-    private String getxAngle() {
-        return Double.toString(xAngle);
-    }
+                }
+            }).setPos(176-32-2, 272-18).setSize(32, 16).setInternalName("debug"));
 
-    private void setxAngle(String string) {
-        try {
-            xAngle = Double.parseDouble(string);
-        } catch (Exception ignored) {}
-    }
 
-    double yAngle;
-
-    private String getyAngle() {
-        return Double.toString(yAngle);
-    }
-
-    private void setyAngle(String string) {
-        try {
-            yAngle = Double.parseDouble(string);
-        } catch (Exception ignored) {}
-    }
-
-    double zAngle;
-
-    private String getzAngle() {
-        return Double.toString(zAngle);
-    }
-
-    private void setzAngle(String string) {
-        try {
-            zAngle = Double.parseDouble(string);
-        } catch (Exception ignored) {}
+        return mcw;
     }
 
     @Override
-    public boolean onItemUse(ItemStack p_77648_1_, EntityPlayer player, World world, int p_77648_4_, int p_77648_5_, int p_77648_6_, int p_77648_7_, float p_77648_8_, float p_77648_9_, float p_77648_10_) {
+    public ItemStack onItemRightClick(ItemStack itemStackIn, World world, EntityPlayer player) {
         if (TemporaUtils.isClientSide()) {
             UIInfos.PLAYER_HELD_ITEM_UI
                 .open(player, world, Vec3.createVectorHelper(10, 10, 10));
         }
-        return true;
-
+        return super.onItemRightClick(itemStackIn, world, player);
     }
 }
