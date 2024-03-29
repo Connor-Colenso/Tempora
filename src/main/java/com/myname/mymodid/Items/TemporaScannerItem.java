@@ -129,7 +129,7 @@ public class TemporaScannerItem extends Item implements IItemWithModularUI {
                     "Selected")
                 .setTooltipHasSpaceAfterFirstLine(false).setPos(new Pos2d(8, 8 + 20 * i)));
 
-            mcw.addChild(new TextWidget(eventNames[eventIndex]).setPos(new Pos2d(30, 15 + 20 * i)));
+            mcw.addChild(new TextWidget(eventNames[eventIndex]).setPos(new Pos2d(30, 15 + 15 * i)));
         }
 
         // Do other CycleButtonWidgets here
