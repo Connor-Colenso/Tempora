@@ -25,8 +25,18 @@ public class ItemUseLogger extends GenericLoggerPositional {
 
     @Override
     protected String processResultSet(ResultSet rs) throws SQLException {
-        return "null";
+        return String.format(
+            "%s used %s:%d at [%d, %d, %d] in dimension %d on %s",
+            rs.getString("playerName"),
+            rs.getString("item"),
+            rs.getInt("itemMetadata"),
+            rs.getInt("x"),
+            rs.getInt("y"),
+            rs.getInt("z"),
+            rs.getInt("dimensionID"),
+            rs.getString("timestamp"));
     }
+
 
     @Override
     public Connection initDatabase() {

@@ -23,8 +23,17 @@ public class ExplosionLogger extends GenericLoggerPositional {
 
     @Override
     protected String processResultSet(ResultSet rs) throws SQLException {
-        return "null";
+        return String.format(
+            "Explosion at [%.1f, %.1f, %.1f] with strength %.1f by %s in dimension %d on %s",
+            rs.getDouble("x"),
+            rs.getDouble("y"),
+            rs.getDouble("z"),
+            rs.getFloat("strength"),
+            rs.getString("exploder"),
+            rs.getInt("dimensionID"),
+            rs.getString("timestamp"));
     }
+
 
     @Override
     public Connection initDatabase() {
