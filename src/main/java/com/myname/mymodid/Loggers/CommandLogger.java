@@ -20,7 +20,7 @@ public class CommandLogger extends GenericLoggerPositional {
     @Override
     protected String processResultSet(ResultSet rs) throws SQLException {
         return String.format(
-            "%s executed [/%s %s] at [%f, %f, %f] in dimension %d on %s",
+            "%s executed [/%s %s] at [%.1f, %.1f, %.1f] in dimension %d on %s",
             rs.getString("playerName"),
             rs.getString("command"),
             rs.getString("arguments"),

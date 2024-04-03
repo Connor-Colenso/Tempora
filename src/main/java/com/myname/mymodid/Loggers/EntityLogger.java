@@ -25,7 +25,7 @@ public class EntityLogger extends GenericLoggerPositional {
     @Override
     protected String processResultSet(ResultSet rs) throws SQLException {
         return String.format(
-            "%s event for %s at [%f, %f, %f] in dimension %d at %d",
+            "%s event for %s at [%.1f, %.1f, %.1f] in dimension %d at %d",
             rs.getString("eventType"),
             rs.getString("entityName"),
             rs.getDouble("x"),
