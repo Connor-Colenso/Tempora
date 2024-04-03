@@ -6,12 +6,15 @@ import net.minecraftforge.common.config.Configuration;
 
 public class Config {
 
-    public static String greeting = "Hello World";
+    private static final String debugCategory = "Debug";
+
+    // This is more of a debug option, but can be used in single player if you really want.
+    public static boolean shouldTemporaRunInSinglePlayer = false;
 
     public static void synchronizeConfiguration(File configFile) {
         Configuration configuration = new Configuration(configFile);
 
-        greeting = configuration.getString("greeting", Configuration.CATEGORY_GENERAL, greeting, "How shall I greet?");
+        shouldTemporaRunInSinglePlayer = configuration.getBoolean("allowTemporaInSinglePlayer", debugCategory, false, "This is more of a debug option for developers to test easily. Not recommended for players as it adds unnecessary overhead to your world.");
 
         if (configuration.hasChanged()) {
             configuration.save();

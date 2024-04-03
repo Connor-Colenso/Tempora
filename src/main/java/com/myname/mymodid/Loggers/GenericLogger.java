@@ -28,16 +28,20 @@ public abstract class GenericLogger {
     }
 
     public static void onServerStart() {
-        for (@NotNull
-        final GenericLogger logger : loggerList) {
-            Connection conn = logger.initDatabase();
-            databaseList.add(conn);
+        for (@NotNull final GenericLogger logger : loggerList) {
+            try {
+                Connection conn = logger.initDatabase();
+                databaseList.add(conn);
+            } catch (Exception exception) {
+                System.out.println("Critical exception, could not open Tempora databases properly.");
+                exception.printStackTrace();
+            }
+
         }
     }
 
     public static void onServerClose() {
-        for (@NotNull
-        final Connection conn : databaseList) {
+        for (@NotNull final Connection conn : databaseList) {
             try {
                 conn.close();
             } catch (SQLException exception) {
