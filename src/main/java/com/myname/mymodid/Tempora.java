@@ -1,5 +1,6 @@
 package com.myname.mymodid;
 
+import static com.myname.mymodid.Config.shouldTemporaRunInSinglePlayer;
 import static com.myname.mymodid.Tags.MODID;
 
 import net.minecraftforge.common.MinecraftForge;
@@ -62,7 +63,7 @@ public class Tempora {
         NETWORK.registerMessage(PlayerPositionPacketHandler.class, PlayerPositionPacket.class, 0, Side.CLIENT);
         NETWORK.registerMessage(HeatMapPacketHandler.class, HeatMapPacket.class, 1, Side.CLIENT);
 
-        if (TemporaUtils.isServerSide()) {
+        if (TemporaUtils.shouldTemporaRun()) {
             new BlockBreakLogger();
             new ExplosionLogger();
             new ItemUseLogger();
@@ -83,7 +84,7 @@ public class Tempora {
     public void serverStarting(FMLServerStartingEvent event) {
         registerNewCommands(event);
 
-        if (TemporaUtils.isServerSide()) {
+        if (TemporaUtils.shouldTemporaRun()) {
             GenericLogger.onServerStart();
         }
     }
@@ -99,10 +100,6 @@ public class Tempora {
     public void serverStopping(FMLServerStoppingEvent event) {
         if (TemporaUtils.isServerSide()) {
             PlayerTrackerRenderer.clearBuffer();
-        }
-
-        if (TemporaUtils.isServerSide())
-        {
             GenericLogger.onServerClose();
         }
     }

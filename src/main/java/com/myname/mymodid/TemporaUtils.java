@@ -42,6 +42,11 @@ public class TemporaUtils {
         return !isClientSide();
     }
 
+    public static boolean shouldTemporaRun() {
+        return isServerSide() || Config.shouldTemporaRunInSinglePlayer;
+    }
+
+
     public static String defaultDimID() {
         return "999";
     }
