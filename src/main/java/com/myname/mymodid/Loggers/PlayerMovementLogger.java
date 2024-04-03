@@ -5,6 +5,7 @@ import static com.myname.mymodid.TemporaUtils.isClientSide;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
@@ -23,7 +24,7 @@ import cpw.mods.fml.common.gameevent.PlayerEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.common.gameevent.TickEvent.PlayerTickEvent;
 
-public class PlayerMovementLogger extends GenericLogger {
+public class PlayerMovementLogger extends GenericLoggerPositional {
 
     // This class logs three items to the same database.
     // 1. Player movement every n ticks. By default, n = 100 ticks.
@@ -32,6 +33,11 @@ public class PlayerMovementLogger extends GenericLogger {
     // 3. Player login, prevents the user from being logged into a dimension and quickly switching dims, this would
     // cause the dimension
     // to load, which we want to keep track of.
+
+    @Override
+    protected String processResultSet(ResultSet rs) throws SQLException {
+        return "null";
+    }
 
     public PlayerMovementLogger() {
         new TrackPlayerUpdater();
@@ -49,7 +55,7 @@ public class PlayerMovementLogger extends GenericLogger {
             conn = DriverManager.getConnection(databaseURL());
             // Create table if not exists
             try (PreparedStatement pstmt = conn.prepareStatement(
-                "CREATE TABLE IF NOT EXISTS PlayerMovementEvents (" +
+                "CREATE TABLE IF NOT EXISTS Events (" +
                     "playerName TEXT NOT NULL," +
                     "x REAL NOT NULL," +
                     "y REAL NOT NULL," +
@@ -62,11 +68,11 @@ public class PlayerMovementLogger extends GenericLogger {
 
             // Execute index creation statements
             try (Statement stmt = conn.createStatement()) {
-                stmt.execute("CREATE INDEX IF NOT EXISTS idx_playerName ON PlayerMovementEvents(playerName);");
-                stmt.execute("CREATE INDEX IF NOT EXISTS idx_x ON PlayerMovementEvents(x);");
-                stmt.execute("CREATE INDEX IF NOT EXISTS idx_z ON PlayerMovementEvents(z);");
-                stmt.execute("CREATE INDEX IF NOT EXISTS idx_dimensionID ON PlayerMovementEvents(dimensionID);");
-                stmt.execute("CREATE INDEX IF NOT EXISTS idx_timestamp ON PlayerMovementEvents(timestamp);");
+                stmt.execute("CREATE INDEX IF NOT EXISTS idx_playerName ON Events(playerName);");
+                stmt.execute("CREATE INDEX IF NOT EXISTS idx_x ON Events(x);");
+                stmt.execute("CREATE INDEX IF NOT EXISTS idx_z ON Events(z);");
+                stmt.execute("CREATE INDEX IF NOT EXISTS idx_dimensionID ON Events(dimensionID);");
+                stmt.execute("CREATE INDEX IF NOT EXISTS idx_timestamp ON Events(timestamp);");
             }
 
         } catch (final SQLException e) {
@@ -118,7 +124,7 @@ public class PlayerMovementLogger extends GenericLogger {
 
     private void saveData(final EntityPlayerMP player) {
         try {
-            final String sql = "INSERT INTO PlayerMovementEvents(playerName, x, y, z, dimensionID, timestamp) VALUES(?, ?, ?, ?, ?, ?)";
+            final String sql = "INSERT INTO Events(playerName, x, y, z, dimensionID, timestamp) VALUES(?, ?, ?, ?, ?, ?)";
             final PreparedStatement pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, player.getDisplayName());
             pstmt.setDouble(2, player.posX);

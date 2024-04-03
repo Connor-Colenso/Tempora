@@ -5,6 +5,7 @@ import static com.myname.mymodid.TemporaUtils.isClientSide;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -17,13 +18,25 @@ import com.myname.mymodid.TemporaUtils;
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
-public class BlockBreakLogger extends GenericLogger {
+public class BlockBreakLogger extends GenericLoggerPositional {
+
+    @Override
+    protected String processResultSet(ResultSet rs) throws SQLException {
+        return String.format(
+            "%s broke %s at [%d, %d, %d] on %s",
+            rs.getString("playerName"),
+            rs.getString("blockType"),
+            rs.getInt("x"),
+            rs.getInt("y"),
+            rs.getInt("z"),
+            rs.getString("timestamp"));
+    }
 
     @Override
     public Connection initDatabase() {
         try {
             conn = DriverManager.getConnection(databaseURL());
-            final String sql = "CREATE TABLE IF NOT EXISTS BlockBreakEvents (" + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+            final String sql = "CREATE TABLE IF NOT EXISTS Events (" + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
                 + "playerName TEXT NOT NULL,"
                 + "blockType TEXT NOT NULL,"
                 + "metadata INTEGER,"
@@ -57,7 +70,7 @@ public class BlockBreakLogger extends GenericLogger {
 
         if (event.getPlayer() instanceof EntityPlayerMP) {
             try {
-                final String sql = "INSERT INTO BlockBreakEvents(playerName, blockType, metadata, x, y, z, dimensionID) VALUES(?, ?, ?, ?, ?, ?, ?)";
+                final String sql = "INSERT INTO Events(playerName, blockType, metadata, x, y, z, dimensionID) VALUES(?, ?, ?, ?, ?, ?, ?)";
                 final PreparedStatement pstmt = conn.prepareStatement(sql);
                 pstmt.setString(
                     1,

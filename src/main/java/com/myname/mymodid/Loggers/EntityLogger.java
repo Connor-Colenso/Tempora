@@ -5,6 +5,7 @@ import static com.myname.mymodid.TemporaUtils.isClientSide;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import net.minecraft.entity.EntityLivingBase;
@@ -19,7 +20,12 @@ import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
-public class EntityLogger extends GenericLogger {
+public class EntityLogger extends GenericLoggerPositional {
+
+    @Override
+    protected String processResultSet(ResultSet rs) throws SQLException {
+        return "null";
+    }
 
     public EntityLogger() {
         FMLCommonHandler.instance()
@@ -32,7 +38,7 @@ public class EntityLogger extends GenericLogger {
     public Connection initDatabase() {
         try {
             conn = DriverManager.getConnection(databaseURL());
-            final String sql = "CREATE TABLE IF NOT EXISTS EntityEvents (" + "entityName TEXT NOT NULL,"
+            final String sql = "CREATE TABLE IF NOT EXISTS Events (" + "entityName TEXT NOT NULL,"
                 + "x REAL NOT NULL,"
                 + "y REAL NOT NULL,"
                 + "z REAL NOT NULL,"
@@ -89,7 +95,7 @@ public class EntityLogger extends GenericLogger {
 
     private void saveEntityData(EntityLivingBase entity, String eventType) {
         try {
-            final String sql = "INSERT INTO EntityEvents(entityName, x, y, z, dimensionID, eventType, timestamp) VALUES(?, ?, ?, ?, ?, ?, ?)";
+            final String sql = "INSERT INTO Events(entityName, x, y, z, dimensionID, eventType, timestamp) VALUES(?, ?, ?, ?, ?, ?, ?)";
             final PreparedStatement pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, entity.getCommandSenderName());
             pstmt.setDouble(2, entity.posX);
