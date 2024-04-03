@@ -1,6 +1,5 @@
 package com.myname.mymodid;
 
-import static com.myname.mymodid.Config.shouldTemporaRunInSinglePlayer;
 import static com.myname.mymodid.Tags.MODID;
 
 import net.minecraftforge.common.MinecraftForge;
@@ -22,7 +21,7 @@ import com.myname.mymodid.Loggers.BlockBreakLogger;
 import com.myname.mymodid.Loggers.CommandLogger;
 import com.myname.mymodid.Loggers.EntityLogger;
 import com.myname.mymodid.Loggers.ExplosionLogger;
-import com.myname.mymodid.Loggers.GenericLogger;
+import com.myname.mymodid.Loggers.GenericLoggerPositional;
 import com.myname.mymodid.Loggers.ItemUseLogger;
 import com.myname.mymodid.Loggers.PlayerMovementLogger;
 import com.myname.mymodid.Rendering.RenderInWorldDispatcher;
@@ -85,7 +84,7 @@ public class Tempora {
         registerNewCommands(event);
 
         if (TemporaUtils.shouldTemporaRun()) {
-            GenericLogger.onServerStart();
+            GenericLoggerPositional.onServerStart();
         }
     }
 
@@ -100,7 +99,7 @@ public class Tempora {
     public void serverStopping(FMLServerStoppingEvent event) {
         if (TemporaUtils.isServerSide()) {
             PlayerTrackerRenderer.clearBuffer();
-            GenericLogger.onServerClose();
+            GenericLoggerPositional.onServerClose();
         }
     }
 }

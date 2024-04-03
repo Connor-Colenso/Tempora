@@ -5,6 +5,7 @@ import static com.myname.mymodid.TemporaUtils.isClientSide;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import net.minecraft.entity.Entity;
@@ -18,13 +19,18 @@ import com.myname.mymodid.TemporaUtils;
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
-public class ExplosionLogger extends GenericLogger {
+public class ExplosionLogger extends GenericLoggerPositional {
+
+    @Override
+    protected String processResultSet(ResultSet rs) throws SQLException {
+        return "null";
+    }
 
     @Override
     public Connection initDatabase() {
         try {
             conn = DriverManager.getConnection(databaseURL());
-            final String sql = "CREATE TABLE IF NOT EXISTS ExplosionEvents (" + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+            final String sql = "CREATE TABLE IF NOT EXISTS Events (" + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
                 + "x REAL NOT NULL,"
                 + "y REAL NOT NULL,"
                 + "z REAL NOT NULL,"
@@ -64,7 +70,7 @@ public class ExplosionLogger extends GenericLogger {
         final String exploderName = (exploder != null) ? exploder.getCommandSenderName() : "Unknown";
 
         try {
-            final String sql = "INSERT INTO ExplosionEvents(x, y, z, strength, exploder, dimensionID) VALUES(?, ?, ?, ?, ?, ?)";
+            final String sql = "INSERT INTO Events(x, y, z, strength, exploder, dimensionID) VALUES(?, ?, ?, ?, ?, ?)";
             final PreparedStatement pstmt = conn.prepareStatement(sql);
             pstmt.setDouble(1, x);
             pstmt.setDouble(2, y);

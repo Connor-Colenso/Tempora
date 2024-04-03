@@ -1,28 +1,42 @@
 package com.myname.mymodid.Loggers;
 
-import static com.myname.mymodid.TemporaUtils.isClientSide;
-
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-
+import com.myname.mymodid.TemporaUtils;
+import cpw.mods.fml.common.eventhandler.EventPriority;
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import net.minecraft.command.ICommand;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.event.CommandEvent;
 
-import com.myname.mymodid.TemporaUtils;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
-import cpw.mods.fml.common.eventhandler.EventPriority;
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import static com.myname.mymodid.TemporaUtils.isClientSide;
 
-public class CommandLogger extends GenericLogger {
+public class CommandLogger extends GenericLoggerPositional {
+
+    @Override
+    protected String processResultSet(ResultSet rs) throws SQLException {
+        return String.format(
+            "%s executed %s with arguments [%s] at [%f, %f, %f] in dimension %d on %s",
+            rs.getString("playerName"),
+            rs.getString("command"),
+            rs.getString("arguments"),
+            rs.getDouble("x"),
+            rs.getDouble("y"),
+            rs.getDouble("z"),
+            rs.getInt("dimensionID"),
+            rs.getString("timestamp"));
+    }
+
 
     @Override
     public Connection initDatabase() {
         try {
             conn = DriverManager.getConnection(databaseURL());
-            final String sql = "CREATE TABLE IF NOT EXISTS CommandEvents (" + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+            final String sql = "CREATE TABLE IF NOT EXISTS Events (" + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
                 + "playerName TEXT NOT NULL,"
                 + "command TEXT NOT NULL,"
                 + "arguments TEXT,"
@@ -59,7 +73,7 @@ public class CommandLogger extends GenericLogger {
             String[] args = event.parameters;
 
             try {
-                final String sql = "INSERT INTO CommandEvents(playerName, command, arguments, x, y, z, dimensionID) VALUES(?, ?, ?, ?, ?, ?, ?)";
+                final String sql = "INSERT INTO Events(playerName, command, arguments, x, y, z, dimensionID) VALUES(?, ?, ?, ?, ?, ?, ?)";
                 final PreparedStatement pstmt = conn.prepareStatement(sql);
                 pstmt.setString(1, player.getDisplayName());
                 pstmt.setString(2, command.getCommandName());
