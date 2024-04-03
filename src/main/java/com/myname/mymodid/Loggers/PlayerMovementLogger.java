@@ -36,8 +36,16 @@ public class PlayerMovementLogger extends GenericLoggerPositional {
 
     @Override
     protected String processResultSet(ResultSet rs) throws SQLException {
-        return "null";
+        return String.format(
+            "%s was at [%f, %f, %f] in dimension %d at %s",
+            rs.getString("playerName"),
+            rs.getDouble("x"),
+            rs.getDouble("y"),
+            rs.getDouble("z"),
+            rs.getInt("dimensionID"),
+            rs.getString("timestamp"));
     }
+
 
     public PlayerMovementLogger() {
         new TrackPlayerUpdater();
@@ -61,7 +69,7 @@ public class PlayerMovementLogger extends GenericLoggerPositional {
                     "y REAL NOT NULL," +
                     "z REAL NOT NULL," +
                     "dimensionID INTEGER DEFAULT " + TemporaUtils.defaultDimID() + "," +
-                    "timestamp BIGINT DEFAULT 0" +
+                    "timestamp DATETIME DEFAULT CURRENT_TIMESTAMP" +
                     ");")) {
                 pstmt.execute();
             }
@@ -124,14 +132,13 @@ public class PlayerMovementLogger extends GenericLoggerPositional {
 
     private void saveData(final EntityPlayerMP player) {
         try {
-            final String sql = "INSERT INTO Events(playerName, x, y, z, dimensionID, timestamp) VALUES(?, ?, ?, ?, ?, ?)";
+            final String sql = "INSERT INTO Events(playerName, x, y, z, dimensionID) VALUES(?, ?, ?, ?, ?)";
             final PreparedStatement pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, player.getDisplayName());
             pstmt.setDouble(2, player.posX);
             pstmt.setDouble(3, player.posY);
             pstmt.setDouble(4, player.posZ);
             pstmt.setInt(5, player.worldObj.provider.dimensionId);
-            pstmt.setLong(6, System.currentTimeMillis()); // Set the timestamp with millisecond precision
             pstmt.executeUpdate();
 
         } catch (final SQLException e) {
