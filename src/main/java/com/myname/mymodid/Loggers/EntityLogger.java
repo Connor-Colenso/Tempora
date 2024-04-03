@@ -24,8 +24,17 @@ public class EntityLogger extends GenericLoggerPositional {
 
     @Override
     protected String processResultSet(ResultSet rs) throws SQLException {
-        return "null";
+        return String.format(
+            "%s event for %s at [%f, %f, %f] in dimension %d at %d",
+            rs.getString("eventType"),
+            rs.getString("entityName"),
+            rs.getDouble("x"),
+            rs.getDouble("y"),
+            rs.getDouble("z"),
+            rs.getInt("dimensionID"),
+            rs.getLong("timestamp"));
     }
+
 
     public EntityLogger() {
         FMLCommonHandler.instance()
@@ -46,7 +55,7 @@ public class EntityLogger extends GenericLoggerPositional {
                 + TemporaUtils.defaultDimID()
                 + ","
                 + "eventType TEXT NOT NULL,"
-                + "timestamp BIGINT DEFAULT 0"
+                + "timestamp DATETIME DEFAULT CURRENT_TIMESTAMP"
                 + ");";
             final PreparedStatement pstmt = conn.prepareStatement(sql);
             pstmt.execute();
@@ -95,7 +104,7 @@ public class EntityLogger extends GenericLoggerPositional {
 
     private void saveEntityData(EntityLivingBase entity, String eventType) {
         try {
-            final String sql = "INSERT INTO Events(entityName, x, y, z, dimensionID, eventType, timestamp) VALUES(?, ?, ?, ?, ?, ?, ?)";
+            final String sql = "INSERT INTO Events(entityName, x, y, z, dimensionID, eventType) VALUES(?, ?, ?, ?, ?, ?)";
             final PreparedStatement pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, entity.getCommandSenderName());
             pstmt.setDouble(2, entity.posX);
@@ -103,7 +112,6 @@ public class EntityLogger extends GenericLoggerPositional {
             pstmt.setDouble(4, entity.posZ);
             pstmt.setInt(5, entity.worldObj.provider.dimensionId);
             pstmt.setString(6, eventType);
-            pstmt.setLong(7, System.currentTimeMillis());
             pstmt.executeUpdate();
 
         } catch (final SQLException e) {
