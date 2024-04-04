@@ -58,7 +58,7 @@ public abstract class GenericLoggerPositional {
                     returnList.add(logger.processResultSet(rs));
                 }
             } catch (SQLException e) {
-                returnList.add("Database query failed on " + logger.getTableName() + "." + e.getLocalizedMessage());
+                returnList.add("Database query failed on " + logger.getTableName() + ". " + e.getLocalizedMessage());
             }
         }
 
@@ -84,7 +84,7 @@ public abstract class GenericLoggerPositional {
             }
 
         } catch (SQLException sqlException) {
-            System.err.println("Critical exception, could not open Tempora db properly.");
+            System.err.println("Critical exception, could not open Tempora databases properly.");
             sqlException.printStackTrace();
         }
     }
