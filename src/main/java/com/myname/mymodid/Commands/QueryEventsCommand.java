@@ -1,13 +1,11 @@
 package com.myname.mymodid.Commands;
 
-import static com.myname.mymodid.TemporaUtils.parseTime;
-
+import com.myname.mymodid.TemporaUtils;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentText;
-
 import com.myname.mymodid.Loggers.GenericLoggerPositional;
 
 import java.util.ArrayList;
@@ -22,38 +20,39 @@ public class QueryEventsCommand extends CommandBase {
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/queryevents <radius> <time>";
+        return "/queryevents <radius> <time> [filter]";
     }
 
     @Override
     public void processCommand(ICommandSender sender, String[] args) {
         if (args.length < 2) {
-            throw new WrongUsageException(getCommandUsage(sender));
+            throw new WrongUsageException(getCommandUsage(sender), new Object[0]);
         }
 
         int radius = parseInt(sender, args[0]);
-        long seconds = parseTime(args[1]);
-        String tableName = null;
-
-        if (args.length == 3) {
-            tableName = validateFilter(args[2]);
-        }
+        long seconds = TemporaUtils.parseTime(args[1]);
+        String tableName = args.length == 3 ? validateFilter(args[2]) : null;
 
         queryDatabases(sender, radius, seconds, tableName);
     }
 
-    private String validateFilter(String arg) {
-        if (getFilterOptions().contains(arg)) return arg;
-        throw new WrongUsageException("Filter " + arg + " is invalid");
+    private String validateFilter(String input) {
+        for (String option : getFilterOptions()) {
+            if (option.equalsIgnoreCase(input)) {
+                return option;
+            }
+        }
+        throw new WrongUsageException("Filter " + input + " is invalid", new Object[0]);
     }
 
     private void queryDatabases(ICommandSender sender, int radius, long seconds, String tableName) {
-        if (!(sender instanceof EntityPlayerMP))  {
+        if (!(sender instanceof EntityPlayerMP)) {
             sender.addChatMessage(new ChatComponentText("This command can only be run by a user in-game."));
             return;
         }
 
-        for (String message : GenericLoggerPositional.queryEventsWithinRadiusAndTime(sender, radius, seconds, tableName)) {
+        List<String> messages = GenericLoggerPositional.queryEventsWithinRadiusAndTime(sender, radius, seconds, tableName);
+        for (String message : messages) {
             sender.addChatMessage(new ChatComponentText(message));
         }
     }
@@ -65,19 +64,24 @@ public class QueryEventsCommand extends CommandBase {
 
     @Override
     public List<String> addTabCompletionOptions(ICommandSender sender, String[] args) {
-
-        if (args.length == 3) { // Adjust the index as needed for your command's syntax.
-            return getFilterOptions();
+        if (args.length == 3) {
+            String partialFilter = args[2].toLowerCase();
+            List<String> matchingOptions = new ArrayList<>();
+            for (String option : getFilterOptions()) {
+                if (option.toLowerCase().startsWith(partialFilter)) {
+                    matchingOptions.add(option);
+                }
+            }
+            return matchingOptions;
         }
         return null; // Return null or an empty list when there are no matches.
     }
 
     private List<String> getFilterOptions() {
-        List<String> loggers = new ArrayList<>();
-        for (GenericLoggerPositional loggerPositional : GenericLoggerPositional.loggerList) {
-            loggers.add(loggerPositional.getTableName());
+        List<String> options = new ArrayList<>();
+        for (GenericLoggerPositional logger : GenericLoggerPositional.loggerList) {
+            options.add(logger.getTableName());
         }
-        return loggers;
+        return options;
     }
-
 }
