@@ -26,7 +26,7 @@ public class QueryEventsCommand extends CommandBase {
     @Override
     public void processCommand(ICommandSender sender, String[] args) {
         if (args.length < 2) {
-            throw new WrongUsageException(getCommandUsage(sender), new Object[0]);
+            throw new WrongUsageException(getCommandUsage(sender));
         }
 
         int radius = parseInt(sender, args[0]);
@@ -42,7 +42,7 @@ public class QueryEventsCommand extends CommandBase {
                 return option;
             }
         }
-        throw new WrongUsageException("Filter " + input + " is invalid", new Object[0]);
+        throw new WrongUsageException("Filter " + input + " is invalid");
     }
 
     private void queryDatabases(ICommandSender sender, int radius, long seconds, String tableName) {
