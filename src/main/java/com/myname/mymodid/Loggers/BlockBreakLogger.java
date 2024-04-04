@@ -42,7 +42,7 @@ public class BlockBreakLogger extends GenericLoggerPositional {
                 + "y INTEGER NOT NULL,"
                 + "z INTEGER NOT NULL,"
                 + "dimensionID INTEGER DEFAULT "
-                + TemporaUtils.defaultDimID()
+                + TemporaUtils.defaultDimID() // todo fix default
                 + ","
                 + "timestamp DATETIME DEFAULT CURRENT_TIMESTAMP"
                 + ");";
