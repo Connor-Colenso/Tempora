@@ -33,7 +33,6 @@ public class EntityLogger extends GenericLoggerPositional {
             rs.getLong("timestamp"));
     }
 
-
     public EntityLogger() {
         FMLCommonHandler.instance()
             .bus()
@@ -44,7 +43,8 @@ public class EntityLogger extends GenericLoggerPositional {
     @Override
     public void initTable() {
         try {
-            final String sql = "CREATE TABLE IF NOT EXISTS " + getTableName() + " (entityName TEXT NOT NULL,"
+            final String sql = "CREATE TABLE IF NOT EXISTS " + getTableName()
+                + " (entityName TEXT NOT NULL,"
                 + "x REAL NOT NULL,"
                 + "y REAL NOT NULL,"
                 + "z REAL NOT NULL,"
@@ -54,7 +54,8 @@ public class EntityLogger extends GenericLoggerPositional {
                 + "eventType TEXT NOT NULL,"
                 + "timestamp DATETIME DEFAULT CURRENT_TIMESTAMP"
                 + ");";
-            positionLoggerDBConnection.prepareStatement(sql).execute();
+            positionLoggerDBConnection.prepareStatement(sql)
+                .execute();
         } catch (final SQLException e) {
             e.printStackTrace();
         }
@@ -93,7 +94,8 @@ public class EntityLogger extends GenericLoggerPositional {
 
     private void saveEntityData(EntityLivingBase entity, String eventType) {
         try {
-            final String sql = "INSERT INTO " + getTableName() + "(entityName, x, y, z, dimensionID, eventType) VALUES(?, ?, ?, ?, ?, ?)";
+            final String sql = "INSERT INTO " + getTableName()
+                + "(entityName, x, y, z, dimensionID, eventType) VALUES(?, ?, ?, ?, ?, ?)";
             final PreparedStatement pstmt = positionLoggerDBConnection.prepareStatement(sql);
             pstmt.setString(1, entity.getCommandSenderName());
             pstmt.setDouble(2, entity.posX);

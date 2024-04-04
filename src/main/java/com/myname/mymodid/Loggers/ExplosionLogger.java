@@ -38,19 +38,24 @@ public class ExplosionLogger extends GenericLoggerPositional {
     @Override
     public void initTable() {
         try {
-            final String sql = "CREATE TABLE IF NOT EXISTS " + getTableName() + " (" +
-                "id INTEGER PRIMARY KEY AUTOINCREMENT," +
-                "x REAL NOT NULL," +
-                "y REAL NOT NULL," +
-                "z REAL NOT NULL," +
-                "strength REAL NOT NULL," +
-                "exploder TEXT," +
-                "dimensionID INTEGER DEFAULT " + TemporaUtils.defaultDimID() + "," + //TODO Fix
-                "closestPlayer TEXT," +
-                "playerDistance REAL," +
-                "timestamp DATETIME DEFAULT CURRENT_TIMESTAMP" +
-                ");";
-            positionLoggerDBConnection.prepareStatement(sql).execute();
+            final String sql = "CREATE TABLE IF NOT EXISTS " + getTableName()
+                + " ("
+                + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+                + "x REAL NOT NULL,"
+                + "y REAL NOT NULL,"
+                + "z REAL NOT NULL,"
+                + "strength REAL NOT NULL,"
+                + "exploder TEXT,"
+                + "dimensionID INTEGER DEFAULT "
+                + TemporaUtils.defaultDimID()
+                + ","
+                + // TODO Fix
+                "closestPlayer TEXT,"
+                + "playerDistance REAL,"
+                + "timestamp DATETIME DEFAULT CURRENT_TIMESTAMP"
+                + ");";
+            positionLoggerDBConnection.prepareStatement(sql)
+                .execute();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -84,7 +89,8 @@ public class ExplosionLogger extends GenericLoggerPositional {
         closestDistance = Math.sqrt(closestDistance); // Convert from square distance to actual distance
 
         try {
-            final String sql = "INSERT INTO " + getTableName() + "(x, y, z, strength, exploder, dimensionID, closestPlayer, playerDistance) VALUES(?, ?, ?, ?, ?, ?, ?, ?)";
+            final String sql = "INSERT INTO " + getTableName()
+                + "(x, y, z, strength, exploder, dimensionID, closestPlayer, playerDistance) VALUES(?, ?, ?, ?, ?, ?, ?, ?)";
             final PreparedStatement pstmt = positionLoggerDBConnection.prepareStatement(sql);
             pstmt.setDouble(1, x);
             pstmt.setDouble(2, y);

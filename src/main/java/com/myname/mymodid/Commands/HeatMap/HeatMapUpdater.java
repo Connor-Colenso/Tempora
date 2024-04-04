@@ -1,17 +1,18 @@
 package com.myname.mymodid.Commands.HeatMap;
 
-import cpw.mods.fml.common.FMLCommonHandler;
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import cpw.mods.fml.common.gameevent.TickEvent;
-import cpw.mods.fml.common.gameevent.TickEvent.PlayerTickEvent;
-import org.jetbrains.annotations.NotNull;
+import static com.myname.mymodid.TemporaUtils.isClientSide;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-import static com.myname.mymodid.TemporaUtils.isClientSide;
+import org.jetbrains.annotations.NotNull;
+
+import cpw.mods.fml.common.FMLCommonHandler;
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.common.gameevent.TickEvent;
+import cpw.mods.fml.common.gameevent.TickEvent.PlayerTickEvent;
 
 public class HeatMapUpdater {
 
@@ -67,7 +68,12 @@ public class HeatMapUpdater {
         Future<?> operatorTask = ongoingTasks.get(OPName);
         if (operatorTask == null || operatorTask.isDone()) {
             // Submit the new task and update the ongoingTask future for this operator.
-            operatorTask = executorServices.get(OPName).submit(() -> HeatMapUtil.queryAndSendDataToPlayer(event.player, trackerTimeList.get(OPName), trackerNameList.get(OPName)));
+            operatorTask = executorServices.get(OPName)
+                .submit(
+                    () -> HeatMapUtil.queryAndSendDataToPlayer(
+                        event.player,
+                        trackerTimeList.get(OPName),
+                        trackerNameList.get(OPName)));
             ongoingTasks.put(OPName, operatorTask);
         }
     }

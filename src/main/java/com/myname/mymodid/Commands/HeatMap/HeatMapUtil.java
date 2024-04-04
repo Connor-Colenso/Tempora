@@ -26,10 +26,14 @@ public class HeatMapUtil {
     private static final int MAX_POINTS_PER_PACKET = 500;
 
     public static void queryAndSendDataToPlayer(ICommandSender sender, long maxTimeToLookBackInSeconds,
-                                                String playerName) {
+        String playerName) {
 
         try (Connection conn = createDatabaseConnection()) {
-            List<Map.Entry<BlockCoord, Double>> entries = fetchData(sender, maxTimeToLookBackInSeconds, playerName, conn);
+            List<Map.Entry<BlockCoord, Double>> entries = fetchData(
+                sender,
+                maxTimeToLookBackInSeconds,
+                playerName,
+                conn);
             sendHeatMapDataToPlayer(entries, sender);
         } catch (SQLException e) {
             e.printStackTrace();
@@ -41,7 +45,7 @@ public class HeatMapUtil {
     }
 
     private static List<Map.Entry<BlockCoord, Double>> fetchData(ICommandSender sender, long maxTimeToLookBackInSeconds,
-                                                                 String playerName, Connection conn) throws SQLException {
+        String playerName, Connection conn) throws SQLException {
 
         int renderDistance = MinecraftServer.getServer()
             .getConfigurationManager()

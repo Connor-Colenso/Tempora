@@ -43,7 +43,6 @@ public class PlayerMovementLogger extends GenericLoggerPositional {
             rs.getString("timestamp"));
     }
 
-
     public PlayerMovementLogger() {
         new TrackPlayerUpdater();
         new HeatMapUpdater();
@@ -57,25 +56,20 @@ public class PlayerMovementLogger extends GenericLoggerPositional {
     @Override
     public void initTable() {
         try {
-            positionLoggerDBConnection.prepareStatement(
-                "CREATE TABLE IF NOT EXISTS " + getTableName() + " (" +
-                    "playerName TEXT NOT NULL," +
-                    "x REAL NOT NULL," +
-                    "y REAL NOT NULL," +
-                    "z REAL NOT NULL," +
-                    "dimensionID INTEGER DEFAULT " + TemporaUtils.defaultDimID() + "," +
-                    "timestamp DATETIME DEFAULT CURRENT_TIMESTAMP" +
-                    ");").execute();
-
-//            // Execute index creation statements
-//            try (Statement stmt = positionLoggerDBConnection.createStatement()) {
-//                stmt.execute("CREATE INDEX IF NOT EXISTS idx_playerName ON " + getTableName() + "(playerName);");
-//                stmt.execute("CREATE INDEX IF NOT EXISTS idx_x ON " + getTableName() + "(x);");
-//                stmt.execute("CREATE INDEX IF NOT EXISTS idx_z ON " + getTableName() + "(z);");
-//                stmt.execute("CREATE INDEX IF NOT EXISTS idx_dimensionID ON " + getTableName() + "(dimensionID);");
-//                stmt.execute("CREATE INDEX IF NOT EXISTS idx_timestamp ON " + getTableName() + "(timestamp);");
-//            }
-
+            positionLoggerDBConnection
+                .prepareStatement(
+                    "CREATE TABLE IF NOT EXISTS " + getTableName()
+                        + " ("
+                        + "playerName TEXT NOT NULL,"
+                        + "x REAL NOT NULL,"
+                        + "y REAL NOT NULL,"
+                        + "z REAL NOT NULL,"
+                        + "dimensionID INTEGER DEFAULT "
+                        + TemporaUtils.defaultDimID()
+                        + ","
+                        + "timestamp DATETIME DEFAULT CURRENT_TIMESTAMP"
+                        + ");")
+                .execute();
         } catch (final SQLException e) {
             e.printStackTrace();
         }
@@ -118,7 +112,8 @@ public class PlayerMovementLogger extends GenericLoggerPositional {
 
     private void saveData(final EntityPlayerMP player) {
         try {
-            final String sql = "INSERT INTO " + getTableName() + "(playerName, x, y, z, dimensionID) VALUES(?, ?, ?, ?, ?)";
+            final String sql = "INSERT INTO " + getTableName()
+                + "(playerName, x, y, z, dimensionID) VALUES(?, ?, ?, ?, ?)";
             final PreparedStatement pstmt = positionLoggerDBConnection.prepareStatement(sql);
             pstmt.setString(1, player.getDisplayName());
             pstmt.setDouble(2, player.posX);

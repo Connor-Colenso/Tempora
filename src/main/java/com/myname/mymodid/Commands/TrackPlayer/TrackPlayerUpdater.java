@@ -1,7 +1,6 @@
 package com.myname.mymodid.Commands.TrackPlayer;
 
 import static com.myname.mymodid.Commands.TrackPlayer.PlayerTrackerUtil.queryAndSendDataToPlayer;
-import static com.myname.mymodid.TemporaUtils.isClientSide;
 
 import java.util.HashMap;
 

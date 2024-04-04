@@ -88,7 +88,6 @@ public class PlayerTrackerUtil {
 
             // ------------------------------------------------------
 
-
             boolean firstPacket = true;
             for (int i = 0; i < xs.size(); i += MAX_POINTS_PER_PACKET) {
                 int endIndex = Math.min(i + MAX_POINTS_PER_PACKET, xs.size());

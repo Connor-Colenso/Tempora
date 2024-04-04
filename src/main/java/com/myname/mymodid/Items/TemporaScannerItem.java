@@ -1,5 +1,13 @@
 package com.myname.mymodid.Items;
 
+import net.minecraft.creativetab.CreativeTabs;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.Vec3;
+import net.minecraft.world.World;
+
 import com.gtnewhorizons.modularui.api.ModularUITextures;
 import com.gtnewhorizons.modularui.api.UIInfos;
 import com.gtnewhorizons.modularui.api.drawable.UITexture;
@@ -15,13 +23,6 @@ import com.gtnewhorizons.modularui.common.widget.TabContainer;
 import com.gtnewhorizons.modularui.common.widget.TextWidget;
 import com.gtnewhorizons.modularui.common.widget.VanillaButtonWidget;
 import com.myname.mymodid.TemporaUtils;
-import net.minecraft.creativetab.CreativeTabs;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ChatComponentText;
-import net.minecraft.util.Vec3;
-import net.minecraft.world.World;
 
 public class TemporaScannerItem extends Item implements IItemWithModularUI {
 
@@ -45,7 +46,8 @@ public class TemporaScannerItem extends Item implements IItemWithModularUI {
         builder.setBackground(ModularUITextures.VANILLA_BACKGROUND)
             .bindPlayerInventory(buildContext.getPlayer());
 
-        return builder.widget(new TabContainer().addPage(createPage())).build();
+        return builder.widget(new TabContainer().addPage(createPage()))
+            .build();
     }
 
     // Event variables and getters/setters
@@ -88,18 +90,8 @@ public class TemporaScannerItem extends Item implements IItemWithModularUI {
         };
     }
 
-    static final String[] eventNames = {
-        "Entity Movement",
-        "Entity Death",
-        "Block Breaks",
-        "Block Place",
-        "Commands",
-        "Player Movement",
-        "Player Death",
-        "Explosions",
-        "Item Use"
-    };
-
+    static final String[] eventNames = { "Entity Movement", "Entity Death", "Block Breaks", "Block Place", "Commands",
+        "Player Movement", "Player Death", "Explosions", "Item Use" };
 
     private Widget createPage() {
 
@@ -117,37 +109,35 @@ public class TemporaScannerItem extends Item implements IItemWithModularUI {
 
         for (int i = 0; i < eventNames.length; i++) {
             final int eventIndex = i;
-            mcw.addChild(new CycleButtonWidget().setLength(2)
-                .setSetter(value -> setEventState(eventNames[eventIndex], value))
-                .setGetter(() -> getEventState(eventNames[eventIndex]))
-                .setTexture(UITexture.fullImage("tempora", "gui/button"))
-                .addTooltip(
-                    0,
-                    "Not selected")
-                .addTooltip(
-                    1,
-                    "Selected")
-                .setTooltipHasSpaceAfterFirstLine(false).setPos(new Pos2d(8, 8 + 20 * i)));
+            mcw.addChild(
+                new CycleButtonWidget().setLength(2)
+                    .setSetter(value -> setEventState(eventNames[eventIndex], value))
+                    .setGetter(() -> getEventState(eventNames[eventIndex]))
+                    .setTexture(UITexture.fullImage("tempora", "gui/button"))
+                    .addTooltip(0, "Not selected")
+                    .addTooltip(1, "Selected")
+                    .setTooltipHasSpaceAfterFirstLine(false)
+                    .setPos(new Pos2d(8, 8 + 20 * i)));
 
             mcw.addChild(new TextWidget(eventNames[eventIndex]).setPos(new Pos2d(30, 15 + 15 * i)));
         }
 
         // Do other CycleButtonWidgets here
 
-
         mcw.addChild(
-        new VanillaButtonWidget()
-            .setDisplayString("Submit")
-            .setOnClick((clickData, widget) -> {
-                if (!widget.isClient()) {
-                    // Send packet here.
-                    widget.getContext().getPlayer().addChatMessage(
-                        new ChatComponentText("Internal Name: " + widget.getInternalName()));
+            new VanillaButtonWidget().setDisplayString("Submit")
+                .setOnClick((clickData, widget) -> {
+                    if (!widget.isClient()) {
+                        // Send packet here.
+                        widget.getContext()
+                            .getPlayer()
+                            .addChatMessage(new ChatComponentText("Internal Name: " + widget.getInternalName()));
 
-
-                }
-            }).setPos(176-32-2, 272-18).setSize(32, 16).setInternalName("debug"));
-
+                    }
+                })
+                .setPos(176 - 32 - 2, 272 - 18)
+                .setSize(32, 16)
+                .setInternalName("debug"));
 
         return mcw;
     }
@@ -155,8 +145,7 @@ public class TemporaScannerItem extends Item implements IItemWithModularUI {
     @Override
     public ItemStack onItemRightClick(ItemStack itemStackIn, World world, EntityPlayer player) {
         if (TemporaUtils.isClientSide()) {
-            UIInfos.PLAYER_HELD_ITEM_UI
-                .open(player, world, Vec3.createVectorHelper(10, 10, 10));
+            UIInfos.PLAYER_HELD_ITEM_UI.open(player, world, Vec3.createVectorHelper(10, 10, 10));
         }
         return super.onItemRightClick(itemStackIn, world, player);
     }

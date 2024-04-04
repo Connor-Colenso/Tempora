@@ -1,17 +1,19 @@
 package com.myname.mymodid.Loggers;
 
-import com.myname.mymodid.TemporaUtils;
-import cpw.mods.fml.common.eventhandler.EventPriority;
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import net.minecraft.command.ICommand;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraftforge.event.CommandEvent;
+import static com.myname.mymodid.TemporaUtils.isClientSide;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import static com.myname.mymodid.TemporaUtils.isClientSide;
+import net.minecraft.command.ICommand;
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraftforge.event.CommandEvent;
+
+import com.myname.mymodid.TemporaUtils;
+
+import cpw.mods.fml.common.eventhandler.EventPriority;
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
 public class CommandLogger extends GenericLoggerPositional {
 
@@ -29,11 +31,11 @@ public class CommandLogger extends GenericLoggerPositional {
             rs.getString("timestamp"));
     }
 
-
     @Override
     public void initTable() {
         try {
-            final String sql = "CREATE TABLE IF NOT EXISTS " + getTableName() + " (id INTEGER PRIMARY KEY AUTOINCREMENT,"
+            final String sql = "CREATE TABLE IF NOT EXISTS " + getTableName()
+                + " (id INTEGER PRIMARY KEY AUTOINCREMENT,"
                 + "playerName TEXT NOT NULL,"
                 + "command TEXT NOT NULL,"
                 + "arguments TEXT,"
@@ -45,7 +47,8 @@ public class CommandLogger extends GenericLoggerPositional {
                 + ","
                 + "timestamp DATETIME DEFAULT CURRENT_TIMESTAMP"
                 + ");";
-            positionLoggerDBConnection.prepareStatement(sql).execute();
+            positionLoggerDBConnection.prepareStatement(sql)
+                .execute();
         } catch (final SQLException e) {
             e.printStackTrace();
         }
@@ -62,7 +65,8 @@ public class CommandLogger extends GenericLoggerPositional {
             String[] args = event.parameters;
 
             try {
-                final String sql = "INSERT INTO " + getTableName() + "(playerName, command, arguments, x, y, z, dimensionID) VALUES(?, ?, ?, ?, ?, ?, ?)";
+                final String sql = "INSERT INTO " + getTableName()
+                    + "(playerName, command, arguments, x, y, z, dimensionID) VALUES(?, ?, ?, ?, ?, ?, ?)";
                 final PreparedStatement pstmt = positionLoggerDBConnection.prepareStatement(sql);
                 pstmt.setString(1, player.getDisplayName());
                 pstmt.setString(2, command.getCommandName());
