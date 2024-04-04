@@ -35,11 +35,11 @@ public class ItemUseLogger extends GenericLoggerPositional {
             rs.getString("timestamp"));
     }
 
-
     @Override
     public void initTable() {
         try {
-            final String sql = "CREATE TABLE IF NOT EXISTS " + getTableName() + " (id INTEGER PRIMARY KEY AUTOINCREMENT,"
+            final String sql = "CREATE TABLE IF NOT EXISTS " + getTableName()
+                + " (id INTEGER PRIMARY KEY AUTOINCREMENT,"
                 + "playerName TEXT NOT NULL,"
                 + "item TEXT NOT NULL,"
                 + "itemMetadata INTEGER,"
@@ -51,7 +51,8 @@ public class ItemUseLogger extends GenericLoggerPositional {
                 + ","
                 + "timestamp DATETIME DEFAULT CURRENT_TIMESTAMP"
                 + ");";
-            positionLoggerDBConnection.prepareStatement(sql).execute();
+            positionLoggerDBConnection.prepareStatement(sql)
+                .execute();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -85,7 +86,8 @@ public class ItemUseLogger extends GenericLoggerPositional {
             final int z = (int) player.posZ;
 
             try {
-                final String sql = "INSERT INTO " + getTableName() + "(playerName, item, itemMetadata, x, y, z, dimensionID) VALUES(?, ?, ?, ?, ?, ?, ?)";
+                final String sql = "INSERT INTO " + getTableName()
+                    + "(playerName, item, itemMetadata, x, y, z, dimensionID) VALUES(?, ?, ?, ?, ?, ?, ?)";
                 final PreparedStatement pstmt = positionLoggerDBConnection.prepareStatement(sql);
                 pstmt.setString(1, player.getDisplayName());
                 pstmt.setString(

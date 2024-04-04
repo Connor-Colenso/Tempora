@@ -2,7 +2,6 @@ package com.myname.mymodid.Commands;
 
 import static com.myname.mymodid.TemporaUtils.parseTime;
 
-import com.myname.mymodid.Loggers.GenericLoggerPositional;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
@@ -11,6 +10,8 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.network.play.server.S28PacketEffect;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.world.World;
+
+import com.myname.mymodid.Loggers.GenericLoggerPositional;
 
 public class QueryEventsCommand extends CommandBase {
 
@@ -41,7 +42,7 @@ public class QueryEventsCommand extends CommandBase {
         if (!(sender instanceof EntityPlayerMP)) return;
 
         for (GenericLoggerPositional logger : GenericLoggerPositional.loggerList) {
-            for(String message : logger.queryEventsWithinRadiusAndTime(sender, radius, seconds)) {
+            for (String message : logger.queryEventsWithinRadiusAndTime(sender, radius, seconds)) {
                 sender.addChatMessage(new ChatComponentText(message));
             }
         }

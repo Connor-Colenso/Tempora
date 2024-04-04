@@ -33,7 +33,8 @@ public class BlockBreakLogger extends GenericLoggerPositional {
     @Override
     public void initTable() {
         try {
-            final String sql = "CREATE TABLE IF NOT EXISTS " + getTableName() + " (id INTEGER PRIMARY KEY AUTOINCREMENT,"
+            final String sql = "CREATE TABLE IF NOT EXISTS " + getTableName()
+                + " (id INTEGER PRIMARY KEY AUTOINCREMENT,"
                 + "playerName TEXT NOT NULL,"
                 + "blockType TEXT NOT NULL,"
                 + "metadata INTEGER,"
@@ -45,7 +46,8 @@ public class BlockBreakLogger extends GenericLoggerPositional {
                 + ","
                 + "timestamp DATETIME DEFAULT CURRENT_TIMESTAMP"
                 + ");";
-            positionLoggerDBConnection.prepareStatement(sql).execute();
+            positionLoggerDBConnection.prepareStatement(sql)
+                .execute();
         } catch (final SQLException e) {
             e.printStackTrace();
         }
@@ -59,7 +61,8 @@ public class BlockBreakLogger extends GenericLoggerPositional {
 
         if (event.getPlayer() instanceof EntityPlayerMP) {
             try {
-                final String sql = "INSERT INTO " + getTableName() + "(playerName, blockType, metadata, x, y, z, dimensionID) VALUES(?, ?, ?, ?, ?, ?, ?)";
+                final String sql = "INSERT INTO " + getTableName()
+                    + "(playerName, blockType, metadata, x, y, z, dimensionID) VALUES(?, ?, ?, ?, ?, ?, ?)";
                 final PreparedStatement pstmt = positionLoggerDBConnection.prepareStatement(sql);
                 pstmt.setString(
                     1,
