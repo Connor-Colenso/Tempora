@@ -5,13 +5,13 @@ import static com.myname.mymodid.TemporaUtils.parseTime;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.network.play.server.S28PacketEffect;
 import net.minecraft.util.ChatComponentText;
-import net.minecraft.world.World;
 
 import com.myname.mymodid.Loggers.GenericLoggerPositional;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class QueryEventsCommand extends CommandBase {
 
@@ -33,30 +33,28 @@ public class QueryEventsCommand extends CommandBase {
 
         int radius = parseInt(sender, args[0]);
         long seconds = parseTime(args[1]);
+        String tableName = null;
 
-        queryDatabases(sender, radius, seconds);
-    }
-
-    private void queryDatabases(ICommandSender sender, int radius, long seconds) {
-
-        if (!(sender instanceof EntityPlayerMP)) return;
-
-        for (GenericLoggerPositional logger : GenericLoggerPositional.loggerList) {
-            for (String message : logger.queryEventsWithinRadiusAndTime(sender, radius, seconds)) {
-                sender.addChatMessage(new ChatComponentText(message));
-            }
+        if (args.length == 3) {
+            tableName = validateFilter(args[2]);
         }
+
+        queryDatabases(sender, radius, seconds, tableName);
     }
 
-    private void spawnParticleAt(int x, int y, int z, World world) {
-        int PARTICLE_ID = 2006;
+    private String validateFilter(String arg) {
+        if (getFilterOptions().contains(arg)) return arg;
+        throw new WrongUsageException("Filter " + arg + " is invalid");
+    }
 
-        for (EntityPlayer player : world.playerEntities) {
-            double distanceSquared = player.getDistanceSq(x + 0.5D, y + 0.5D, z + 0.5D);
-            if (distanceSquared < 4096) { // If within 64 blocks
-                S28PacketEffect packet = new S28PacketEffect(PARTICLE_ID, x, y, z, 0, false);
-                ((EntityPlayerMP) player).playerNetServerHandler.sendPacket(packet);
-            }
+    private void queryDatabases(ICommandSender sender, int radius, long seconds, String tableName) {
+        if (!(sender instanceof EntityPlayerMP))  {
+            sender.addChatMessage(new ChatComponentText("This command can only be run by a user in-game."));
+            return;
+        }
+
+        for (String message : GenericLoggerPositional.queryEventsWithinRadiusAndTime(sender, radius, seconds, tableName)) {
+            sender.addChatMessage(new ChatComponentText(message));
         }
     }
 
@@ -64,4 +62,22 @@ public class QueryEventsCommand extends CommandBase {
     public int getRequiredPermissionLevel() {
         return 2; // Require OP permission level.
     }
+
+    @Override
+    public List<String> addTabCompletionOptions(ICommandSender sender, String[] args) {
+
+        if (args.length == 3) { // Adjust the index as needed for your command's syntax.
+            return getFilterOptions();
+        }
+        return null; // Return null or an empty list when there are no matches.
+    }
+
+    private List<String> getFilterOptions() {
+        List<String> loggers = new ArrayList<>();
+        for (GenericLoggerPositional loggerPositional : GenericLoggerPositional.loggerList) {
+            loggers.add(loggerPositional.getTableName());
+        }
+        return loggers;
+    }
+
 }
