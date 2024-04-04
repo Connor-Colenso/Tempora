@@ -24,7 +24,7 @@ public abstract class GenericLoggerPositional {
 
     public static final Set<GenericLoggerPositional> loggerList = new HashSet<>();
 
-    public ArrayList<String> queryEventsWithinRadiusAndTime(ICommandSender sender, int radius, long seconds) {
+    public static ArrayList<String> queryEventsWithinRadiusAndTime(ICommandSender sender, int radius, long seconds, String tableName) {
 
         ArrayList<String> returnList = new ArrayList<>();
 
@@ -32,6 +32,10 @@ public abstract class GenericLoggerPositional {
 
         for (GenericLoggerPositional logger : GenericLoggerPositional.loggerList) {
             try {
+                if (tableName != null) {
+                    if (!logger.getTableName().equals(tableName)) continue;
+                }
+
                 // Construct the SQL query
                 final String sql = "SELECT * FROM " + logger.getTableName()
                     + " WHERE ABS(x - ?) <= ? AND ABS(y - ?) <= ? AND ABS(z - ?) <= ?"
@@ -96,7 +100,7 @@ public abstract class GenericLoggerPositional {
 
     public abstract void initTable();
 
-    protected final String getTableName() {
+    public final String getTableName() {
         return getClass().getSimpleName();
     }
 
