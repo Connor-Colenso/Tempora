@@ -2,8 +2,6 @@ package com.myname.mymodid.Loggers;
 
 import static com.myname.mymodid.TemporaUtils.isClientSide;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -38,10 +36,9 @@ public class ExplosionLogger extends GenericLoggerPositional {
     }
 
     @Override
-    public Connection initDatabase() {
+    public void initTable() {
         try {
-            conn = DriverManager.getConnection(databaseURL());
-            final String sql = "CREATE TABLE IF NOT EXISTS Events (" +
+            final String sql = "CREATE TABLE IF NOT EXISTS " + getTableName() + " (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT," +
                 "x REAL NOT NULL," +
                 "y REAL NOT NULL," +
@@ -53,17 +50,10 @@ public class ExplosionLogger extends GenericLoggerPositional {
                 "playerDistance REAL," +
                 "timestamp DATETIME DEFAULT CURRENT_TIMESTAMP" +
                 ");";
-            final PreparedStatement pstmt = conn.prepareStatement(sql);
-            pstmt.execute();
+            positionLoggerDBConnection.prepareStatement(sql).execute();
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return conn;
-    }
-
-    @Override
-    protected String databaseURL() {
-        return TemporaUtils.databaseDirectory() + "explosionEvents.db";
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
@@ -94,8 +84,8 @@ public class ExplosionLogger extends GenericLoggerPositional {
         closestDistance = Math.sqrt(closestDistance); // Convert from square distance to actual distance
 
         try {
-            final String sql = "INSERT INTO Events(x, y, z, strength, exploder, dimensionID, closestPlayer, playerDistance) VALUES(?, ?, ?, ?, ?, ?, ?, ?)";
-            final PreparedStatement pstmt = conn.prepareStatement(sql);
+            final String sql = "INSERT INTO " + getTableName() + "(x, y, z, strength, exploder, dimensionID, closestPlayer, playerDistance) VALUES(?, ?, ?, ?, ?, ?, ?, ?)";
+            final PreparedStatement pstmt = positionLoggerDBConnection.prepareStatement(sql);
             pstmt.setDouble(1, x);
             pstmt.setDouble(2, y);
             pstmt.setDouble(3, z);

@@ -2,8 +2,6 @@ package com.myname.mymodid.Loggers;
 
 import static com.myname.mymodid.TemporaUtils.isClientSide;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -33,10 +31,9 @@ public class BlockBreakLogger extends GenericLoggerPositional {
     }
 
     @Override
-    public Connection initDatabase() {
+    public void initTable() {
         try {
-            conn = DriverManager.getConnection(databaseURL());
-            final String sql = "CREATE TABLE IF NOT EXISTS Events (" + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+            final String sql = "CREATE TABLE IF NOT EXISTS " + getTableName() + " (id INTEGER PRIMARY KEY AUTOINCREMENT,"
                 + "playerName TEXT NOT NULL,"
                 + "blockType TEXT NOT NULL,"
                 + "metadata INTEGER,"
@@ -48,18 +45,10 @@ public class BlockBreakLogger extends GenericLoggerPositional {
                 + ","
                 + "timestamp DATETIME DEFAULT CURRENT_TIMESTAMP"
                 + ");";
-            final PreparedStatement pstmt = conn.prepareStatement(sql);
-            pstmt.execute();
+            positionLoggerDBConnection.prepareStatement(sql).execute();
         } catch (final SQLException e) {
             e.printStackTrace();
         }
-
-        return conn;
-    }
-
-    @Override
-    protected String databaseURL() {
-        return TemporaUtils.databaseDirectory() + "blockBreakEvents.db";
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
@@ -70,8 +59,8 @@ public class BlockBreakLogger extends GenericLoggerPositional {
 
         if (event.getPlayer() instanceof EntityPlayerMP) {
             try {
-                final String sql = "INSERT INTO Events(playerName, blockType, metadata, x, y, z, dimensionID) VALUES(?, ?, ?, ?, ?, ?, ?)";
-                final PreparedStatement pstmt = conn.prepareStatement(sql);
+                final String sql = "INSERT INTO " + getTableName() + "(playerName, blockType, metadata, x, y, z, dimensionID) VALUES(?, ?, ?, ?, ?, ?, ?)";
+                final PreparedStatement pstmt = positionLoggerDBConnection.prepareStatement(sql);
                 pstmt.setString(
                     1,
                     event.getPlayer()
