@@ -1,18 +1,20 @@
 package com.myname.mymodid.Loggers;
 
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.TimeZone;
 
+import com.myname.mymodid.TemporaUtils;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.common.MinecraftForge;
-
-import org.jetbrains.annotations.NotNull;
 
 public abstract class GenericLoggerPositional {
 
@@ -20,8 +22,7 @@ public abstract class GenericLoggerPositional {
         TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
     }
 
-    public static final List<Connection> databaseList = new ArrayList<>();
-    public static final List<GenericLoggerPositional> loggerList = new ArrayList<>();
+    public static final Set<GenericLoggerPositional> loggerList = new HashSet<>();
 
         public ArrayList<String> queryEventsWithinRadiusAndTime(ICommandSender sender, int radius, long seconds) {
 
@@ -29,30 +30,32 @@ public abstract class GenericLoggerPositional {
 
             if (!(sender instanceof EntityPlayerMP entityPlayerMP)) return returnList;
 
-            try {
-                // Construct the SQL query
-                final String sql = "SELECT * FROM Events"
-                    + " WHERE ABS(x - ?) <= ? AND ABS(y - ?) <= ? AND ABS(z - ?) <= ?"
-                    + " AND dimensionID = ? AND timestamp >= datetime(?, 'unixepoch')";
+            for (GenericLoggerPositional logger : GenericLoggerPositional.loggerList) {
+                try {
+                    // Construct the SQL query
+                    final String sql = "SELECT * FROM " + logger.getTableName()
+                        + " WHERE ABS(x - ?) <= ? AND ABS(y - ?) <= ? AND ABS(z - ?) <= ?"
+                        + " AND dimensionID = ? AND timestamp >= datetime(?, 'unixepoch')";
 
-                // Prepare the statement
-                PreparedStatement pstmt = conn.prepareStatement(sql);
-                pstmt.setInt(1, sender.getPlayerCoordinates().posX);
-                pstmt.setInt(2, radius);
-                pstmt.setInt(3, sender.getPlayerCoordinates().posY);
-                pstmt.setInt(4, radius);
-                pstmt.setInt(5, sender.getPlayerCoordinates().posZ);
-                pstmt.setInt(6, radius);
-                pstmt.setInt(7, entityPlayerMP.dimension);
-                pstmt.setLong(8, System.currentTimeMillis() / 1000 - seconds);
+                    // Prepare the statement
+                    PreparedStatement pstmt = positionLoggerDBConnection.prepareStatement(sql);
+                    pstmt.setInt(1, sender.getPlayerCoordinates().posX);
+                    pstmt.setInt(2, radius);
+                    pstmt.setInt(3, sender.getPlayerCoordinates().posY);
+                    pstmt.setInt(4, radius);
+                    pstmt.setInt(5, sender.getPlayerCoordinates().posZ);
+                    pstmt.setInt(6, radius);
+                    pstmt.setInt(7, entityPlayerMP.dimension);
+                    pstmt.setLong(8, System.currentTimeMillis() / 1000 - seconds);
 
-                // Execute the query
-                ResultSet rs = pstmt.executeQuery();
-                while (rs.next()) {
-                    returnList.add(processResultSet(rs));
+                    // Execute the query
+                    ResultSet rs = pstmt.executeQuery();
+                    while (rs.next()) {
+                        returnList.add(logger.processResultSet(rs));
+                    }
+                } catch (SQLException e) {
+                    returnList.add("Database query failed on " + logger.getTableName() + "." + e.getLocalizedMessage());
                 }
-            } catch (SQLException e) {
-                returnList.add("Database query failed. " + e.getLocalizedMessage());
             }
 
         return returnList;
@@ -60,11 +63,7 @@ public abstract class GenericLoggerPositional {
 
     protected abstract String processResultSet(ResultSet rs) throws SQLException;
 
-    public Connection getDatabaseConnection() {
-        return conn;
-    }
-
-    protected Connection conn;
+    protected static Connection positionLoggerDBConnection;
 
     public GenericLoggerPositional() {
         MinecraftForge.EVENT_BUS.register(this);
@@ -72,31 +71,32 @@ public abstract class GenericLoggerPositional {
     }
 
     public static void onServerStart() {
-        for (@NotNull final GenericLoggerPositional logger : loggerList) {
-            try {
-                Connection conn = logger.initDatabase();
-                databaseList.add(conn);
-            } catch (Exception exception) {
-                System.out.println("Critical exception, could not open Tempora databases properly.");
-                exception.printStackTrace();
+        try {
+            positionLoggerDBConnection = DriverManager.getConnection(TemporaUtils.databaseDirectory() + "PositionalLogger.db");
+
+            for (GenericLoggerPositional loggerPositional : loggerList) {
+                loggerPositional.initTable();
             }
 
+        } catch (SQLException sqlException) {
+            System.err.println("Critical exception, could not open Tempora db properly.");
+            sqlException.printStackTrace();
         }
     }
 
     public static void onServerClose() {
-        for (@NotNull final Connection conn : databaseList) {
-            try {
-                conn.close();
-            } catch (SQLException exception) {
-                System.out.println("Critical exception, could not close Tempora databases properly.");
-                exception.printStackTrace();
-            }
+        try { //Todo lock this properly.
+            positionLoggerDBConnection.close();
+        } catch (SQLException exception) {
+            System.err.println("Critical exception, could not close Tempora databases properly.");
+            exception.printStackTrace();
         }
     }
 
-    public abstract Connection initDatabase();
+    public abstract void initTable();
 
-    protected abstract String databaseURL();
+    protected final String getTableName() {
+        return getClass().getSimpleName();
+    }
 
 }

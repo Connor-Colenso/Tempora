@@ -2,12 +2,9 @@ package com.myname.mymodid.Loggers;
 
 import static com.myname.mymodid.TemporaUtils.isClientSide;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
@@ -58,41 +55,30 @@ public class PlayerMovementLogger extends GenericLoggerPositional {
     }
 
     @Override
-    public Connection initDatabase() {
+    public void initTable() {
         try {
-            conn = DriverManager.getConnection(databaseURL());
-            // Create table if not exists
-            try (PreparedStatement pstmt = conn.prepareStatement(
-                "CREATE TABLE IF NOT EXISTS Events (" +
+            positionLoggerDBConnection.prepareStatement(
+                "CREATE TABLE IF NOT EXISTS " + getTableName() + " (" +
                     "playerName TEXT NOT NULL," +
                     "x REAL NOT NULL," +
                     "y REAL NOT NULL," +
                     "z REAL NOT NULL," +
                     "dimensionID INTEGER DEFAULT " + TemporaUtils.defaultDimID() + "," +
                     "timestamp DATETIME DEFAULT CURRENT_TIMESTAMP" +
-                    ");")) {
-                pstmt.execute();
-            }
+                    ");").execute();
 
-            // Execute index creation statements
-            try (Statement stmt = conn.createStatement()) {
-                stmt.execute("CREATE INDEX IF NOT EXISTS idx_playerName ON Events(playerName);");
-                stmt.execute("CREATE INDEX IF NOT EXISTS idx_x ON Events(x);");
-                stmt.execute("CREATE INDEX IF NOT EXISTS idx_z ON Events(z);");
-                stmt.execute("CREATE INDEX IF NOT EXISTS idx_dimensionID ON Events(dimensionID);");
-                stmt.execute("CREATE INDEX IF NOT EXISTS idx_timestamp ON Events(timestamp);");
-            }
+//            // Execute index creation statements
+//            try (Statement stmt = positionLoggerDBConnection.createStatement()) {
+//                stmt.execute("CREATE INDEX IF NOT EXISTS idx_playerName ON " + getTableName() + "(playerName);");
+//                stmt.execute("CREATE INDEX IF NOT EXISTS idx_x ON " + getTableName() + "(x);");
+//                stmt.execute("CREATE INDEX IF NOT EXISTS idx_z ON " + getTableName() + "(z);");
+//                stmt.execute("CREATE INDEX IF NOT EXISTS idx_dimensionID ON " + getTableName() + "(dimensionID);");
+//                stmt.execute("CREATE INDEX IF NOT EXISTS idx_timestamp ON " + getTableName() + "(timestamp);");
+//            }
 
         } catch (final SQLException e) {
             e.printStackTrace();
         }
-
-        return conn;
-    }
-
-    @Override
-    protected String databaseURL() {
-        return TemporaUtils.databaseDirectory() + "playerMovementEvents.db";
     }
 
     @SubscribeEvent
@@ -132,8 +118,8 @@ public class PlayerMovementLogger extends GenericLoggerPositional {
 
     private void saveData(final EntityPlayerMP player) {
         try {
-            final String sql = "INSERT INTO Events(playerName, x, y, z, dimensionID) VALUES(?, ?, ?, ?, ?)";
-            final PreparedStatement pstmt = conn.prepareStatement(sql);
+            final String sql = "INSERT INTO " + getTableName() + "(playerName, x, y, z, dimensionID) VALUES(?, ?, ?, ?, ?)";
+            final PreparedStatement pstmt = positionLoggerDBConnection.prepareStatement(sql);
             pstmt.setString(1, player.getDisplayName());
             pstmt.setDouble(2, player.posX);
             pstmt.setDouble(3, player.posY);

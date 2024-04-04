@@ -2,8 +2,6 @@ package com.myname.mymodid.Loggers;
 
 import static com.myname.mymodid.TemporaUtils.isClientSide;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -44,10 +42,9 @@ public class EntityLogger extends GenericLoggerPositional {
     }
 
     @Override
-    public Connection initDatabase() {
+    public void initTable() {
         try {
-            conn = DriverManager.getConnection(databaseURL());
-            final String sql = "CREATE TABLE IF NOT EXISTS Events (" + "entityName TEXT NOT NULL,"
+            final String sql = "CREATE TABLE IF NOT EXISTS " + getTableName() + " (entityName TEXT NOT NULL,"
                 + "x REAL NOT NULL,"
                 + "y REAL NOT NULL,"
                 + "z REAL NOT NULL,"
@@ -57,18 +54,10 @@ public class EntityLogger extends GenericLoggerPositional {
                 + "eventType TEXT NOT NULL,"
                 + "timestamp DATETIME DEFAULT CURRENT_TIMESTAMP"
                 + ");";
-            final PreparedStatement pstmt = conn.prepareStatement(sql);
-            pstmt.execute();
+            positionLoggerDBConnection.prepareStatement(sql).execute();
         } catch (final SQLException e) {
             e.printStackTrace();
         }
-
-        return conn;
-    }
-
-    @Override
-    protected String databaseURL() {
-        return TemporaUtils.databaseDirectory() + "entityEvents.db";
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
@@ -104,8 +93,8 @@ public class EntityLogger extends GenericLoggerPositional {
 
     private void saveEntityData(EntityLivingBase entity, String eventType) {
         try {
-            final String sql = "INSERT INTO Events(entityName, x, y, z, dimensionID, eventType) VALUES(?, ?, ?, ?, ?, ?)";
-            final PreparedStatement pstmt = conn.prepareStatement(sql);
+            final String sql = "INSERT INTO " + getTableName() + "(entityName, x, y, z, dimensionID, eventType) VALUES(?, ?, ?, ?, ?, ?)";
+            final PreparedStatement pstmt = positionLoggerDBConnection.prepareStatement(sql);
             pstmt.setString(1, entity.getCommandSenderName());
             pstmt.setDouble(2, entity.posX);
             pstmt.setDouble(3, entity.posY);
