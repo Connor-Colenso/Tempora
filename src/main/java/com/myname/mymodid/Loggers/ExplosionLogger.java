@@ -9,6 +9,7 @@ import java.sql.SQLException;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.world.World;
+import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.event.world.ExplosionEvent;
 
 import org.jetbrains.annotations.NotNull;
@@ -19,6 +20,11 @@ import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
 public class ExplosionLogger extends GenericLoggerPositional {
+
+    @Override
+    public void handleConfig(Configuration config) {
+
+    }
 
     @Override
     protected String processResultSet(ResultSet rs) throws SQLException {

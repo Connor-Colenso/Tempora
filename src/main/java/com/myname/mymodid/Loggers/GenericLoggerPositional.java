@@ -15,8 +15,11 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.common.MinecraftForge;
 
 import com.myname.mymodid.TemporaUtils;
+import net.minecraftforge.common.config.Configuration;
 
 public abstract class GenericLoggerPositional {
+
+    public abstract void handleConfig(Configuration config);
 
     static {
         TimeZone.setDefault(TimeZone.getTimeZone("UTC"));

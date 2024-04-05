@@ -9,6 +9,7 @@ import java.sql.SQLException;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
+import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.entity.player.PlayerUseItemEvent;
 
@@ -20,6 +21,11 @@ import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
 public class ItemUseLogger extends GenericLoggerPositional {
+
+    @Override
+    public void handleConfig(Configuration config) {
+
+    }
 
     @Override
     protected String processResultSet(ResultSet rs) throws SQLException {

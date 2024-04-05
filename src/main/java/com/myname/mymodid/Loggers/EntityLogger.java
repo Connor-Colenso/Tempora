@@ -1,5 +1,6 @@
 package com.myname.mymodid.Loggers;
 
+import static com.myname.mymodid.Config.loggingIntervals;
 import static com.myname.mymodid.TemporaUtils.isClientSide;
 
 import java.sql.PreparedStatement;
@@ -8,6 +9,7 @@ import java.sql.SQLException;
 
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
 import net.minecraftforge.event.entity.living.LivingSpawnEvent;
@@ -19,6 +21,19 @@ import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
 public class EntityLogger extends GenericLoggerPositional {
+
+    public static int entityMovementLoggingInterval;
+
+    @Override
+    public void handleConfig(Configuration config) {
+        entityMovementLoggingInterval = config.getInt(
+            "playerMovementLoggingInterval",
+            loggingIntervals,
+            500,
+            1,
+            Integer.MAX_VALUE,
+            "How often entities location is recorded to the database. Measured in ticks (20/second).");
+    }
 
     @Override
     protected String processResultSet(ResultSet rs) throws SQLException {
@@ -86,7 +101,7 @@ public class EntityLogger extends GenericLoggerPositional {
     public void onEntityUpdate(LivingUpdateEvent event) {
         if (isClientSide()) return;
         if (event.isCanceled()) return;
-        if (event.entityLiving.ticksExisted % 20 * 20 != 0) return; // As an example, track every 20 seconds.
+        if (event.entityLiving.ticksExisted % entityMovementLoggingInterval != 0) return; // As an example, track every 20 seconds.
         if (event.entityLiving instanceof EntityPlayerMP) return; // Do not track players here, we do this elsewhere.
 
         saveEntityData(event.entityLiving, "Movement");
