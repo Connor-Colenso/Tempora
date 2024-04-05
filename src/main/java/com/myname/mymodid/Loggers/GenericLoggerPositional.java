@@ -13,9 +13,11 @@ import java.util.TimeZone;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.common.config.Configuration;
 
 import com.myname.mymodid.TemporaUtils;
-import net.minecraftforge.common.config.Configuration;
+
+import cpw.mods.fml.common.FMLCommonHandler;
 
 public abstract class GenericLoggerPositional {
 
@@ -27,7 +29,8 @@ public abstract class GenericLoggerPositional {
 
     public static final Set<GenericLoggerPositional> loggerList = new HashSet<>();
 
-    public static ArrayList<String> queryEventsWithinRadiusAndTime(ICommandSender sender, int radius, long seconds, String tableName) {
+    public static ArrayList<String> queryEventsWithinRadiusAndTime(ICommandSender sender, int radius, long seconds,
+        String tableName) {
 
         ArrayList<String> returnList = new ArrayList<>();
 
@@ -36,7 +39,8 @@ public abstract class GenericLoggerPositional {
         for (GenericLoggerPositional logger : GenericLoggerPositional.loggerList) {
             try {
                 if (tableName != null) {
-                    if (!logger.getTableName().equals(tableName)) continue;
+                    if (!logger.getTableName()
+                        .equals(tableName)) continue;
                 }
 
                 // Construct the SQL query
@@ -74,6 +78,11 @@ public abstract class GenericLoggerPositional {
 
     public GenericLoggerPositional() {
         MinecraftForge.EVENT_BUS.register(this);
+
+        FMLCommonHandler.instance()
+            .bus()
+            .register(this);
+
         loggerList.add(this);
     }
 

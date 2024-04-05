@@ -27,7 +27,7 @@ public class PlayerMovementLogger extends GenericLoggerPositional {
 
     // This class logs three items to the same database.
     // 1. Player movement every n ticks. By default, n = 100 ticks.
-    // 2. Player teleporation between dimensions. Prevents users from evading the above detector by switching dims very
+    // 2. Player teleportation between dimensions. Prevents users from evading the above detector by switching dims very
     // quickly.
     // 3. Player login, prevents the user from being logged into a dimension and quickly switching dims, this would
     // cause the dimension
@@ -59,13 +59,9 @@ public class PlayerMovementLogger extends GenericLoggerPositional {
     }
 
     public PlayerMovementLogger() {
+        super();
         new TrackPlayerUpdater();
         new HeatMapUpdater();
-
-        FMLCommonHandler.instance()
-            .bus()
-            .register(this);
-        loggerList.add(this);
     }
 
     @Override

@@ -1,15 +1,16 @@
 package com.myname.mymodid.Commands;
 
-import com.myname.mymodid.TemporaUtils;
+import java.util.ArrayList;
+import java.util.List;
+
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentText;
-import com.myname.mymodid.Loggers.GenericLoggerPositional;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.myname.mymodid.Loggers.GenericLoggerPositional;
+import com.myname.mymodid.TemporaUtils;
 
 public class QueryEventsCommand extends CommandBase {
 
@@ -51,7 +52,8 @@ public class QueryEventsCommand extends CommandBase {
             return;
         }
 
-        List<String> messages = GenericLoggerPositional.queryEventsWithinRadiusAndTime(sender, radius, seconds, tableName);
+        List<String> messages = GenericLoggerPositional
+            .queryEventsWithinRadiusAndTime(sender, radius, seconds, tableName);
         for (String message : messages) {
             sender.addChatMessage(new ChatComponentText(message));
         }
@@ -68,7 +70,8 @@ public class QueryEventsCommand extends CommandBase {
             String partialFilter = args[2].toLowerCase();
             List<String> matchingOptions = new ArrayList<>();
             for (String option : getFilterOptions()) {
-                if (option.toLowerCase().startsWith(partialFilter)) {
+                if (option.toLowerCase()
+                    .startsWith(partialFilter)) {
                     matchingOptions.add(option);
                 }
             }
