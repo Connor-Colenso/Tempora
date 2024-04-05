@@ -1,8 +1,10 @@
 package com.myname.mymodid;
 
+import static com.myname.mymodid.Config.synchronizeConfiguration;
 import static com.myname.mymodid.Tags.MODID;
 
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.common.config.Configuration;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -49,8 +51,11 @@ public class Tempora {
     @SidedProxy(clientSide = "com.myname.mymodid.ClientProxy", serverSide = "com.myname.mymodid.CommonProxy")
     public static CommonProxy proxy;
 
+    private static Configuration config;
+
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {
+        config = new Configuration(event.getSuggestedConfigurationFile());
         GameRegistry.registerItem(new TemporaScannerItem(), "tempora_scanner");
         Tempora.LOG.info("I am " + Tags.MODNAME + " at version " + Tags.VERSION);
     }
@@ -61,6 +66,9 @@ public class Tempora {
         NETWORK.registerMessage(PlayerPositionPacketHandler.class, PlayerPositionPacket.class, 0, Side.CLIENT);
         NETWORK.registerMessage(HeatMapPacketHandler.class, HeatMapPacket.class, 1, Side.CLIENT);
 
+        // This must happen before we start registering events.
+        synchronizeConfiguration(config);
+
         if (TemporaUtils.shouldTemporaRun()) {
             new BlockBreakLogger();
             new ExplosionLogger();
@@ -68,6 +76,16 @@ public class Tempora {
             new PlayerMovementLogger();
             new CommandLogger();
             new EntityLogger();
+        }
+
+        // Each logger handles their own config settings.
+        for (GenericLoggerPositional logger : GenericLoggerPositional.loggerList) {
+            logger.handleConfig(config);
+        }
+
+        // After all config handling is done.
+        if (config.hasChanged()) {
+            config.save();
         }
 
         if (TemporaUtils.isClientSide()) {
