@@ -8,6 +8,7 @@ import java.sql.SQLException;
 
 import net.minecraft.command.ICommand;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.event.CommandEvent;
 
 import com.myname.mymodid.TemporaUtils;
@@ -16,6 +17,11 @@ import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
 public class CommandLogger extends GenericLoggerPositional {
+
+    @Override
+    public void handleConfig(Configuration config) {
+
+    }
 
     @Override
     protected String processResultSet(ResultSet rs) throws SQLException {

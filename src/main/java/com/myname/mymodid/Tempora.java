@@ -51,7 +51,6 @@ public class Tempora {
 
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {
-        Config.synchronizeConfiguration(event.getSuggestedConfigurationFile());
         GameRegistry.registerItem(new TemporaScannerItem(), "tempora_scanner");
         Tempora.LOG.info("I am " + Tags.MODNAME + " at version " + Tags.VERSION);
     }

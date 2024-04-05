@@ -1,5 +1,6 @@
 package com.myname.mymodid.Loggers;
 
+import static com.myname.mymodid.Config.loggingIntervals;
 import static com.myname.mymodid.TemporaUtils.isClientSide;
 
 import java.sql.PreparedStatement;
@@ -7,6 +8,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 
 import org.jetbrains.annotations.NotNull;
@@ -30,6 +32,19 @@ public class PlayerMovementLogger extends GenericLoggerPositional {
     // 3. Player login, prevents the user from being logged into a dimension and quickly switching dims, this would
     // cause the dimension
     // to load, which we want to keep track of.
+
+    private int playerMovementLoggingInterval;
+
+    @Override
+    public void handleConfig(Configuration config) {
+        playerMovementLoggingInterval = config.getInt(
+            "playerMovementLoggingInterval",
+            loggingIntervals,
+            200,
+            1,
+            Integer.MAX_VALUE,
+            "How often player location is recorded to the database. Measured in ticks (20/second).");
+    }
 
     @Override
     protected String processResultSet(ResultSet rs) throws SQLException {
@@ -83,11 +98,10 @@ public class PlayerMovementLogger extends GenericLoggerPositional {
         if (event.phase != TickEvent.Phase.START) return;
         if (!(event.player instanceof EntityPlayerMP player)) return;
 
-        // Trigger this tracking every 5 seconds.
-        // Todo make this timer changeable in the config.
+        // We skip many ticks and only record when hit.
         if (FMLCommonHandler.instance()
             .getMinecraftServerInstance()
-            .getTickCounter() % 100 != 0) return;
+            .getTickCounter() % playerMovementLoggingInterval != 0) return;
 
         saveData(player);
     }

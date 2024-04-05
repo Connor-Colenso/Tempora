@@ -43,7 +43,7 @@ public class TemporaUtils {
     }
 
     public static boolean shouldTemporaRun() {
-        return isServerSide() || Config.shouldTemporaRunInSinglePlayer;
+        return isServerSide() || Config.shouldTemporaRun;
     }
 
     public static String defaultDimID() {
