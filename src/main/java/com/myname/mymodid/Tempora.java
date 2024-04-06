@@ -3,6 +3,7 @@ package com.myname.mymodid;
 import static com.myname.mymodid.Config.synchronizeConfiguration;
 import static com.myname.mymodid.Tags.MODID;
 
+import cpw.mods.fml.client.FMLClientHandler;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
 
@@ -95,6 +96,18 @@ public class Tempora {
 
     @Mod.EventHandler
     public void postInit(FMLPostInitializationEvent event) {}
+
+    @Mod.EventHandler
+    public void serverInit(FMLServerStartingEvent event) {
+        // Only register this on the server side. We do it here because in SP, preInit etc only runs for the client.
+
+        if (TemporaUtils.shouldTemporaRun()) {
+            for (GenericLoggerPositional logger : GenericLoggerPositional.loggerList) {
+                logger.registerEvent();
+            }
+        }
+
+    }
 
     @Mod.EventHandler
     public void serverStarting(FMLServerStartingEvent event) {

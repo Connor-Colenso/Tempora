@@ -76,13 +76,15 @@ public abstract class GenericLoggerPositional {
 
     protected static Connection positionLoggerDBConnection;
 
-    public GenericLoggerPositional() {
+    public final void registerEvent() {
         MinecraftForge.EVENT_BUS.register(this);
 
         FMLCommonHandler.instance()
             .bus()
             .register(this);
+    }
 
+    public GenericLoggerPositional() {
         loggerList.add(this);
     }
 
