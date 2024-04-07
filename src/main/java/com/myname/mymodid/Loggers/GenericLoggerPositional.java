@@ -81,39 +81,35 @@ public abstract class GenericLoggerPositional<EventToLog extends GenericQueueEle
     public static final Set<GenericLoggerPositional<?>> loggerList = new HashSet<>();
 
     public static ArrayList<String> queryEventsWithinRadiusAndTime(ICommandSender sender, int radius, long seconds,
-        String tableName) {
-
+                                                                   String tableName) {
         ArrayList<String> returnList = new ArrayList<>();
 
         if (!(sender instanceof EntityPlayerMP entityPlayerMP)) return returnList;
 
-        for (GenericLoggerPositional<?> logger : GenericLoggerPositional.loggerList) {
-            try {
-                if (tableName != null) {
-                    if (!logger.getTableName()
-                        .equals(tableName)) continue;
-                }
+        int posX = entityPlayerMP.getPlayerCoordinates().posX;
+        int posY = entityPlayerMP.getPlayerCoordinates().posY;
+        int posZ = entityPlayerMP.getPlayerCoordinates().posZ;
+        int dimensionId = entityPlayerMP.dimension;
 
-                // Construct the SQL query
-                final String sql = "SELECT * FROM " + logger.getTableName()
-                    + " WHERE ABS(x - ?) <= ? AND ABS(y - ?) <= ? AND ABS(z - ?) <= ?"
-                    + " AND dimensionID = ? AND timestamp >= datetime(?, 'unixepoch')";
+        for (GenericLoggerPositional<?> logger : loggerList) {
+            if (tableName != null && !logger.getTableName().equals(tableName)) continue;
 
-                // Prepare the statement
-                PreparedStatement pstmt = positionLoggerDBConnection.prepareStatement(sql);
-                pstmt.setInt(1, sender.getPlayerCoordinates().posX);
-                pstmt.setInt(2, radius);
-                pstmt.setInt(3, sender.getPlayerCoordinates().posY);
+            try (Connection conn = positionLoggerDBConnection;
+                 PreparedStatement pstmt = conn.prepareStatement(
+                     "SELECT * FROM " + logger.getTableName() +
+                         " WHERE SQRT(POWER(x - ?, 2) + POWER(y - ?, 2) + POWER(z - ?, 2)) <= ?" +
+                         " AND dimensionID = ? AND timestamp >= datetime('now', '-" + seconds + " seconds')")) {
+
+                pstmt.setDouble(1, posX);
+                pstmt.setDouble(2, posY);
+                pstmt.setDouble(3, posZ);
                 pstmt.setInt(4, radius);
-                pstmt.setInt(5, sender.getPlayerCoordinates().posZ);
-                pstmt.setInt(6, radius);
-                pstmt.setInt(7, entityPlayerMP.dimension);
-                pstmt.setLong(8, System.currentTimeMillis() / 1000 - seconds);
+                pstmt.setInt(5, dimensionId);
 
-                // Execute the query
-                ResultSet rs = pstmt.executeQuery();
-                while (rs.next()) {
-                    returnList.add(logger.processResultSet(rs));
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    while (rs.next()) {
+                        returnList.add(logger.processResultSet(rs));
+                    }
                 }
             } catch (SQLException e) {
                 returnList.add("Database query failed on " + logger.getTableName() + ". " + e.getLocalizedMessage());
@@ -122,6 +118,7 @@ public abstract class GenericLoggerPositional<EventToLog extends GenericQueueEle
 
         return returnList;
     }
+
 
     protected abstract String processResultSet(ResultSet rs) throws SQLException;
 
