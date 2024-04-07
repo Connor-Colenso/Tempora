@@ -2,8 +2,10 @@ package com.myname.mymodid.Loggers;
 
 import static com.myname.mymodid.TemporaUtils.isClientSide;
 
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 
 import net.minecraft.command.ICommand;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -59,7 +61,22 @@ public class CommandLogger extends GenericLoggerPositional<CommandQueueElement> 
 
     @Override
     public void threadedSaveEvent(CommandQueueElement commandQueueElement) {
-
+        try {
+            final String sql = "INSERT INTO " + getTableName()
+                + "(playerName, command, arguments, x, y, z, dimensionID, timestamp) VALUES(?, ?, ?, ?, ?, ?, ?, ?)";
+            final PreparedStatement pstmt = positionLoggerDBConnection.prepareStatement(sql);
+            pstmt.setString(1, commandQueueElement.playerWhoIssuedCommand);
+            pstmt.setString(2, commandQueueElement.commandName);
+            pstmt.setString(3, commandQueueElement.arguments);
+            pstmt.setDouble(4, commandQueueElement.x);
+            pstmt.setDouble(5, commandQueueElement.y);
+            pstmt.setDouble(6, commandQueueElement.z);
+            pstmt.setInt(7, commandQueueElement.dimensionId);
+            pstmt.setTimestamp(8, new Timestamp(commandQueueElement.timestamp));
+            pstmt.executeUpdate();
+        } catch (final SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)

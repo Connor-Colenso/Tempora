@@ -2,8 +2,10 @@ package com.myname.mymodid.Loggers;
 
 import static com.myname.mymodid.TemporaUtils.isClientSide;
 
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -87,7 +89,20 @@ public class EntityDeathLogger extends GenericLoggerPositional<EntityDeathQueueE
 
     @Override
     public void threadedSaveEvent(EntityDeathQueueElement entityDeathQueueElement) {
-
+        try {
+            final String sql = "INSERT INTO " + getTableName()
+                + "(entityName, x, y, z, dimensionID, timestamp) VALUES(?, ?, ?, ?, ?, ?)";
+            final PreparedStatement pstmt = positionLoggerDBConnection.prepareStatement(sql);
+            pstmt.setString(1, entityDeathQueueElement.nameOfDeadMob); // Name of the mob
+            pstmt.setDouble(2, entityDeathQueueElement.x); // X coordinate
+            pstmt.setDouble(3, entityDeathQueueElement.y); // Y coordinate
+            pstmt.setDouble(4, entityDeathQueueElement.z); // Z coordinate
+            pstmt.setInt(5, entityDeathQueueElement.dimensionId); // Dimension ID
+            pstmt.setTimestamp(6, new Timestamp(entityDeathQueueElement.timestamp)); // Timestamp of death
+            pstmt.executeUpdate();
+        } catch (final SQLException e) {
+            e.printStackTrace();
+        }
     }
 
 }

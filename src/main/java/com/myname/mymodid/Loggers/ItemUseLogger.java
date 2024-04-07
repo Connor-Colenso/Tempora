@@ -2,8 +2,10 @@ package com.myname.mymodid.Loggers;
 
 import static com.myname.mymodid.TemporaUtils.isClientSide;
 
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
@@ -64,7 +66,22 @@ public class ItemUseLogger extends GenericLoggerPositional<ItemUseQueueElement> 
 
     @Override
     public void threadedSaveEvent(ItemUseQueueElement itemUseQueueElement) {
-
+        try {
+            final String sql = "INSERT INTO " + getTableName()
+                + "(playerName, item, itemMetadata, x, y, z, dimensionID, timestamp) VALUES(?, ?, ?, ?, ?, ?, ?, ?)";
+            final PreparedStatement pstmt = positionLoggerDBConnection.prepareStatement(sql);
+            pstmt.setString(1, itemUseQueueElement.playerName);
+            pstmt.setString(2, String.valueOf(itemUseQueueElement.itemID));
+            pstmt.setInt(3, itemUseQueueElement.itemMetadata);
+            pstmt.setDouble(4, itemUseQueueElement.x);
+            pstmt.setDouble(5, itemUseQueueElement.y);
+            pstmt.setDouble(6, itemUseQueueElement.z);
+            pstmt.setInt(7, itemUseQueueElement.dimensionId);
+            pstmt.setTimestamp(8, new Timestamp(itemUseQueueElement.timestamp));
+            pstmt.executeUpdate();
+        } catch (final SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
