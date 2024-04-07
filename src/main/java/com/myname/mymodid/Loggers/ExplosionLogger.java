@@ -2,8 +2,10 @@ package com.myname.mymodid.Loggers;
 
 import static com.myname.mymodid.TemporaUtils.isClientSide;
 
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
@@ -65,7 +67,23 @@ public class ExplosionLogger extends GenericLoggerPositional<ExplosionQueueEleme
 
     @Override
     public void threadedSaveEvent(ExplosionQueueElement explosionQueueElement) {
-
+        try {
+            final String sql = "INSERT INTO " + getTableName()
+                + "(x, y, z, strength, exploder, dimensionID, closestPlayer, playerDistance, timestamp) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            final PreparedStatement pstmt = positionLoggerDBConnection.prepareStatement(sql);
+            pstmt.setDouble(1, explosionQueueElement.x);
+            pstmt.setDouble(2, explosionQueueElement.y);
+            pstmt.setDouble(3, explosionQueueElement.z);
+            pstmt.setFloat(4, explosionQueueElement.strength);
+            pstmt.setString(5, explosionQueueElement.exploderName);
+            pstmt.setInt(6, explosionQueueElement.dimensionId);
+            pstmt.setString(7, explosionQueueElement.closestPlayerName);
+            pstmt.setDouble(8, explosionQueueElement.closestPlayerDistance);
+            pstmt.setTimestamp(9, new Timestamp(explosionQueueElement.timestamp));
+            pstmt.executeUpdate();
+        } catch (final SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     @SuppressWarnings("unused")

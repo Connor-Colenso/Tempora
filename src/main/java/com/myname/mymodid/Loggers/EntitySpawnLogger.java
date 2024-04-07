@@ -2,8 +2,10 @@ package com.myname.mymodid.Loggers;
 
 import static com.myname.mymodid.TemporaUtils.isClientSide;
 
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.common.config.Configuration;
@@ -71,7 +73,20 @@ public class EntitySpawnLogger extends GenericLoggerPositional<EntitySpawnQueueE
 
     @Override
     public void threadedSaveEvent(EntitySpawnQueueElement entitySpawnQueueElement) {
-
+        try {
+            final String sql = "INSERT INTO " + getTableName()
+                + "(entityName, x, y, z, dimensionID, timestamp) VALUES(?, ?, ?, ?, ?, ?)";
+            final PreparedStatement pstmt = positionLoggerDBConnection.prepareStatement(sql);
+            pstmt.setString(1, entitySpawnQueueElement.entityName);
+            pstmt.setDouble(2, entitySpawnQueueElement.x);
+            pstmt.setDouble(3, entitySpawnQueueElement.y);
+            pstmt.setDouble(4, entitySpawnQueueElement.z);
+            pstmt.setInt(5, entitySpawnQueueElement.dimensionId);
+            pstmt.setTimestamp(6, new Timestamp(entitySpawnQueueElement.timestamp));
+            pstmt.executeUpdate();
+        } catch (final SQLException e) {
+            e.printStackTrace();
+        }
     }
 
 }

@@ -3,8 +3,10 @@ package com.myname.mymodid.Loggers;
 import static com.myname.mymodid.Config.loggingIntervals;
 import static com.myname.mymodid.TemporaUtils.isClientSide;
 
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.common.config.Configuration;
@@ -82,7 +84,20 @@ public class PlayerMovementLogger extends GenericLoggerPositional<PlayerMovement
 
     @Override
     public void threadedSaveEvent(PlayerMovementQueueElement playerMovementQueueElement) {
-
+        try {
+            final String sql = "INSERT INTO " + getTableName()
+                + "(playerName, x, y, z, dimensionID, timestamp) VALUES(?, ?, ?, ?, ?, ?)";
+            final PreparedStatement pstmt = positionLoggerDBConnection.prepareStatement(sql);
+            pstmt.setString(1, playerMovementQueueElement.playerName);
+            pstmt.setDouble(2, playerMovementQueueElement.x);
+            pstmt.setDouble(3, playerMovementQueueElement.y);
+            pstmt.setDouble(4, playerMovementQueueElement.z);
+            pstmt.setInt(5, playerMovementQueueElement.dimensionId);
+            pstmt.setTimestamp(6, new Timestamp(playerMovementQueueElement.timestamp));
+            pstmt.executeUpdate();
+        } catch (final SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     @SubscribeEvent
