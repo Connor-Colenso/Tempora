@@ -6,7 +6,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import com.myname.mymodid.QueueElement.ItemUseQueueElement;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
 import net.minecraftforge.common.config.Configuration;
@@ -20,7 +22,7 @@ import com.myname.mymodid.TemporaUtils;
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
-public class ItemUseLogger extends GenericLoggerPositional {
+public class ItemUseLogger extends GenericLoggerPositional<ItemUseQueueElement> {
 
     @Override
     public void handleConfig(Configuration config) {
@@ -64,6 +66,11 @@ public class ItemUseLogger extends GenericLoggerPositional {
         }
     }
 
+    @Override
+    public void threadedSaveEvent(ItemUseQueueElement itemUseQueueElement) {
+
+    }
+
     @SubscribeEvent(priority = EventPriority.LOWEST)
     @SuppressWarnings("unused")
     public void onItemInteract(final @NotNull PlayerInteractEvent event) {
@@ -86,29 +93,23 @@ public class ItemUseLogger extends GenericLoggerPositional {
         final World world = player.worldObj;
         final ItemStack usedItem = player.getCurrentEquippedItem();
 
-        if (usedItem != null) {
-            final int x = (int) player.posX;
-            final int y = (int) player.posY;
-            final int z = (int) player.posZ;
+        ItemUseQueueElement queueElement = new ItemUseQueueElement(
+            player.posX, player.posY, player.posZ,
+            world.provider.dimensionId
+        );
 
-            try {
-                final String sql = "INSERT INTO " + getTableName()
-                    + "(playerName, item, itemMetadata, x, y, z, dimensionID) VALUES(?, ?, ?, ?, ?, ?, ?)";
-                final PreparedStatement pstmt = positionLoggerDBConnection.prepareStatement(sql);
-                pstmt.setString(1, player.getDisplayName());
-                pstmt.setString(
-                    2,
-                    usedItem.getItem()
-                        .getUnlocalizedName());
-                pstmt.setInt(3, usedItem.getItemDamage());
-                pstmt.setInt(4, x);
-                pstmt.setInt(5, y);
-                pstmt.setInt(6, z);
-                pstmt.setInt(7, world.provider.dimensionId);
-                pstmt.executeUpdate();
-            } catch (final SQLException e) {
-                e.printStackTrace();
-            }
+        queueElement.playerName = player.getDisplayName();
+
+        if (usedItem != null) {
+            queueElement.itemID = Item.getIdFromItem(usedItem.getItem());
+            queueElement.itemMetadata = usedItem.getItemDamage();
+        } else {
+            queueElement.itemID = 0;
+            queueElement.itemMetadata = 0;
         }
+
+        eventQueue.add(queueElement);
+
     }
+
 }

@@ -7,10 +7,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import com.myname.mymodid.QueueElement.EntityPositionQueueElement;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.common.config.Configuration;
-import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
 import net.minecraftforge.event.entity.living.LivingSpawnEvent;
 
@@ -19,7 +19,7 @@ import com.myname.mymodid.TemporaUtils;
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
-public class EntityLogger extends GenericLoggerPositional {
+public class EntityPositionLogger extends GenericLoggerPositional<EntityPositionQueueElement> {
 
     public static int entityMovementLoggingInterval;
 
@@ -37,8 +37,7 @@ public class EntityLogger extends GenericLoggerPositional {
     @Override
     protected String processResultSet(ResultSet rs) throws SQLException {
         return String.format(
-            "%s event for %s at [%.1f, %.1f, %.1f] in dimension %d at %d",
-            rs.getString("eventType"),
+            "%s was at [%.1f, %.1f, %.1f] in dimension %d at %d",
             rs.getString("entityName"),
             rs.getDouble("x"),
             rs.getDouble("y"),
@@ -58,7 +57,6 @@ public class EntityLogger extends GenericLoggerPositional {
                 + "dimensionID INTEGER DEFAULT "
                 + TemporaUtils.defaultDimID()
                 + ","
-                + "eventType TEXT NOT NULL,"
                 + "timestamp DATETIME DEFAULT CURRENT_TIMESTAMP"
                 + ");";
             positionLoggerDBConnection.prepareStatement(sql)
@@ -68,24 +66,9 @@ public class EntityLogger extends GenericLoggerPositional {
         }
     }
 
-    @SubscribeEvent(priority = EventPriority.LOWEST)
-    @SuppressWarnings("unused")
-    public void onEntitySpawn(LivingSpawnEvent.SpecialSpawn event) {
-        if (isClientSide()) return;
-        if (event.entityLiving instanceof EntityPlayerMP) return;
-        if (event.isCanceled()) return;
+    @Override
+    public void threadedSaveEvent(EntityPositionQueueElement entityPositionQueueElement) {
 
-        saveEntityData(event.entityLiving, "Spawn");
-    }
-
-    @SubscribeEvent(priority = EventPriority.LOWEST)
-    @SuppressWarnings("unused")
-    public void onEntityDeath(LivingDeathEvent event) {
-        if (isClientSide()) return;
-        if (event.entityLiving instanceof EntityPlayerMP) return;
-        if (event.isCanceled()) return;
-
-        saveEntityData(event.entityLiving, "Death");
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
@@ -97,24 +80,25 @@ public class EntityLogger extends GenericLoggerPositional {
                                                                                           // 20 seconds.
         if (event.entityLiving instanceof EntityPlayerMP) return; // Do not track players here, we do this elsewhere.
 
-        saveEntityData(event.entityLiving, "Movement");
+        EntityPositionQueueElement queueElement = new EntityPositionQueueElement(event.entityLiving.posX, event.entityLiving.posY, event.entityLiving.posZ, event.entityLiving.dimension);
+        queueElement.entityName = event.entityLiving.getCommandSenderName();
+
+        eventQueue.add(queueElement);
+
+//        try {
+//            final String sql = "INSERT INTO " + getTableName()
+//                + "(entityName, x, y, z, dimensionID, eventType) VALUES(?, ?, ?, ?, ?, ?)";
+//            final PreparedStatement pstmt = positionLoggerDBConnection.prepareStatement(sql);
+//            pstmt.setString(1, event.entityLiving.getCommandSenderName());
+//            pstmt.setDouble(2, event.entityLiving.posX);
+//            pstmt.setDouble(3, event.entityLiving.posY);
+//            pstmt.setDouble(4, event.entityLiving.posZ);
+//            pstmt.setInt(5, event.entityLiving.worldObj.provider.dimensionId);
+//            pstmt.executeUpdate();
+//
+//        } catch (final SQLException e) {
+//            e.printStackTrace();
+//        }
     }
 
-    private void saveEntityData(EntityLivingBase entity, String eventType) {
-        try {
-            final String sql = "INSERT INTO " + getTableName()
-                + "(entityName, x, y, z, dimensionID, eventType) VALUES(?, ?, ?, ?, ?, ?)";
-            final PreparedStatement pstmt = positionLoggerDBConnection.prepareStatement(sql);
-            pstmt.setString(1, entity.getCommandSenderName());
-            pstmt.setDouble(2, entity.posX);
-            pstmt.setDouble(3, entity.posY);
-            pstmt.setDouble(4, entity.posZ);
-            pstmt.setInt(5, entity.worldObj.provider.dimensionId);
-            pstmt.setString(6, eventType);
-            pstmt.executeUpdate();
-
-        } catch (final SQLException e) {
-            e.printStackTrace();
-        }
-    }
 }

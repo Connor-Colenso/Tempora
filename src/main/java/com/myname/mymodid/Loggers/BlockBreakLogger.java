@@ -2,10 +2,11 @@ package com.myname.mymodid.Loggers;
 
 import static com.myname.mymodid.TemporaUtils.isClientSide;
 
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import com.myname.mymodid.QueueElement.BlockBreakQueueElement;
+import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.event.world.BlockEvent;
@@ -17,7 +18,7 @@ import com.myname.mymodid.TemporaUtils;
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
-public class BlockBreakLogger extends GenericLoggerPositional {
+public class BlockBreakLogger extends GenericLoggerPositional<BlockBreakQueueElement> {
 
     @Override
     public void handleConfig(Configuration config) {
@@ -42,13 +43,12 @@ public class BlockBreakLogger extends GenericLoggerPositional {
             final String sql = "CREATE TABLE IF NOT EXISTS " + getTableName()
                 + " (id INTEGER PRIMARY KEY AUTOINCREMENT,"
                 + "playerName TEXT NOT NULL,"
-                + "blockType TEXT NOT NULL,"
-                + "metadata INTEGER,"
+//                + "blockType TEXT NOT NULL,"
+                + "metadata INTEGER NOT NULL,"
                 + "x INTEGER NOT NULL,"
                 + "y INTEGER NOT NULL,"
                 + "z INTEGER NOT NULL,"
-                + "dimensionID INTEGER DEFAULT "
-                + TemporaUtils.defaultDimID() // todo fix default
+                + "dimensionID INTEGER DEFAULT " + TemporaUtils.defaultDimID() + " NOT NULL" // todo fix default
                 + ","
                 + "timestamp DATETIME DEFAULT CURRENT_TIMESTAMP"
                 + ");";
@@ -59,31 +59,47 @@ public class BlockBreakLogger extends GenericLoggerPositional {
         }
     }
 
+    @Override
+    public void threadedSaveEvent(BlockBreakQueueElement blockBreakQueueElement) {
+
+    }
+
     @SubscribeEvent(priority = EventPriority.LOWEST)
     @SuppressWarnings("unused")
     public void onBlockBreak(final @NotNull BlockEvent.BreakEvent event) {
         // Server side only.
         if (isClientSide()) return;
 
+        BlockBreakQueueElement queueElement = new BlockBreakQueueElement(event.x, event.y, event.z, event.world.provider.dimensionId);
+        queueElement.blockID = Block.getIdFromBlock(event.block);
+        queueElement.metadata = event.blockMetadata;
+
         if (event.getPlayer() instanceof EntityPlayerMP) {
-            try {
-                final String sql = "INSERT INTO " + getTableName()
-                    + "(playerName, blockType, metadata, x, y, z, dimensionID) VALUES(?, ?, ?, ?, ?, ?, ?)";
-                final PreparedStatement pstmt = positionLoggerDBConnection.prepareStatement(sql);
-                pstmt.setString(
-                    1,
-                    event.getPlayer()
-                        .getDisplayName());
-                pstmt.setString(2, event.block.getUnlocalizedName());
-                pstmt.setInt(3, event.blockMetadata);
-                pstmt.setInt(4, event.x);
-                pstmt.setInt(5, event.y);
-                pstmt.setInt(6, event.z);
-                pstmt.setInt(7, event.getPlayer().worldObj.provider.dimensionId);
-                pstmt.executeUpdate();
-            } catch (final SQLException e) {
-                e.printStackTrace();
-            }
+            queueElement.playerWhoBrokeBlock = event.getPlayer().getDisplayName();
+        } else {
+            queueElement.playerWhoBrokeBlock = TemporaUtils.UNKNOWN_PLAYER_NAME;
         }
+
+        eventQueue.add(queueElement);
+
+//            try {
+//                final String sql = "INSERT INTO " + getTableName()
+//                    + "(playerName, blockType, metadata, x, y, z, dimensionID) VALUES(?, ?, ?, ?, ?, ?, ?)";
+//                final PreparedStatement pstmt = positionLoggerDBConnection.prepareStatement(sql);
+//                pstmt.setString(
+//                    1,
+//                    event.getPlayer()
+//                        .getDisplayName());
+//                pstmt.setString(2, event.block.getUnlocalizedName());
+//                pstmt.setInt(3, event.blockMetadata);
+//                pstmt.setInt(4, event.x);
+//                pstmt.setInt(5, event.y);
+//                pstmt.setInt(6, event.z);
+//                pstmt.setInt(7, event.getPlayer().worldObj.provider.dimensionId);
+//                pstmt.executeUpdate();
+//            } catch (final SQLException e) {
+//                e.printStackTrace();
+//            }
+
     }
 }

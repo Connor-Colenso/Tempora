@@ -9,7 +9,14 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.TimeZone;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 
+import akka.japi.Pair;
+import com.myname.mymodid.QueueElement.GenericQueueElement;
+import cpw.mods.fml.common.eventhandler.Event;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.common.MinecraftForge;
@@ -19,7 +26,47 @@ import com.myname.mymodid.TemporaUtils;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 
-public abstract class GenericLoggerPositional {
+public abstract class GenericLoggerPositional<EventToLog extends GenericQueueElement> {
+
+    private static ExecutorService executor = Executors.newSingleThreadExecutor();
+    private static final AtomicBoolean keepRunning = new AtomicBoolean(true);
+    protected ConcurrentLinkedQueue<EventToLog> eventQueue = new ConcurrentLinkedQueue<>();
+    public abstract void threadedSaveEvent(EventToLog event);
+
+    public static void startEventProcessingThread() {
+        executor.submit(() -> {
+            while (keepRunning.get()) {
+                try {
+                    // Check the total number of events in all queues
+                    int totalEvents = loggerList.stream().mapToInt(logger -> logger.eventQueue.size()).sum();
+
+                    // Process events if the total exceeds 100
+                    if (totalEvents >= 100) {
+                        for (GenericLoggerPositional<?> logger : loggerList) {
+                            while (!logger.eventQueue.isEmpty()) {
+                                logger.threadedSaveEvent(logger.eventQueue.poll());
+                            }
+                        }
+                    }
+                    // Sleep for a while before checking again
+                    Thread.sleep(5000); // Check every 5 seconds
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    System.err.println("Thread was interrupted, failed to complete operation.");
+                } catch (Exception e) {
+                    System.err.println("An error occurred in the logging processor thread: " + e.getMessage());
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
+
+    public static void stopEventProcessingThread() {
+        keepRunning.set(false);
+        executor.shutdownNow(); // Attempt to stop all actively executing tasks
+    }
+
+
 
     public abstract void handleConfig(Configuration config);
 
@@ -27,7 +74,7 @@ public abstract class GenericLoggerPositional {
         TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
     }
 
-    public static final Set<GenericLoggerPositional> loggerList = new HashSet<>();
+    public static final Set<GenericLoggerPositional<?>> loggerList = new HashSet<>();
 
     public static ArrayList<String> queryEventsWithinRadiusAndTime(ICommandSender sender, int radius, long seconds,
         String tableName) {
@@ -36,7 +83,7 @@ public abstract class GenericLoggerPositional {
 
         if (!(sender instanceof EntityPlayerMP entityPlayerMP)) return returnList;
 
-        for (GenericLoggerPositional logger : GenericLoggerPositional.loggerList) {
+        for (GenericLoggerPositional<?> logger : GenericLoggerPositional.loggerList) {
             try {
                 if (tableName != null) {
                     if (!logger.getTableName()
@@ -90,13 +137,11 @@ public abstract class GenericLoggerPositional {
 
     public static void onServerStart() {
         try {
-            positionLoggerDBConnection = DriverManager
-                .getConnection(TemporaUtils.databaseDirectory() + "PositionalLogger.db");
-
-            for (GenericLoggerPositional loggerPositional : loggerList) {
+            positionLoggerDBConnection = DriverManager.getConnection(TemporaUtils.databaseDirectory() + "PositionalLogger.db");
+            for (GenericLoggerPositional<?> loggerPositional : loggerList) {
                 loggerPositional.initTable();
             }
-
+            startEventProcessingThread(); // Start processing thread
         } catch (SQLException sqlException) {
             System.err.println("Critical exception, could not open Tempora databases properly.");
             sqlException.printStackTrace();
@@ -104,7 +149,8 @@ public abstract class GenericLoggerPositional {
     }
 
     public static void onServerClose() {
-        try { // Todo lock this properly.
+        try {
+            stopEventProcessingThread(); // Ensure the thread is stopped when the server is shutting down
             positionLoggerDBConnection.close();
         } catch (SQLException exception) {
             System.err.println("Critical exception, could not close Tempora databases properly.");
