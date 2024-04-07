@@ -41,6 +41,7 @@ public class BlockBreakLogger extends GenericLoggerPositional<BlockBreakQueueEle
                         + " (id INTEGER PRIMARY KEY AUTOINCREMENT,"
                         + "playerName TEXT NOT NULL,"
                         + "metadata INTEGER NOT NULL,"
+                        + "blockId INTEGER NOT NULL,"
                         + "x REAL NOT NULL,"
                         + "y REAL NOT NULL,"
                         + "z REAL NOT NULL,"
@@ -56,15 +57,16 @@ public class BlockBreakLogger extends GenericLoggerPositional<BlockBreakQueueEle
     public void threadedSaveEvent(BlockBreakQueueElement blockBreakQueueElement) {
         try {
             final String sql = "INSERT INTO " + getTableName()
-                + "(playerName, metadata, x, y, z, dimensionID, timestamp) VALUES(?, ?, ?, ?, ?, ?, ?)";
+                + "(playerName, metadata, blockId, x, y, z, dimensionID, timestamp) VALUES(?, ?, ?, ?, ?, ?, ?, ?)";
             final PreparedStatement pstmt = positionLoggerDBConnection.prepareStatement(sql);
             pstmt.setString(1, blockBreakQueueElement.playerWhoBrokeBlock);
-            pstmt.setInt(2, blockBreakQueueElement.metadata);
-            pstmt.setDouble(3, blockBreakQueueElement.x);
-            pstmt.setDouble(4, blockBreakQueueElement.y);
-            pstmt.setDouble(5, blockBreakQueueElement.z);
-            pstmt.setInt(6, blockBreakQueueElement.dimensionId);
-            pstmt.setTimestamp(7, new Timestamp(blockBreakQueueElement.timestamp));
+            pstmt.setInt(2, blockBreakQueueElement.blockID);
+            pstmt.setInt(3, blockBreakQueueElement.metadata);
+            pstmt.setDouble(4, blockBreakQueueElement.x);
+            pstmt.setDouble(5, blockBreakQueueElement.y);
+            pstmt.setDouble(6, blockBreakQueueElement.z);
+            pstmt.setInt(7, blockBreakQueueElement.dimensionId);
+            pstmt.setTimestamp(8, new Timestamp(blockBreakQueueElement.timestamp));
             pstmt.executeUpdate();
         } catch (final SQLException e) {
             e.printStackTrace();
