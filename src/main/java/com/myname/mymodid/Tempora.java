@@ -3,7 +3,8 @@ package com.myname.mymodid;
 import static com.myname.mymodid.Config.synchronizeConfiguration;
 import static com.myname.mymodid.Tags.MODID;
 
-import cpw.mods.fml.client.FMLClientHandler;
+import com.myname.mymodid.Loggers.EntityDeathLogger;
+import com.myname.mymodid.Loggers.EntitySpawnLogger;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
 
@@ -13,7 +14,6 @@ import org.apache.logging.log4j.Logger;
 import com.myname.mymodid.Commands.HeatMap.HeatMapCommand;
 import com.myname.mymodid.Commands.HeatMap.Network.HeatMapPacket;
 import com.myname.mymodid.Commands.HeatMap.Network.HeatMapPacketHandler;
-import com.myname.mymodid.Commands.LastInDimension;
 import com.myname.mymodid.Commands.QueryEventsCommand;
 import com.myname.mymodid.Commands.TrackPlayer.Network.PlayerPositionPacket;
 import com.myname.mymodid.Commands.TrackPlayer.Network.PlayerPositionPacketHandler;
@@ -22,7 +22,7 @@ import com.myname.mymodid.Commands.TrackPlayer.TrackPlayerCommand;
 import com.myname.mymodid.Items.TemporaScannerItem;
 import com.myname.mymodid.Loggers.BlockBreakLogger;
 import com.myname.mymodid.Loggers.CommandLogger;
-import com.myname.mymodid.Loggers.EntityLogger;
+import com.myname.mymodid.Loggers.EntityPositionLogger;
 import com.myname.mymodid.Loggers.ExplosionLogger;
 import com.myname.mymodid.Loggers.GenericLoggerPositional;
 import com.myname.mymodid.Loggers.ItemUseLogger;
@@ -76,7 +76,9 @@ public class Tempora {
             new ItemUseLogger();
             new PlayerMovementLogger();
             new CommandLogger();
-            new EntityLogger();
+            new EntityPositionLogger();
+            new EntityDeathLogger();
+            new EntitySpawnLogger();
         }
 
         // Each logger handles their own config settings.
@@ -122,7 +124,6 @@ public class Tempora {
         event.registerServerCommand(new QueryEventsCommand());
         event.registerServerCommand(new TrackPlayerCommand());
         event.registerServerCommand(new HeatMapCommand());
-        event.registerServerCommand(new LastInDimension());
     }
 
     @Mod.EventHandler

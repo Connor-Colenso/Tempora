@@ -6,6 +6,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import akka.japi.Pair;
+import com.myname.mymodid.QueueElement.CommandQueueElement;
 import net.minecraft.command.ICommand;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.common.config.Configuration;
@@ -16,7 +18,7 @@ import com.myname.mymodid.TemporaUtils;
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
-public class CommandLogger extends GenericLoggerPositional {
+public class CommandLogger extends GenericLoggerPositional<CommandQueueElement> {
 
     @Override
     public void handleConfig(Configuration config) {
@@ -60,6 +62,12 @@ public class CommandLogger extends GenericLoggerPositional {
         }
     }
 
+    @Override
+    public void threadedSaveEvent(CommandQueueElement commandQueueElement) {
+
+    }
+
+
     @SubscribeEvent(priority = EventPriority.LOWEST)
     @SuppressWarnings("unused")
     public void onCommand(final CommandEvent event) {
@@ -70,21 +78,10 @@ public class CommandLogger extends GenericLoggerPositional {
             ICommand command = event.command;
             String[] args = event.parameters;
 
-            try {
-                final String sql = "INSERT INTO " + getTableName()
-                    + "(playerName, command, arguments, x, y, z, dimensionID) VALUES(?, ?, ?, ?, ?, ?, ?)";
-                final PreparedStatement pstmt = positionLoggerDBConnection.prepareStatement(sql);
-                pstmt.setString(1, player.getDisplayName());
-                pstmt.setString(2, command.getCommandName());
-                pstmt.setString(3, String.join(" ", args));
-                pstmt.setDouble(4, player.posX);
-                pstmt.setDouble(5, player.posY);
-                pstmt.setDouble(6, player.posZ);
-                pstmt.setInt(7, player.worldObj.provider.dimensionId);
-                pstmt.executeUpdate();
-            } catch (final SQLException e) {
-                e.printStackTrace();
-            }
+            CommandQueueElement queueElement = new CommandQueueElement(player.posX, player.posY, player.posZ, player.dimension);
+            queueElement.commandName = command.getCommandName();
+            queueElement.arguments = String.join(" ", args);
+
         }
     }
 }

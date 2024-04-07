@@ -14,6 +14,8 @@ import cpw.mods.fml.relauncher.Side;
 
 public class TemporaUtils {
 
+    public static final String UNKNOWN_PLAYER_NAME = "[UNKNOWN]";
+
     public static String databaseDirectory() {
 
         final String path = "./Saves/" + MinecraftServer.getServer()

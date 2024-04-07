@@ -6,6 +6,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import com.myname.mymodid.QueueElement.ExplosionQueueElement;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.world.World;
@@ -19,7 +20,7 @@ import com.myname.mymodid.TemporaUtils;
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
-public class ExplosionLogger extends GenericLoggerPositional {
+public class ExplosionLogger extends GenericLoggerPositional<ExplosionQueueElement> {
 
     @Override
     public void handleConfig(Configuration config) {
@@ -67,8 +68,13 @@ public class ExplosionLogger extends GenericLoggerPositional {
         }
     }
 
-    @SubscribeEvent(priority = EventPriority.LOWEST)
+    @Override
+    public void threadedSaveEvent(ExplosionQueueElement explosionQueueElement) {
+
+    }
+
     @SuppressWarnings("unused")
+    @SubscribeEvent(priority = EventPriority.LOWEST)
     public void onExplosion(final @NotNull ExplosionEvent.Detonate event) {
         if (isClientSide()) return;
 
@@ -78,7 +84,7 @@ public class ExplosionLogger extends GenericLoggerPositional {
         final double y = event.explosion.explosionY;
         final double z = event.explosion.explosionZ;
         final Entity exploder = event.explosion.getExplosivePlacedBy();
-        final String exploderName = (exploder != null) ? exploder.getCommandSenderName() : "Unknown";
+        final String exploderName = (exploder != null) ? exploder.getCommandSenderName() : TemporaUtils.UNKNOWN_PLAYER_NAME;
 
         EntityPlayer closestPlayer = null;
         double closestDistance = Double.MAX_VALUE;
@@ -94,22 +100,12 @@ public class ExplosionLogger extends GenericLoggerPositional {
         String closestPlayerName = closestPlayer != null ? closestPlayer.getDisplayName() : "None";
         closestDistance = Math.sqrt(closestDistance); // Convert from square distance to actual distance
 
-        try {
-            final String sql = "INSERT INTO " + getTableName()
-                + "(x, y, z, strength, exploder, dimensionID, closestPlayer, playerDistance) VALUES(?, ?, ?, ?, ?, ?, ?, ?)";
-            final PreparedStatement pstmt = positionLoggerDBConnection.prepareStatement(sql);
-            pstmt.setDouble(1, x);
-            pstmt.setDouble(2, y);
-            pstmt.setDouble(3, z);
-            pstmt.setFloat(4, strength);
-            pstmt.setString(5, exploderName);
-            pstmt.setInt(6, world.provider.dimensionId);
-            pstmt.setString(7, closestPlayerName);
-            pstmt.setDouble(8, closestDistance);
-            pstmt.executeUpdate();
-        } catch (final SQLException e) {
-            e.printStackTrace();
-        }
+        ExplosionQueueElement queueElement = new ExplosionQueueElement(x, y, z, world.provider.dimensionId);
+        queueElement.strength = strength;
+        queueElement.exploderName = exploderName;
+        queueElement.closestPlayerName = closestPlayerName;
+        queueElement.closestPlayerDistance = closestDistance;
+        eventQueue.add(queueElement);
     }
 
 }

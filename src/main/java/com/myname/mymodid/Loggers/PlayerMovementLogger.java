@@ -1,29 +1,24 @@
 package com.myname.mymodid.Loggers;
 
-import static com.myname.mymodid.Config.loggingIntervals;
-import static com.myname.mymodid.TemporaUtils.isClientSide;
+import com.myname.mymodid.Commands.HeatMap.HeatMapUpdater;
+import com.myname.mymodid.Commands.TrackPlayer.TrackPlayerUpdater;
+import com.myname.mymodid.QueueElement.PlayerMovementQueueElement;
+import com.myname.mymodid.TemporaUtils;
+import cpw.mods.fml.common.FMLCommonHandler;
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.common.gameevent.TickEvent;
+import cpw.mods.fml.common.gameevent.TickEvent.PlayerTickEvent;
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraftforge.common.config.Configuration;
+import org.jetbrains.annotations.NotNull;
 
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraftforge.common.config.Configuration;
-import net.minecraftforge.event.entity.EntityJoinWorldEvent;
+import static com.myname.mymodid.Config.loggingIntervals;
+import static com.myname.mymodid.TemporaUtils.isClientSide;
 
-import org.jetbrains.annotations.NotNull;
-
-import com.myname.mymodid.Commands.HeatMap.HeatMapUpdater;
-import com.myname.mymodid.Commands.TrackPlayer.TrackPlayerUpdater;
-import com.myname.mymodid.TemporaUtils;
-
-import cpw.mods.fml.common.FMLCommonHandler;
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import cpw.mods.fml.common.gameevent.PlayerEvent;
-import cpw.mods.fml.common.gameevent.TickEvent;
-import cpw.mods.fml.common.gameevent.TickEvent.PlayerTickEvent;
-
-public class PlayerMovementLogger extends GenericLoggerPositional {
+public class PlayerMovementLogger extends GenericLoggerPositional<PlayerMovementQueueElement> {
 
     // This class logs three items to the same database.
     // 1. Player movement every n ticks. By default, n = 100 ticks.
@@ -86,55 +81,28 @@ public class PlayerMovementLogger extends GenericLoggerPositional {
         }
     }
 
+    @Override
+    public void threadedSaveEvent(PlayerMovementQueueElement playerMovementQueueElement) {
+
+    }
+
     @SubscribeEvent
     @SuppressWarnings("unused")
     public void onPlayerTick(final @NotNull PlayerTickEvent event) {
-        // Events are only logged server side every 5 seconds at the start of a tick.
         if (isClientSide()) return;
         if (event.phase != TickEvent.Phase.START) return;
         if (!(event.player instanceof EntityPlayerMP player)) return;
-
-        // We skip many ticks and only record when hit.
         if (FMLCommonHandler.instance()
             .getMinecraftServerInstance()
             .getTickCounter() % playerMovementLoggingInterval != 0) return;
 
-        saveData(player);
-    }
+        PlayerMovementQueueElement queueElement = new PlayerMovementQueueElement(
+            player.posX, player.posY, player.posZ,
+            player.worldObj.provider.dimensionId
+        );
+        queueElement.playerName = player.getDisplayName();
 
-    @SubscribeEvent
-    @SuppressWarnings("unused")
-    public void onDimensionChange(PlayerEvent.PlayerChangedDimensionEvent event) {
-        if (isClientSide()) return;
-        if (!(event.player instanceof EntityPlayerMP player)) return;
-
-        saveData(player);
-    }
-
-    @SubscribeEvent
-    @SuppressWarnings("unused")
-    public void onEntityJoinWorld(EntityJoinWorldEvent event) {
-        if (isClientSide()) return;
-        if (!(event.entity instanceof EntityPlayerMP player)) return;
-
-        saveData(player);
-    }
-
-    private void saveData(final EntityPlayerMP player) {
-        try {
-            final String sql = "INSERT INTO " + getTableName()
-                + "(playerName, x, y, z, dimensionID) VALUES(?, ?, ?, ?, ?)";
-            final PreparedStatement pstmt = positionLoggerDBConnection.prepareStatement(sql);
-            pstmt.setString(1, player.getDisplayName());
-            pstmt.setDouble(2, player.posX);
-            pstmt.setDouble(3, player.posY);
-            pstmt.setDouble(4, player.posZ);
-            pstmt.setInt(5, player.worldObj.provider.dimensionId);
-            pstmt.executeUpdate();
-
-        } catch (final SQLException e) {
-            e.printStackTrace();
-        }
+        eventQueue.add(queueElement);
     }
 
 }
