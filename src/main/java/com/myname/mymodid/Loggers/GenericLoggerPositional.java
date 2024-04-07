@@ -14,23 +14,22 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import akka.japi.Pair;
-import com.myname.mymodid.QueueElement.GenericQueueElement;
-import cpw.mods.fml.common.eventhandler.Event;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
 
+import com.myname.mymodid.QueueElement.GenericQueueElement;
 import com.myname.mymodid.TemporaUtils;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 
 public abstract class GenericLoggerPositional<EventToLog extends GenericQueueElement> {
 
-    private static ExecutorService executor = Executors.newSingleThreadExecutor();
+    private static final ExecutorService executor = Executors.newSingleThreadExecutor();
     private static final AtomicBoolean keepRunning = new AtomicBoolean(true);
     protected ConcurrentLinkedQueue<EventToLog> eventQueue = new ConcurrentLinkedQueue<>();
+
     public abstract void threadedSaveEvent(EventToLog event);
 
     public static void startEventProcessingThread() {
@@ -38,20 +37,21 @@ public abstract class GenericLoggerPositional<EventToLog extends GenericQueueEle
             while (keepRunning.get()) {
                 try {
                     // Check the total number of events in all queues
-                    int totalEvents = loggerList.stream().mapToInt(logger -> logger.eventQueue.size()).sum();
+                    int totalEvents = loggerList.stream()
+                        .mapToInt(logger -> logger.eventQueue.size())
+                        .sum();
 
                     // Process events if the total exceeds 100
                     if (totalEvents >= 100) {
                         for (GenericLoggerPositional<?> logger : loggerList) {
-                            while (!logger.eventQueue.isEmpty()) {
-                                logger.threadedSaveEvent(logger.eventQueue.poll());
-                            }
+                            processLoggerQueue(logger);
                         }
                     }
                     // Sleep for a while before checking again
                     Thread.sleep(5000); // Check every 5 seconds
                 } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
+                    Thread.currentThread()
+                        .interrupt();
                     System.err.println("Thread was interrupted, failed to complete operation.");
                 } catch (Exception e) {
                     System.err.println("An error occurred in the logging processor thread: " + e.getMessage());
@@ -66,7 +66,11 @@ public abstract class GenericLoggerPositional<EventToLog extends GenericQueueEle
         executor.shutdownNow(); // Attempt to stop all actively executing tasks
     }
 
-
+    private static <T extends GenericQueueElement> void processLoggerQueue(GenericLoggerPositional<T> logger) {
+        while (!logger.eventQueue.isEmpty()) {
+            logger.threadedSaveEvent(logger.eventQueue.poll());
+        }
+    }
 
     public abstract void handleConfig(Configuration config);
 
@@ -137,7 +141,8 @@ public abstract class GenericLoggerPositional<EventToLog extends GenericQueueEle
 
     public static void onServerStart() {
         try {
-            positionLoggerDBConnection = DriverManager.getConnection(TemporaUtils.databaseDirectory() + "PositionalLogger.db");
+            positionLoggerDBConnection = DriverManager
+                .getConnection(TemporaUtils.databaseDirectory() + "PositionalLogger.db");
             for (GenericLoggerPositional<?> loggerPositional : loggerList) {
                 loggerPositional.initTable();
             }

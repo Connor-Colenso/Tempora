@@ -1,22 +1,24 @@
 package com.myname.mymodid.Loggers;
 
-import com.myname.mymodid.Commands.HeatMap.HeatMapUpdater;
-import com.myname.mymodid.Commands.TrackPlayer.TrackPlayerUpdater;
-import com.myname.mymodid.QueueElement.PlayerMovementQueueElement;
-import com.myname.mymodid.TemporaUtils;
-import cpw.mods.fml.common.FMLCommonHandler;
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import cpw.mods.fml.common.gameevent.TickEvent;
-import cpw.mods.fml.common.gameevent.TickEvent.PlayerTickEvent;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraftforge.common.config.Configuration;
-import org.jetbrains.annotations.NotNull;
+import static com.myname.mymodid.Config.loggingIntervals;
+import static com.myname.mymodid.TemporaUtils.isClientSide;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import static com.myname.mymodid.Config.loggingIntervals;
-import static com.myname.mymodid.TemporaUtils.isClientSide;
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraftforge.common.config.Configuration;
+
+import org.jetbrains.annotations.NotNull;
+
+import com.myname.mymodid.Commands.HeatMap.HeatMapUpdater;
+import com.myname.mymodid.Commands.TrackPlayer.TrackPlayerUpdater;
+import com.myname.mymodid.QueueElement.PlayerMovementQueueElement;
+
+import cpw.mods.fml.common.FMLCommonHandler;
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.common.gameevent.TickEvent;
+import cpw.mods.fml.common.gameevent.TickEvent.PlayerTickEvent;
 
 public class PlayerMovementLogger extends GenericLoggerPositional<PlayerMovementQueueElement> {
 
@@ -65,16 +67,13 @@ public class PlayerMovementLogger extends GenericLoggerPositional<PlayerMovement
             positionLoggerDBConnection
                 .prepareStatement(
                     "CREATE TABLE IF NOT EXISTS " + getTableName()
-                        + " ("
+                        + " (id INTEGER PRIMARY KEY AUTOINCREMENT,"
                         + "playerName TEXT NOT NULL,"
                         + "x REAL NOT NULL,"
                         + "y REAL NOT NULL,"
                         + "z REAL NOT NULL,"
-                        + "dimensionID INTEGER DEFAULT "
-                        + TemporaUtils.defaultDimID()
-                        + ","
-                        + "timestamp DATETIME DEFAULT CURRENT_TIMESTAMP"
-                        + ");")
+                        + "dimensionID INTEGER DEFAULT 0 NOT NULL,"
+                        + "timestamp DATETIME NOT NULL);")
                 .execute();
         } catch (final SQLException e) {
             e.printStackTrace();
@@ -97,9 +96,10 @@ public class PlayerMovementLogger extends GenericLoggerPositional<PlayerMovement
             .getTickCounter() % playerMovementLoggingInterval != 0) return;
 
         PlayerMovementQueueElement queueElement = new PlayerMovementQueueElement(
-            player.posX, player.posY, player.posZ,
-            player.worldObj.provider.dimensionId
-        );
+            player.posX,
+            player.posY,
+            player.posZ,
+            player.worldObj.provider.dimensionId);
         queueElement.playerName = player.getDisplayName();
 
         eventQueue.add(queueElement);

@@ -2,11 +2,9 @@ package com.myname.mymodid.Loggers;
 
 import static com.myname.mymodid.TemporaUtils.isClientSide;
 
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import com.myname.mymodid.QueueElement.ItemUseQueueElement;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -17,7 +15,7 @@ import net.minecraftforge.event.entity.player.PlayerUseItemEvent;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.myname.mymodid.TemporaUtils;
+import com.myname.mymodid.QueueElement.ItemUseQueueElement;
 
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
@@ -46,20 +44,18 @@ public class ItemUseLogger extends GenericLoggerPositional<ItemUseQueueElement> 
     @Override
     public void initTable() {
         try {
-            final String sql = "CREATE TABLE IF NOT EXISTS " + getTableName()
-                + " (id INTEGER PRIMARY KEY AUTOINCREMENT,"
-                + "playerName TEXT NOT NULL,"
-                + "item TEXT NOT NULL,"
-                + "itemMetadata INTEGER,"
-                + "x INTEGER NOT NULL,"
-                + "y INTEGER NOT NULL,"
-                + "z INTEGER NOT NULL,"
-                + "dimensionID INTEGER DEFAULT "
-                + TemporaUtils.defaultDimID()
-                + ","
-                + "timestamp DATETIME DEFAULT CURRENT_TIMESTAMP"
-                + ");";
-            positionLoggerDBConnection.prepareStatement(sql)
+            positionLoggerDBConnection
+                .prepareStatement(
+                    "CREATE TABLE IF NOT EXISTS " + getTableName()
+                        + " (id INTEGER PRIMARY KEY AUTOINCREMENT,"
+                        + "playerName TEXT NOT NULL,"
+                        + "item TEXT NOT NULL,"
+                        + "itemMetadata INTEGER NOT NULL,"
+                        + "x REAL NOT NULL,"
+                        + "y REAL NOT NULL,"
+                        + "z REAL NOT NULL,"
+                        + "dimensionID INTEGER DEFAULT 0 NOT NULL,"
+                        + "timestamp DATETIME NOT NULL);")
                 .execute();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -94,9 +90,10 @@ public class ItemUseLogger extends GenericLoggerPositional<ItemUseQueueElement> 
         final ItemStack usedItem = player.getCurrentEquippedItem();
 
         ItemUseQueueElement queueElement = new ItemUseQueueElement(
-            player.posX, player.posY, player.posZ,
-            world.provider.dimensionId
-        );
+            player.posX,
+            player.posY,
+            player.posZ,
+            world.provider.dimensionId);
 
         queueElement.playerName = player.getDisplayName();
 

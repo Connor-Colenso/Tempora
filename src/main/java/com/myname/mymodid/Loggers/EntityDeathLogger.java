@@ -1,19 +1,19 @@
 package com.myname.mymodid.Loggers;
 
-import com.myname.mymodid.QueueElement.EntityDeathQueueElement;
-import com.myname.mymodid.TemporaUtils;
-import cpw.mods.fml.common.eventhandler.EventPriority;
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraftforge.common.config.Configuration;
-import net.minecraftforge.event.entity.living.LivingDeathEvent;
+import static com.myname.mymodid.TemporaUtils.isClientSide;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import static com.myname.mymodid.TemporaUtils.isClientSide;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraftforge.common.config.Configuration;
+import net.minecraftforge.event.entity.living.LivingDeathEvent;
+
+import com.myname.mymodid.QueueElement.EntityDeathQueueElement;
+
+import cpw.mods.fml.common.eventhandler.EventPriority;
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
 public class EntityDeathLogger extends GenericLoggerPositional<EntityDeathQueueElement> {
 
@@ -24,7 +24,11 @@ public class EntityDeathLogger extends GenericLoggerPositional<EntityDeathQueueE
         if (event.entityLiving instanceof EntityPlayerMP) return; // No players allowed here, this is for mobs only.
         if (event.isCanceled()) return;
 
-        EntityDeathQueueElement queueElement = new EntityDeathQueueElement(event.entity.posX, event.entity.posY, event.entity.posZ, event.entity.dimension);
+        EntityDeathQueueElement queueElement = new EntityDeathQueueElement(
+            event.entity.posX,
+            event.entity.posY,
+            event.entity.posZ,
+            event.entity.dimension);
         queueElement.nameOfDeadMob = event.entityLiving.getCommandSenderName(); // Gets the mob name, weirdly.
 
         // Get what killed it.
@@ -35,7 +39,8 @@ public class EntityDeathLogger extends GenericLoggerPositional<EntityDeathQueueE
                 queueElement.killedBy = player.getDisplayName();
             } else {
                 // For non-player entities
-                queueElement.killedBy = "[" + trueSource.getClass().getSimpleName() + "]";
+                queueElement.killedBy = "[" + trueSource.getClass()
+                    .getSimpleName() + "]";
             }
         } else {
             queueElement.killedBy = "[" + event.source.damageType + "]";
@@ -64,17 +69,16 @@ public class EntityDeathLogger extends GenericLoggerPositional<EntityDeathQueueE
     @Override
     public void initTable() {
         try {
-            final String sql = "CREATE TABLE IF NOT EXISTS " + getTableName()
-                + " (entityName TEXT NOT NULL,"
-                + "x REAL NOT NULL,"
-                + "y REAL NOT NULL,"
-                + "z REAL NOT NULL,"
-                + "dimensionID INTEGER DEFAULT "
-                + TemporaUtils.defaultDimID()
-                + ","
-                + "timestamp DATETIME DEFAULT CURRENT_TIMESTAMP"
-                + ");";
-            positionLoggerDBConnection.prepareStatement(sql)
+            positionLoggerDBConnection
+                .prepareStatement(
+                    "CREATE TABLE IF NOT EXISTS " + getTableName()
+                        + " (id INTEGER PRIMARY KEY AUTOINCREMENT,"
+                        + "entityName TEXT NOT NULL,"
+                        + "x REAL NOT NULL,"
+                        + "y REAL NOT NULL,"
+                        + "z REAL NOT NULL,"
+                        + "dimensionID INTEGER DEFAULT 0 NOT NULL,"
+                        + "timestamp DATETIME NOT NULL);")
                 .execute();
         } catch (final SQLException e) {
             e.printStackTrace();

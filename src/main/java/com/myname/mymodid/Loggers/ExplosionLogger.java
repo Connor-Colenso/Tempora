@@ -2,11 +2,9 @@ package com.myname.mymodid.Loggers;
 
 import static com.myname.mymodid.TemporaUtils.isClientSide;
 
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import com.myname.mymodid.QueueElement.ExplosionQueueElement;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.world.World;
@@ -15,6 +13,7 @@ import net.minecraftforge.event.world.ExplosionEvent;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.myname.mymodid.QueueElement.ExplosionQueueElement;
 import com.myname.mymodid.TemporaUtils;
 
 import cpw.mods.fml.common.eventhandler.EventPriority;
@@ -45,23 +44,19 @@ public class ExplosionLogger extends GenericLoggerPositional<ExplosionQueueEleme
     @Override
     public void initTable() {
         try {
-            final String sql = "CREATE TABLE IF NOT EXISTS " + getTableName()
-                + " ("
-                + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
-                + "x REAL NOT NULL,"
-                + "y REAL NOT NULL,"
-                + "z REAL NOT NULL,"
-                + "strength REAL NOT NULL,"
-                + "exploder TEXT,"
-                + "dimensionID INTEGER DEFAULT "
-                + TemporaUtils.defaultDimID()
-                + ","
-                + // TODO Fix
-                "closestPlayer TEXT,"
-                + "playerDistance REAL,"
-                + "timestamp DATETIME DEFAULT CURRENT_TIMESTAMP"
-                + ");";
-            positionLoggerDBConnection.prepareStatement(sql)
+            positionLoggerDBConnection
+                .prepareStatement(
+                    "CREATE TABLE IF NOT EXISTS " + getTableName()
+                        + " (id INTEGER PRIMARY KEY AUTOINCREMENT,"
+                        + "x REAL NOT NULL,"
+                        + "y REAL NOT NULL,"
+                        + "z REAL NOT NULL,"
+                        + "strength REAL NOT NULL,"
+                        + "exploder TEXT NOT NULL,"
+                        + "dimensionID INTEGER DEFAULT 0 NOT NULL,"
+                        + "closestPlayer TEXT NOT NULL,"
+                        + "playerDistance REAL NOT NULL,"
+                        + "timestamp DATETIME NOT NULL);")
                 .execute();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -84,7 +79,8 @@ public class ExplosionLogger extends GenericLoggerPositional<ExplosionQueueEleme
         final double y = event.explosion.explosionY;
         final double z = event.explosion.explosionZ;
         final Entity exploder = event.explosion.getExplosivePlacedBy();
-        final String exploderName = (exploder != null) ? exploder.getCommandSenderName() : TemporaUtils.UNKNOWN_PLAYER_NAME;
+        final String exploderName = (exploder != null) ? exploder.getCommandSenderName()
+            : TemporaUtils.UNKNOWN_PLAYER_NAME;
 
         EntityPlayer closestPlayer = null;
         double closestDistance = Double.MAX_VALUE;

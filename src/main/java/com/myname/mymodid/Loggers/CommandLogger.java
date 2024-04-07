@@ -2,18 +2,15 @@ package com.myname.mymodid.Loggers;
 
 import static com.myname.mymodid.TemporaUtils.isClientSide;
 
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import akka.japi.Pair;
-import com.myname.mymodid.QueueElement.CommandQueueElement;
 import net.minecraft.command.ICommand;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.event.CommandEvent;
 
-import com.myname.mymodid.TemporaUtils;
+import com.myname.mymodid.QueueElement.CommandQueueElement;
 
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
@@ -42,20 +39,18 @@ public class CommandLogger extends GenericLoggerPositional<CommandQueueElement> 
     @Override
     public void initTable() {
         try {
-            final String sql = "CREATE TABLE IF NOT EXISTS " + getTableName()
-                + " (id INTEGER PRIMARY KEY AUTOINCREMENT,"
-                + "playerName TEXT NOT NULL,"
-                + "command TEXT NOT NULL,"
-                + "arguments TEXT,"
-                + "x REAL,"
-                + "y REAL,"
-                + "z REAL,"
-                + "dimensionID INTEGER DEFAULT "
-                + TemporaUtils.defaultDimID()
-                + ","
-                + "timestamp DATETIME DEFAULT CURRENT_TIMESTAMP"
-                + ");";
-            positionLoggerDBConnection.prepareStatement(sql)
+            positionLoggerDBConnection
+                .prepareStatement(
+                    "CREATE TABLE IF NOT EXISTS " + getTableName()
+                        + " (id INTEGER PRIMARY KEY AUTOINCREMENT,"
+                        + "playerName TEXT NOT NULL,"
+                        + "command TEXT NOT NULL,"
+                        + "arguments TEXT NOT NULL,"
+                        + "x REAL NOT NULL,"
+                        + "y REAL NOT NULL,"
+                        + "z REAL NOT NULL,"
+                        + "dimensionID INTEGER DEFAULT 0 NOT NULL,"
+                        + "timestamp DATETIME NOT NULL);")
                 .execute();
         } catch (final SQLException e) {
             e.printStackTrace();
@@ -67,7 +62,6 @@ public class CommandLogger extends GenericLoggerPositional<CommandQueueElement> 
 
     }
 
-
     @SubscribeEvent(priority = EventPriority.LOWEST)
     @SuppressWarnings("unused")
     public void onCommand(final CommandEvent event) {
@@ -78,7 +72,11 @@ public class CommandLogger extends GenericLoggerPositional<CommandQueueElement> 
             ICommand command = event.command;
             String[] args = event.parameters;
 
-            CommandQueueElement queueElement = new CommandQueueElement(player.posX, player.posY, player.posZ, player.dimension);
+            CommandQueueElement queueElement = new CommandQueueElement(
+                player.posX,
+                player.posY,
+                player.posZ,
+                player.dimension);
             queueElement.commandName = command.getCommandName();
             queueElement.arguments = String.join(" ", args);
 
