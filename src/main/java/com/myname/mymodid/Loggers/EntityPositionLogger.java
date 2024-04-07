@@ -3,18 +3,14 @@ package com.myname.mymodid.Loggers;
 import static com.myname.mymodid.Config.loggingIntervals;
 import static com.myname.mymodid.TemporaUtils.isClientSide;
 
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import com.myname.mymodid.QueueElement.EntityPositionQueueElement;
-import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
-import net.minecraftforge.event.entity.living.LivingSpawnEvent;
 
-import com.myname.mymodid.TemporaUtils;
+import com.myname.mymodid.QueueElement.EntityPositionQueueElement;
 
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
@@ -49,17 +45,16 @@ public class EntityPositionLogger extends GenericLoggerPositional<EntityPosition
     @Override
     public void initTable() {
         try {
-            final String sql = "CREATE TABLE IF NOT EXISTS " + getTableName()
-                + " (entityName TEXT NOT NULL,"
-                + "x REAL NOT NULL,"
-                + "y REAL NOT NULL,"
-                + "z REAL NOT NULL,"
-                + "dimensionID INTEGER DEFAULT "
-                + TemporaUtils.defaultDimID()
-                + ","
-                + "timestamp DATETIME DEFAULT CURRENT_TIMESTAMP"
-                + ");";
-            positionLoggerDBConnection.prepareStatement(sql)
+            positionLoggerDBConnection
+                .prepareStatement(
+                    "CREATE TABLE IF NOT EXISTS " + getTableName()
+                        + " (id INTEGER PRIMARY KEY AUTOINCREMENT,"
+                        + "entityName TEXT NOT NULL,"
+                        + "x REAL NOT NULL,"
+                        + "y REAL NOT NULL,"
+                        + "z REAL NOT NULL,"
+                        + "dimensionID INTEGER DEFAULT 0 NOT NULL,"
+                        + "timestamp DATETIME NOT NULL);")
                 .execute();
         } catch (final SQLException e) {
             e.printStackTrace();
@@ -80,25 +75,29 @@ public class EntityPositionLogger extends GenericLoggerPositional<EntityPosition
                                                                                           // 20 seconds.
         if (event.entityLiving instanceof EntityPlayerMP) return; // Do not track players here, we do this elsewhere.
 
-        EntityPositionQueueElement queueElement = new EntityPositionQueueElement(event.entityLiving.posX, event.entityLiving.posY, event.entityLiving.posZ, event.entityLiving.dimension);
+        EntityPositionQueueElement queueElement = new EntityPositionQueueElement(
+            event.entityLiving.posX,
+            event.entityLiving.posY,
+            event.entityLiving.posZ,
+            event.entityLiving.dimension);
         queueElement.entityName = event.entityLiving.getCommandSenderName();
 
         eventQueue.add(queueElement);
 
-//        try {
-//            final String sql = "INSERT INTO " + getTableName()
-//                + "(entityName, x, y, z, dimensionID, eventType) VALUES(?, ?, ?, ?, ?, ?)";
-//            final PreparedStatement pstmt = positionLoggerDBConnection.prepareStatement(sql);
-//            pstmt.setString(1, event.entityLiving.getCommandSenderName());
-//            pstmt.setDouble(2, event.entityLiving.posX);
-//            pstmt.setDouble(3, event.entityLiving.posY);
-//            pstmt.setDouble(4, event.entityLiving.posZ);
-//            pstmt.setInt(5, event.entityLiving.worldObj.provider.dimensionId);
-//            pstmt.executeUpdate();
-//
-//        } catch (final SQLException e) {
-//            e.printStackTrace();
-//        }
+        // try {
+        // final String sql = "INSERT INTO " + getTableName()
+        // + "(entityName, x, y, z, dimensionID, eventType) VALUES(?, ?, ?, ?, ?, ?)";
+        // final PreparedStatement pstmt = positionLoggerDBConnection.prepareStatement(sql);
+        // pstmt.setString(1, event.entityLiving.getCommandSenderName());
+        // pstmt.setDouble(2, event.entityLiving.posX);
+        // pstmt.setDouble(3, event.entityLiving.posY);
+        // pstmt.setDouble(4, event.entityLiving.posZ);
+        // pstmt.setInt(5, event.entityLiving.worldObj.provider.dimensionId);
+        // pstmt.executeUpdate();
+        //
+        // } catch (final SQLException e) {
+        // e.printStackTrace();
+        // }
     }
 
 }

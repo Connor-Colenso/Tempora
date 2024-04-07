@@ -1,21 +1,21 @@
 package com.myname.mymodid.Loggers;
 
-import com.myname.mymodid.QueueElement.EntityPositionQueueElement;
-import com.myname.mymodid.QueueElement.EntitySpawnQueueElement;
-import com.myname.mymodid.TemporaUtils;
-import cpw.mods.fml.common.eventhandler.Event;
-import cpw.mods.fml.common.eventhandler.EventPriority;
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraftforge.common.config.Configuration;
-import net.minecraftforge.event.entity.living.LivingSpawnEvent;
+import static com.myname.mymodid.TemporaUtils.isClientSide;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import static com.myname.mymodid.TemporaUtils.isClientSide;
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraftforge.common.config.Configuration;
+import net.minecraftforge.event.entity.living.LivingSpawnEvent;
+
+import com.myname.mymodid.QueueElement.EntitySpawnQueueElement;
+
+import cpw.mods.fml.common.eventhandler.EventPriority;
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
 public class EntitySpawnLogger extends GenericLoggerPositional<EntitySpawnQueueElement> {
+
     @SubscribeEvent(priority = EventPriority.LOWEST)
     @SuppressWarnings("unused")
     public void onEntitySpawn(LivingSpawnEvent.SpecialSpawn event) {
@@ -23,7 +23,11 @@ public class EntitySpawnLogger extends GenericLoggerPositional<EntitySpawnQueueE
         if (event.entityLiving instanceof EntityPlayerMP) return;
         if (event.isCanceled()) return;
 
-        EntitySpawnQueueElement queueElement = new EntitySpawnQueueElement(event.entityLiving.posX, event.entityLiving.posY, event.entityLiving.posZ, event.entityLiving.dimension);
+        EntitySpawnQueueElement queueElement = new EntitySpawnQueueElement(
+            event.entityLiving.posX,
+            event.entityLiving.posY,
+            event.entityLiving.posZ,
+            event.entityLiving.dimension);
         queueElement.entityName = event.entityLiving.getCommandSenderName();
 
         eventQueue.add(queueElement);
@@ -49,17 +53,16 @@ public class EntitySpawnLogger extends GenericLoggerPositional<EntitySpawnQueueE
     @Override
     public void initTable() {
         try {
-            final String sql = "CREATE TABLE IF NOT EXISTS " + getTableName()
-                + " (entityName TEXT NOT NULL,"
-                + "x REAL NOT NULL,"
-                + "y REAL NOT NULL,"
-                + "z REAL NOT NULL,"
-                + "dimensionID INTEGER DEFAULT "
-                + TemporaUtils.defaultDimID()
-                + ","
-                + "timestamp DATETIME DEFAULT CURRENT_TIMESTAMP"
-                + ");";
-            positionLoggerDBConnection.prepareStatement(sql)
+            positionLoggerDBConnection
+                .prepareStatement(
+                    "CREATE TABLE IF NOT EXISTS " + getTableName()
+                        + " (id INTEGER PRIMARY KEY AUTOINCREMENT,"
+                        + "entityName TEXT NOT NULL,"
+                        + "x REAL NOT NULL,"
+                        + "y REAL NOT NULL,"
+                        + "z REAL NOT NULL,"
+                        + "dimensionID INTEGER DEFAULT 0 NOT NULL,"
+                        + "timestamp DATETIME NOT NULL);")
                 .execute();
         } catch (final SQLException e) {
             e.printStackTrace();

@@ -2,10 +2,11 @@ package com.myname.mymodid.Loggers;
 
 import static com.myname.mymodid.TemporaUtils.isClientSide;
 
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 
-import com.myname.mymodid.QueueElement.BlockBreakQueueElement;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.common.config.Configuration;
@@ -13,6 +14,7 @@ import net.minecraftforge.event.world.BlockEvent;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.myname.mymodid.QueueElement.BlockBreakQueueElement;
 import com.myname.mymodid.TemporaUtils;
 
 import cpw.mods.fml.common.eventhandler.EventPriority;
@@ -27,32 +29,23 @@ public class BlockBreakLogger extends GenericLoggerPositional<BlockBreakQueueEle
 
     @Override
     protected String processResultSet(ResultSet rs) throws SQLException {
-        return String.format(
-            "%s broke %s at [%d, %d, %d] on %s",
-            rs.getString("playerName"),
-            rs.getString("blockType"),
-            rs.getInt("x"),
-            rs.getInt("y"),
-            rs.getInt("z"),
-            rs.getString("timestamp"));
+        return "";
     }
 
     @Override
     public void initTable() {
         try {
-            final String sql = "CREATE TABLE IF NOT EXISTS " + getTableName()
-                + " (id INTEGER PRIMARY KEY AUTOINCREMENT,"
-                + "playerName TEXT NOT NULL,"
-//                + "blockType TEXT NOT NULL,"
-                + "metadata INTEGER NOT NULL,"
-                + "x INTEGER NOT NULL,"
-                + "y INTEGER NOT NULL,"
-                + "z INTEGER NOT NULL,"
-                + "dimensionID INTEGER DEFAULT " + TemporaUtils.defaultDimID() + " NOT NULL" // todo fix default
-                + ","
-                + "timestamp DATETIME DEFAULT CURRENT_TIMESTAMP"
-                + ");";
-            positionLoggerDBConnection.prepareStatement(sql)
+            positionLoggerDBConnection
+                .prepareStatement(
+                    "CREATE TABLE IF NOT EXISTS " + getTableName()
+                        + " (id INTEGER PRIMARY KEY AUTOINCREMENT,"
+                        + "playerName TEXT NOT NULL,"
+                        + "metadata INTEGER NOT NULL,"
+                        + "x REAL NOT NULL,"
+                        + "y REAL NOT NULL,"
+                        + "z REAL NOT NULL,"
+                        + "dimensionID INTEGER DEFAULT 0 NOT NULL,"
+                        + "timestamp DATETIME NOT NULL);")
                 .execute();
         } catch (final SQLException e) {
             e.printStackTrace();
@@ -61,7 +54,21 @@ public class BlockBreakLogger extends GenericLoggerPositional<BlockBreakQueueEle
 
     @Override
     public void threadedSaveEvent(BlockBreakQueueElement blockBreakQueueElement) {
-
+        try {
+            final String sql = "INSERT INTO " + getTableName()
+                + "(playerName, metadata, x, y, z, dimensionID, timestamp) VALUES(?, ?, ?, ?, ?, ?, ?)";
+            final PreparedStatement pstmt = positionLoggerDBConnection.prepareStatement(sql);
+            pstmt.setString(1, blockBreakQueueElement.playerWhoBrokeBlock);
+            pstmt.setInt(2, blockBreakQueueElement.metadata);
+            pstmt.setDouble(3, blockBreakQueueElement.x);
+            pstmt.setDouble(4, blockBreakQueueElement.y);
+            pstmt.setDouble(5, blockBreakQueueElement.z);
+            pstmt.setInt(6, blockBreakQueueElement.dimensionId);
+            pstmt.setTimestamp(7, new Timestamp(blockBreakQueueElement.timestamp));
+            pstmt.executeUpdate();
+        } catch (final SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
@@ -70,36 +77,21 @@ public class BlockBreakLogger extends GenericLoggerPositional<BlockBreakQueueEle
         // Server side only.
         if (isClientSide()) return;
 
-        BlockBreakQueueElement queueElement = new BlockBreakQueueElement(event.x, event.y, event.z, event.world.provider.dimensionId);
+        BlockBreakQueueElement queueElement = new BlockBreakQueueElement(
+            event.x,
+            event.y,
+            event.z,
+            event.world.provider.dimensionId);
         queueElement.blockID = Block.getIdFromBlock(event.block);
         queueElement.metadata = event.blockMetadata;
 
         if (event.getPlayer() instanceof EntityPlayerMP) {
-            queueElement.playerWhoBrokeBlock = event.getPlayer().getDisplayName();
+            queueElement.playerWhoBrokeBlock = event.getPlayer()
+                .getDisplayName();
         } else {
             queueElement.playerWhoBrokeBlock = TemporaUtils.UNKNOWN_PLAYER_NAME;
         }
 
         eventQueue.add(queueElement);
-
-//            try {
-//                final String sql = "INSERT INTO " + getTableName()
-//                    + "(playerName, blockType, metadata, x, y, z, dimensionID) VALUES(?, ?, ?, ?, ?, ?, ?)";
-//                final PreparedStatement pstmt = positionLoggerDBConnection.prepareStatement(sql);
-//                pstmt.setString(
-//                    1,
-//                    event.getPlayer()
-//                        .getDisplayName());
-//                pstmt.setString(2, event.block.getUnlocalizedName());
-//                pstmt.setInt(3, event.blockMetadata);
-//                pstmt.setInt(4, event.x);
-//                pstmt.setInt(5, event.y);
-//                pstmt.setInt(6, event.z);
-//                pstmt.setInt(7, event.getPlayer().worldObj.provider.dimensionId);
-//                pstmt.executeUpdate();
-//            } catch (final SQLException e) {
-//                e.printStackTrace();
-//            }
-
     }
 }

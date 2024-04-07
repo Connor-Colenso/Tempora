@@ -1,6 +1,7 @@
 package com.myname.mymodid.QueueElement;
 
 public class ItemUseQueueElement extends GenericQueueElement {
+
     public String playerName;
     public int itemID;
     public int itemMetadata;

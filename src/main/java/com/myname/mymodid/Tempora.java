@@ -3,8 +3,6 @@ package com.myname.mymodid;
 import static com.myname.mymodid.Config.synchronizeConfiguration;
 import static com.myname.mymodid.Tags.MODID;
 
-import com.myname.mymodid.Loggers.EntityDeathLogger;
-import com.myname.mymodid.Loggers.EntitySpawnLogger;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
 
@@ -22,7 +20,9 @@ import com.myname.mymodid.Commands.TrackPlayer.TrackPlayerCommand;
 import com.myname.mymodid.Items.TemporaScannerItem;
 import com.myname.mymodid.Loggers.BlockBreakLogger;
 import com.myname.mymodid.Loggers.CommandLogger;
+import com.myname.mymodid.Loggers.EntityDeathLogger;
 import com.myname.mymodid.Loggers.EntityPositionLogger;
+import com.myname.mymodid.Loggers.EntitySpawnLogger;
 import com.myname.mymodid.Loggers.ExplosionLogger;
 import com.myname.mymodid.Loggers.GenericLoggerPositional;
 import com.myname.mymodid.Loggers.ItemUseLogger;
