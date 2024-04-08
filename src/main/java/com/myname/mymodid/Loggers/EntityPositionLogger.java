@@ -17,7 +17,7 @@ import com.myname.mymodid.QueueElement.EntityPositionQueueElement;
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
-public class EntityPositionLogger extends GenericLoggerPositional<EntityPositionQueueElement> {
+public class EntityPositionLogger extends GenericPositionalLogger<EntityPositionQueueElement> {
 
     public static int entityMovementLoggingInterval;
 

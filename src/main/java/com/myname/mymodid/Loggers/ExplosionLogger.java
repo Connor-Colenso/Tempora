@@ -21,7 +21,7 @@ import com.myname.mymodid.TemporaUtils;
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
-public class ExplosionLogger extends GenericLoggerPositional<ExplosionQueueElement> {
+public class ExplosionLogger extends GenericPositionalLogger<ExplosionQueueElement> {
 
     @Override
     public void handleConfig(Configuration config) {

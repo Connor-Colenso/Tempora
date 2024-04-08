@@ -24,7 +24,7 @@ import com.myname.mymodid.Loggers.EntityDeathLogger;
 import com.myname.mymodid.Loggers.EntityPositionLogger;
 import com.myname.mymodid.Loggers.EntitySpawnLogger;
 import com.myname.mymodid.Loggers.ExplosionLogger;
-import com.myname.mymodid.Loggers.GenericLoggerPositional;
+import com.myname.mymodid.Loggers.GenericPositionalLogger;
 import com.myname.mymodid.Loggers.ItemUseLogger;
 import com.myname.mymodid.Loggers.PlayerMovementLogger;
 import com.myname.mymodid.Rendering.RenderInWorldDispatcher;
@@ -82,7 +82,7 @@ public class Tempora {
         }
 
         // Each logger handles their own config settings.
-        for (GenericLoggerPositional logger : GenericLoggerPositional.loggerList) {
+        for (GenericPositionalLogger logger : GenericPositionalLogger.loggerList) {
             logger.handleConfig(config);
         }
 
@@ -104,7 +104,7 @@ public class Tempora {
         // Only register this on the server side. We do it here because in SP, preInit etc only runs for the client.
 
         if (TemporaUtils.shouldTemporaRun()) {
-            for (GenericLoggerPositional logger : GenericLoggerPositional.loggerList) {
+            for (GenericPositionalLogger logger : GenericPositionalLogger.loggerList) {
                 logger.registerEvent();
             }
         }
@@ -116,7 +116,7 @@ public class Tempora {
         registerNewCommands(event);
 
         if (TemporaUtils.shouldTemporaRun()) {
-            GenericLoggerPositional.onServerStart();
+            GenericPositionalLogger.onServerStart();
         }
     }
 
@@ -130,7 +130,7 @@ public class Tempora {
     public void serverStopping(FMLServerStoppingEvent event) {
         if (TemporaUtils.isServerSide()) {
             PlayerTrackerRenderer.clearBuffer();
-            GenericLoggerPositional.onServerClose();
+            GenericPositionalLogger.onServerClose();
         }
     }
 }

@@ -22,7 +22,7 @@ import com.myname.mymodid.QueueElement.ItemUseQueueElement;
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
-public class ItemUseLogger extends GenericLoggerPositional<ItemUseQueueElement> {
+public class ItemUseLogger extends GenericPositionalLogger<ItemUseQueueElement> {
 
     @Override
     public void handleConfig(Configuration config) {

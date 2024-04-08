@@ -9,7 +9,7 @@ import net.minecraft.command.WrongUsageException;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentText;
 
-import com.myname.mymodid.Loggers.GenericLoggerPositional;
+import com.myname.mymodid.Loggers.GenericPositionalLogger;
 import com.myname.mymodid.TemporaUtils;
 
 public class QueryEventsCommand extends CommandBase {
@@ -52,7 +52,7 @@ public class QueryEventsCommand extends CommandBase {
             return;
         }
 
-        List<String> messages = GenericLoggerPositional
+        List<String> messages = GenericPositionalLogger
             .queryEventsWithinRadiusAndTime(sender, radius, seconds, tableName);
         for (String message : messages) {
             sender.addChatMessage(new ChatComponentText(message));
@@ -82,7 +82,7 @@ public class QueryEventsCommand extends CommandBase {
 
     private List<String> getFilterOptions() {
         List<String> options = new ArrayList<>();
-        for (GenericLoggerPositional logger : GenericLoggerPositional.loggerList) {
+        for (GenericPositionalLogger logger : GenericPositionalLogger.loggerList) {
             options.add(logger.getTableName());
         }
         return options;

@@ -22,7 +22,7 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.common.gameevent.TickEvent.PlayerTickEvent;
 
-public class PlayerMovementLogger extends GenericLoggerPositional<PlayerMovementQueueElement> {
+public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovementQueueElement> {
 
     // This class logs three items to the same database.
     // 1. Player movement every n ticks. By default, n = 100 ticks.
