@@ -16,7 +16,7 @@ import com.myname.mymodid.QueueElement.EntitySpawnQueueElement;
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
-public class EntitySpawnLogger extends GenericLoggerPositional<EntitySpawnQueueElement> {
+public class EntitySpawnLogger extends GenericPositionalLogger<EntitySpawnQueueElement> {
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
     @SuppressWarnings("unused")

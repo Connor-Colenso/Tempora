@@ -5,6 +5,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
@@ -16,6 +17,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
 
@@ -24,7 +26,7 @@ import com.myname.mymodid.TemporaUtils;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 
-public abstract class GenericLoggerPositional<EventToLog extends GenericQueueElement> {
+public abstract class GenericPositionalLogger<EventToLog extends GenericQueueElement> {
 
     private static final ExecutorService executor = Executors.newSingleThreadExecutor();
     private static final AtomicBoolean keepRunning = new AtomicBoolean(true);
@@ -32,27 +34,15 @@ public abstract class GenericLoggerPositional<EventToLog extends GenericQueueEle
 
     public abstract void threadedSaveEvent(EventToLog event);
 
+
     public static void startEventProcessingThread() {
         executor.submit(() -> {
             while (keepRunning.get()) {
                 try {
-                    // Check the total number of events in all queues
-                    int totalEvents = loggerList.stream()
-                        .mapToInt(logger -> logger.eventQueue.size())
-                        .sum();
-
-                    // Process events if the total exceeds 100
-                    if (totalEvents >= 100) {
-                        for (GenericLoggerPositional<?> logger : loggerList) {
-                            processLoggerQueue(logger);
-                        }
-                    }
-                    // Sleep for a while before checking again
-                    Thread.sleep(5000); // Check every 5 seconds
+                    processAllLoggerQueues();
+                    Thread.sleep(5000);
                 } catch (InterruptedException e) {
-                    Thread.currentThread()
-                        .interrupt();
-                    System.err.println("Thread was interrupted, failed to complete operation.");
+                    Thread.currentThread().interrupt();
                 } catch (Exception e) {
                     System.err.println("An error occurred in the logging processor thread: " + e.getMessage());
                     e.printStackTrace();
@@ -61,16 +51,24 @@ public abstract class GenericLoggerPositional<EventToLog extends GenericQueueEle
         });
     }
 
+    private static synchronized void processAllLoggerQueues() {
+        for (GenericPositionalLogger<?> logger : loggerList) {
+            processLoggerQueue(logger);
+        }
+    }
+
+    private static <T extends GenericQueueElement> void processLoggerQueue(GenericPositionalLogger<T> logger) {
+        while (!logger.eventQueue.isEmpty()) {
+            logger.threadedSaveEvent(logger.eventQueue.poll());
+        }
+    }
+
     public static void stopEventProcessingThread() {
         keepRunning.set(false);
         executor.shutdownNow(); // Attempt to stop all actively executing tasks
     }
 
-    private static <T extends GenericQueueElement> void processLoggerQueue(GenericLoggerPositional<T> logger) {
-        while (!logger.eventQueue.isEmpty()) {
-            logger.threadedSaveEvent(logger.eventQueue.poll());
-        }
-    }
+
 
     public abstract void handleConfig(Configuration config);
 
@@ -78,41 +76,46 @@ public abstract class GenericLoggerPositional<EventToLog extends GenericQueueEle
         TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
     }
 
-    public static final Set<GenericLoggerPositional<?>> loggerList = new HashSet<>();
+    public static final Set<GenericPositionalLogger<?>> loggerList = new HashSet<>();
 
-    public static ArrayList<String> queryEventsWithinRadiusAndTime(ICommandSender sender, int radius, long seconds,
-                                                                   String tableName) {
+    public static ArrayList<String> queryEventsWithinRadiusAndTime(ICommandSender sender, int radius, long seconds, String tableName) {
         ArrayList<String> returnList = new ArrayList<>();
-
+        returnList.add(EnumChatFormatting.BLUE + "" + EnumChatFormatting.BOLD + " --- QueryEvents lookup results --- ");
         if (!(sender instanceof EntityPlayerMP entityPlayerMP)) return returnList;
-
         int posX = entityPlayerMP.getPlayerCoordinates().posX;
         int posY = entityPlayerMP.getPlayerCoordinates().posY;
         int posZ = entityPlayerMP.getPlayerCoordinates().posZ;
         int dimensionId = entityPlayerMP.dimension;
 
-        for (GenericLoggerPositional<?> logger : loggerList) {
-            if (tableName != null && !logger.getTableName().equals(tableName)) continue;
+        long pastTime = System.currentTimeMillis() - seconds * 1000; // Convert seconds to milliseconds
 
-            try (Connection conn = positionLoggerDBConnection;
-                 PreparedStatement pstmt = conn.prepareStatement(
-                     "SELECT * FROM " + logger.getTableName() +
-                         " WHERE SQRT(POWER(x - ?, 2) + POWER(y - ?, 2) + POWER(z - ?, 2)) <= ?" +
-                         " AND dimensionID = ? AND timestamp >= datetime('now', '-" + seconds + " seconds')")) {
+        synchronized (GenericPositionalLogger.class) {
+            for (GenericPositionalLogger<?> logger : loggerList) {
+                if (tableName != null && !logger.getTableName().equals(tableName)) continue;
+                try (Connection conn = DriverManager.getConnection(TemporaUtils.databaseDirectory() + "PositionalLogger.db");
+                     PreparedStatement pstmt = conn.prepareStatement(
+                         "SELECT * FROM " + logger.getTableName() +
+                             " WHERE ABS(x - ?) <= ? AND ABS(y - ?) <= ? AND ABS(z - ?) <= ?" +
+                             " AND dimensionID = ? AND timestamp >= ?"
+                     )) {
 
-                pstmt.setDouble(1, posX);
-                pstmt.setDouble(2, posY);
-                pstmt.setDouble(3, posZ);
-                pstmt.setInt(4, radius);
-                pstmt.setInt(5, dimensionId);
+                    pstmt.setDouble(1, posX);
+                    pstmt.setInt(2, radius);
+                    pstmt.setDouble(3, posY);
+                    pstmt.setInt(4, radius);
+                    pstmt.setDouble(5, posZ);
+                    pstmt.setInt(6, radius);
+                    pstmt.setInt(7, dimensionId);
+                    pstmt.setTimestamp(8, new Timestamp(pastTime)); // Filter events from pastTime onwards
 
-                try (ResultSet rs = pstmt.executeQuery()) {
-                    while (rs.next()) {
-                        returnList.add(logger.processResultSet(rs));
+                    try (ResultSet rs = pstmt.executeQuery()) {
+                        while (rs.next()) {
+                            returnList.add(logger.processResultSet(rs));
+                        }
                     }
+                } catch (SQLException e) {
+                    returnList.add("Database query failed on " + logger.getTableName() + ": " + e.getLocalizedMessage());
                 }
-            } catch (SQLException e) {
-                returnList.add("Database query failed on " + logger.getTableName() + ". " + e.getLocalizedMessage());
             }
         }
 
@@ -132,7 +135,7 @@ public abstract class GenericLoggerPositional<EventToLog extends GenericQueueEle
             .register(this);
     }
 
-    public GenericLoggerPositional() {
+    public GenericPositionalLogger() {
         loggerList.add(this);
     }
 
@@ -140,7 +143,7 @@ public abstract class GenericLoggerPositional<EventToLog extends GenericQueueEle
         try {
             positionLoggerDBConnection = DriverManager
                 .getConnection(TemporaUtils.databaseDirectory() + "PositionalLogger.db");
-            for (GenericLoggerPositional<?> loggerPositional : loggerList) {
+            for (GenericPositionalLogger<?> loggerPositional : loggerList) {
                 loggerPositional.initTable();
             }
             startEventProcessingThread(); // Start processing thread

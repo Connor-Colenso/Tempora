@@ -17,7 +17,7 @@ import com.myname.mymodid.QueueElement.CommandQueueElement;
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
-public class CommandLogger extends GenericLoggerPositional<CommandQueueElement> {
+public class CommandLogger extends GenericPositionalLogger<CommandQueueElement> {
 
     @Override
     public void handleConfig(Configuration config) {
@@ -27,15 +27,14 @@ public class CommandLogger extends GenericLoggerPositional<CommandQueueElement> 
     @Override
     protected String processResultSet(ResultSet rs) throws SQLException {
         return String.format(
-            "%s executed [/%s %s] at [%.1f, %.1f, %.1f] in dimension %d on %s",
+            "%s executed [/%s %s] at [%.1f, %.1f, %.1f] on %s",
             rs.getString("playerName"),
             rs.getString("command"),
             rs.getString("arguments"),
             rs.getDouble("x"),
             rs.getDouble("y"),
             rs.getDouble("z"),
-            rs.getInt("dimensionID"),
-            rs.getString("timestamp"));
+            rs.getTimestamp("timestamp"));
     }
 
     @Override
@@ -94,9 +93,11 @@ public class CommandLogger extends GenericLoggerPositional<CommandQueueElement> 
                 player.posY,
                 player.posZ,
                 player.dimension);
+            queueElement.playerWhoIssuedCommand = player.getCommandSenderName();
             queueElement.commandName = command.getCommandName();
             queueElement.arguments = String.join(" ", args);
 
+            eventQueue.add(queueElement);
         }
     }
 }

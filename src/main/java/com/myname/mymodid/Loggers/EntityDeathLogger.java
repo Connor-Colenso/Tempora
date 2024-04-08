@@ -17,7 +17,7 @@ import com.myname.mymodid.QueueElement.EntityDeathQueueElement;
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
-public class EntityDeathLogger extends GenericLoggerPositional<EntityDeathQueueElement> {
+public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueElement> {
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
     @SuppressWarnings("unused")

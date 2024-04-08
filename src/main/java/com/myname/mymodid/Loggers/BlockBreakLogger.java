@@ -20,7 +20,7 @@ import com.myname.mymodid.TemporaUtils;
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
-public class BlockBreakLogger extends GenericLoggerPositional<BlockBreakQueueElement> {
+public class BlockBreakLogger extends GenericPositionalLogger<BlockBreakQueueElement> {
 
     @Override
     public void handleConfig(Configuration config) {
@@ -29,9 +29,16 @@ public class BlockBreakLogger extends GenericLoggerPositional<BlockBreakQueueEle
 
     @Override
     protected String processResultSet(ResultSet rs) throws SQLException {
-        return "";
+        return String.format(
+            "%s broke [%s:%d] at [%.1f, %.1f, %.1f] on %s",
+            rs.getString("playerName"),
+            Block.getBlockById(rs.getInt("blockId")).getUnlocalizedName(), // Assuming you have a method to get the block name from ID
+            rs.getInt("metadata"),
+            rs.getDouble("x"),
+            rs.getDouble("y"),
+            rs.getDouble("z"),
+            rs.getTimestamp("timestamp"));
     }
-
     @Override
     public void initTable() {
         try {
@@ -57,7 +64,7 @@ public class BlockBreakLogger extends GenericLoggerPositional<BlockBreakQueueEle
     public void threadedSaveEvent(BlockBreakQueueElement blockBreakQueueElement) {
         try {
             final String sql = "INSERT INTO " + getTableName()
-                + "(playerName, metadata, blockId, x, y, z, dimensionID, timestamp) VALUES(?, ?, ?, ?, ?, ?, ?, ?)";
+                + "(playerName, blockId, metadata, x, y, z, dimensionID, timestamp) VALUES(?, ?, ?, ?, ?, ?, ?, ?)";
             final PreparedStatement pstmt = positionLoggerDBConnection.prepareStatement(sql);
             pstmt.setString(1, blockBreakQueueElement.playerWhoBrokeBlock);
             pstmt.setInt(2, blockBreakQueueElement.blockID);
