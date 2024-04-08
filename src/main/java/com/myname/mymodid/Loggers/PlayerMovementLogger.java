@@ -48,13 +48,12 @@ public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovement
     @Override
     protected String processResultSet(ResultSet rs) throws SQLException {
         return String.format(
-            "%s was at [%.1f, %.1f, %.1f] in dimension %d at %s",
+            "%s was at [%.1f, %.1f, %.1f] at %s",
             rs.getString("playerName"),
             rs.getDouble("x"),
             rs.getDouble("y"),
             rs.getDouble("z"),
-            rs.getInt("dimensionID"),
-            rs.getString("timestamp"));
+            rs.getTimestamp("timestamp"));
     }
 
     public PlayerMovementLogger() {

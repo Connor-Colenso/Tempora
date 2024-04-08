@@ -35,13 +35,12 @@ public class EntityPositionLogger extends GenericPositionalLogger<EntityPosition
     @Override
     protected String processResultSet(ResultSet rs) throws SQLException {
         return String.format(
-            "%s was at [%.1f, %.1f, %.1f] in dimension %d at %d",
+            "%s was at [%.1f, %.1f, %.1f] at %s",
             rs.getString("entityName"),
             rs.getDouble("x"),
             rs.getDouble("y"),
             rs.getDouble("z"),
-            rs.getInt("dimensionID"),
-            rs.getLong("timestamp"));
+            rs.getTimestamp("timestamp"));
     }
 
     @Override
