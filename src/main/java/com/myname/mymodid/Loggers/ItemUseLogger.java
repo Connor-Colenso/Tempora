@@ -32,7 +32,7 @@ public class ItemUseLogger extends GenericPositionalLogger<ItemUseQueueElement> 
     @Override
     protected String processResultSet(ResultSet rs) throws SQLException {
         return String.format(
-            "%s used %s:%d at [%d, %d, %d] at %s",
+            "%s used %s:%d at [%d, %d, %d] on %s",
             rs.getString("playerName"),
             rs.getString("item"),
             rs.getInt("itemMetadata"),

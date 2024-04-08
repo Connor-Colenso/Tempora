@@ -31,7 +31,7 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionQueueEleme
     @Override
     protected String processResultSet(ResultSet rs) throws SQLException {
         return String.format(
-            "Explosion at [%.1f, %.1f, %.1f] with strength %.1f by %s at %s, closest player at time of explosion: %s, distance: %.1f meters",
+            "Explosion at [%.1f, %.1f, %.1f] with strength %.1f by %s on %s, closest player at time of explosion: %s, distance: %.1f meters",
             rs.getDouble("x"),
             rs.getDouble("y"),
             rs.getDouble("z"),

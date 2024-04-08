@@ -48,7 +48,7 @@ public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovement
     @Override
     protected String processResultSet(ResultSet rs) throws SQLException {
         return String.format(
-            "%s was at [%.1f, %.1f, %.1f] at %s",
+            "%s was at [%.1f, %.1f, %.1f] on %s",
             rs.getString("playerName"),
             rs.getDouble("x"),
             rs.getDouble("y"),

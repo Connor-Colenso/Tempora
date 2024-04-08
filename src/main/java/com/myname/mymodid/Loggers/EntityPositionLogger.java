@@ -35,7 +35,7 @@ public class EntityPositionLogger extends GenericPositionalLogger<EntityPosition
     @Override
     protected String processResultSet(ResultSet rs) throws SQLException {
         return String.format(
-            "%s was at [%.1f, %.1f, %.1f] at %s",
+            "%s was at [%.1f, %.1f, %.1f] on %s",
             rs.getString("entityName"),
             rs.getDouble("x"),
             rs.getDouble("y"),

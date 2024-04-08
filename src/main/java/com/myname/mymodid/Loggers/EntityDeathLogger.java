@@ -59,7 +59,7 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueE
     @Override
     protected String processResultSet(ResultSet rs) throws SQLException {
         return String.format(
-            "%s spawned at [%.1f, %.1f, %.1f] at %s",
+            "%s spawned at [%.1f, %.1f, %.1f] on %s",
             rs.getString("entityName"),
             rs.getDouble("x"),
             rs.getDouble("y"),

@@ -3,6 +3,7 @@ package com.myname.mymodid;
 import static com.myname.mymodid.Config.synchronizeConfiguration;
 import static com.myname.mymodid.Tags.MODID;
 
+import com.myname.mymodid.Loggers.BlockPlaceLogger;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
 
@@ -72,6 +73,7 @@ public class Tempora {
 
         if (TemporaUtils.shouldTemporaRun()) {
             new BlockBreakLogger();
+            new BlockPlaceLogger();
             new ExplosionLogger();
             new ItemUseLogger();
             new PlayerMovementLogger();
