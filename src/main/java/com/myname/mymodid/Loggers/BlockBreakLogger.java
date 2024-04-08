@@ -30,13 +30,13 @@ public class BlockBreakLogger extends GenericPositionalLogger<BlockBreakQueueEle
     @Override
     protected String processResultSet(ResultSet rs) throws SQLException {
         return String.format(
-            "%s broke [%s:%d] at [%.1f, %.1f, %.1f] on %s",
+            "%s broke [%s:%d] at [%s, %s, %s] on %s",
             rs.getString("playerName"),
             Block.getBlockById(rs.getInt("blockId")).getUnlocalizedName(), // Assuming you have a method to get the block name from ID
             rs.getInt("metadata"),
-            rs.getDouble("x"),
-            rs.getDouble("y"),
-            rs.getDouble("z"),
+            rs.getInt("x"),
+            rs.getInt("y"),
+            rs.getInt("z"),
             rs.getTimestamp("timestamp"));
     }
     @Override
