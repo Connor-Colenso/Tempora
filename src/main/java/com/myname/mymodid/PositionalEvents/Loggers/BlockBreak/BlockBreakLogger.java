@@ -32,27 +32,31 @@ public class BlockBreakLogger extends GenericPositionalLogger<BlockBreakQueueEle
     @Override
     protected IMessage generatePacket(ResultSet resultSet) throws SQLException {
 
-        ArrayList<BlockBreakQueueElement> eventList = new ArrayList<>();
-        int counter = 0;
+try {
+    ArrayList<BlockBreakQueueElement> eventList = new ArrayList<>();
+    int counter = 0;
 
-        while (resultSet.next() && counter < MAX_DATA_ROWS_PER_PACKET) {
-            int x = resultSet.getInt("x");
-            int y = resultSet.getInt("y");
-            int z = resultSet.getInt("z");
+    while (resultSet.next() && counter < MAX_DATA_ROWS_PER_PACKET) {
+        int x = resultSet.getInt("x");
+        int y = resultSet.getInt("y");
+        int z = resultSet.getInt("z");
 
-            BlockBreakQueueElement queueElement = new BlockBreakQueueElement(x, y, z, 0);
-            queueElement.playerUUIDWhoBrokeBlock = resultSet.getNString("playerName");
-            queueElement.blockID = resultSet.getInt("blockId");
-            queueElement.metadata = resultSet.getInt("metadata");
-            queueElement.timestamp = resultSet.getLong("timestamp");
+        BlockBreakQueueElement queueElement = new BlockBreakQueueElement(x, y, z, 0);
+        queueElement.playerUUIDWhoBrokeBlock = resultSet.getNString("playerName");
+        queueElement.blockID = resultSet.getInt("blockId");
+        queueElement.metadata = resultSet.getInt("metadata");
+        queueElement.timestamp = resultSet.getLong("timestamp");
 
-            counter++;
-        }
+        counter++;
+    }
 
-        BlockBreakPacketHandler packet = new BlockBreakPacketHandler();
-        packet.eventList = eventList;
+    BlockBreakPacketHandler packet = new BlockBreakPacketHandler();
+    packet.eventList = eventList;
 
-        return packet;
+    return packet;
+    } catch (Exception e) {
+        return null;
+    }
     }
 
     @Override

@@ -93,6 +93,8 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
         long pastTime = System.currentTimeMillis() - seconds * 1000; // Convert seconds to milliseconds
 
+        ArrayList<IMessage> packetList = new ArrayList<>();
+        synchronized (GenericPositionalLogger.class) {
         for (GenericPositionalLogger<?> logger : loggerList) {
             if (tableName != null && !logger.getTableName().equals(tableName)) continue;
             try (Connection conn = DriverManager.getConnection(TemporaUtils.databaseDirectory() + "PositionalLogger.db");
@@ -112,13 +114,18 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
                 pstmt.setTimestamp(8, new Timestamp(pastTime)); // Filter events from pastTime onwards
 
                 try (ResultSet rs = pstmt.executeQuery()) {
-                    IMessage packet = logger.generatePacket(rs);
-                    NETWORK.sendTo(packet, entityPlayerMP);
+                    packetList.add(logger.generatePacket(rs));
                 }
             } catch (SQLException e) {
                 returnList.add("Database query failed on " + logger.getTableName() + ": " + e.getLocalizedMessage());
             }
         }
+        }
+
+        for (IMessage packet : packetList) {
+            NETWORK.sendTo(packet, entityPlayerMP);
+        }
+
     }
 
     protected static Connection positionLoggerDBConnection;
