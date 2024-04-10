@@ -1,4 +1,4 @@
-package com.myname.mymodid.PositionalEvents.Loggers;
+package com.myname.mymodid.PositionalEvents.Loggers.BlockBreak;
 
 import static com.myname.mymodid.TemporaUtils.isClientSide;
 
@@ -7,6 +7,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 
+import com.myname.mymodid.PositionalEvents.Loggers.GenericPositionalLogger;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.common.config.Configuration;
@@ -14,7 +15,6 @@ import net.minecraftforge.event.world.BlockEvent;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.myname.mymodid.PositionalEvents.QueueElements.BlockBreakQueueElement;
 import com.myname.mymodid.TemporaUtils;
 
 import cpw.mods.fml.common.eventhandler.EventPriority;
@@ -95,8 +95,7 @@ public class BlockBreakLogger extends GenericPositionalLogger<BlockBreakQueueEle
         queueElement.metadata = event.blockMetadata;
 
         if (event.getPlayer() instanceof EntityPlayerMP) {
-            queueElement.playerWhoBrokeBlock = event.getPlayer()
-                .getDisplayName();
+            queueElement.playerWhoBrokeBlock = event.getPlayer().getUniqueID().toString();
         } else {
             queueElement.playerWhoBrokeBlock = TemporaUtils.UNKNOWN_PLAYER_NAME;
         }

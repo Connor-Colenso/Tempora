@@ -38,7 +38,7 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueE
         if (trueSource != null) {
             if (trueSource instanceof EntityPlayerMP player) {
                 // This is specific for players
-                queueElement.killedBy = player.getDisplayName();
+                queueElement.killedBy = player.getUniqueID().toString();
             } else {
                 // For non-player entities
                 queueElement.killedBy = "[" + trueSource.getClass()

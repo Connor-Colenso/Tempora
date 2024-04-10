@@ -68,7 +68,7 @@ public class ItemUseLogger extends GenericPositionalLogger<ItemUseQueueElement> 
             final String sql = "INSERT INTO " + getTableName()
                 + "(playerName, item, itemMetadata, x, y, z, dimensionID, timestamp) VALUES(?, ?, ?, ?, ?, ?, ?, ?)";
             final PreparedStatement pstmt = positionLoggerDBConnection.prepareStatement(sql);
-            pstmt.setString(1, itemUseQueueElement.playerName);
+            pstmt.setString(1, itemUseQueueElement.playerUUID);
             pstmt.setString(2, String.valueOf(itemUseQueueElement.itemID));
             pstmt.setInt(3, itemUseQueueElement.itemMetadata);
             pstmt.setDouble(4, itemUseQueueElement.x);
@@ -110,7 +110,7 @@ public class ItemUseLogger extends GenericPositionalLogger<ItemUseQueueElement> 
             player.posZ,
             world.provider.dimensionId);
 
-        queueElement.playerName = player.getDisplayName();
+        queueElement.playerUUID = player.getUniqueID().toString();
 
         if (usedItem != null) {
             queueElement.itemID = Item.getIdFromItem(usedItem.getItem());

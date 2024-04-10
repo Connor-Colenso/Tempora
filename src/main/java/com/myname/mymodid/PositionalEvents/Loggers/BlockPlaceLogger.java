@@ -67,7 +67,7 @@ public class BlockPlaceLogger extends GenericPositionalLogger<BlockPlaceQueueEle
             final String sql = "INSERT INTO " + getTableName()
                 + "(playerName, blockId, metadata, x, y, z, dimensionID, timestamp) VALUES(?, ?, ?, ?, ?, ?, ?, ?)";
             final PreparedStatement pstmt = positionLoggerDBConnection.prepareStatement(sql);
-            pstmt.setString(1, blockPlaceQueueElement.playerWhoPlacedBlock);
+            pstmt.setString(1, blockPlaceQueueElement.playerUUIDWhoPlacedBlock);
             pstmt.setInt(2, blockPlaceQueueElement.blockID);
             pstmt.setInt(3, blockPlaceQueueElement.metadata);
             pstmt.setDouble(4, blockPlaceQueueElement.x);
@@ -95,10 +95,9 @@ public class BlockPlaceLogger extends GenericPositionalLogger<BlockPlaceQueueEle
         queueElement.metadata = event.blockMetadata;
 
         if (event.player instanceof EntityPlayerMP) {
-            queueElement.playerWhoPlacedBlock = event.player
-                .getDisplayName();
+            queueElement.playerUUIDWhoPlacedBlock = event.player.getUniqueID().toString();
         } else {
-            queueElement.playerWhoPlacedBlock = TemporaUtils.UNKNOWN_PLAYER_NAME;
+            queueElement.playerUUIDWhoPlacedBlock = TemporaUtils.UNKNOWN_PLAYER_NAME;
         }
 
         eventQueue.add(queueElement);

@@ -19,7 +19,7 @@ import com.myname.mymodid.Commands.TrackPlayer.Network.PlayerPositionPacketHandl
 import com.myname.mymodid.Commands.TrackPlayer.PlayerTrackerRenderer;
 import com.myname.mymodid.Commands.TrackPlayer.TrackPlayerCommand;
 import com.myname.mymodid.Items.TemporaScannerItem;
-import com.myname.mymodid.PositionalEvents.Loggers.BlockBreakLogger;
+import com.myname.mymodid.PositionalEvents.Loggers.BlockBreak.BlockBreakLogger;
 import com.myname.mymodid.PositionalEvents.Loggers.CommandLogger;
 import com.myname.mymodid.PositionalEvents.Loggers.EntityDeathLogger;
 import com.myname.mymodid.PositionalEvents.Loggers.EntityPositionLogger;

@@ -76,8 +76,8 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionQueueEleme
             pstmt.setFloat(4, explosionQueueElement.strength);
             pstmt.setString(5, explosionQueueElement.exploderName);
             pstmt.setInt(6, explosionQueueElement.dimensionId);
-            pstmt.setString(7, explosionQueueElement.closestPlayerName);
-            pstmt.setDouble(8, explosionQueueElement.closestPlayerDistance);
+            pstmt.setString(7, explosionQueueElement.closestPlayerUUID);
+            pstmt.setDouble(8, explosionQueueElement.closestPlayerUUIDDistance);
             pstmt.setTimestamp(9, new Timestamp(explosionQueueElement.timestamp));
             pstmt.executeUpdate();
         } catch (final SQLException e) {
@@ -96,7 +96,7 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionQueueEleme
         final double y = event.explosion.explosionY;
         final double z = event.explosion.explosionZ;
         final Entity exploder = event.explosion.getExplosivePlacedBy();
-        final String exploderName = (exploder != null) ? exploder.getCommandSenderName()
+        final String exploderName = (exploder != null) ? exploder.getUniqueID().toString()
             : TemporaUtils.UNKNOWN_PLAYER_NAME;
 
         EntityPlayer closestPlayer = null;
@@ -110,14 +110,14 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionQueueEleme
             }
         }
 
-        String closestPlayerName = closestPlayer != null ? closestPlayer.getDisplayName() : "None";
+        String closestPlayerName = closestPlayer != null ? closestPlayer.getUniqueID().toString() : TemporaUtils.UNKNOWN_PLAYER_NAME;
         closestDistance = Math.sqrt(closestDistance); // Convert from square distance to actual distance
 
         ExplosionQueueElement queueElement = new ExplosionQueueElement(x, y, z, world.provider.dimensionId);
         queueElement.strength = strength;
         queueElement.exploderName = exploderName;
-        queueElement.closestPlayerName = closestPlayerName;
-        queueElement.closestPlayerDistance = closestDistance;
+        queueElement.closestPlayerUUID = closestPlayerName;
+        queueElement.closestPlayerUUIDDistance = closestDistance;
         eventQueue.add(queueElement);
     }
 

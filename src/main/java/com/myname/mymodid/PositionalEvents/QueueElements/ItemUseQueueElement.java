@@ -2,7 +2,7 @@ package com.myname.mymodid.PositionalEvents.QueueElements;
 
 public class ItemUseQueueElement extends GenericQueueElement {
 
-    public String playerName;
+    public String playerUUID;
     public int itemID;
     public int itemMetadata;
 

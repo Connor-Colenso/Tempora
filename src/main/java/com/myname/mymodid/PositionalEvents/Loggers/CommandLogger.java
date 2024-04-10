@@ -63,7 +63,7 @@ public class CommandLogger extends GenericPositionalLogger<CommandQueueElement> 
             final String sql = "INSERT INTO " + getTableName()
                 + "(playerName, command, arguments, x, y, z, dimensionID, timestamp) VALUES(?, ?, ?, ?, ?, ?, ?, ?)";
             final PreparedStatement pstmt = positionLoggerDBConnection.prepareStatement(sql);
-            pstmt.setString(1, commandQueueElement.playerWhoIssuedCommand);
+            pstmt.setString(1, commandQueueElement.playerUUIDWhoIssuedCommand);
             pstmt.setString(2, commandQueueElement.commandName);
             pstmt.setString(3, commandQueueElement.arguments);
             pstmt.setDouble(4, commandQueueElement.x);
@@ -92,7 +92,7 @@ public class CommandLogger extends GenericPositionalLogger<CommandQueueElement> 
                 player.posY,
                 player.posZ,
                 player.dimension);
-            queueElement.playerWhoIssuedCommand = player.getCommandSenderName();
+            queueElement.playerUUIDWhoIssuedCommand = player.getUniqueID().toString();
             queueElement.commandName = command.getCommandName();
             queueElement.arguments = String.join(" ", args);
 
