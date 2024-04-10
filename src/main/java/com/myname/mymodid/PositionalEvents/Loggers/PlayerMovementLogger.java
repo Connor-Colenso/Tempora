@@ -87,7 +87,7 @@ public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovement
             final String sql = "INSERT INTO " + getTableName()
                 + "(playerName, x, y, z, dimensionID, timestamp) VALUES(?, ?, ?, ?, ?, ?)";
             final PreparedStatement pstmt = positionLoggerDBConnection.prepareStatement(sql);
-            pstmt.setString(1, playerMovementQueueElement.playerName);
+            pstmt.setString(1, playerMovementQueueElement.playerUUID);
             pstmt.setDouble(2, playerMovementQueueElement.x);
             pstmt.setDouble(3, playerMovementQueueElement.y);
             pstmt.setDouble(4, playerMovementQueueElement.z);
@@ -114,7 +114,7 @@ public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovement
             player.posY,
             player.posZ,
             player.worldObj.provider.dimensionId);
-        queueElement.playerName = player.getDisplayName();
+        queueElement.playerUUID = player.getUniqueID().toString();
 
         eventQueue.add(queueElement);
     }

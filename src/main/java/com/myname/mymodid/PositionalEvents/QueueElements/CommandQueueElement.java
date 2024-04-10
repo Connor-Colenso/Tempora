@@ -2,7 +2,7 @@ package com.myname.mymodid.PositionalEvents.QueueElements;
 
 public class CommandQueueElement extends GenericQueueElement {
 
-    public String playerWhoIssuedCommand;
+    public String playerUUIDWhoIssuedCommand;
     public String commandName;
     public String arguments;
 

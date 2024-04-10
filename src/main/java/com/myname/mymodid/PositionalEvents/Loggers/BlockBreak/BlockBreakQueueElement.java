@@ -1,4 +1,6 @@
-package com.myname.mymodid.PositionalEvents.QueueElements;
+package com.myname.mymodid.PositionalEvents.Loggers.BlockBreak;
+
+import com.myname.mymodid.PositionalEvents.QueueElements.GenericQueueElement;
 
 public class BlockBreakQueueElement extends GenericQueueElement {
 
