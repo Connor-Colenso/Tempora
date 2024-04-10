@@ -1,4 +1,4 @@
-package com.myname.mymodid.QueueElement;
+package com.myname.mymodid.PositionalEvents.QueueElements;
 
 public class EntityPositionQueueElement extends GenericQueueElement {
 
