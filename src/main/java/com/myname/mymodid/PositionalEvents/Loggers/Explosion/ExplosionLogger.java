@@ -8,8 +8,6 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 
-import com.myname.mymodid.PositionalEvents.Loggers.Generic.GenericPositionalLogger;
-import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.world.World;
@@ -18,10 +16,12 @@ import net.minecraftforge.event.world.ExplosionEvent;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.myname.mymodid.PositionalEvents.Loggers.Generic.GenericPositionalLogger;
 import com.myname.mymodid.TemporaUtils;
 
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.common.network.simpleimpl.IMessage;
 
 public class ExplosionLogger extends GenericPositionalLogger<ExplosionQueueElement> {
 
@@ -29,7 +29,6 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionQueueEleme
     public void handleConfig(Configuration config) {
 
     }
-
 
     @Override
     protected IMessage generatePacket(ResultSet resultSet) throws SQLException {
@@ -117,8 +116,8 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionQueueEleme
         final double y = event.explosion.explosionY;
         final double z = event.explosion.explosionZ;
         final Entity exploder = event.explosion.getExplosivePlacedBy();
-        final String exploderName = (exploder != null) ? exploder.getUniqueID().toString()
-            : TemporaUtils.UNKNOWN_PLAYER_NAME;
+        final String exploderName = (exploder != null) ? exploder.getUniqueID()
+            .toString() : TemporaUtils.UNKNOWN_PLAYER_NAME;
 
         EntityPlayer closestPlayer = null;
         double closestDistance = Double.MAX_VALUE;
@@ -131,7 +130,8 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionQueueEleme
             }
         }
 
-        String closestPlayerName = closestPlayer != null ? closestPlayer.getUniqueID().toString() : TemporaUtils.UNKNOWN_PLAYER_NAME;
+        String closestPlayerName = closestPlayer != null ? closestPlayer.getUniqueID()
+            .toString() : TemporaUtils.UNKNOWN_PLAYER_NAME;
         closestDistance = Math.sqrt(closestDistance); // Convert from square distance to actual distance
 
         ExplosionQueueElement queueElement = new ExplosionQueueElement(x, y, z, world.provider.dimensionId);

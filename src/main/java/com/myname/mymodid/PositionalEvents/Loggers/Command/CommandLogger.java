@@ -8,15 +8,16 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 
-import com.myname.mymodid.PositionalEvents.Loggers.Generic.GenericPositionalLogger;
-import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import net.minecraft.command.ICommand;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.event.CommandEvent;
 
+import com.myname.mymodid.PositionalEvents.Loggers.Generic.GenericPositionalLogger;
+
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.common.network.simpleimpl.IMessage;
 
 public class CommandLogger extends GenericPositionalLogger<CommandQueueElement> {
 
@@ -107,7 +108,8 @@ public class CommandLogger extends GenericPositionalLogger<CommandQueueElement> 
                 player.posY,
                 player.posZ,
                 player.dimension);
-            queueElement.playerUUIDWhoIssuedCommand = player.getUniqueID().toString();
+            queueElement.playerUUIDWhoIssuedCommand = player.getUniqueID()
+                .toString();
             queueElement.commandName = command.getCommandName();
             queueElement.arguments = String.join(" ", args);
 

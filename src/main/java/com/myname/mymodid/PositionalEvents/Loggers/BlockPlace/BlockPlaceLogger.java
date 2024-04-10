@@ -8,8 +8,6 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 
-import com.myname.mymodid.PositionalEvents.Loggers.Generic.GenericPositionalLogger;
-import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.common.config.Configuration;
@@ -17,10 +15,12 @@ import net.minecraftforge.event.world.BlockEvent.PlaceEvent;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.myname.mymodid.PositionalEvents.Loggers.Generic.GenericPositionalLogger;
 import com.myname.mymodid.TemporaUtils;
 
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.common.network.simpleimpl.IMessage;
 
 public class BlockPlaceLogger extends GenericPositionalLogger<BlockPlaceQueueElement> {
 
@@ -110,7 +110,8 @@ public class BlockPlaceLogger extends GenericPositionalLogger<BlockPlaceQueueEle
         queueElement.metadata = event.blockMetadata;
 
         if (event.player instanceof EntityPlayerMP) {
-            queueElement.playerUUIDWhoPlacedBlock = event.player.getUniqueID().toString();
+            queueElement.playerUUIDWhoPlacedBlock = event.player.getUniqueID()
+                .toString();
         } else {
             queueElement.playerUUIDWhoPlacedBlock = TemporaUtils.UNKNOWN_PLAYER_NAME;
         }

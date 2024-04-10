@@ -1,14 +1,15 @@
 package com.myname.mymodid.PositionalEvents.Loggers.Command;
 
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+
+import net.minecraft.client.Minecraft;
+import net.minecraft.util.ChatComponentText;
+
 import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import cpw.mods.fml.common.network.simpleimpl.IMessageHandler;
 import cpw.mods.fml.common.network.simpleimpl.MessageContext;
 import io.netty.buffer.ByteBuf;
-import net.minecraft.client.Minecraft;
-import net.minecraft.util.ChatComponentText;
-
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 
 public class CommandPacketHandler implements IMessage {
 
@@ -48,7 +49,7 @@ public class CommandPacketHandler implements IMessage {
 
     @Override
     public void toBytes(ByteBuf buf) {
-        buf.writeInt(eventList.size());  // Write the number of events
+        buf.writeInt(eventList.size()); // Write the number of events
 
         for (CommandQueueElement queueElement : eventList) {
             buf.writeDouble(queueElement.x);
@@ -71,11 +72,15 @@ public class CommandPacketHandler implements IMessage {
     }
 
     public static class ClientMessageHandler implements IMessageHandler<CommandPacketHandler, IMessage> {
+
         @Override
         public IMessage onMessage(final CommandPacketHandler message, MessageContext ctx) {
-            Minecraft.getMinecraft().thePlayer.addChatMessage(new ChatComponentText(
-                "Received command: " + message.eventList.get(0).commandName + " with args: " + message.eventList.get(0).arguments));
-            return null;  // No response packet needed
+            Minecraft.getMinecraft().thePlayer.addChatMessage(
+                new ChatComponentText(
+                    "Received command: " + message.eventList.get(0).commandName
+                        + " with args: "
+                        + message.eventList.get(0).arguments));
+            return null; // No response packet needed
         }
     }
 }

@@ -8,8 +8,6 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 
-import com.myname.mymodid.PositionalEvents.Loggers.Generic.GenericPositionalLogger;
-import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.common.config.Configuration;
@@ -17,10 +15,12 @@ import net.minecraftforge.event.world.BlockEvent;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.myname.mymodid.PositionalEvents.Loggers.Generic.GenericPositionalLogger;
 import com.myname.mymodid.TemporaUtils;
 
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.common.network.simpleimpl.IMessage;
 
 public class BlockBreakLogger extends GenericPositionalLogger<BlockBreakQueueElement> {
 
@@ -32,32 +32,31 @@ public class BlockBreakLogger extends GenericPositionalLogger<BlockBreakQueueEle
     @Override
     protected IMessage generatePacket(ResultSet resultSet) throws SQLException {
 
-try {
-    ArrayList<BlockBreakQueueElement> eventList = new ArrayList<>();
-    int counter = 0;
+        try {
+            ArrayList<BlockBreakQueueElement> eventList = new ArrayList<>();
+            int counter = 0;
 
-    while (resultSet.next() && counter < MAX_DATA_ROWS_PER_PACKET) {
-        int x = resultSet.getInt("x");
-        int y = resultSet.getInt("y");
-        int z = resultSet.getInt("z");
+            while (resultSet.next() && counter < MAX_DATA_ROWS_PER_PACKET) {
+                int x = resultSet.getInt("x");
+                int y = resultSet.getInt("y");
+                int z = resultSet.getInt("z");
 
-        BlockBreakQueueElement queueElement = new BlockBreakQueueElement(x, y, z, 0);
-        queueElement.playerUUIDWhoBrokeBlock = resultSet.getString("playerName");
-        queueElement.blockID = resultSet.getInt("blockId");
-        queueElement.metadata = resultSet.getInt("metadata");
-        queueElement.timestamp = resultSet.getLong("timestamp");
+                BlockBreakQueueElement queueElement = new BlockBreakQueueElement(x, y, z, 0);
+                queueElement.playerUUIDWhoBrokeBlock = resultSet.getString("playerName");
+                queueElement.blockID = resultSet.getInt("blockId");
+                queueElement.metadata = resultSet.getInt("metadata");
+                queueElement.timestamp = resultSet.getLong("timestamp");
 
-        counter++;
-    }
+                counter++;
+            }
 
-    BlockBreakPacketHandler packet = new BlockBreakPacketHandler();
-    packet.eventList = eventList;
+            BlockBreakPacketHandler packet = new BlockBreakPacketHandler();
+            packet.eventList = eventList;
 
-    return packet;
-    }
-    catch (Exception e) {
-        return null;
-    }
+            return packet;
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     @Override
@@ -116,7 +115,9 @@ try {
         queueElement.metadata = event.blockMetadata;
 
         if (event.getPlayer() instanceof EntityPlayerMP) {
-            queueElement.playerUUIDWhoBrokeBlock = event.getPlayer().getUniqueID().toString();
+            queueElement.playerUUIDWhoBrokeBlock = event.getPlayer()
+                .getUniqueID()
+                .toString();
         } else {
             queueElement.playerUUIDWhoBrokeBlock = TemporaUtils.UNKNOWN_PLAYER_NAME;
         }

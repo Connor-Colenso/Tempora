@@ -3,16 +3,6 @@ package com.myname.mymodid;
 import static com.myname.mymodid.Config.synchronizeConfiguration;
 import static com.myname.mymodid.Tags.MODID;
 
-import com.myname.mymodid.PositionalEvents.Loggers.BlockBreak.BlockBreakPacketHandler;
-import com.myname.mymodid.PositionalEvents.Loggers.BlockPlace.BlockPlaceLogger;
-import com.myname.mymodid.PositionalEvents.Loggers.BlockPlace.BlockPlacePacketHandler;
-import com.myname.mymodid.PositionalEvents.Loggers.Command.CommandPacketHandler;
-import com.myname.mymodid.PositionalEvents.Loggers.EntityDeath.EntityDeathPacketHandler;
-import com.myname.mymodid.PositionalEvents.Loggers.EntityPosition.EntityPositionPacketHandler;
-import com.myname.mymodid.PositionalEvents.Loggers.EntitySpawn.EntitySpawnPacketHandler;
-import com.myname.mymodid.PositionalEvents.Loggers.Explosion.ExplosionPacketHandler;
-import com.myname.mymodid.PositionalEvents.Loggers.ItemUse.ItemUsePacketHandler;
-import com.myname.mymodid.PositionalEvents.Loggers.PlayerMovement.PlayerMovementPacketHandler;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
 
@@ -22,21 +12,31 @@ import org.apache.logging.log4j.Logger;
 import com.myname.mymodid.Commands.HeatMap.HeatMapCommand;
 import com.myname.mymodid.Commands.HeatMap.Network.HeatMapPacket;
 import com.myname.mymodid.Commands.HeatMap.Network.HeatMapPacketHandler;
-import com.myname.mymodid.PositionalEvents.Commands.QueryEventsCommand;
 import com.myname.mymodid.Commands.TrackPlayer.Network.PlayerPositionPacket;
 import com.myname.mymodid.Commands.TrackPlayer.Network.PlayerPositionPacketHandler;
 import com.myname.mymodid.Commands.TrackPlayer.PlayerTrackerRenderer;
 import com.myname.mymodid.Commands.TrackPlayer.TrackPlayerCommand;
 import com.myname.mymodid.Items.TemporaScannerItem;
+import com.myname.mymodid.PositionalEvents.Commands.QueryEventsCommand;
 import com.myname.mymodid.PositionalEvents.Loggers.BlockBreak.BlockBreakLogger;
+import com.myname.mymodid.PositionalEvents.Loggers.BlockBreak.BlockBreakPacketHandler;
+import com.myname.mymodid.PositionalEvents.Loggers.BlockPlace.BlockPlaceLogger;
+import com.myname.mymodid.PositionalEvents.Loggers.BlockPlace.BlockPlacePacketHandler;
 import com.myname.mymodid.PositionalEvents.Loggers.Command.CommandLogger;
+import com.myname.mymodid.PositionalEvents.Loggers.Command.CommandPacketHandler;
 import com.myname.mymodid.PositionalEvents.Loggers.EntityDeath.EntityDeathLogger;
+import com.myname.mymodid.PositionalEvents.Loggers.EntityDeath.EntityDeathPacketHandler;
 import com.myname.mymodid.PositionalEvents.Loggers.EntityPosition.EntityPositionLogger;
+import com.myname.mymodid.PositionalEvents.Loggers.EntityPosition.EntityPositionPacketHandler;
 import com.myname.mymodid.PositionalEvents.Loggers.EntitySpawn.EntitySpawnLogger;
+import com.myname.mymodid.PositionalEvents.Loggers.EntitySpawn.EntitySpawnPacketHandler;
 import com.myname.mymodid.PositionalEvents.Loggers.Explosion.ExplosionLogger;
+import com.myname.mymodid.PositionalEvents.Loggers.Explosion.ExplosionPacketHandler;
 import com.myname.mymodid.PositionalEvents.Loggers.Generic.GenericPositionalLogger;
 import com.myname.mymodid.PositionalEvents.Loggers.ItemUse.ItemUseLogger;
+import com.myname.mymodid.PositionalEvents.Loggers.ItemUse.ItemUsePacketHandler;
 import com.myname.mymodid.PositionalEvents.Loggers.PlayerMovement.PlayerMovementLogger;
+import com.myname.mymodid.PositionalEvents.Loggers.PlayerMovement.PlayerMovementPacketHandler;
 import com.myname.mymodid.Rendering.RenderInWorldDispatcher;
 
 import cpw.mods.fml.common.Mod;
@@ -77,15 +77,51 @@ public class Tempora {
         NETWORK.registerMessage(PlayerPositionPacketHandler.class, PlayerPositionPacket.class, 0, Side.CLIENT);
         NETWORK.registerMessage(HeatMapPacketHandler.class, HeatMapPacket.class, 1, Side.CLIENT);
 
-        NETWORK.registerMessage(BlockBreakPacketHandler.ClientMessageHandler.class, BlockBreakPacketHandler.class, 2, Side.CLIENT);
-        NETWORK.registerMessage(BlockPlacePacketHandler.ClientMessageHandler.class, BlockPlacePacketHandler.class, 3, Side.CLIENT);
-        NETWORK.registerMessage(CommandPacketHandler.ClientMessageHandler.class, CommandPacketHandler.class, 4, Side.CLIENT);
-        NETWORK.registerMessage(EntityDeathPacketHandler.ClientMessageHandler.class, EntityDeathPacketHandler.class, 5, Side.CLIENT);
-        NETWORK.registerMessage(EntityPositionPacketHandler.ClientMessageHandler.class, EntityPositionPacketHandler.class, 6, Side.CLIENT);
-        NETWORK.registerMessage(EntitySpawnPacketHandler.ClientMessageHandler.class, EntitySpawnPacketHandler.class, 7, Side.CLIENT);
-        NETWORK.registerMessage(ExplosionPacketHandler.ClientMessageHandler.class, ExplosionPacketHandler.class, 8, Side.CLIENT);
-        NETWORK.registerMessage(ItemUsePacketHandler.ClientMessageHandler.class, ItemUsePacketHandler.class, 9, Side.CLIENT);
-        NETWORK.registerMessage(PlayerMovementPacketHandler.ClientMessageHandler.class, PlayerMovementPacketHandler.class, 10, Side.CLIENT);
+        NETWORK.registerMessage(
+            BlockBreakPacketHandler.ClientMessageHandler.class,
+            BlockBreakPacketHandler.class,
+            2,
+            Side.CLIENT);
+        NETWORK.registerMessage(
+            BlockPlacePacketHandler.ClientMessageHandler.class,
+            BlockPlacePacketHandler.class,
+            3,
+            Side.CLIENT);
+        NETWORK.registerMessage(
+            CommandPacketHandler.ClientMessageHandler.class,
+            CommandPacketHandler.class,
+            4,
+            Side.CLIENT);
+        NETWORK.registerMessage(
+            EntityDeathPacketHandler.ClientMessageHandler.class,
+            EntityDeathPacketHandler.class,
+            5,
+            Side.CLIENT);
+        NETWORK.registerMessage(
+            EntityPositionPacketHandler.ClientMessageHandler.class,
+            EntityPositionPacketHandler.class,
+            6,
+            Side.CLIENT);
+        NETWORK.registerMessage(
+            EntitySpawnPacketHandler.ClientMessageHandler.class,
+            EntitySpawnPacketHandler.class,
+            7,
+            Side.CLIENT);
+        NETWORK.registerMessage(
+            ExplosionPacketHandler.ClientMessageHandler.class,
+            ExplosionPacketHandler.class,
+            8,
+            Side.CLIENT);
+        NETWORK.registerMessage(
+            ItemUsePacketHandler.ClientMessageHandler.class,
+            ItemUsePacketHandler.class,
+            9,
+            Side.CLIENT);
+        NETWORK.registerMessage(
+            PlayerMovementPacketHandler.ClientMessageHandler.class,
+            PlayerMovementPacketHandler.class,
+            10,
+            Side.CLIENT);
 
         // This must happen before we start registering events.
         synchronizeConfiguration(config);
@@ -103,7 +139,7 @@ public class Tempora {
         }
 
         // Each logger handles their own config settings.
-        for (GenericPositionalLogger logger : GenericPositionalLogger.loggerList) {
+        for (GenericPositionalLogger<?> logger : GenericPositionalLogger.loggerList) {
             logger.handleConfig(config);
         }
 
@@ -125,7 +161,7 @@ public class Tempora {
         // Only register this on the server side. We do it here because in SP, preInit etc only runs for the client.
 
         if (TemporaUtils.shouldTemporaRun()) {
-            for (GenericPositionalLogger logger : GenericPositionalLogger.loggerList) {
+            for (GenericPositionalLogger<?> logger : GenericPositionalLogger.loggerList) {
                 logger.registerEvent();
             }
         }

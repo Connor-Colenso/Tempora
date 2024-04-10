@@ -1,14 +1,15 @@
 package com.myname.mymodid.PositionalEvents.Loggers.EntityDeath;
 
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+
+import net.minecraft.client.Minecraft;
+import net.minecraft.util.ChatComponentText;
+
 import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import cpw.mods.fml.common.network.simpleimpl.IMessageHandler;
 import cpw.mods.fml.common.network.simpleimpl.MessageContext;
 import io.netty.buffer.ByteBuf;
-import net.minecraft.client.Minecraft;
-import net.minecraft.util.ChatComponentText;
-
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 
 public class EntityDeathPacketHandler implements IMessage {
 
@@ -53,17 +54,18 @@ public class EntityDeathPacketHandler implements IMessage {
 
             // Write mob name information
             byte[] nameBytes = queueElement.nameOfDeadMob.getBytes(StandardCharsets.UTF_8);
-            buf.writeInt(nameBytes.length);  // First write the length of the name
-            buf.writeBytes(nameBytes);       // Then write the name itself
+            buf.writeInt(nameBytes.length); // First write the length of the name
+            buf.writeBytes(nameBytes); // Then write the name itself
 
             // Write killer information
             byte[] killerBytes = queueElement.killedBy.getBytes(StandardCharsets.UTF_8);
-            buf.writeInt(killerBytes.length);  // First write the length of the killer string
-            buf.writeBytes(killerBytes);       // Then write the killer string itself
+            buf.writeInt(killerBytes.length); // First write the length of the killer string
+            buf.writeBytes(killerBytes); // Then write the killer string itself
         }
     }
 
     public static class ClientMessageHandler implements IMessageHandler<EntityDeathPacketHandler, IMessage> {
+
         @Override
         public IMessage onMessage(final EntityDeathPacketHandler message, MessageContext ctx) {
             for (EntityDeathQueueElement queueElement : message.eventList) {

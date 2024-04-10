@@ -1,16 +1,18 @@
 package com.myname.mymodid.PositionalEvents.Loggers.PlayerMovement;
 
-import com.myname.mymodid.Utils.TimeUtils;
-import cpw.mods.fml.common.network.simpleimpl.IMessage;
-import cpw.mods.fml.common.network.simpleimpl.IMessageHandler;
-import cpw.mods.fml.common.network.simpleimpl.MessageContext;
-import io.netty.buffer.ByteBuf;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.StatCollector;
 
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
+import com.myname.mymodid.Utils.TimeUtils;
+
+import cpw.mods.fml.common.network.simpleimpl.IMessage;
+import cpw.mods.fml.common.network.simpleimpl.IMessageHandler;
+import cpw.mods.fml.common.network.simpleimpl.MessageContext;
+import io.netty.buffer.ByteBuf;
 
 public class PlayerMovementPacketHandler implements IMessage {
 
@@ -53,20 +55,27 @@ public class PlayerMovementPacketHandler implements IMessage {
             buf.writeLong(queueElement.timestamp); // Write timestamp
 
             byte[] uuidBytes = queueElement.playerUUID.getBytes(StandardCharsets.UTF_8);
-            buf.writeInt(uuidBytes.length);  // Write the length of the UUID string
-            buf.writeBytes(uuidBytes);       // Write the UUID string itself
+            buf.writeInt(uuidBytes.length); // Write the length of the UUID string
+            buf.writeBytes(uuidBytes); // Write the UUID string itself
         }
     }
 
     public static class ClientMessageHandler implements IMessageHandler<PlayerMovementPacketHandler, IMessage> {
+
         @Override
         public IMessage onMessage(final PlayerMovementPacketHandler message, MessageContext ctx) {
             for (PlayerMovementQueueElement queueElement : message.eventList) {
-                String formattedTime = TimeUtils.formatTime(queueElement.timestamp); // Format time according to user's timezone
+                String formattedTime = TimeUtils.formatTime(queueElement.timestamp); // Format time according to user's
+                                                                                     // timezone
 
                 // Get the localized message template from Minecraft's localization system
-                String localizedMessage = StatCollector.translateToLocalFormatted("player.movement.message",
-                    queueElement.x, queueElement.y, queueElement.z, queueElement.dimensionId, formattedTime);
+                String localizedMessage = StatCollector.translateToLocalFormatted(
+                    "player.movement.message",
+                    queueElement.x,
+                    queueElement.y,
+                    queueElement.z,
+                    queueElement.dimensionId,
+                    formattedTime);
 
                 Minecraft.getMinecraft().thePlayer.addChatMessage(new ChatComponentText(localizedMessage));
             }

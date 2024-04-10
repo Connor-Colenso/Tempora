@@ -1,15 +1,17 @@
 package com.myname.mymodid.PositionalEvents.Loggers.BlockBreak;
 
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+
+import net.minecraft.client.Minecraft;
+import net.minecraft.util.ChatComponentText;
+
 import com.myname.mymodid.Utils.BlockUtils;
+
 import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import cpw.mods.fml.common.network.simpleimpl.IMessageHandler;
 import cpw.mods.fml.common.network.simpleimpl.MessageContext;
 import io.netty.buffer.ByteBuf;
-import net.minecraft.client.Minecraft;
-import net.minecraft.util.ChatComponentText;
-
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 
 public class BlockBreakPacketHandler implements IMessage {
 
@@ -25,7 +27,8 @@ public class BlockBreakPacketHandler implements IMessage {
             double y = buf.readDouble();
             double z = buf.readDouble();
 
-            BlockBreakQueueElement queueElement = new BlockBreakQueueElement(x, y, z, 0); // dimID is irrelevant for this.
+            BlockBreakQueueElement queueElement = new BlockBreakQueueElement(x, y, z, 0); // dimID is irrelevant for
+                                                                                          // this.
 
             int uuidLength = buf.readInt();
             byte[] uuidBytes = new byte[uuidLength];
@@ -55,8 +58,8 @@ public class BlockBreakPacketHandler implements IMessage {
 
             // Write UUID information
             byte[] uuidBytes = queueElement.playerUUIDWhoBrokeBlock.getBytes(StandardCharsets.UTF_8);
-            buf.writeInt(uuidBytes.length);  // First write the length of the UUID string
-            buf.writeBytes(uuidBytes);       // Then write the UUID string itself
+            buf.writeInt(uuidBytes.length); // First write the length of the UUID string
+            buf.writeBytes(uuidBytes); // Then write the UUID string itself
 
             // Write block ID and metadata
             buf.writeInt(queueElement.blockID);
@@ -64,12 +67,13 @@ public class BlockBreakPacketHandler implements IMessage {
         }
     }
 
-
     public static class ClientMessageHandler implements IMessageHandler<BlockBreakPacketHandler, IMessage> {
+
         @Override
         public IMessage onMessage(final BlockBreakPacketHandler message, MessageContext ctx) {
             for (BlockBreakQueueElement queueElement : message.eventList) {
-                Minecraft.getMinecraft().thePlayer.addChatMessage(new ChatComponentText(BlockUtils.getLocalizedName(queueElement.blockID, queueElement.metadata)));
+                Minecraft.getMinecraft().thePlayer.addChatMessage(
+                    new ChatComponentText(BlockUtils.getLocalizedName(queueElement.blockID, queueElement.metadata)));
             }
             return null; // No response packet needed
         }

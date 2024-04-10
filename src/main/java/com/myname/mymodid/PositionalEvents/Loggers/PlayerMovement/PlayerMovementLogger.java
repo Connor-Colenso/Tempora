@@ -9,8 +9,6 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 
-import com.myname.mymodid.PositionalEvents.Loggers.Generic.GenericPositionalLogger;
-import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.common.config.Configuration;
 
@@ -18,11 +16,13 @@ import org.jetbrains.annotations.NotNull;
 
 import com.myname.mymodid.Commands.HeatMap.HeatMapUpdater;
 import com.myname.mymodid.Commands.TrackPlayer.TrackPlayerUpdater;
+import com.myname.mymodid.PositionalEvents.Loggers.Generic.GenericPositionalLogger;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.common.gameevent.TickEvent.PlayerTickEvent;
+import cpw.mods.fml.common.network.simpleimpl.IMessage;
 
 public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovementQueueElement> {
 
@@ -57,7 +57,11 @@ public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovement
             double y = resultSet.getDouble("y");
             double z = resultSet.getDouble("z");
 
-            PlayerMovementQueueElement queueElement = new PlayerMovementQueueElement(x, y, z, resultSet.getInt("dimensionID"));
+            PlayerMovementQueueElement queueElement = new PlayerMovementQueueElement(
+                x,
+                y,
+                z,
+                resultSet.getInt("dimensionID"));
             queueElement.playerUUID = resultSet.getString("playerName");
             queueElement.timestamp = resultSet.getLong("timestamp");
 
@@ -70,7 +74,6 @@ public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovement
 
         return packet;
     }
-
 
     public PlayerMovementLogger() {
         super();
@@ -130,7 +133,8 @@ public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovement
             player.posY,
             player.posZ,
             player.worldObj.provider.dimensionId);
-        queueElement.playerUUID = player.getUniqueID().toString();
+        queueElement.playerUUID = player.getUniqueID()
+            .toString();
 
         eventQueue.add(queueElement);
     }
