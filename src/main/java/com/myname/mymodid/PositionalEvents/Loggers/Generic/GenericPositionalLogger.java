@@ -146,6 +146,9 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
     public static void onServerStart() {
         try {
+            System.out.println(
+                "Attempting to open tempora positional db at " + TemporaUtils.databaseDirectory()
+                    + "PositionalLogger.db");
             positionLoggerDBConnection = DriverManager
                 .getConnection(TemporaUtils.databaseDirectory() + "PositionalLogger.db");
             for (GenericPositionalLogger<?> loggerPositional : loggerList) {
