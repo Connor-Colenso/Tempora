@@ -7,6 +7,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 
 import com.myname.mymodid.PositionalEvents.Loggers.Generic.GenericPositionalLogger;
 import cpw.mods.fml.common.network.simpleimpl.IMessage;
@@ -26,7 +27,7 @@ import cpw.mods.fml.common.gameevent.TickEvent.PlayerTickEvent;
 public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovementQueueElement> {
 
     // This class logs three items to the same database.
-    // 1. Player movement every n ticks. By default, n = 100 ticks.
+    // 1. Player movement every n ticks. By default, n = 200 ticks.
     // 2. Player teleportation between dimensions. Prevents users from evading the above detector by switching dims very
     // quickly.
     // 3. Player login, prevents the user from being logged into a dimension and quickly switching dims, this would
@@ -47,9 +48,29 @@ public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovement
     }
 
     @Override
-    protected IMessage generatePacket(ResultSet rs) throws SQLException {
-        return null;
+    protected IMessage generatePacket(ResultSet resultSet) throws SQLException {
+        ArrayList<PlayerMovementQueueElement> eventList = new ArrayList<>();
+        int counter = 0;
+
+        while (resultSet.next() && counter < MAX_DATA_ROWS_PER_PACKET) {
+            double x = resultSet.getDouble("x");
+            double y = resultSet.getDouble("y");
+            double z = resultSet.getDouble("z");
+
+            PlayerMovementQueueElement queueElement = new PlayerMovementQueueElement(x, y, z, resultSet.getInt("dimensionID"));
+            queueElement.playerUUID = resultSet.getString("playerName");
+            queueElement.timestamp = resultSet.getLong("timestamp");
+
+            eventList.add(queueElement);
+            counter++;
+        }
+
+        PlayerMovementPacketHandler packet = new PlayerMovementPacketHandler();
+        packet.eventList = eventList;
+
+        return packet;
     }
+
 
     public PlayerMovementLogger() {
         super();
