@@ -1,4 +1,4 @@
-package com.myname.mymodid.Loggers;
+package com.myname.mymodid.PositionalEvents.Loggers;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -21,7 +21,7 @@ import net.minecraft.util.EnumChatFormatting;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
 
-import com.myname.mymodid.QueueElement.GenericQueueElement;
+import com.myname.mymodid.PositionalEvents.QueueElements.GenericQueueElement;
 import com.myname.mymodid.TemporaUtils;
 
 import cpw.mods.fml.common.FMLCommonHandler;

@@ -1,4 +1,4 @@
-package com.myname.mymodid.Loggers;
+package com.myname.mymodid.PositionalEvents.Loggers;
 
 import static com.myname.mymodid.TemporaUtils.isClientSide;
 
@@ -7,30 +7,46 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.common.config.Configuration;
-import net.minecraftforge.event.entity.living.LivingSpawnEvent;
+import net.minecraftforge.event.entity.living.LivingDeathEvent;
 
-import com.myname.mymodid.QueueElement.EntitySpawnQueueElement;
+import com.myname.mymodid.PositionalEvents.QueueElements.EntityDeathQueueElement;
 
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
-public class EntitySpawnLogger extends GenericPositionalLogger<EntitySpawnQueueElement> {
+public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueElement> {
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
     @SuppressWarnings("unused")
-    public void onEntitySpawn(LivingSpawnEvent.SpecialSpawn event) {
+    public void onEntityDeath(LivingDeathEvent event) {
         if (isClientSide()) return;
-        if (event.entityLiving instanceof EntityPlayerMP) return;
+        if (event.entityLiving instanceof EntityPlayerMP) return; // No players allowed here, this is for mobs only.
         if (event.isCanceled()) return;
 
-        EntitySpawnQueueElement queueElement = new EntitySpawnQueueElement(
-            event.entityLiving.posX,
-            event.entityLiving.posY,
-            event.entityLiving.posZ,
-            event.entityLiving.dimension);
-        queueElement.entityName = event.entityLiving.getCommandSenderName();
+        EntityDeathQueueElement queueElement = new EntityDeathQueueElement(
+            event.entity.posX,
+            event.entity.posY,
+            event.entity.posZ,
+            event.entity.dimension);
+        queueElement.nameOfDeadMob = event.entityLiving.getCommandSenderName(); // Gets the mob name, weirdly.
+
+        // Get what killed it.
+        Entity trueSource = event.source.getEntity();
+        if (trueSource != null) {
+            if (trueSource instanceof EntityPlayerMP player) {
+                // This is specific for players
+                queueElement.killedBy = player.getDisplayName();
+            } else {
+                // For non-player entities
+                queueElement.killedBy = "[" + trueSource.getClass()
+                    .getSimpleName() + "]";
+            }
+        } else {
+            queueElement.killedBy = "[" + event.source.damageType + "]";
+        }
 
         eventQueue.add(queueElement);
     }
@@ -71,17 +87,17 @@ public class EntitySpawnLogger extends GenericPositionalLogger<EntitySpawnQueueE
     }
 
     @Override
-    public void threadedSaveEvent(EntitySpawnQueueElement entitySpawnQueueElement) {
+    public void threadedSaveEvent(EntityDeathQueueElement entityDeathQueueElement) {
         try {
             final String sql = "INSERT INTO " + getTableName()
                 + "(entityName, x, y, z, dimensionID, timestamp) VALUES(?, ?, ?, ?, ?, ?)";
             final PreparedStatement pstmt = positionLoggerDBConnection.prepareStatement(sql);
-            pstmt.setString(1, entitySpawnQueueElement.entityName);
-            pstmt.setDouble(2, entitySpawnQueueElement.x);
-            pstmt.setDouble(3, entitySpawnQueueElement.y);
-            pstmt.setDouble(4, entitySpawnQueueElement.z);
-            pstmt.setInt(5, entitySpawnQueueElement.dimensionId);
-            pstmt.setTimestamp(6, new Timestamp(entitySpawnQueueElement.timestamp));
+            pstmt.setString(1, entityDeathQueueElement.nameOfDeadMob); // Name of the mob
+            pstmt.setDouble(2, entityDeathQueueElement.x); // X coordinate
+            pstmt.setDouble(3, entityDeathQueueElement.y); // Y coordinate
+            pstmt.setDouble(4, entityDeathQueueElement.z); // Z coordinate
+            pstmt.setInt(5, entityDeathQueueElement.dimensionId); // Dimension ID
+            pstmt.setTimestamp(6, new Timestamp(entityDeathQueueElement.timestamp)); // Timestamp of death
             pstmt.executeUpdate();
         } catch (final SQLException e) {
             e.printStackTrace();

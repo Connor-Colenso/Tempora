@@ -1,15 +1,15 @@
-package com.myname.mymodid.Commands;
+package com.myname.mymodid.PositionalEvents.Commands;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import com.myname.mymodid.PositionalEvents.Loggers.GenericPositionalLogger;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentText;
 
-import com.myname.mymodid.Loggers.GenericPositionalLogger;
 import com.myname.mymodid.TemporaUtils;
 
 public class QueryEventsCommand extends CommandBase {

@@ -1,4 +1,4 @@
-package com.myname.mymodid.Loggers;
+package com.myname.mymodid.PositionalEvents.Loggers;
 
 import static com.myname.mymodid.TemporaUtils.isClientSide;
 
@@ -7,6 +7,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 
+import com.myname.mymodid.PositionalEvents.QueueElements.ItemUseQueueElement;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -16,8 +17,6 @@ import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.entity.player.PlayerUseItemEvent;
 
 import org.jetbrains.annotations.NotNull;
-
-import com.myname.mymodid.QueueElement.ItemUseQueueElement;
 
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;

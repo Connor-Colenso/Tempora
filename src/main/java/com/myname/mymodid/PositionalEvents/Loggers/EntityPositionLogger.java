@@ -1,4 +1,4 @@
-package com.myname.mymodid.Loggers;
+package com.myname.mymodid.PositionalEvents.Loggers;
 
 import static com.myname.mymodid.Config.loggingIntervals;
 import static com.myname.mymodid.TemporaUtils.isClientSide;
@@ -12,7 +12,7 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
 
-import com.myname.mymodid.QueueElement.EntityPositionQueueElement;
+import com.myname.mymodid.PositionalEvents.QueueElements.EntityPositionQueueElement;
 
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;

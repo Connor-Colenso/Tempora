@@ -1,4 +1,4 @@
-package com.myname.mymodid.Loggers;
+package com.myname.mymodid.PositionalEvents.Loggers;
 
 import static com.myname.mymodid.TemporaUtils.isClientSide;
 
@@ -14,7 +14,7 @@ import net.minecraftforge.event.world.BlockEvent;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.myname.mymodid.QueueElement.BlockBreakQueueElement;
+import com.myname.mymodid.PositionalEvents.QueueElements.BlockBreakQueueElement;
 import com.myname.mymodid.TemporaUtils;
 
 import cpw.mods.fml.common.eventhandler.EventPriority;

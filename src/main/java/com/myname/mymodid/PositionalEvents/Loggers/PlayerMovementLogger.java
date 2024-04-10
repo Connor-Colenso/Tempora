@@ -1,4 +1,4 @@
-package com.myname.mymodid.Loggers;
+package com.myname.mymodid.PositionalEvents.Loggers;
 
 import static com.myname.mymodid.Config.loggingIntervals;
 import static com.myname.mymodid.TemporaUtils.isClientSide;
@@ -15,7 +15,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.myname.mymodid.Commands.HeatMap.HeatMapUpdater;
 import com.myname.mymodid.Commands.TrackPlayer.TrackPlayerUpdater;
-import com.myname.mymodid.QueueElement.PlayerMovementQueueElement;
+import com.myname.mymodid.PositionalEvents.QueueElements.PlayerMovementQueueElement;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
