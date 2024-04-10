@@ -3,6 +3,7 @@ package com.myname.mymodid;
 import static com.myname.mymodid.Config.synchronizeConfiguration;
 import static com.myname.mymodid.Tags.MODID;
 
+import com.myname.mymodid.PositionalEvents.Loggers.BlockBreak.BlockBreakPacketHandler;
 import com.myname.mymodid.PositionalEvents.Loggers.BlockPlaceLogger;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
@@ -67,6 +68,7 @@ public class Tempora {
 
         NETWORK.registerMessage(PlayerPositionPacketHandler.class, PlayerPositionPacket.class, 0, Side.CLIENT);
         NETWORK.registerMessage(HeatMapPacketHandler.class, HeatMapPacket.class, 1, Side.CLIENT);
+        NETWORK.registerMessage(BlockBreakPacketHandler.ClientMessageHandler.class, BlockBreakPacketHandler.class, 2, Side.CLIENT);
 
         // This must happen before we start registering events.
         synchronizeConfiguration(config);
