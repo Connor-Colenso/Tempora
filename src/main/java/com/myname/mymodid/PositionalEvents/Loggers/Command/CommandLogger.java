@@ -1,4 +1,4 @@
-package com.myname.mymodid.PositionalEvents.Loggers;
+package com.myname.mymodid.PositionalEvents.Loggers.Command;
 
 import static com.myname.mymodid.TemporaUtils.isClientSide;
 
@@ -6,8 +6,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 
-import com.myname.mymodid.PositionalEvents.QueueElements.CommandQueueElement;
+import com.myname.mymodid.PositionalEvents.Loggers.Generic.GenericPositionalLogger;
+import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import net.minecraft.command.ICommand;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.common.config.Configuration;
@@ -24,16 +26,29 @@ public class CommandLogger extends GenericPositionalLogger<CommandQueueElement> 
     }
 
     @Override
-    protected String processResultSet(ResultSet rs) throws SQLException {
-        return String.format(
-            "%s executed [/%s %s] at [%.1f, %.1f, %.1f] on %s",
-            rs.getString("playerName"),
-            rs.getString("command"),
-            rs.getString("arguments"),
-            rs.getDouble("x"),
-            rs.getDouble("y"),
-            rs.getDouble("z"),
-            rs.getTimestamp("timestamp"));
+    protected IMessage generatePacket(ResultSet resultSet) throws SQLException {
+        ArrayList<CommandQueueElement> eventList = new ArrayList<>();
+        int counter = 0;
+
+        while (resultSet.next() && counter < MAX_DATA_ROWS_PER_PACKET) {
+            double x = resultSet.getDouble("x");
+            double y = resultSet.getDouble("y");
+            double z = resultSet.getDouble("z");
+
+            CommandQueueElement queueElement = new CommandQueueElement(x, y, z, resultSet.getInt("dimensionID"));
+            queueElement.playerUUIDWhoIssuedCommand = resultSet.getString("playerName");
+            queueElement.commandName = resultSet.getString("command");
+            queueElement.arguments = resultSet.getString("arguments");
+            queueElement.timestamp = resultSet.getLong("timestamp");
+
+            eventList.add(queueElement);
+            counter++;
+        }
+
+        CommandPacketHandler packet = new CommandPacketHandler();
+        packet.eventList = eventList;
+
+        return packet;
     }
 
     @Override

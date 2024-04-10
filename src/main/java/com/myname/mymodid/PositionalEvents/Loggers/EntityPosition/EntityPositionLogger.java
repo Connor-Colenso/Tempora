@@ -1,4 +1,4 @@
-package com.myname.mymodid.PositionalEvents.Loggers;
+package com.myname.mymodid.PositionalEvents.Loggers.EntityPosition;
 
 import static com.myname.mymodid.Config.loggingIntervals;
 import static com.myname.mymodid.TemporaUtils.isClientSide;
@@ -7,12 +7,13 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 
+import com.myname.mymodid.PositionalEvents.Loggers.Generic.GenericPositionalLogger;
+import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
-
-import com.myname.mymodid.PositionalEvents.QueueElements.EntityPositionQueueElement;
 
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
@@ -33,14 +34,27 @@ public class EntityPositionLogger extends GenericPositionalLogger<EntityPosition
     }
 
     @Override
-    protected String processResultSet(ResultSet rs) throws SQLException {
-        return String.format(
-            "%s was at [%.1f, %.1f, %.1f] on %s",
-            rs.getString("entityName"),
-            rs.getDouble("x"),
-            rs.getDouble("y"),
-            rs.getDouble("z"),
-            rs.getTimestamp("timestamp"));
+    protected IMessage generatePacket(ResultSet resultSet) throws SQLException {
+        ArrayList<EntityPositionQueueElement> eventList = new ArrayList<>();
+        int counter = 0;
+
+        while (resultSet.next() && counter < MAX_DATA_ROWS_PER_PACKET) {
+            double x = resultSet.getDouble("x");
+            double y = resultSet.getDouble("y");
+            double z = resultSet.getDouble("z");
+
+            EntityPositionQueueElement queueElement = new EntityPositionQueueElement(x, y, z, resultSet.getInt("dimensionID"));
+            queueElement.entityName = resultSet.getString("entityName");
+            queueElement.timestamp = resultSet.getLong("timestamp");
+
+            eventList.add(queueElement);
+            counter++;
+        }
+
+        EntityPositionPacketHandler packet = new EntityPositionPacketHandler();
+        packet.eventList = eventList;
+
+        return packet;
     }
 
     @Override

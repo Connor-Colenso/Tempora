@@ -1,4 +1,4 @@
-package com.myname.mymodid.PositionalEvents.QueueElements;
+package com.myname.mymodid.PositionalEvents.Loggers.Generic;
 
 public abstract class GenericQueueElement {
 
@@ -6,7 +6,7 @@ public abstract class GenericQueueElement {
     public final double y;
     public final double z;
     public final int dimensionId;
-    public final long timestamp;
+    public long timestamp;
 
     public GenericQueueElement(double x, double y, double z, int dimensionId) {
         this.x = x;

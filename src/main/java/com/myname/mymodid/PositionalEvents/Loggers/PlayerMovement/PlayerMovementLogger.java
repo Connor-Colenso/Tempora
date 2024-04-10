@@ -1,4 +1,4 @@
-package com.myname.mymodid.PositionalEvents.Loggers;
+package com.myname.mymodid.PositionalEvents.Loggers.PlayerMovement;
 
 import static com.myname.mymodid.Config.loggingIntervals;
 import static com.myname.mymodid.TemporaUtils.isClientSide;
@@ -8,6 +8,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 
+import com.myname.mymodid.PositionalEvents.Loggers.Generic.GenericPositionalLogger;
+import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.common.config.Configuration;
 
@@ -15,7 +17,6 @@ import org.jetbrains.annotations.NotNull;
 
 import com.myname.mymodid.Commands.HeatMap.HeatMapUpdater;
 import com.myname.mymodid.Commands.TrackPlayer.TrackPlayerUpdater;
-import com.myname.mymodid.PositionalEvents.QueueElements.PlayerMovementQueueElement;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
@@ -46,14 +47,8 @@ public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovement
     }
 
     @Override
-    protected String processResultSet(ResultSet rs) throws SQLException {
-        return String.format(
-            "%s was at [%.1f, %.1f, %.1f] on %s",
-            rs.getString("playerName"),
-            rs.getDouble("x"),
-            rs.getDouble("y"),
-            rs.getDouble("z"),
-            rs.getTimestamp("timestamp"));
+    protected IMessage generatePacket(ResultSet rs) throws SQLException {
+        return null;
     }
 
     public PlayerMovementLogger() {

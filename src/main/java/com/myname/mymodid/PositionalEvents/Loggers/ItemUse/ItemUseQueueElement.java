@@ -1,4 +1,6 @@
-package com.myname.mymodid.PositionalEvents.QueueElements;
+package com.myname.mymodid.PositionalEvents.Loggers.ItemUse;
+
+import com.myname.mymodid.PositionalEvents.Loggers.Generic.GenericQueueElement;
 
 public class ItemUseQueueElement extends GenericQueueElement {
 
