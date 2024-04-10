@@ -1,4 +1,4 @@
-package com.myname.mymodid.PositionalEvents.Loggers;
+package com.myname.mymodid.PositionalEvents.Loggers.EntityDeath;
 
 import static com.myname.mymodid.TemporaUtils.isClientSide;
 
@@ -6,13 +6,14 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 
+import com.myname.mymodid.PositionalEvents.Loggers.Generic.GenericPositionalLogger;
+import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
-
-import com.myname.mymodid.PositionalEvents.QueueElements.EntityDeathQueueElement;
 
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
@@ -57,14 +58,30 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueE
     }
 
     @Override
-    protected String processResultSet(ResultSet rs) throws SQLException {
-        return String.format(
-            "%s spawned at [%.1f, %.1f, %.1f] on %s",
-            rs.getString("entityName"),
-            rs.getDouble("x"),
-            rs.getDouble("y"),
-            rs.getDouble("z"),
-            rs.getTimestamp("timestamp"));
+    protected IMessage generatePacket(ResultSet resultSet) throws SQLException {
+        ArrayList<EntityDeathQueueElement> eventList = new ArrayList<>();
+        int counter = 0;
+
+        while (resultSet.next() && counter < MAX_DATA_ROWS_PER_PACKET) {
+            double x = resultSet.getDouble("x");
+            double y = resultSet.getDouble("y");
+            double z = resultSet.getDouble("z");
+
+            EntityDeathQueueElement queueElement = new EntityDeathQueueElement(x, y, z, resultSet.getInt("dimensionID"));
+            queueElement.nameOfDeadMob = resultSet.getString("entityName");
+            queueElement.timestamp = resultSet.getTimestamp("timestamp").getTime();
+
+            // Optionally add 'killedBy' data if available in your table
+            // queueElement.killedBy = resultSet.getString("killedBy");
+
+            eventList.add(queueElement);
+            counter++;
+        }
+
+        EntityDeathPacketHandler packet = new EntityDeathPacketHandler();
+        packet.eventList = eventList;
+
+        return packet;
     }
 
     @Override

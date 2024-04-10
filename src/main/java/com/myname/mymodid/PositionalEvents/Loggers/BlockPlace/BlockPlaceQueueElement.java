@@ -1,4 +1,6 @@
-package com.myname.mymodid.PositionalEvents.QueueElements;
+package com.myname.mymodid.PositionalEvents.Loggers.BlockPlace;
+
+import com.myname.mymodid.PositionalEvents.Loggers.Generic.GenericQueueElement;
 
 public class BlockPlaceQueueElement extends GenericQueueElement {
 

@@ -1,4 +1,4 @@
-package com.myname.mymodid.PositionalEvents.Loggers;
+package com.myname.mymodid.PositionalEvents.Loggers.Explosion;
 
 import static com.myname.mymodid.TemporaUtils.isClientSide;
 
@@ -6,8 +6,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 
-import com.myname.mymodid.PositionalEvents.QueueElements.ExplosionQueueElement;
+import com.myname.mymodid.PositionalEvents.Loggers.Generic.GenericPositionalLogger;
+import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.world.World;
@@ -28,18 +30,37 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionQueueEleme
 
     }
 
+
     @Override
-    protected String processResultSet(ResultSet rs) throws SQLException {
-        return String.format(
-            "Explosion at [%.1f, %.1f, %.1f] with strength %.1f by %s on %s, closest player at time of explosion: %s, distance: %.1f meters",
-            rs.getDouble("x"),
-            rs.getDouble("y"),
-            rs.getDouble("z"),
-            rs.getFloat("strength"),
-            rs.getString("exploder"),
-            rs.getTimestamp("timestamp"),
-            rs.getString("closestPlayer"),
-            rs.getDouble("playerDistance"));
+    protected IMessage generatePacket(ResultSet resultSet) throws SQLException {
+        ArrayList<ExplosionQueueElement> eventList = new ArrayList<>();
+        int counter = 0;
+
+        while (resultSet.next() && counter < MAX_DATA_ROWS_PER_PACKET) {
+            double x = resultSet.getDouble("x");
+            double y = resultSet.getDouble("y");
+            double z = resultSet.getDouble("z");
+            float strength = resultSet.getFloat("strength");
+            String exploder = resultSet.getString("exploder");
+            int dimensionID = resultSet.getInt("dimensionID");
+            String closestPlayer = resultSet.getString("closestPlayer");
+            double playerDistance = resultSet.getDouble("playerDistance");
+
+            ExplosionQueueElement queueElement = new ExplosionQueueElement(x, y, z, dimensionID);
+            queueElement.strength = strength;
+            queueElement.exploderName = exploder;
+            queueElement.closestPlayerUUID = closestPlayer;
+            queueElement.closestPlayerUUIDDistance = playerDistance;
+            queueElement.timestamp = resultSet.getLong("timestamp");
+
+            eventList.add(queueElement);
+            counter++;
+        }
+
+        ExplosionPacketHandler packet = new ExplosionPacketHandler();
+        packet.eventList = eventList;
+
+        return packet;
     }
 
     @Override

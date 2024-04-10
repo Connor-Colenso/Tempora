@@ -1,4 +1,4 @@
-package com.myname.mymodid.PositionalEvents.Loggers;
+package com.myname.mymodid.PositionalEvents.Loggers.ItemUse;
 
 import static com.myname.mymodid.TemporaUtils.isClientSide;
 
@@ -6,8 +6,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 
-import com.myname.mymodid.PositionalEvents.QueueElements.ItemUseQueueElement;
+import com.myname.mymodid.PositionalEvents.Loggers.Generic.GenericPositionalLogger;
+import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -29,17 +31,36 @@ public class ItemUseLogger extends GenericPositionalLogger<ItemUseQueueElement> 
     }
 
     @Override
-    protected String processResultSet(ResultSet rs) throws SQLException {
-        return String.format(
-            "%s used %s:%d at [%d, %d, %d] on %s",
-            rs.getString("playerName"),
-            rs.getString("item"),
-            rs.getInt("itemMetadata"),
-            rs.getInt("x"),
-            rs.getInt("y"),
-            rs.getInt("z"),
-            rs.getTimestamp("timestamp"));
+    protected IMessage generatePacket(ResultSet resultSet) throws SQLException {
+        ArrayList<ItemUseQueueElement> eventList = new ArrayList<>();
+        int counter = 0;
+
+        while (resultSet.next() && counter < MAX_DATA_ROWS_PER_PACKET) {
+            double x = resultSet.getDouble("x");
+            double y = resultSet.getDouble("y");
+            double z = resultSet.getDouble("z");
+            int dimensionID = resultSet.getInt("dimensionID");
+            String playerName = resultSet.getString("playerName");
+            int itemID = resultSet.getInt("itemID");
+            int itemMetadata = resultSet.getInt("itemMetadata");
+            long timestamp = resultSet.getLong("timestamp");
+
+            ItemUseQueueElement queueElement = new ItemUseQueueElement(x, y, z, dimensionID);
+            queueElement.playerUUID = playerName;
+            queueElement.itemID = itemID;
+            queueElement.itemMetadata = itemMetadata;
+            queueElement.timestamp = timestamp;
+
+            eventList.add(queueElement);
+            counter++;
+        }
+
+        ItemUsePacketHandler packet = new ItemUsePacketHandler();
+        packet.eventList = eventList;
+
+        return packet;
     }
+
 
     @Override
     public void initTable() {
@@ -49,7 +70,7 @@ public class ItemUseLogger extends GenericPositionalLogger<ItemUseQueueElement> 
                     "CREATE TABLE IF NOT EXISTS " + getTableName()
                         + " (id INTEGER PRIMARY KEY AUTOINCREMENT,"
                         + "playerName TEXT NOT NULL,"
-                        + "item TEXT NOT NULL,"
+                        + "itemID INTEGER NOT NULL,"
                         + "itemMetadata INTEGER NOT NULL,"
                         + "x REAL NOT NULL,"
                         + "y REAL NOT NULL,"
@@ -69,7 +90,7 @@ public class ItemUseLogger extends GenericPositionalLogger<ItemUseQueueElement> 
                 + "(playerName, item, itemMetadata, x, y, z, dimensionID, timestamp) VALUES(?, ?, ?, ?, ?, ?, ?, ?)";
             final PreparedStatement pstmt = positionLoggerDBConnection.prepareStatement(sql);
             pstmt.setString(1, itemUseQueueElement.playerUUID);
-            pstmt.setString(2, String.valueOf(itemUseQueueElement.itemID));
+            pstmt.setInt(2, itemUseQueueElement.itemID);
             pstmt.setInt(3, itemUseQueueElement.itemMetadata);
             pstmt.setDouble(4, itemUseQueueElement.x);
             pstmt.setDouble(5, itemUseQueueElement.y);

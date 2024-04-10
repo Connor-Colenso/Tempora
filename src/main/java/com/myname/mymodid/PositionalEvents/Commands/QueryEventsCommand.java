@@ -3,7 +3,7 @@ package com.myname.mymodid.PositionalEvents.Commands;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.myname.mymodid.PositionalEvents.Loggers.GenericPositionalLogger;
+import com.myname.mymodid.PositionalEvents.Loggers.Generic.GenericPositionalLogger;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
@@ -52,11 +52,8 @@ public class QueryEventsCommand extends CommandBase {
             return;
         }
 
-        List<String> messages = GenericPositionalLogger
+        GenericPositionalLogger
             .queryEventsWithinRadiusAndTime(sender, radius, seconds, tableName);
-        for (String message : messages) {
-            sender.addChatMessage(new ChatComponentText(message));
-        }
     }
 
     @Override

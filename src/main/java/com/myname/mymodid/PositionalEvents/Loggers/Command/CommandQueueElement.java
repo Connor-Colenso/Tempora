@@ -1,4 +1,6 @@
-package com.myname.mymodid.PositionalEvents.QueueElements;
+package com.myname.mymodid.PositionalEvents.Loggers.Command;
+
+import com.myname.mymodid.PositionalEvents.Loggers.Generic.GenericQueueElement;
 
 public class CommandQueueElement extends GenericQueueElement {
 

@@ -1,4 +1,4 @@
-package com.myname.mymodid.PositionalEvents.Loggers;
+package com.myname.mymodid.PositionalEvents.Loggers.BlockPlace;
 
 import static com.myname.mymodid.TemporaUtils.isClientSide;
 
@@ -6,8 +6,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 
-import com.myname.mymodid.PositionalEvents.QueueElements.BlockPlaceQueueElement;
+import com.myname.mymodid.PositionalEvents.Loggers.Generic.GenericPositionalLogger;
+import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.common.config.Configuration;
@@ -28,16 +30,29 @@ public class BlockPlaceLogger extends GenericPositionalLogger<BlockPlaceQueueEle
     }
 
     @Override
-    protected String processResultSet(ResultSet rs) throws SQLException {
-        return String.format(
-            "%s placed [%s:%d] at [%s, %s, %s] on %s",
-            rs.getString("playerName"),
-            Block.getBlockById(rs.getInt("blockId")).getUnlocalizedName(), // Method to get the block name from ID
-            rs.getInt("metadata"),
-            rs.getInt("x"),
-            rs.getInt("y"),
-            rs.getInt("z"),
-            rs.getTimestamp("timestamp"));
+    protected IMessage generatePacket(ResultSet resultSet) throws SQLException {
+        ArrayList<BlockPlaceQueueElement> eventList = new ArrayList<>();
+        int counter = 0;
+
+        while (resultSet.next() && counter < MAX_DATA_ROWS_PER_PACKET) {
+            int x = resultSet.getInt("x");
+            int y = resultSet.getInt("y");
+            int z = resultSet.getInt("z");
+
+            BlockPlaceQueueElement queueElement = new BlockPlaceQueueElement(x, y, z, resultSet.getInt("dimensionID"));
+            queueElement.playerUUIDWhoPlacedBlock = resultSet.getString("playerName");
+            queueElement.blockID = resultSet.getInt("blockId");
+            queueElement.metadata = resultSet.getInt("metadata");
+            queueElement.timestamp = resultSet.getLong("timestamp");
+
+            eventList.add(queueElement);
+            counter++;
+        }
+
+        BlockPlacePacketHandler packet = new BlockPlacePacketHandler();
+        packet.eventList = eventList;
+
+        return packet;
     }
 
     @Override
