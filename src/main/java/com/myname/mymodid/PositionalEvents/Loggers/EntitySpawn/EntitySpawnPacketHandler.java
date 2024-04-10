@@ -1,14 +1,15 @@
 package com.myname.mymodid.PositionalEvents.Loggers.EntitySpawn;
 
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+
+import net.minecraft.client.Minecraft;
+import net.minecraft.util.ChatComponentText;
+
 import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import cpw.mods.fml.common.network.simpleimpl.IMessageHandler;
 import cpw.mods.fml.common.network.simpleimpl.MessageContext;
 import io.netty.buffer.ByteBuf;
-import net.minecraft.client.Minecraft;
-import net.minecraft.util.ChatComponentText;
-
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 
 public class EntitySpawnPacketHandler implements IMessage {
 
@@ -53,6 +54,7 @@ public class EntitySpawnPacketHandler implements IMessage {
     }
 
     public static class ClientMessageHandler implements IMessageHandler<EntitySpawnPacketHandler, IMessage> {
+
         @Override
         public IMessage onMessage(final EntitySpawnPacketHandler message, MessageContext ctx) {
             for (EntitySpawnQueueElement queueElement : message.eventList) {

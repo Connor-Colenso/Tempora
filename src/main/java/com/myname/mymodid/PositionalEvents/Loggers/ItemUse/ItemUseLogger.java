@@ -8,8 +8,6 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 
-import com.myname.mymodid.PositionalEvents.Loggers.Generic.GenericPositionalLogger;
-import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -20,8 +18,11 @@ import net.minecraftforge.event.entity.player.PlayerUseItemEvent;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.myname.mymodid.PositionalEvents.Loggers.Generic.GenericPositionalLogger;
+
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.common.network.simpleimpl.IMessage;
 
 public class ItemUseLogger extends GenericPositionalLogger<ItemUseQueueElement> {
 
@@ -60,7 +61,6 @@ public class ItemUseLogger extends GenericPositionalLogger<ItemUseQueueElement> 
 
         return packet;
     }
-
 
     @Override
     public void initTable() {
@@ -131,7 +131,8 @@ public class ItemUseLogger extends GenericPositionalLogger<ItemUseQueueElement> 
             player.posZ,
             world.provider.dimensionId);
 
-        queueElement.playerUUID = player.getUniqueID().toString();
+        queueElement.playerUUID = player.getUniqueID()
+            .toString();
 
         if (usedItem != null) {
             queueElement.itemID = Item.getIdFromItem(usedItem.getItem());

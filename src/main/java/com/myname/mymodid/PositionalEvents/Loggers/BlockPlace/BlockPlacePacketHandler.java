@@ -1,15 +1,17 @@
 package com.myname.mymodid.PositionalEvents.Loggers.BlockPlace;
 
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+
+import net.minecraft.client.Minecraft;
+import net.minecraft.util.ChatComponentText;
+
 import com.myname.mymodid.Utils.BlockUtils;
+
 import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import cpw.mods.fml.common.network.simpleimpl.IMessageHandler;
 import cpw.mods.fml.common.network.simpleimpl.MessageContext;
 import io.netty.buffer.ByteBuf;
-import net.minecraft.client.Minecraft;
-import net.minecraft.util.ChatComponentText;
-
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 
 public class BlockPlacePacketHandler implements IMessage {
 
@@ -61,12 +63,12 @@ public class BlockPlacePacketHandler implements IMessage {
     }
 
     public static class ClientMessageHandler implements IMessageHandler<BlockPlacePacketHandler, IMessage> {
+
         @Override
         public IMessage onMessage(final BlockPlacePacketHandler message, MessageContext ctx) {
             for (BlockPlaceQueueElement queueElement : message.eventList) {
-                Minecraft.getMinecraft().thePlayer.addChatMessage(new ChatComponentText(
-                    BlockUtils.getLocalizedName(queueElement.blockID, queueElement.metadata)
-                ));
+                Minecraft.getMinecraft().thePlayer.addChatMessage(
+                    new ChatComponentText(BlockUtils.getLocalizedName(queueElement.blockID, queueElement.metadata)));
             }
             return null;
         }

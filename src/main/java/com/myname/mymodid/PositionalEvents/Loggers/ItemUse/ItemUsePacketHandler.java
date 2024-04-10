@@ -1,16 +1,18 @@
 package com.myname.mymodid.PositionalEvents.Loggers.ItemUse;
 
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+
+import net.minecraft.client.Minecraft;
+import net.minecraft.util.ChatComponentText;
+
 import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import cpw.mods.fml.common.network.simpleimpl.IMessageHandler;
 import cpw.mods.fml.common.network.simpleimpl.MessageContext;
 import io.netty.buffer.ByteBuf;
-import net.minecraft.client.Minecraft;
-import net.minecraft.util.ChatComponentText;
-
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 
 public class ItemUsePacketHandler implements IMessage {
+
     public ArrayList<ItemUseQueueElement> eventList;
 
     @Override
@@ -60,6 +62,7 @@ public class ItemUsePacketHandler implements IMessage {
     }
 
     public static class ClientMessageHandler implements IMessageHandler<ItemUsePacketHandler, IMessage> {
+
         @Override
         public IMessage onMessage(final ItemUsePacketHandler message, MessageContext ctx) {
             for (ItemUseQueueElement queueElement : message.eventList) {

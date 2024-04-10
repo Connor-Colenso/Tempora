@@ -8,14 +8,15 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 
-import com.myname.mymodid.PositionalEvents.Loggers.Generic.GenericPositionalLogger;
-import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.event.entity.living.LivingSpawnEvent;
 
+import com.myname.mymodid.PositionalEvents.Loggers.Generic.GenericPositionalLogger;
+
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.common.network.simpleimpl.IMessage;
 
 public class EntitySpawnLogger extends GenericPositionalLogger<EntitySpawnQueueElement> {
 
@@ -51,9 +52,14 @@ public class EntitySpawnLogger extends GenericPositionalLogger<EntitySpawnQueueE
             double y = resultSet.getDouble("y");
             double z = resultSet.getDouble("z");
 
-            EntitySpawnQueueElement queueElement = new EntitySpawnQueueElement(x, y, z, resultSet.getInt("dimensionID"));
+            EntitySpawnQueueElement queueElement = new EntitySpawnQueueElement(
+                x,
+                y,
+                z,
+                resultSet.getInt("dimensionID"));
             queueElement.entityName = resultSet.getString("entityName");
-            queueElement.timestamp = resultSet.getTimestamp("timestamp").getTime();
+            queueElement.timestamp = resultSet.getTimestamp("timestamp")
+                .getTime();
 
             eventList.add(queueElement);
             counter++;

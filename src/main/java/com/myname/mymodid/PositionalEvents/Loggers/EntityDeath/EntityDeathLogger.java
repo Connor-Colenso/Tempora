@@ -8,15 +8,16 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 
-import com.myname.mymodid.PositionalEvents.Loggers.Generic.GenericPositionalLogger;
-import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 
+import com.myname.mymodid.PositionalEvents.Loggers.Generic.GenericPositionalLogger;
+
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.common.network.simpleimpl.IMessage;
 
 public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueElement> {
 
@@ -39,7 +40,8 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueE
         if (trueSource != null) {
             if (trueSource instanceof EntityPlayerMP player) {
                 // This is specific for players
-                queueElement.killedBy = player.getUniqueID().toString();
+                queueElement.killedBy = player.getUniqueID()
+                    .toString();
             } else {
                 // For non-player entities
                 queueElement.killedBy = "[" + trueSource.getClass()
@@ -67,9 +69,14 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueE
             double y = resultSet.getDouble("y");
             double z = resultSet.getDouble("z");
 
-            EntityDeathQueueElement queueElement = new EntityDeathQueueElement(x, y, z, resultSet.getInt("dimensionID"));
+            EntityDeathQueueElement queueElement = new EntityDeathQueueElement(
+                x,
+                y,
+                z,
+                resultSet.getInt("dimensionID"));
             queueElement.nameOfDeadMob = resultSet.getString("entityName");
-            queueElement.timestamp = resultSet.getTimestamp("timestamp").getTime();
+            queueElement.timestamp = resultSet.getTimestamp("timestamp")
+                .getTime();
 
             // Optionally add 'killedBy' data if available in your table
             // queueElement.killedBy = resultSet.getString("killedBy");

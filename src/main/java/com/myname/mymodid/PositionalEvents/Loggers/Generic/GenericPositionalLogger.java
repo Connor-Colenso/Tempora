@@ -1,5 +1,7 @@
 package com.myname.mymodid.PositionalEvents.Loggers.Generic;
 
+import static com.myname.mymodid.Tempora.NETWORK;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -15,7 +17,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.common.MinecraftForge;
@@ -24,8 +25,7 @@ import net.minecraftforge.common.config.Configuration;
 import com.myname.mymodid.TemporaUtils;
 
 import cpw.mods.fml.common.FMLCommonHandler;
-
-import static com.myname.mymodid.Tempora.NETWORK;
+import cpw.mods.fml.common.network.simpleimpl.IMessage;
 
 public abstract class GenericPositionalLogger<EventToLog extends GenericQueueElement> {
 
@@ -36,7 +36,6 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
     public abstract void threadedSaveEvent(EventToLog event);
 
-
     public static void startEventProcessingThread() {
         executor.submit(() -> {
             while (keepRunning.get()) {
@@ -44,7 +43,8 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
                     processAllLoggerQueues();
                     Thread.sleep(5000);
                 } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
+                    Thread.currentThread()
+                        .interrupt();
                 } catch (Exception e) {
                     System.err.println("An error occurred in the logging processor thread: " + e.getMessage());
                     e.printStackTrace();
@@ -70,8 +70,6 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
         executor.shutdownNow(); // Attempt to stop all actively executing tasks
     }
 
-
-
     public abstract void handleConfig(Configuration config);
 
     static {
@@ -82,7 +80,8 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
     protected abstract IMessage generatePacket(ResultSet rs) throws SQLException;
 
-    public static void queryEventsWithinRadiusAndTime(ICommandSender sender, int radius, long seconds, String tableName) {
+    public static void queryEventsWithinRadiusAndTime(ICommandSender sender, int radius, long seconds,
+        String tableName) {
         ArrayList<String> returnList = new ArrayList<>();
 
         if (!(sender instanceof EntityPlayerMP entityPlayerMP)) return;
@@ -95,31 +94,34 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
         ArrayList<IMessage> packetList = new ArrayList<>();
         synchronized (GenericPositionalLogger.class) {
-        for (GenericPositionalLogger<?> logger : loggerList) {
-            if (tableName != null && !logger.getTableName().equals(tableName)) continue;
-            try (Connection conn = DriverManager.getConnection(TemporaUtils.databaseDirectory() + "PositionalLogger.db");
-                 PreparedStatement pstmt = conn.prepareStatement(
-                     "SELECT * FROM " + logger.getTableName() +
-                         " WHERE ABS(x - ?) <= ? AND ABS(y - ?) <= ? AND ABS(z - ?) <= ?" +
-                         " AND dimensionID = ? AND timestamp >= ?"
-                 )) {
+            for (GenericPositionalLogger<?> logger : loggerList) {
+                if (tableName != null && !logger.getTableName()
+                    .equals(tableName)) continue;
+                try (
+                    Connection conn = DriverManager
+                        .getConnection(TemporaUtils.databaseDirectory() + "PositionalLogger.db");
+                    PreparedStatement pstmt = conn.prepareStatement(
+                        "SELECT * FROM " + logger.getTableName()
+                            + " WHERE ABS(x - ?) <= ? AND ABS(y - ?) <= ? AND ABS(z - ?) <= ?"
+                            + " AND dimensionID = ? AND timestamp >= ?")) {
 
-                pstmt.setDouble(1, posX);
-                pstmt.setInt(2, radius);
-                pstmt.setDouble(3, posY);
-                pstmt.setInt(4, radius);
-                pstmt.setDouble(5, posZ);
-                pstmt.setInt(6, radius);
-                pstmt.setInt(7, dimensionId);
-                pstmt.setTimestamp(8, new Timestamp(pastTime)); // Filter events from pastTime onwards
+                    pstmt.setDouble(1, posX);
+                    pstmt.setInt(2, radius);
+                    pstmt.setDouble(3, posY);
+                    pstmt.setInt(4, radius);
+                    pstmt.setDouble(5, posZ);
+                    pstmt.setInt(6, radius);
+                    pstmt.setInt(7, dimensionId);
+                    pstmt.setTimestamp(8, new Timestamp(pastTime)); // Filter events from pastTime onwards
 
-                try (ResultSet rs = pstmt.executeQuery()) {
-                    packetList.add(logger.generatePacket(rs));
+                    try (ResultSet rs = pstmt.executeQuery()) {
+                        packetList.add(logger.generatePacket(rs));
+                    }
+                } catch (SQLException e) {
+                    returnList
+                        .add("Database query failed on " + logger.getTableName() + ": " + e.getLocalizedMessage());
                 }
-            } catch (SQLException e) {
-                returnList.add("Database query failed on " + logger.getTableName() + ": " + e.getLocalizedMessage());
             }
-        }
         }
 
         for (IMessage packet : packetList) {

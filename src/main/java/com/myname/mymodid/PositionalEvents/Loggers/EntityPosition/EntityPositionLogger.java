@@ -9,14 +9,15 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 
-import com.myname.mymodid.PositionalEvents.Loggers.Generic.GenericPositionalLogger;
-import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
 
+import com.myname.mymodid.PositionalEvents.Loggers.Generic.GenericPositionalLogger;
+
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.common.network.simpleimpl.IMessage;
 
 public class EntityPositionLogger extends GenericPositionalLogger<EntityPositionQueueElement> {
 
@@ -43,7 +44,11 @@ public class EntityPositionLogger extends GenericPositionalLogger<EntityPosition
             double y = resultSet.getDouble("y");
             double z = resultSet.getDouble("z");
 
-            EntityPositionQueueElement queueElement = new EntityPositionQueueElement(x, y, z, resultSet.getInt("dimensionID"));
+            EntityPositionQueueElement queueElement = new EntityPositionQueueElement(
+                x,
+                y,
+                z,
+                resultSet.getInt("dimensionID"));
             queueElement.entityName = resultSet.getString("entityName");
             queueElement.timestamp = resultSet.getLong("timestamp");
 

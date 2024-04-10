@@ -3,13 +3,13 @@ package com.myname.mymodid.PositionalEvents.Commands;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.myname.mymodid.PositionalEvents.Loggers.Generic.GenericPositionalLogger;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentText;
 
+import com.myname.mymodid.PositionalEvents.Loggers.Generic.GenericPositionalLogger;
 import com.myname.mymodid.TemporaUtils;
 
 public class QueryEventsCommand extends CommandBase {
@@ -52,8 +52,7 @@ public class QueryEventsCommand extends CommandBase {
             return;
         }
 
-        GenericPositionalLogger
-            .queryEventsWithinRadiusAndTime(sender, radius, seconds, tableName);
+        GenericPositionalLogger.queryEventsWithinRadiusAndTime(sender, radius, seconds, tableName);
     }
 
     @Override
