@@ -42,7 +42,7 @@ try {
         int z = resultSet.getInt("z");
 
         BlockBreakQueueElement queueElement = new BlockBreakQueueElement(x, y, z, 0);
-        queueElement.playerUUIDWhoBrokeBlock = resultSet.getNString("playerName");
+        queueElement.playerUUIDWhoBrokeBlock = resultSet.getString("playerName");
         queueElement.blockID = resultSet.getInt("blockId");
         queueElement.metadata = resultSet.getInt("metadata");
         queueElement.timestamp = resultSet.getLong("timestamp");
@@ -54,7 +54,8 @@ try {
     packet.eventList = eventList;
 
     return packet;
-    } catch (Exception e) {
+    }
+    catch (Exception e) {
         return null;
     }
     }
