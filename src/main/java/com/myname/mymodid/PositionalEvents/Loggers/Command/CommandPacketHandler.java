@@ -26,7 +26,11 @@ public class CommandPacketHandler implements IMessage {
             double z = buf.readDouble();
             int dimensionId = buf.readInt();
 
-            CommandQueueElement queueElement = new CommandQueueElement(x, y, z, dimensionId);
+            CommandQueueElement queueElement = new CommandQueueElement();
+            queueElement.x = x;
+            queueElement.y = y;
+            queueElement.z = z;
+            queueElement.dimensionId = dimensionId;
 
             int uuidLength = buf.readInt();
             byte[] uuidBytes = new byte[uuidLength];

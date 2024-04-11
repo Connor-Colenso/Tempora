@@ -12,4 +12,9 @@ public class ExplosionQueueElement extends GenericQueueElement {
     public ExplosionQueueElement(double x, double y, double z, int dimensionId) {
         super(x, y, z, dimensionId);
     }
+
+    @Override
+    public String localiseText() {
+        return null;
+    }
 }

@@ -1,6 +1,7 @@
 package com.myname.mymodid.PositionalEvents.Loggers.Command;
 
 import com.myname.mymodid.PositionalEvents.Loggers.Generic.GenericQueueElement;
+import com.myname.mymodid.Utils.TimeUtils;
 
 public class CommandQueueElement extends GenericQueueElement {
 
@@ -8,8 +9,8 @@ public class CommandQueueElement extends GenericQueueElement {
     public String commandName;
     public String arguments;
 
-    public CommandQueueElement(double x, double y, double z, int dimensionId) {
-        super(x, y, z, dimensionId);
+    @Override
+    public String localiseText() {
+        return playerUUIDWhoIssuedCommand + " issued /" + commandName + " " + arguments + " at [" + x + ", " + y + ", " + z + "] " + TimeUtils.formatTime(timestamp);
     }
-
 }

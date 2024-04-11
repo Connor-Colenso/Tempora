@@ -9,4 +9,9 @@ public class EntitySpawnQueueElement extends GenericQueueElement {
     public EntitySpawnQueueElement(double x, double y, double z, int dimensionId) {
         super(x, y, z, dimensionId);
     }
+
+    @Override
+    public String localiseText() {
+        return null;
+    }
 }
