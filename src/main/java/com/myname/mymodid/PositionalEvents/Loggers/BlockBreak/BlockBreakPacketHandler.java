@@ -34,8 +34,7 @@ public class BlockBreakPacketHandler implements IMessage {
             byte[] uuidBytes = new byte[uuidLength];
             buf.readBytes(uuidBytes);
 
-            String playerUUID = new String(uuidBytes, StandardCharsets.UTF_8);
-            queueElement.playerUUIDWhoBrokeBlock = playerUUID;
+            queueElement.playerUUIDWhoBrokeBlock = new String(uuidBytes, StandardCharsets.UTF_8);
 
             queueElement.blockID = buf.readInt();
             queueElement.metadata = buf.readInt();
@@ -71,6 +70,13 @@ public class BlockBreakPacketHandler implements IMessage {
 
         @Override
         public IMessage onMessage(final BlockBreakPacketHandler message, MessageContext ctx) {
+
+            if (message.eventList.isEmpty()) {
+                Minecraft.getMinecraft().thePlayer.addChatMessage(
+                    new ChatComponentText("No results found for Block Break events."));
+                return null;
+            }
+
             for (BlockBreakQueueElement queueElement : message.eventList) {
                 Minecraft.getMinecraft().thePlayer.addChatMessage(
                     new ChatComponentText(BlockUtils.getLocalizedName(queueElement.blockID, queueElement.metadata)));

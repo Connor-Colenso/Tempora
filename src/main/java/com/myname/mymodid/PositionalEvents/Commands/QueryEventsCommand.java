@@ -3,6 +3,9 @@ package com.myname.mymodid.PositionalEvents.Commands;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.gtnewhorizons.modularui.common.internal.network.NetworkHandler;
+import com.myname.mymodid.PositionalEvents.Loggers.BlockBreak.BlockBreakQueueElement;
+import com.myname.mymodid.PositionalEvents.Loggers.GenericPacket;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
@@ -11,6 +14,8 @@ import net.minecraft.util.ChatComponentText;
 
 import com.myname.mymodid.PositionalEvents.Loggers.Generic.GenericPositionalLogger;
 import com.myname.mymodid.TemporaUtils;
+
+import static com.myname.mymodid.Tempora.NETWORK;
 
 public class QueryEventsCommand extends CommandBase {
 
@@ -27,7 +32,19 @@ public class QueryEventsCommand extends CommandBase {
     @Override
     public void processCommand(ICommandSender sender, String[] args) {
         if (args.length < 2) {
-            throw new WrongUsageException(getCommandUsage(sender));
+            BlockBreakQueueElement q1 = new BlockBreakQueueElement(1,2,3,4);
+            BlockBreakQueueElement q2 = new BlockBreakQueueElement(5,6,7,8);
+            q1.playerUUIDWhoBrokeBlock = "TEST1";
+            q2.playerUUIDWhoBrokeBlock = "TEST2";
+
+            GenericPacket<BlockBreakQueueElement> packet = new GenericPacket<>();
+            packet.queueElementArrayList.add(q1);
+            packet.queueElementArrayList.add(q2);
+
+            NETWORK.sendTo(packet, (EntityPlayerMP) sender);
+
+//            throw new WrongUsageException(getCommandUsage(sender));
+            return;
         }
 
         int radius = parseInt(sender, args[0]);
@@ -78,7 +95,7 @@ public class QueryEventsCommand extends CommandBase {
 
     private List<String> getFilterOptions() {
         List<String> options = new ArrayList<>();
-        for (GenericPositionalLogger logger : GenericPositionalLogger.loggerList) {
+        for (GenericPositionalLogger<?> logger : GenericPositionalLogger.loggerList) {
             options.add(logger.getTableName());
         }
         return options;
