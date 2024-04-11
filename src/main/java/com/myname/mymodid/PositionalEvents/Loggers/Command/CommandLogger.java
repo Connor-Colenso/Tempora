@@ -36,7 +36,12 @@ public class CommandLogger extends GenericPositionalLogger<CommandQueueElement> 
             double y = resultSet.getDouble("y");
             double z = resultSet.getDouble("z");
 
-            CommandQueueElement queueElement = new CommandQueueElement(x, y, z, resultSet.getInt("dimensionID"));
+            CommandQueueElement queueElement = new CommandQueueElement();
+            queueElement.x = x;
+            queueElement.y = y;
+            queueElement.z = z;
+            queueElement.dimensionId = resultSet.getInt("dimensionID");
+
             queueElement.playerUUIDWhoIssuedCommand = resultSet.getString("playerName");
             queueElement.commandName = resultSet.getString("command");
             queueElement.arguments = resultSet.getString("arguments");
@@ -103,11 +108,12 @@ public class CommandLogger extends GenericPositionalLogger<CommandQueueElement> 
             ICommand command = event.command;
             String[] args = event.parameters;
 
-            CommandQueueElement queueElement = new CommandQueueElement(
-                player.posX,
-                player.posY,
-                player.posZ,
-                player.dimension);
+            CommandQueueElement queueElement = new CommandQueueElement();
+            queueElement.x = player.posX;
+            queueElement.y = player.posY;
+            queueElement.z = player.posZ;
+            queueElement.dimensionId = player.dimension;
+
             queueElement.playerUUIDWhoIssuedCommand = player.getUniqueID()
                 .toString();
             queueElement.commandName = command.getCommandName();

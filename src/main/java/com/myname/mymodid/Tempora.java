@@ -1,15 +1,5 @@
 package com.myname.mymodid;
 
-import static com.myname.mymodid.Config.synchronizeConfiguration;
-import static com.myname.mymodid.Tags.MODID;
-
-import com.myname.mymodid.PositionalEvents.Loggers.GenericPacket;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.common.config.Configuration;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import com.myname.mymodid.Commands.HeatMap.HeatMapCommand;
 import com.myname.mymodid.Commands.HeatMap.Network.HeatMapPacket;
 import com.myname.mymodid.Commands.HeatMap.Network.HeatMapPacketHandler;
@@ -34,12 +24,12 @@ import com.myname.mymodid.PositionalEvents.Loggers.EntitySpawn.EntitySpawnPacket
 import com.myname.mymodid.PositionalEvents.Loggers.Explosion.ExplosionLogger;
 import com.myname.mymodid.PositionalEvents.Loggers.Explosion.ExplosionPacketHandler;
 import com.myname.mymodid.PositionalEvents.Loggers.Generic.GenericPositionalLogger;
+import com.myname.mymodid.PositionalEvents.Loggers.GenericPacket;
 import com.myname.mymodid.PositionalEvents.Loggers.ItemUse.ItemUseLogger;
 import com.myname.mymodid.PositionalEvents.Loggers.ItemUse.ItemUsePacketHandler;
 import com.myname.mymodid.PositionalEvents.Loggers.PlayerMovement.PlayerMovementLogger;
 import com.myname.mymodid.PositionalEvents.Loggers.PlayerMovement.PlayerMovementPacketHandler;
 import com.myname.mymodid.Rendering.RenderInWorldDispatcher;
-
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.SidedProxy;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
@@ -51,6 +41,13 @@ import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.network.simpleimpl.SimpleNetworkWrapper;
 import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.relauncher.Side;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.common.config.Configuration;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import static com.myname.mymodid.Config.synchronizeConfiguration;
+import static com.myname.mymodid.Tags.MODID;
 
 @SuppressWarnings("unused")
 @Mod(modid = MODID, version = Tags.VERSION, name = Tags.MODNAME, acceptedMinecraftVersions = "[1.7.10]")
