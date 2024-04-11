@@ -2,10 +2,10 @@ package com.myname.mymodid.PositionalEvents.Loggers.Generic;
 
 public abstract class GenericQueueElement {
 
-    public final double x;
-    public final double y;
-    public final double z;
-    public final int dimensionId;
+    public double x;
+    public double y;
+    public double z;
+    public int dimensionId;
     public long timestamp;
 
     public GenericQueueElement(double x, double y, double z, int dimensionId) {
@@ -15,4 +15,9 @@ public abstract class GenericQueueElement {
         this.dimensionId = dimensionId;
         this.timestamp = System.currentTimeMillis();
     }
+
+    public GenericQueueElement() {
+
+    }
+
 }

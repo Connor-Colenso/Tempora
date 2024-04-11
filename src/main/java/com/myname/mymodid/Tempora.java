@@ -3,6 +3,7 @@ package com.myname.mymodid;
 import static com.myname.mymodid.Config.synchronizeConfiguration;
 import static com.myname.mymodid.Tags.MODID;
 
+import com.myname.mymodid.PositionalEvents.Loggers.GenericPacket;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
 
@@ -121,6 +122,12 @@ public class Tempora {
             PlayerMovementPacketHandler.ClientMessageHandler.class,
             PlayerMovementPacketHandler.class,
             10,
+            Side.CLIENT);
+
+        NETWORK.registerMessage(
+            GenericPacket.ClientMessageHandler.class,
+            GenericPacket.class,
+            11,
             Side.CLIENT);
 
         // This must happen before we start registering events.
