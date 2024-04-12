@@ -9,6 +9,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 
+import com.myname.mymodid.PositionalEvents.Loggers.ISerializable;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.common.config.Configuration;
 
@@ -22,7 +23,6 @@ import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.common.gameevent.TickEvent.PlayerTickEvent;
-import cpw.mods.fml.common.network.simpleimpl.IMessage;
 
 public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovementQueueElement> {
 
@@ -48,31 +48,26 @@ public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovement
     }
 
     @Override
-    protected IMessage generatePacket(ResultSet resultSet) throws SQLException {
-        ArrayList<PlayerMovementQueueElement> eventList = new ArrayList<>();
+    protected ArrayList<ISerializable> generatePacket(ResultSet resultSet) throws SQLException {
+        ArrayList<ISerializable> eventList = new ArrayList<>();
         int counter = 0;
 
         while (resultSet.next() && counter < MAX_DATA_ROWS_PER_PACKET) {
-            double x = resultSet.getDouble("x");
-            double y = resultSet.getDouble("y");
-            double z = resultSet.getDouble("z");
 
-            PlayerMovementQueueElement queueElement = new PlayerMovementQueueElement(
-                x,
-                y,
-                z,
-                resultSet.getInt("dimensionID"));
-            queueElement.playerUUID = resultSet.getString("playerName");
+            PlayerMovementQueueElement queueElement = new PlayerMovementQueueElement();
+            queueElement.x = resultSet.getDouble("x");
+            queueElement.y = resultSet.getDouble("y");
+            queueElement.z = resultSet.getDouble("z");
+            queueElement.dimensionId = resultSet.getInt("dimensionID");
             queueElement.timestamp = resultSet.getLong("timestamp");
+
+            queueElement.playerUUID = resultSet.getString("playerName");
 
             eventList.add(queueElement);
             counter++;
         }
 
-        PlayerMovementPacketHandler packet = new PlayerMovementPacketHandler();
-        packet.eventList = eventList;
-
-        return packet;
+        return eventList;
     }
 
     public PlayerMovementLogger() {
@@ -128,11 +123,13 @@ public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovement
             .getMinecraftServerInstance()
             .getTickCounter() % playerMovementLoggingInterval != 0) return;
 
-        PlayerMovementQueueElement queueElement = new PlayerMovementQueueElement(
-            player.posX,
-            player.posY,
-            player.posZ,
-            player.worldObj.provider.dimensionId);
+        PlayerMovementQueueElement queueElement = new PlayerMovementQueueElement();
+        queueElement.x = player.posX;
+        queueElement.y = player.posY;
+        queueElement.z = player.posZ;
+        queueElement.dimensionId = player.worldObj.provider.dimensionId;
+        queueElement.timestamp = System.currentTimeMillis();
+
         queueElement.playerUUID = player.getUniqueID()
             .toString();
 

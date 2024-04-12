@@ -9,10 +9,6 @@ public class ExplosionQueueElement extends GenericQueueElement {
     public String closestPlayerUUID;
     public double closestPlayerUUIDDistance;
 
-    public ExplosionQueueElement(double x, double y, double z, int dimensionId) {
-        super(x, y, z, dimensionId);
-    }
-
     @Override
     public String localiseText() {
         return null;

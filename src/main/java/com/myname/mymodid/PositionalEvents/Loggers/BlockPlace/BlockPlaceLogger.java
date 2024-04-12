@@ -8,6 +8,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 
+import com.myname.mymodid.PositionalEvents.Loggers.ISerializable;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.common.config.Configuration;
@@ -20,7 +21,6 @@ import com.myname.mymodid.TemporaUtils;
 
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import cpw.mods.fml.common.network.simpleimpl.IMessage;
 
 public class BlockPlaceLogger extends GenericPositionalLogger<BlockPlaceQueueElement> {
 
@@ -30,16 +30,17 @@ public class BlockPlaceLogger extends GenericPositionalLogger<BlockPlaceQueueEle
     }
 
     @Override
-    protected IMessage generatePacket(ResultSet resultSet) throws SQLException {
-        ArrayList<BlockPlaceQueueElement> eventList = new ArrayList<>();
+    protected ArrayList<ISerializable> generatePacket(ResultSet resultSet) throws SQLException {
+        ArrayList<ISerializable> eventList = new ArrayList<>();
         int counter = 0;
 
         while (resultSet.next() && counter < MAX_DATA_ROWS_PER_PACKET) {
-            int x = resultSet.getInt("x");
-            int y = resultSet.getInt("y");
-            int z = resultSet.getInt("z");
 
-            BlockPlaceQueueElement queueElement = new BlockPlaceQueueElement(x, y, z, resultSet.getInt("dimensionID"));
+            BlockPlaceQueueElement queueElement = new BlockPlaceQueueElement();
+            queueElement.x = resultSet.getInt("x");
+            queueElement.y = resultSet.getInt("y");
+            queueElement.z = resultSet.getInt("z");
+            queueElement.dimensionId = resultSet.getInt("dimensionID");
             queueElement.playerUUIDWhoPlacedBlock = resultSet.getString("playerName");
             queueElement.blockID = resultSet.getInt("blockId");
             queueElement.metadata = resultSet.getInt("metadata");
@@ -49,10 +50,7 @@ public class BlockPlaceLogger extends GenericPositionalLogger<BlockPlaceQueueEle
             counter++;
         }
 
-        BlockPlacePacketHandler packet = new BlockPlacePacketHandler();
-        packet.eventList = eventList;
-
-        return packet;
+        return eventList;
     }
 
     @Override
@@ -101,11 +99,13 @@ public class BlockPlaceLogger extends GenericPositionalLogger<BlockPlaceQueueEle
     public void onBlockPlace(final @NotNull PlaceEvent event) {
         if (isClientSide()) return; // Server side only
 
-        BlockPlaceQueueElement queueElement = new BlockPlaceQueueElement(
-            event.x,
-            event.y,
-            event.z,
-            event.world.provider.dimensionId);
+        BlockPlaceQueueElement queueElement = new BlockPlaceQueueElement();
+        queueElement.x = event.x;
+        queueElement.y = event.y;
+        queueElement.z = event.z;
+        queueElement.dimensionId = event.world.provider.dimensionId;
+        queueElement.timestamp = System.currentTimeMillis();
+
         queueElement.blockID = Block.getIdFromBlock(event.block);
         queueElement.metadata = event.blockMetadata;
 

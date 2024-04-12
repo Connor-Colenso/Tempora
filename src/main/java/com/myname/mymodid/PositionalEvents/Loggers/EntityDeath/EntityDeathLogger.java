@@ -8,6 +8,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 
+import com.myname.mymodid.PositionalEvents.Loggers.ISerializable;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.common.config.Configuration;
@@ -17,7 +18,6 @@ import com.myname.mymodid.PositionalEvents.Loggers.Generic.GenericPositionalLogg
 
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import cpw.mods.fml.common.network.simpleimpl.IMessage;
 
 public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueElement> {
 
@@ -28,11 +28,13 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueE
         if (event.entityLiving instanceof EntityPlayerMP) return; // No players allowed here, this is for mobs only.
         if (event.isCanceled()) return;
 
-        EntityDeathQueueElement queueElement = new EntityDeathQueueElement(
-            event.entity.posX,
-            event.entity.posY,
-            event.entity.posZ,
-            event.entity.dimension);
+        EntityDeathQueueElement queueElement = new EntityDeathQueueElement();
+        queueElement.x = event.entity.posX;
+        queueElement.y = event.entity.posY;
+        queueElement.z = event.entity.posZ;
+        queueElement.dimensionId = event.entity.dimension;
+        queueElement.timestamp = System.currentTimeMillis();
+
         queueElement.nameOfDeadMob = event.entityLiving.getCommandSenderName(); // Gets the mob name, weirdly.
 
         // Get what killed it.
@@ -60,20 +62,17 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueE
     }
 
     @Override
-    protected IMessage generatePacket(ResultSet resultSet) throws SQLException {
-        ArrayList<EntityDeathQueueElement> eventList = new ArrayList<>();
+    protected ArrayList<ISerializable> generatePacket(ResultSet resultSet) throws SQLException {
+        ArrayList<ISerializable> eventList = new ArrayList<>();
         int counter = 0;
 
         while (resultSet.next() && counter < MAX_DATA_ROWS_PER_PACKET) {
-            double x = resultSet.getDouble("x");
-            double y = resultSet.getDouble("y");
-            double z = resultSet.getDouble("z");
 
-            EntityDeathQueueElement queueElement = new EntityDeathQueueElement(
-                x,
-                y,
-                z,
-                resultSet.getInt("dimensionID"));
+            EntityDeathQueueElement queueElement = new EntityDeathQueueElement();
+            queueElement.x = resultSet.getDouble("x");
+            queueElement.y = resultSet.getDouble("y");
+            queueElement.z = resultSet.getDouble("z");
+            queueElement.dimensionId = resultSet.getInt("dimensionID");
             queueElement.nameOfDeadMob = resultSet.getString("entityName");
             queueElement.timestamp = resultSet.getTimestamp("timestamp")
                 .getTime();
@@ -85,10 +84,7 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueE
             counter++;
         }
 
-        EntityDeathPacketHandler packet = new EntityDeathPacketHandler();
-        packet.eventList = eventList;
-
-        return packet;
+        return eventList;
     }
 
     @Override

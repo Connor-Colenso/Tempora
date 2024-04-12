@@ -15,13 +15,15 @@ import java.util.ArrayList;
 
 public class GenericPacket implements IMessage {
 
+    // Do not delete! It will cause errors.
+    @SuppressWarnings("unused")
+    public GenericPacket() { }
+
     public ArrayList<ISerializable> queueElementArrayList = new ArrayList<>();
 
     public GenericPacket(ArrayList<ISerializable> queueElementArrayList) {
         this.queueElementArrayList = queueElementArrayList;
     }
-
-    public GenericPacket() { }
 
     @Override
     public void fromBytes(ByteBuf buf) {
@@ -126,10 +128,13 @@ public class GenericPacket implements IMessage {
     public static class ClientMessageHandler implements IMessageHandler<GenericPacket, IMessage> {
 
         @Override
-        public IMessage onMessage(final GenericPacket message, MessageContext ctx) {
+        public IMessage onMessage(final GenericPacket packet, MessageContext ctx) {
 
-            for(ISerializable iSerializable : message.queueElementArrayList) {
-                Minecraft.getMinecraft().thePlayer.addChatComponentMessage(new ChatComponentText(iSerializable.localiseText()));
+            for(ISerializable iSerializable : packet.queueElementArrayList) {
+                String message = iSerializable.localiseText();
+                if (message == null) continue;
+
+                Minecraft.getMinecraft().thePlayer.addChatComponentMessage(new ChatComponentText(message));
             }
 
             return null; // No response packet needed

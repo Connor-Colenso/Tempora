@@ -8,6 +8,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 
+import com.myname.mymodid.PositionalEvents.Loggers.ISerializable;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.world.World;
@@ -21,7 +22,6 @@ import com.myname.mymodid.TemporaUtils;
 
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import cpw.mods.fml.common.network.simpleimpl.IMessage;
 
 public class ExplosionLogger extends GenericPositionalLogger<ExplosionQueueElement> {
 
@@ -31,35 +31,28 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionQueueEleme
     }
 
     @Override
-    protected IMessage generatePacket(ResultSet resultSet) throws SQLException {
-        ArrayList<ExplosionQueueElement> eventList = new ArrayList<>();
+    protected ArrayList<ISerializable> generatePacket(ResultSet resultSet) throws SQLException {
+        ArrayList<ISerializable> eventList = new ArrayList<>();
         int counter = 0;
 
         while (resultSet.next() && counter < MAX_DATA_ROWS_PER_PACKET) {
-            double x = resultSet.getDouble("x");
-            double y = resultSet.getDouble("y");
-            double z = resultSet.getDouble("z");
-            float strength = resultSet.getFloat("strength");
-            String exploder = resultSet.getString("exploder");
-            int dimensionID = resultSet.getInt("dimensionID");
-            String closestPlayer = resultSet.getString("closestPlayer");
-            double playerDistance = resultSet.getDouble("playerDistance");
 
-            ExplosionQueueElement queueElement = new ExplosionQueueElement(x, y, z, dimensionID);
-            queueElement.strength = strength;
-            queueElement.exploderName = exploder;
-            queueElement.closestPlayerUUID = closestPlayer;
-            queueElement.closestPlayerUUIDDistance = playerDistance;
+            ExplosionQueueElement queueElement = new ExplosionQueueElement();
+            queueElement.x = resultSet.getDouble("x");
+            queueElement.y = resultSet.getDouble("y");
+            queueElement.z = resultSet.getDouble("z");
+            queueElement.dimensionId = resultSet.getInt("dimensionID");
+            queueElement.strength = resultSet.getFloat("strength");;
+            queueElement.exploderName = resultSet.getString("exploder");
+            queueElement.closestPlayerUUID = resultSet.getString("closestPlayer");
+            queueElement.closestPlayerUUIDDistance = resultSet.getDouble("playerDistance");
             queueElement.timestamp = resultSet.getLong("timestamp");
 
             eventList.add(queueElement);
             counter++;
         }
 
-        ExplosionPacketHandler packet = new ExplosionPacketHandler();
-        packet.eventList = eventList;
-
-        return packet;
+        return eventList;
     }
 
     @Override
@@ -134,7 +127,13 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionQueueEleme
             .toString() : TemporaUtils.UNKNOWN_PLAYER_NAME;
         closestDistance = Math.sqrt(closestDistance); // Convert from square distance to actual distance
 
-        ExplosionQueueElement queueElement = new ExplosionQueueElement(x, y, z, world.provider.dimensionId);
+        ExplosionQueueElement queueElement = new ExplosionQueueElement();
+        queueElement.x = event.explosion.explosionX;
+        queueElement.y = event.explosion.explosionY;
+        queueElement.z = event.explosion.explosionZ;
+        queueElement.dimensionId = world.provider.dimensionId;
+        queueElement.timestamp = System.currentTimeMillis();
+
         queueElement.strength = strength;
         queueElement.exploderName = exploderName;
         queueElement.closestPlayerUUID = closestPlayerName;

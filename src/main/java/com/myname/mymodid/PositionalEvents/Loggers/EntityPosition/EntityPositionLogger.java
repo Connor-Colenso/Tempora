@@ -9,6 +9,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 
+import com.myname.mymodid.PositionalEvents.Loggers.ISerializable;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
@@ -17,7 +18,6 @@ import com.myname.mymodid.PositionalEvents.Loggers.Generic.GenericPositionalLogg
 
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import cpw.mods.fml.common.network.simpleimpl.IMessage;
 
 public class EntityPositionLogger extends GenericPositionalLogger<EntityPositionQueueElement> {
 
@@ -35,20 +35,17 @@ public class EntityPositionLogger extends GenericPositionalLogger<EntityPosition
     }
 
     @Override
-    protected IMessage generatePacket(ResultSet resultSet) throws SQLException {
-        ArrayList<EntityPositionQueueElement> eventList = new ArrayList<>();
+    protected ArrayList<ISerializable> generatePacket(ResultSet resultSet) throws SQLException {
+        ArrayList<ISerializable> eventList = new ArrayList<>();
         int counter = 0;
 
         while (resultSet.next() && counter < MAX_DATA_ROWS_PER_PACKET) {
-            double x = resultSet.getDouble("x");
-            double y = resultSet.getDouble("y");
-            double z = resultSet.getDouble("z");
 
-            EntityPositionQueueElement queueElement = new EntityPositionQueueElement(
-                x,
-                y,
-                z,
-                resultSet.getInt("dimensionID"));
+            EntityPositionQueueElement queueElement = new EntityPositionQueueElement();
+            queueElement.x = resultSet.getDouble("x");
+            queueElement.y = resultSet.getDouble("y");
+            queueElement.z = resultSet.getDouble("z");
+            queueElement.dimensionId = resultSet.getInt("dimensionID");
             queueElement.entityName = resultSet.getString("entityName");
             queueElement.timestamp = resultSet.getLong("timestamp");
 
@@ -56,10 +53,7 @@ public class EntityPositionLogger extends GenericPositionalLogger<EntityPosition
             counter++;
         }
 
-        EntityPositionPacketHandler packet = new EntityPositionPacketHandler();
-        packet.eventList = eventList;
-
-        return packet;
+        return eventList;
     }
 
     @Override
@@ -108,29 +102,16 @@ public class EntityPositionLogger extends GenericPositionalLogger<EntityPosition
                                                                                           // 20 seconds.
         if (event.entityLiving instanceof EntityPlayerMP) return; // Do not track players here, we do this elsewhere.
 
-        EntityPositionQueueElement queueElement = new EntityPositionQueueElement(
-            event.entityLiving.posX,
-            event.entityLiving.posY,
-            event.entityLiving.posZ,
-            event.entityLiving.dimension);
+        EntityPositionQueueElement queueElement = new EntityPositionQueueElement();
+        queueElement.x = event.entityLiving.posX;
+        queueElement.y = event.entityLiving.posY;
+        queueElement.z = event.entityLiving.posZ;
+        queueElement.dimensionId = event.entityLiving.dimension;
+        queueElement.timestamp = System.currentTimeMillis();
+
         queueElement.entityName = event.entityLiving.getCommandSenderName();
 
         eventQueue.add(queueElement);
-
-        // try {
-        // final String sql = "INSERT INTO " + getTableName()
-        // + "(entityName, x, y, z, dimensionID, eventType) VALUES(?, ?, ?, ?, ?, ?)";
-        // final PreparedStatement pstmt = positionLoggerDBConnection.prepareStatement(sql);
-        // pstmt.setString(1, event.entityLiving.getCommandSenderName());
-        // pstmt.setDouble(2, event.entityLiving.posX);
-        // pstmt.setDouble(3, event.entityLiving.posY);
-        // pstmt.setDouble(4, event.entityLiving.posZ);
-        // pstmt.setInt(5, event.entityLiving.worldObj.provider.dimensionId);
-        // pstmt.executeUpdate();
-        //
-        // } catch (final SQLException e) {
-        // e.printStackTrace();
-        // }
     }
 
 }

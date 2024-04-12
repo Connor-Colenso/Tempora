@@ -1,1 +1,1 @@
-player.movement.message=Player moved to X: %1$s, Y: %2$s, Z: %3$s in dimension %4$s at time %5$s.
+message.block_break=%s broke %s at [%d, %d, %d] at %s.

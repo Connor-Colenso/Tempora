@@ -8,6 +8,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 
+import com.myname.mymodid.PositionalEvents.Loggers.ISerializable;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.event.entity.living.LivingSpawnEvent;
@@ -16,7 +17,6 @@ import com.myname.mymodid.PositionalEvents.Loggers.Generic.GenericPositionalLogg
 
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import cpw.mods.fml.common.network.simpleimpl.IMessage;
 
 public class EntitySpawnLogger extends GenericPositionalLogger<EntitySpawnQueueElement> {
 
@@ -27,11 +27,13 @@ public class EntitySpawnLogger extends GenericPositionalLogger<EntitySpawnQueueE
         if (event.entityLiving instanceof EntityPlayerMP) return;
         if (event.isCanceled()) return;
 
-        EntitySpawnQueueElement queueElement = new EntitySpawnQueueElement(
-            event.entityLiving.posX,
-            event.entityLiving.posY,
-            event.entityLiving.posZ,
-            event.entityLiving.dimension);
+        EntitySpawnQueueElement queueElement = new EntitySpawnQueueElement();
+        queueElement.x = event.entityLiving.posX;
+        queueElement.y = event.entityLiving.posY;
+        queueElement.z = event.entityLiving.posZ;
+        queueElement.dimensionId = event.entityLiving.dimension;
+        queueElement.timestamp = System.currentTimeMillis();
+
         queueElement.entityName = event.entityLiving.getCommandSenderName();
 
         eventQueue.add(queueElement);
@@ -43,32 +45,25 @@ public class EntitySpawnLogger extends GenericPositionalLogger<EntitySpawnQueueE
     }
 
     @Override
-    protected IMessage generatePacket(ResultSet resultSet) throws SQLException {
-        ArrayList<EntitySpawnQueueElement> eventList = new ArrayList<>();
+    protected ArrayList<ISerializable> generatePacket(ResultSet resultSet) throws SQLException {
+        ArrayList<ISerializable> eventList = new ArrayList<>();
         int counter = 0;
 
         while (resultSet.next() && counter < MAX_DATA_ROWS_PER_PACKET) {
-            double x = resultSet.getDouble("x");
-            double y = resultSet.getDouble("y");
-            double z = resultSet.getDouble("z");
 
-            EntitySpawnQueueElement queueElement = new EntitySpawnQueueElement(
-                x,
-                y,
-                z,
-                resultSet.getInt("dimensionID"));
+            EntitySpawnQueueElement queueElement = new EntitySpawnQueueElement();
+            queueElement.x = resultSet.getDouble("x");
+            queueElement.y = resultSet.getDouble("y");
+            queueElement.z = resultSet.getDouble("z");
+            queueElement.dimensionId = resultSet.getInt("dimensionID");
             queueElement.entityName = resultSet.getString("entityName");
-            queueElement.timestamp = resultSet.getTimestamp("timestamp")
-                .getTime();
+            queueElement.timestamp = resultSet.getLong("timestamp");
 
             eventList.add(queueElement);
             counter++;
         }
 
-        EntitySpawnPacketHandler packet = new EntitySpawnPacketHandler();
-        packet.eventList = eventList;
-
-        return packet;
+        return eventList;
     }
 
     @Override

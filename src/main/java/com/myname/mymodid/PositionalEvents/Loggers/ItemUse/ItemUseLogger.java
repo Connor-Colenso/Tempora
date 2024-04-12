@@ -8,6 +8,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 
+import com.myname.mymodid.PositionalEvents.Loggers.ISerializable;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -22,7 +23,6 @@ import com.myname.mymodid.PositionalEvents.Loggers.Generic.GenericPositionalLogg
 
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import cpw.mods.fml.common.network.simpleimpl.IMessage;
 
 public class ItemUseLogger extends GenericPositionalLogger<ItemUseQueueElement> {
 
@@ -32,34 +32,27 @@ public class ItemUseLogger extends GenericPositionalLogger<ItemUseQueueElement> 
     }
 
     @Override
-    protected IMessage generatePacket(ResultSet resultSet) throws SQLException {
-        ArrayList<ItemUseQueueElement> eventList = new ArrayList<>();
+    protected ArrayList<ISerializable> generatePacket(ResultSet resultSet) throws SQLException {
+        ArrayList<ISerializable> eventList = new ArrayList<>();
         int counter = 0;
 
         while (resultSet.next() && counter < MAX_DATA_ROWS_PER_PACKET) {
-            double x = resultSet.getDouble("x");
-            double y = resultSet.getDouble("y");
-            double z = resultSet.getDouble("z");
-            int dimensionID = resultSet.getInt("dimensionID");
-            String playerName = resultSet.getString("playerName");
-            int itemID = resultSet.getInt("itemID");
-            int itemMetadata = resultSet.getInt("itemMetadata");
-            long timestamp = resultSet.getLong("timestamp");
 
-            ItemUseQueueElement queueElement = new ItemUseQueueElement(x, y, z, dimensionID);
-            queueElement.playerUUID = playerName;
-            queueElement.itemID = itemID;
-            queueElement.itemMetadata = itemMetadata;
-            queueElement.timestamp = timestamp;
+            ItemUseQueueElement queueElement = new ItemUseQueueElement();
+            queueElement.x = resultSet.getDouble("x");
+            queueElement.y = resultSet.getDouble("y");
+            queueElement.z = resultSet.getDouble("z");
+            queueElement.dimensionId = resultSet.getInt("dimensionID");
+            queueElement.playerUUID = resultSet.getString("playerName");;
+            queueElement.itemID = resultSet.getInt("itemID");;
+            queueElement.itemMetadata = resultSet.getInt("itemMetadata");
+            queueElement.timestamp = resultSet.getLong("timestamp");;
 
             eventList.add(queueElement);
             counter++;
         }
 
-        ItemUsePacketHandler packet = new ItemUsePacketHandler();
-        packet.eventList = eventList;
-
-        return packet;
+        return eventList;
     }
 
     @Override
@@ -125,11 +118,13 @@ public class ItemUseLogger extends GenericPositionalLogger<ItemUseQueueElement> 
         final World world = player.worldObj;
         final ItemStack usedItem = player.getCurrentEquippedItem();
 
-        ItemUseQueueElement queueElement = new ItemUseQueueElement(
-            player.posX,
-            player.posY,
-            player.posZ,
-            world.provider.dimensionId);
+        ItemUseQueueElement queueElement = new ItemUseQueueElement();
+
+        queueElement.x = player.posX;
+        queueElement.y = player.posY;
+        queueElement.z = player.posZ;
+        queueElement.dimensionId = world.provider.dimensionId;
+        queueElement.timestamp = System.currentTimeMillis();
 
         queueElement.playerUUID = player.getUniqueID()
             .toString();
