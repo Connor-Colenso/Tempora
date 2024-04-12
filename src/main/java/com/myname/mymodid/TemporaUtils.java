@@ -7,6 +7,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.concurrent.TimeUnit;
 
+import com.myname.mymodid.Config.Config;
 import net.minecraft.server.MinecraftServer;
 
 import cpw.mods.fml.common.FMLCommonHandler;

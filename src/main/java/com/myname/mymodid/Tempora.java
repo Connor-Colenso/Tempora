@@ -1,6 +1,6 @@
 package com.myname.mymodid;
 
-import static com.myname.mymodid.Config.synchronizeConfiguration;
+import static com.myname.mymodid.Config.Config.synchronizeConfiguration;
 import static com.myname.mymodid.Tags.MODID;
 
 import net.minecraftforge.common.MinecraftForge;
