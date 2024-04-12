@@ -1,1 +1,16 @@
-message.block_break=%s broke %s at [%d, %d, %d] at %s.
+message.block_break=%s broke %s at [%d, %d, %d] (%s).
+message.block_place=%s placed %s at [%d, %d, %d] (%s).
+message.command_issued=%s issued command /%s %s at [%s, %s, %s] (%s).
+message.entity_death=%s was killed by %s at [%s, %s, %s] (%s).
+message.entity_position=%s was located at [%s, %s, %s] (%s).
+message.entity_spawn=%s spawned at [%s, %s, %s] (%s).
+message.explosion=Explosion caused by %s with strength %.1f near %s (%.1f meters away) at [%s, %s, %s] (%s).
+message.item_use=%s used item ID %d with metadata %d at [%s, %s, %s] (%s).
+message.player_movement=%s moved to [%s, %s, %s] (%s).
+
+time.decades=%.1f decades ago
+time.years=%.1f years ago
+time.days=%.1f days ago
+time.hours=%.1f hours ago
+time.minutes=%.1f minutes ago
+time.seconds=%.1f seconds ago

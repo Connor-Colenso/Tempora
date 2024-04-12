@@ -1,6 +1,9 @@
 package com.myname.mymodid.PositionalEvents.Loggers.BlockPlace;
 
 import com.myname.mymodid.PositionalEvents.Loggers.Generic.GenericQueueElement;
+import com.myname.mymodid.Utils.BlockUtils;
+import com.myname.mymodid.Utils.TimeUtils;
+import net.minecraft.util.StatCollector;
 
 public class BlockPlaceQueueElement extends GenericQueueElement {
 
@@ -10,6 +13,16 @@ public class BlockPlaceQueueElement extends GenericQueueElement {
 
     @Override
     public String localiseText() {
-        return null;
+        String localizedName = BlockUtils.getLocalizedName(blockID, metadata);
+        String formattedTime = TimeUtils.formatTime(timestamp);
+
+        return StatCollector.translateToLocalFormatted(
+            "message.block_place",
+            playerNameWhoPlacedBlock,
+            localizedName,
+            Math.round(x),
+            Math.round(y),
+            Math.round(z),
+            formattedTime);
     }
 }
