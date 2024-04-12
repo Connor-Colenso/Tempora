@@ -1,5 +1,6 @@
 package com.myname.mymodid.Utils;
 
+import net.minecraft.util.StatCollector;
 import net.minecraftforge.common.config.Configuration;
 
 import java.math.BigDecimal;
@@ -78,18 +79,17 @@ public class TimeUtils {
 
         // Determine the largest time unit to display and format it to 1 decimal place
         if (decades >= 1) {
-            return String.format("%.1f decades ago", decades);
+            return String.format(StatCollector.translateToLocal("time.ago.decades"), decades);
         } else if (years >= 1) {
-            return String.format("%.1f years ago", years);
+            return String.format(StatCollector.translateToLocal("time.ago.years"), years);
         } else if (days >= 1) {
-            return String.format("%.1f days ago", days);
+            return String.format(StatCollector.translateToLocal("time.ago.days"), days);
         } else if (hours >= 1) {
-            return String.format("%.1f hours ago", hours);
+            return String.format(StatCollector.translateToLocal("time.ago.hours"), hours);
         } else if (minutes >= 1) {
-            return String.format("%.1f minutes ago", minutes);
+            return String.format(StatCollector.translateToLocal("time.ago.minutes"), minutes);
         } else {
-            return String.format("%.1f seconds ago", seconds);
+            return String.format(StatCollector.translateToLocal("time.ago.seconds"), seconds);
         }
     }
-
 }
