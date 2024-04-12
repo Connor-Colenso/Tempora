@@ -47,9 +47,8 @@ public class EntitySpawnLogger extends GenericPositionalLogger<EntitySpawnQueueE
     @Override
     protected ArrayList<ISerializable> generatePacket(ResultSet resultSet) throws SQLException {
         ArrayList<ISerializable> eventList = new ArrayList<>();
-        int counter = 0;
 
-        while (resultSet.next() && counter < MAX_DATA_ROWS_PER_PACKET) {
+        while (resultSet.next()) {
 
             EntitySpawnQueueElement queueElement = new EntitySpawnQueueElement();
             queueElement.x = resultSet.getDouble("x");
@@ -60,7 +59,6 @@ public class EntitySpawnLogger extends GenericPositionalLogger<EntitySpawnQueueE
             queueElement.timestamp = resultSet.getLong("timestamp");
 
             eventList.add(queueElement);
-            counter++;
         }
 
         return eventList;

@@ -4,7 +4,7 @@ import com.myname.mymodid.PositionalEvents.Loggers.Generic.GenericQueueElement;
 
 public class ItemUseQueueElement extends GenericQueueElement {
 
-    public String playerUUID;
+    public String playerName;
     public int itemID;
     public int itemMetadata;
 

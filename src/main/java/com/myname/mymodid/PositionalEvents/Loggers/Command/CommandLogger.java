@@ -9,6 +9,7 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 
 import com.myname.mymodid.PositionalEvents.Loggers.ISerializable;
+import com.myname.mymodid.Utils.PlayerUtils;
 import net.minecraft.command.ICommand;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.common.config.Configuration;
@@ -29,9 +30,8 @@ public class CommandLogger extends GenericPositionalLogger<CommandQueueElement> 
     @Override
     protected ArrayList<ISerializable> generatePacket(ResultSet resultSet) throws SQLException {
         ArrayList<ISerializable> eventList = new ArrayList<>();
-        int counter = 0;
 
-        while (resultSet.next() && counter < MAX_DATA_ROWS_PER_PACKET) {
+        while (resultSet.next()) {
             double x = resultSet.getDouble("x");
             double y = resultSet.getDouble("y");
             double z = resultSet.getDouble("z");
@@ -43,12 +43,11 @@ public class CommandLogger extends GenericPositionalLogger<CommandQueueElement> 
             queueElement.dimensionId = resultSet.getInt("dimensionID");
             queueElement.timestamp = resultSet.getLong("timestamp");
 
-            queueElement.playerUUIDWhoIssuedCommand = resultSet.getString("playerName");
+            queueElement.playerNameWhoIssuedCommand = PlayerUtils.UUIDToName(resultSet.getString("playerUUID"));
             queueElement.commandName = resultSet.getString("command");
             queueElement.arguments = resultSet.getString("arguments");
 
             eventList.add(queueElement);
-            counter++;
         }
 
         return eventList;
@@ -61,7 +60,7 @@ public class CommandLogger extends GenericPositionalLogger<CommandQueueElement> 
                 .prepareStatement(
                     "CREATE TABLE IF NOT EXISTS " + getTableName()
                         + " (id INTEGER PRIMARY KEY AUTOINCREMENT,"
-                        + "playerName TEXT NOT NULL,"
+                        + "playerUUID TEXT NOT NULL,"
                         + "command TEXT NOT NULL,"
                         + "arguments TEXT NOT NULL,"
                         + "x REAL NOT NULL,"
@@ -79,9 +78,9 @@ public class CommandLogger extends GenericPositionalLogger<CommandQueueElement> 
     public void threadedSaveEvent(CommandQueueElement commandQueueElement) {
         try {
             final String sql = "INSERT INTO " + getTableName()
-                + "(playerName, command, arguments, x, y, z, dimensionID, timestamp) VALUES(?, ?, ?, ?, ?, ?, ?, ?)";
+                + "(playerUUID, command, arguments, x, y, z, dimensionID, timestamp) VALUES(?, ?, ?, ?, ?, ?, ?, ?)";
             final PreparedStatement pstmt = positionLoggerDBConnection.prepareStatement(sql);
-            pstmt.setString(1, commandQueueElement.playerUUIDWhoIssuedCommand);
+            pstmt.setString(1, commandQueueElement.playerNameWhoIssuedCommand);
             pstmt.setString(2, commandQueueElement.commandName);
             pstmt.setString(3, commandQueueElement.arguments);
             pstmt.setDouble(4, commandQueueElement.x);
@@ -112,7 +111,7 @@ public class CommandLogger extends GenericPositionalLogger<CommandQueueElement> 
             queueElement.dimensionId = player.dimension;
             queueElement.timestamp = System.currentTimeMillis();
 
-            queueElement.playerUUIDWhoIssuedCommand = player.getUniqueID()
+            queueElement.playerNameWhoIssuedCommand = player.getUniqueID()
                 .toString();
             queueElement.commandName = command.getCommandName();
             queueElement.arguments = String.join(" ", args);

@@ -37,9 +37,8 @@ public class EntityPositionLogger extends GenericPositionalLogger<EntityPosition
     @Override
     protected ArrayList<ISerializable> generatePacket(ResultSet resultSet) throws SQLException {
         ArrayList<ISerializable> eventList = new ArrayList<>();
-        int counter = 0;
 
-        while (resultSet.next() && counter < MAX_DATA_ROWS_PER_PACKET) {
+        while (resultSet.next()) {
 
             EntityPositionQueueElement queueElement = new EntityPositionQueueElement();
             queueElement.x = resultSet.getDouble("x");
@@ -50,7 +49,7 @@ public class EntityPositionLogger extends GenericPositionalLogger<EntityPosition
             queueElement.timestamp = resultSet.getLong("timestamp");
 
             eventList.add(queueElement);
-            counter++;
+
         }
 
         return eventList;

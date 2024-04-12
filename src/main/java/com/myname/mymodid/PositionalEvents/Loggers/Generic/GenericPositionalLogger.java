@@ -32,7 +32,7 @@ import cpw.mods.fml.common.network.simpleimpl.IMessage;
 
 public abstract class GenericPositionalLogger<EventToLog extends GenericQueueElement> {
 
-    protected static final int MAX_DATA_ROWS_PER_PACKET = 100;
+    protected static final int MAX_DATA_ROWS_PER_PACKET = 5;
     private static final ExecutorService executor = Executors.newSingleThreadExecutor();
     private static final AtomicBoolean keepRunning = new AtomicBoolean(true);
     protected ConcurrentLinkedQueue<EventToLog> eventQueue = new ConcurrentLinkedQueue<>();
@@ -104,7 +104,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
                     PreparedStatement pstmt = conn.prepareStatement(
                         "SELECT * FROM " + logger.getTableName()
                             + " WHERE ABS(x - ?) <= ? AND ABS(y - ?) <= ? AND ABS(z - ?) <= ?"
-                            + " AND dimensionID = ? AND timestamp >= ?")) {
+                            + " AND dimensionID = ? AND timestamp >= ? ORDER BY timestamp LIMIT ?")) {
 
                     pstmt.setDouble(1, posX);
                     pstmt.setInt(2, radius);
@@ -113,7 +113,8 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
                     pstmt.setDouble(5, posZ);
                     pstmt.setInt(6, radius);
                     pstmt.setInt(7, dimensionId);
-                    pstmt.setTimestamp(8, new Timestamp(pastTime)); // Filter events from pastTime onwards
+                    pstmt.setTimestamp(8, new Timestamp(pastTime)); // Filter events from pastTime onwards]
+                    pstmt.setInt(9, MAX_DATA_ROWS_PER_PACKET);
 
                     // Execute and submit to client via a custom packet if not empty.
                     try (ResultSet rs = pstmt.executeQuery()) {

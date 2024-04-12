@@ -4,7 +4,7 @@ import com.myname.mymodid.PositionalEvents.Loggers.Generic.GenericQueueElement;
 
 public class PlayerMovementQueueElement extends GenericQueueElement {
 
-    public String playerUUID;
+    public String playerName;
 
     @Override
     public String localiseText() {

@@ -9,6 +9,7 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 
 import com.myname.mymodid.PositionalEvents.Loggers.ISerializable;
+import com.myname.mymodid.Utils.PlayerUtils;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.common.config.Configuration;
@@ -32,22 +33,20 @@ public class BlockPlaceLogger extends GenericPositionalLogger<BlockPlaceQueueEle
     @Override
     protected ArrayList<ISerializable> generatePacket(ResultSet resultSet) throws SQLException {
         ArrayList<ISerializable> eventList = new ArrayList<>();
-        int counter = 0;
 
-        while (resultSet.next() && counter < MAX_DATA_ROWS_PER_PACKET) {
+        while (resultSet.next()) {
 
             BlockPlaceQueueElement queueElement = new BlockPlaceQueueElement();
             queueElement.x = resultSet.getInt("x");
             queueElement.y = resultSet.getInt("y");
             queueElement.z = resultSet.getInt("z");
             queueElement.dimensionId = resultSet.getInt("dimensionID");
-            queueElement.playerUUIDWhoPlacedBlock = resultSet.getString("playerName");
+            queueElement.playerNameWhoPlacedBlock = PlayerUtils.UUIDToName(resultSet.getString("playerUUID"));
             queueElement.blockID = resultSet.getInt("blockId");
             queueElement.metadata = resultSet.getInt("metadata");
             queueElement.timestamp = resultSet.getLong("timestamp");
 
             eventList.add(queueElement);
-            counter++;
         }
 
         return eventList;
@@ -60,7 +59,7 @@ public class BlockPlaceLogger extends GenericPositionalLogger<BlockPlaceQueueEle
                 .prepareStatement(
                     "CREATE TABLE IF NOT EXISTS " + getTableName()
                         + " (id INTEGER PRIMARY KEY AUTOINCREMENT,"
-                        + "playerName TEXT NOT NULL,"
+                        + "playerUUID TEXT NOT NULL,"
                         + "metadata INTEGER NOT NULL,"
                         + "blockId INTEGER NOT NULL,"
                         + "x REAL NOT NULL,"
@@ -78,9 +77,9 @@ public class BlockPlaceLogger extends GenericPositionalLogger<BlockPlaceQueueEle
     public void threadedSaveEvent(BlockPlaceQueueElement blockPlaceQueueElement) {
         try {
             final String sql = "INSERT INTO " + getTableName()
-                + "(playerName, blockId, metadata, x, y, z, dimensionID, timestamp) VALUES(?, ?, ?, ?, ?, ?, ?, ?)";
+                + "(playerUUID, blockId, metadata, x, y, z, dimensionID, timestamp) VALUES(?, ?, ?, ?, ?, ?, ?, ?)";
             final PreparedStatement pstmt = positionLoggerDBConnection.prepareStatement(sql);
-            pstmt.setString(1, blockPlaceQueueElement.playerUUIDWhoPlacedBlock);
+            pstmt.setString(1, blockPlaceQueueElement.playerNameWhoPlacedBlock);
             pstmt.setInt(2, blockPlaceQueueElement.blockID);
             pstmt.setInt(3, blockPlaceQueueElement.metadata);
             pstmt.setDouble(4, blockPlaceQueueElement.x);
@@ -110,10 +109,10 @@ public class BlockPlaceLogger extends GenericPositionalLogger<BlockPlaceQueueEle
         queueElement.metadata = event.blockMetadata;
 
         if (event.player instanceof EntityPlayerMP) {
-            queueElement.playerUUIDWhoPlacedBlock = event.player.getUniqueID()
+            queueElement.playerNameWhoPlacedBlock = event.player.getUniqueID()
                 .toString();
         } else {
-            queueElement.playerUUIDWhoPlacedBlock = TemporaUtils.UNKNOWN_PLAYER_NAME;
+            queueElement.playerNameWhoPlacedBlock = TemporaUtils.UNKNOWN_PLAYER_NAME;
         }
 
         eventQueue.add(queueElement);

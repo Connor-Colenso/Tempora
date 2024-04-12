@@ -9,6 +9,7 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 
 import com.myname.mymodid.PositionalEvents.Loggers.ISerializable;
+import com.myname.mymodid.Utils.PlayerUtils;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -34,22 +35,21 @@ public class ItemUseLogger extends GenericPositionalLogger<ItemUseQueueElement> 
     @Override
     protected ArrayList<ISerializable> generatePacket(ResultSet resultSet) throws SQLException {
         ArrayList<ISerializable> eventList = new ArrayList<>();
-        int counter = 0;
 
-        while (resultSet.next() && counter < MAX_DATA_ROWS_PER_PACKET) {
+        while (resultSet.next()) {
 
             ItemUseQueueElement queueElement = new ItemUseQueueElement();
             queueElement.x = resultSet.getDouble("x");
             queueElement.y = resultSet.getDouble("y");
             queueElement.z = resultSet.getDouble("z");
             queueElement.dimensionId = resultSet.getInt("dimensionID");
-            queueElement.playerUUID = resultSet.getString("playerName");;
-            queueElement.itemID = resultSet.getInt("itemID");;
+            queueElement.timestamp = resultSet.getLong("timestamp");
+
+            queueElement.playerName = PlayerUtils.UUIDToName(resultSet.getString("playerUUID"));
+            queueElement.itemID = resultSet.getInt("itemID");
             queueElement.itemMetadata = resultSet.getInt("itemMetadata");
-            queueElement.timestamp = resultSet.getLong("timestamp");;
 
             eventList.add(queueElement);
-            counter++;
         }
 
         return eventList;
@@ -62,7 +62,7 @@ public class ItemUseLogger extends GenericPositionalLogger<ItemUseQueueElement> 
                 .prepareStatement(
                     "CREATE TABLE IF NOT EXISTS " + getTableName()
                         + " (id INTEGER PRIMARY KEY AUTOINCREMENT,"
-                        + "playerName TEXT NOT NULL,"
+                        + "playerUUID TEXT NOT NULL,"
                         + "itemID INTEGER NOT NULL,"
                         + "itemMetadata INTEGER NOT NULL,"
                         + "x REAL NOT NULL,"
@@ -80,9 +80,9 @@ public class ItemUseLogger extends GenericPositionalLogger<ItemUseQueueElement> 
     public void threadedSaveEvent(ItemUseQueueElement itemUseQueueElement) {
         try {
             final String sql = "INSERT INTO " + getTableName()
-                + "(playerName, item, itemMetadata, x, y, z, dimensionID, timestamp) VALUES(?, ?, ?, ?, ?, ?, ?, ?)";
+                + "(playerUUID, item, itemMetadata, x, y, z, dimensionID, timestamp) VALUES(?, ?, ?, ?, ?, ?, ?, ?)";
             final PreparedStatement pstmt = positionLoggerDBConnection.prepareStatement(sql);
-            pstmt.setString(1, itemUseQueueElement.playerUUID);
+            pstmt.setString(1, itemUseQueueElement.playerName);
             pstmt.setInt(2, itemUseQueueElement.itemID);
             pstmt.setInt(3, itemUseQueueElement.itemMetadata);
             pstmt.setDouble(4, itemUseQueueElement.x);
@@ -126,7 +126,7 @@ public class ItemUseLogger extends GenericPositionalLogger<ItemUseQueueElement> 
         queueElement.dimensionId = world.provider.dimensionId;
         queueElement.timestamp = System.currentTimeMillis();
 
-        queueElement.playerUUID = player.getUniqueID()
+        queueElement.playerName = player.getUniqueID()
             .toString();
 
         if (usedItem != null) {

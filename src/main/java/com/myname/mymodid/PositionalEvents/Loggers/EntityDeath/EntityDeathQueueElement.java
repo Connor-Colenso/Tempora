@@ -5,7 +5,7 @@ import com.myname.mymodid.PositionalEvents.Loggers.Generic.GenericQueueElement;
 public class EntityDeathQueueElement extends GenericQueueElement {
 
     public String nameOfDeadMob;
-    public String killedBy;
+    public String nameOfPlayerWhoKilledMob;
 
     @Override
     public String localiseText() {

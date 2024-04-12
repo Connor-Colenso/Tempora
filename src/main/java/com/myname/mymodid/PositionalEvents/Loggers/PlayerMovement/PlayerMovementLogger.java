@@ -10,6 +10,7 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 
 import com.myname.mymodid.PositionalEvents.Loggers.ISerializable;
+import com.myname.mymodid.Utils.PlayerUtils;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.common.config.Configuration;
 
@@ -50,9 +51,8 @@ public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovement
     @Override
     protected ArrayList<ISerializable> generatePacket(ResultSet resultSet) throws SQLException {
         ArrayList<ISerializable> eventList = new ArrayList<>();
-        int counter = 0;
 
-        while (resultSet.next() && counter < MAX_DATA_ROWS_PER_PACKET) {
+        while (resultSet.next()) {
 
             PlayerMovementQueueElement queueElement = new PlayerMovementQueueElement();
             queueElement.x = resultSet.getDouble("x");
@@ -61,10 +61,9 @@ public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovement
             queueElement.dimensionId = resultSet.getInt("dimensionID");
             queueElement.timestamp = resultSet.getLong("timestamp");
 
-            queueElement.playerUUID = resultSet.getString("playerName");
+            queueElement.playerName = PlayerUtils.UUIDToName(resultSet.getString("playerUUID"));
 
             eventList.add(queueElement);
-            counter++;
         }
 
         return eventList;
@@ -83,7 +82,7 @@ public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovement
                 .prepareStatement(
                     "CREATE TABLE IF NOT EXISTS " + getTableName()
                         + " (id INTEGER PRIMARY KEY AUTOINCREMENT,"
-                        + "playerName TEXT NOT NULL,"
+                        + "playerUUID TEXT NOT NULL,"
                         + "x REAL NOT NULL,"
                         + "y REAL NOT NULL,"
                         + "z REAL NOT NULL,"
@@ -99,9 +98,9 @@ public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovement
     public void threadedSaveEvent(PlayerMovementQueueElement playerMovementQueueElement) {
         try {
             final String sql = "INSERT INTO " + getTableName()
-                + "(playerName, x, y, z, dimensionID, timestamp) VALUES(?, ?, ?, ?, ?, ?)";
+                + "(playerUUID, x, y, z, dimensionID, timestamp) VALUES(?, ?, ?, ?, ?, ?)";
             final PreparedStatement pstmt = positionLoggerDBConnection.prepareStatement(sql);
-            pstmt.setString(1, playerMovementQueueElement.playerUUID);
+            pstmt.setString(1, playerMovementQueueElement.playerName);
             pstmt.setDouble(2, playerMovementQueueElement.x);
             pstmt.setDouble(3, playerMovementQueueElement.y);
             pstmt.setDouble(4, playerMovementQueueElement.z);
@@ -130,7 +129,7 @@ public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovement
         queueElement.dimensionId = player.worldObj.provider.dimensionId;
         queueElement.timestamp = System.currentTimeMillis();
 
-        queueElement.playerUUID = player.getUniqueID()
+        queueElement.playerName = player.getUniqueID()
             .toString();
 
         eventQueue.add(queueElement);

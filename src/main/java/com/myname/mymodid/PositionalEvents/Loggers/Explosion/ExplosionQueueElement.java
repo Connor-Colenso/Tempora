@@ -6,8 +6,8 @@ public class ExplosionQueueElement extends GenericQueueElement {
 
     public float strength;
     public String exploderName;
-    public String closestPlayerUUID;
-    public double closestPlayerUUIDDistance;
+    public String closestPlayerName;
+    public double closestPlayerDistance;
 
     @Override
     public String localiseText() {

@@ -42,15 +42,15 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueE
         if (trueSource != null) {
             if (trueSource instanceof EntityPlayerMP player) {
                 // This is specific for players
-                queueElement.killedBy = player.getUniqueID()
+                queueElement.nameOfPlayerWhoKilledMob = player.getUniqueID()
                     .toString();
             } else {
                 // For non-player entities
-                queueElement.killedBy = "[" + trueSource.getClass()
+                queueElement.nameOfPlayerWhoKilledMob = "[" + trueSource.getClass()
                     .getSimpleName() + "]";
             }
         } else {
-            queueElement.killedBy = "[" + event.source.damageType + "]";
+            queueElement.nameOfPlayerWhoKilledMob = "[" + event.source.damageType + "]";
         }
 
         eventQueue.add(queueElement);
@@ -64,9 +64,8 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueE
     @Override
     protected ArrayList<ISerializable> generatePacket(ResultSet resultSet) throws SQLException {
         ArrayList<ISerializable> eventList = new ArrayList<>();
-        int counter = 0;
 
-        while (resultSet.next() && counter < MAX_DATA_ROWS_PER_PACKET) {
+        while (resultSet.next()) {
 
             EntityDeathQueueElement queueElement = new EntityDeathQueueElement();
             queueElement.x = resultSet.getDouble("x");
@@ -81,7 +80,6 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueE
             // queueElement.killedBy = resultSet.getString("killedBy");
 
             eventList.add(queueElement);
-            counter++;
         }
 
         return eventList;
