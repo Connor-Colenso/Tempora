@@ -17,8 +17,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import com.myname.mymodid.PositionalEvents.Loggers.GenericPacket;
+import com.myname.mymodid.PositionalEvents.Loggers.ISerializable;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.util.ChatComponentText;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
 
@@ -78,11 +81,10 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
     public static final Set<GenericPositionalLogger<?>> loggerList = new HashSet<>();
 
-    protected abstract IMessage generatePacket(ResultSet rs) throws SQLException;
+    protected abstract ArrayList<ISerializable> generatePacket(ResultSet rs) throws SQLException;
 
     public static void queryEventsWithinRadiusAndTime(ICommandSender sender, int radius, long seconds,
         String tableName) {
-        ArrayList<String> returnList = new ArrayList<>();
 
         if (!(sender instanceof EntityPlayerMP entityPlayerMP)) return;
         int posX = entityPlayerMP.getPlayerCoordinates().posX;
@@ -92,7 +94,6 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
         long pastTime = System.currentTimeMillis() - seconds * 1000; // Convert seconds to milliseconds
 
-        ArrayList<IMessage> packetList = new ArrayList<>();
         synchronized (GenericPositionalLogger.class) {
             for (GenericPositionalLogger<?> logger : loggerList) {
                 if (tableName != null && !logger.getTableName()
@@ -114,20 +115,20 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
                     pstmt.setInt(7, dimensionId);
                     pstmt.setTimestamp(8, new Timestamp(pastTime)); // Filter events from pastTime onwards
 
+                    // Execute and submit to client via a custom packet if not empty.
                     try (ResultSet rs = pstmt.executeQuery()) {
-                        packetList.add(logger.generatePacket(rs));
+                        ArrayList<ISerializable> sendList = logger.generatePacket(rs);
+                        if (!sendList.isEmpty())  {
+                            NETWORK.sendTo(new GenericPacket(sendList), entityPlayerMP);
+                        } else {
+                            sender.addChatMessage(new ChatComponentText("No results found for " + logger.getTableName() + "."));
+                        }
                     }
                 } catch (SQLException e) {
-                    returnList
-                        .add("Database query failed on " + logger.getTableName() + ": " + e.getLocalizedMessage());
+                    sender.addChatMessage(new ChatComponentText("Database query failed on " + logger.getTableName() + ": " + e.getLocalizedMessage()));
                 }
             }
         }
-
-        for (IMessage packet : packetList) {
-            NETWORK.sendTo(packet, entityPlayerMP);
-        }
-
     }
 
     protected static Connection positionLoggerDBConnection;

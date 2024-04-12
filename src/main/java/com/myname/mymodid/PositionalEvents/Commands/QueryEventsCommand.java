@@ -34,44 +34,6 @@ public class QueryEventsCommand extends CommandBase {
     @Override
     public void processCommand(ICommandSender sender, String[] args) {
         if (args.length < 2) {
-            {
-                BlockBreakQueueElement q1 = new BlockBreakQueueElement(1,2,3,4);
-                BlockBreakQueueElement q2 = new BlockBreakQueueElement(5,6,7,8);
-                q1.playerUUIDWhoBrokeBlock = "TEST1";
-                q2.playerUUIDWhoBrokeBlock = "TEST2";
-                q1.blockID = 7;
-                q1.metadata = 0;
-                q2.blockID = 3;
-                q2.metadata = 2;
-
-                ArrayList<ISerializable> test = new ArrayList<>();
-                test.add(q1);
-                test.add(q2);
-
-                GenericPacket packet = new GenericPacket(test);
-
-                NETWORK.sendTo(packet, (EntityPlayerMP) sender);
-            }
-
-            {
-                CommandQueueElement q1 = new CommandQueueElement();
-                CommandQueueElement q2 = new CommandQueueElement();
-                q1.playerUUIDWhoIssuedCommand = "name1";
-                q2.playerUUIDWhoIssuedCommand = "name2";
-                q1.commandName = "cmd1";
-                q2.commandName = "cmd2";
-                q1.arguments = "arg1, arg2";
-                q2.arguments = "arg3, arg4";
-
-                ArrayList<ISerializable> test = new ArrayList<>();
-                test.add(q1);
-                test.add(q2);
-
-                GenericPacket packet = new GenericPacket(test);
-
-                NETWORK.sendTo(packet, (EntityPlayerMP) sender);
-            }
-
             return;
         }
 
@@ -118,7 +80,7 @@ public class QueryEventsCommand extends CommandBase {
             }
             return matchingOptions;
         }
-        return null; // Return null or an empty list when there are no matches.
+        return null; // Return null when there are no matches.
     }
 
     private List<String> getFilterOptions() {

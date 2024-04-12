@@ -8,6 +8,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 
+import com.myname.mymodid.PositionalEvents.Loggers.ISerializable;
 import net.minecraft.command.ICommand;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.common.config.Configuration;
@@ -17,7 +18,6 @@ import com.myname.mymodid.PositionalEvents.Loggers.Generic.GenericPositionalLogg
 
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import cpw.mods.fml.common.network.simpleimpl.IMessage;
 
 public class CommandLogger extends GenericPositionalLogger<CommandQueueElement> {
 
@@ -27,8 +27,8 @@ public class CommandLogger extends GenericPositionalLogger<CommandQueueElement> 
     }
 
     @Override
-    protected IMessage generatePacket(ResultSet resultSet) throws SQLException {
-        ArrayList<CommandQueueElement> eventList = new ArrayList<>();
+    protected ArrayList<ISerializable> generatePacket(ResultSet resultSet) throws SQLException {
+        ArrayList<ISerializable> eventList = new ArrayList<>();
         int counter = 0;
 
         while (resultSet.next() && counter < MAX_DATA_ROWS_PER_PACKET) {
@@ -41,20 +41,17 @@ public class CommandLogger extends GenericPositionalLogger<CommandQueueElement> 
             queueElement.y = y;
             queueElement.z = z;
             queueElement.dimensionId = resultSet.getInt("dimensionID");
+            queueElement.timestamp = resultSet.getLong("timestamp");
 
             queueElement.playerUUIDWhoIssuedCommand = resultSet.getString("playerName");
             queueElement.commandName = resultSet.getString("command");
             queueElement.arguments = resultSet.getString("arguments");
-            queueElement.timestamp = resultSet.getLong("timestamp");
 
             eventList.add(queueElement);
             counter++;
         }
 
-        CommandPacketHandler packet = new CommandPacketHandler();
-        packet.eventList = eventList;
-
-        return packet;
+        return eventList;
     }
 
     @Override
@@ -113,6 +110,7 @@ public class CommandLogger extends GenericPositionalLogger<CommandQueueElement> 
             queueElement.y = player.posY;
             queueElement.z = player.posZ;
             queueElement.dimensionId = player.dimension;
+            queueElement.timestamp = System.currentTimeMillis();
 
             queueElement.playerUUIDWhoIssuedCommand = player.getUniqueID()
                 .toString();
