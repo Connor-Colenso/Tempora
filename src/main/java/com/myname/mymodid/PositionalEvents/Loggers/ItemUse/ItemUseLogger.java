@@ -8,8 +8,6 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 
-import com.myname.mymodid.PositionalEvents.Loggers.ISerializable;
-import com.myname.mymodid.Utils.PlayerUtils;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -21,6 +19,8 @@ import net.minecraftforge.event.entity.player.PlayerUseItemEvent;
 import org.jetbrains.annotations.NotNull;
 
 import com.myname.mymodid.PositionalEvents.Loggers.Generic.GenericPositionalLogger;
+import com.myname.mymodid.PositionalEvents.Loggers.ISerializable;
+import com.myname.mymodid.Utils.PlayerUtils;
 
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;

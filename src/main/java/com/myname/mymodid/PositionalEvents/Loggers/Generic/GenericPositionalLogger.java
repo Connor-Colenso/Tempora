@@ -17,18 +17,17 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import com.myname.mymodid.PositionalEvents.Loggers.GenericPacket;
-import com.myname.mymodid.PositionalEvents.Loggers.ISerializable;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentText;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
 
+import com.myname.mymodid.PositionalEvents.Loggers.GenericPacket;
+import com.myname.mymodid.PositionalEvents.Loggers.ISerializable;
 import com.myname.mymodid.TemporaUtils;
 
 import cpw.mods.fml.common.FMLCommonHandler;
-import cpw.mods.fml.common.network.simpleimpl.IMessage;
 
 public abstract class GenericPositionalLogger<EventToLog extends GenericQueueElement> {
 
@@ -119,14 +118,17 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
                     // Execute and submit to client via a custom packet if not empty.
                     try (ResultSet rs = pstmt.executeQuery()) {
                         ArrayList<ISerializable> sendList = logger.generatePacket(rs);
-                        if (!sendList.isEmpty())  {
+                        if (!sendList.isEmpty()) {
                             NETWORK.sendTo(new GenericPacket(sendList), entityPlayerMP);
                         } else {
-                            sender.addChatMessage(new ChatComponentText("No results found for " + logger.getTableName() + "."));
+                            sender.addChatMessage(
+                                new ChatComponentText("No results found for " + logger.getTableName() + "."));
                         }
                     }
                 } catch (SQLException e) {
-                    sender.addChatMessage(new ChatComponentText("Database query failed on " + logger.getTableName() + ": " + e.getLocalizedMessage()));
+                    sender.addChatMessage(
+                        new ChatComponentText(
+                            "Database query failed on " + logger.getTableName() + ": " + e.getLocalizedMessage()));
                 }
             }
         }
