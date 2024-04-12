@@ -1,6 +1,6 @@
 package com.myname.mymodid.PositionalEvents.Loggers.EntityPosition;
 
-import static com.myname.mymodid.Config.loggingIntervals;
+import static com.myname.mymodid.Config.Config.loggingIntervals;
 import static com.myname.mymodid.TemporaUtils.isClientSide;
 
 import java.sql.PreparedStatement;
