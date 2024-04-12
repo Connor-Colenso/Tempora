@@ -9,8 +9,6 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 
-import com.myname.mymodid.PositionalEvents.Loggers.ISerializable;
-import com.myname.mymodid.Utils.PlayerUtils;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.common.config.Configuration;
 
@@ -19,6 +17,8 @@ import org.jetbrains.annotations.NotNull;
 import com.myname.mymodid.Commands.HeatMap.HeatMapUpdater;
 import com.myname.mymodid.Commands.TrackPlayer.TrackPlayerUpdater;
 import com.myname.mymodid.PositionalEvents.Loggers.Generic.GenericPositionalLogger;
+import com.myname.mymodid.PositionalEvents.Loggers.ISerializable;
+import com.myname.mymodid.Utils.PlayerUtils;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;

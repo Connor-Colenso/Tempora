@@ -1,23 +1,25 @@
 package com.myname.mymodid.PositionalEvents.Loggers;
 
-import cpw.mods.fml.common.network.simpleimpl.IMessage;
-import cpw.mods.fml.common.network.simpleimpl.IMessageHandler;
-import cpw.mods.fml.common.network.simpleimpl.MessageContext;
-import io.netty.buffer.ByteBuf;
-import net.minecraft.client.Minecraft;
-import net.minecraft.util.ChatComponentText;
-import org.apache.commons.lang3.NotImplementedException;
-
 import java.lang.reflect.Field;
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
+import net.minecraft.client.Minecraft;
+import net.minecraft.util.ChatComponentText;
+
+import org.apache.commons.lang3.NotImplementedException;
+
+import cpw.mods.fml.common.network.simpleimpl.IMessage;
+import cpw.mods.fml.common.network.simpleimpl.IMessageHandler;
+import cpw.mods.fml.common.network.simpleimpl.MessageContext;
+import io.netty.buffer.ByteBuf;
+
 public class GenericPacket implements IMessage {
 
     // Do not delete! It will cause errors.
     @SuppressWarnings("unused")
-    public GenericPacket() { }
+    public GenericPacket() {}
 
     public ArrayList<ISerializable> queueElementArrayList = new ArrayList<>();
 
@@ -46,9 +48,11 @@ public class GenericPacket implements IMessage {
 
             // Processing each element
             for (int elementCounter = 0; elementCounter < eventCount; elementCounter++) {
-                ISerializable queueElement = clazz.getDeclaredConstructor().newInstance(); // Create a new instance for each element
+                ISerializable queueElement = clazz.getDeclaredConstructor()
+                    .newInstance(); // Create a new instance for each element
 
-                for (Field field : queueElement.getClass().getFields()) {
+                for (Field field : queueElement.getClass()
+                    .getFields()) {
                     Type fieldType = field.getType();
 
                     // Deserialize data based on field type
@@ -78,14 +82,16 @@ public class GenericPacket implements IMessage {
         }
     }
 
-
     @Override
     public void toBytes(ByteBuf buf) {
         try {
             // Type
-            byte[] classNameBytes = queueElementArrayList.get(0).getClass().getName().getBytes(StandardCharsets.UTF_8);
+            byte[] classNameBytes = queueElementArrayList.get(0)
+                .getClass()
+                .getName()
+                .getBytes(StandardCharsets.UTF_8);
             buf.writeInt(classNameBytes.length); // Write the length of the string
-            buf.writeBytes(classNameBytes);      // Write the string itself
+            buf.writeBytes(classNameBytes); // Write the string itself
 
             // Write the number of elements in the list to the buffer
             buf.writeInt(queueElementArrayList.size());
@@ -93,7 +99,8 @@ public class GenericPacket implements IMessage {
             // Iterate over each element in the list
             for (ISerializable element : queueElementArrayList) {
                 // Make sure each field is accessible
-                for (Field field : element.getClass().getFields()) {
+                for (Field field : element.getClass()
+                    .getFields()) {
                     Type fieldType = field.getType();
 
                     // Check the type of each field and serialize it accordingly
@@ -101,7 +108,7 @@ public class GenericPacket implements IMessage {
                         String value = (String) field.get(element);
                         byte[] bytes = value.getBytes(StandardCharsets.UTF_8);
                         buf.writeInt(bytes.length); // Write the length of the string
-                        buf.writeBytes(bytes);      // Write the string itself
+                        buf.writeBytes(bytes); // Write the string itself
                     } else if (fieldType.equals(int.class)) {
                         Integer value = (Integer) field.get(element);
                         buf.writeInt(value);
@@ -130,7 +137,7 @@ public class GenericPacket implements IMessage {
         @Override
         public IMessage onMessage(final GenericPacket packet, MessageContext ctx) {
 
-            for(ISerializable iSerializable : packet.queueElementArrayList) {
+            for (ISerializable iSerializable : packet.queueElementArrayList) {
                 String message = iSerializable.localiseText();
                 if (message == null) continue;
 

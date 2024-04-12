@@ -8,13 +8,13 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 
-import com.myname.mymodid.PositionalEvents.Loggers.ISerializable;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 
 import com.myname.mymodid.PositionalEvents.Loggers.Generic.GenericPositionalLogger;
+import com.myname.mymodid.PositionalEvents.Loggers.ISerializable;
 
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;

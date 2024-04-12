@@ -1,9 +1,10 @@
 package com.myname.mymodid.Utils;
 
-import com.mojang.authlib.GameProfile;
+import java.util.UUID;
+
 import net.minecraft.server.MinecraftServer;
 
-import java.util.UUID;
+import com.mojang.authlib.GameProfile;
 
 public class PlayerUtils {
 
@@ -11,7 +12,9 @@ public class PlayerUtils {
         // To get a name from a UUID:
         UUID playerUUID = UUID.fromString(UUIDString); // field_152366_X
 
-        GameProfile gameprofile = MinecraftServer.getServer().func_152358_ax().func_152652_a(playerUUID);
+        GameProfile gameprofile = MinecraftServer.getServer()
+            .func_152358_ax()
+            .func_152652_a(playerUUID);
 
         if (gameprofile != null) {
             return gameprofile.getName();

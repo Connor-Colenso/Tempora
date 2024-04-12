@@ -11,6 +11,17 @@ public class CommandQueueElement extends GenericQueueElement {
 
     @Override
     public String localiseText() {
-        return playerNameWhoIssuedCommand + " issued /" + commandName + " " + arguments + " at [" + x + ", " + y + ", " + z + "] " + TimeUtils.formatTime(timestamp);
+        return playerNameWhoIssuedCommand + " issued /"
+            + commandName
+            + " "
+            + arguments
+            + " at ["
+            + x
+            + ", "
+            + y
+            + ", "
+            + z
+            + "] "
+            + TimeUtils.formatTime(timestamp);
     }
 }
