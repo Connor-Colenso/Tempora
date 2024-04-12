@@ -6,7 +6,7 @@ public class BlockPlaceQueueElement extends GenericQueueElement {
 
     public int blockID;
     public int metadata;
-    public String playerUUIDWhoPlacedBlock;
+    public String playerNameWhoPlacedBlock;
 
     @Override
     public String localiseText() {

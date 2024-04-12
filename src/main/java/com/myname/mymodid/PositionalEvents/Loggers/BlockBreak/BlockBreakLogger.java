@@ -7,10 +7,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Queue;
 
-import com.myname.mymodid.PositionalEvents.Loggers.BlockPlace.BlockPlaceQueueElement;
 import com.myname.mymodid.PositionalEvents.Loggers.ISerializable;
+import com.myname.mymodid.Utils.PlayerUtils;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.common.config.Configuration;
@@ -36,9 +35,8 @@ public class BlockBreakLogger extends GenericPositionalLogger<BlockBreakQueueEle
 
         try {
             ArrayList<ISerializable> eventList = new ArrayList<>();
-            int counter = 0;
 
-            while (resultSet.next() && counter < MAX_DATA_ROWS_PER_PACKET) {
+            while (resultSet.next()) {
 
                 BlockBreakQueueElement queueElement = new BlockBreakQueueElement();
                 queueElement.x = resultSet.getInt("x");
@@ -47,12 +45,11 @@ public class BlockBreakLogger extends GenericPositionalLogger<BlockBreakQueueEle
                 queueElement.dimensionId = resultSet.getInt("dimensionID");
                 queueElement.timestamp = resultSet.getLong("timestamp");
 
-                queueElement.playerUUIDWhoBrokeBlock = resultSet.getString("playerName");
+                queueElement.playerNameWhoBrokeBlock = PlayerUtils.UUIDToName(resultSet.getString("playerUUID"));
                 queueElement.blockID = resultSet.getInt("blockId");
                 queueElement.metadata = resultSet.getInt("metadata");
 
                 eventList.add(queueElement);
-                counter++;
             }
 
             return eventList;
@@ -68,7 +65,7 @@ public class BlockBreakLogger extends GenericPositionalLogger<BlockBreakQueueEle
                 .prepareStatement(
                     "CREATE TABLE IF NOT EXISTS " + getTableName()
                         + " (id INTEGER PRIMARY KEY AUTOINCREMENT,"
-                        + "playerName TEXT NOT NULL,"
+                        + "playerUUID TEXT NOT NULL,"
                         + "metadata INTEGER NOT NULL,"
                         + "blockId INTEGER NOT NULL,"
                         + "x REAL NOT NULL,"
@@ -86,9 +83,9 @@ public class BlockBreakLogger extends GenericPositionalLogger<BlockBreakQueueEle
     public void threadedSaveEvent(BlockBreakQueueElement blockBreakQueueElement) {
         try {
             final String sql = "INSERT INTO " + getTableName()
-                + "(playerName, blockId, metadata, x, y, z, dimensionID, timestamp) VALUES(?, ?, ?, ?, ?, ?, ?, ?)";
+                + "(playerUUID, blockId, metadata, x, y, z, dimensionID, timestamp) VALUES(?, ?, ?, ?, ?, ?, ?, ?)";
             final PreparedStatement pstmt = positionLoggerDBConnection.prepareStatement(sql);
-            pstmt.setString(1, blockBreakQueueElement.playerUUIDWhoBrokeBlock);
+            pstmt.setString(1, blockBreakQueueElement.playerNameWhoBrokeBlock);
             pstmt.setInt(2, blockBreakQueueElement.blockID);
             pstmt.setInt(3, blockBreakQueueElement.metadata);
             pstmt.setDouble(4, blockBreakQueueElement.x);
@@ -119,11 +116,11 @@ public class BlockBreakLogger extends GenericPositionalLogger<BlockBreakQueueEle
         queueElement.metadata = event.blockMetadata;
 
         if (event.getPlayer() instanceof EntityPlayerMP) {
-            queueElement.playerUUIDWhoBrokeBlock = event.getPlayer()
+            queueElement.playerNameWhoBrokeBlock = event.getPlayer()
                 .getUniqueID()
                 .toString();
         } else {
-            queueElement.playerUUIDWhoBrokeBlock = TemporaUtils.UNKNOWN_PLAYER_NAME;
+            queueElement.playerNameWhoBrokeBlock = TemporaUtils.UNKNOWN_PLAYER_NAME;
         }
 
         eventQueue.add(queueElement);
