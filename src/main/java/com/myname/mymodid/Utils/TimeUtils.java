@@ -59,7 +59,6 @@ public class TimeUtils {
         return zonedDateTime.format(formatter);
     }
 
-
     public static String getRelativeTimeFromUnix(long pastTimestamp) {
         // Current timestamp and past timestamp as Instant objects
         Instant now = Instant.now();
@@ -68,29 +67,29 @@ public class TimeUtils {
         // Calculate the duration between now and the past timestamp
         Duration duration = Duration.between(past, now);
 
-        // Use BigDecimal for precise calculations and rounding
-        BigDecimal days = new BigDecimal(duration.toDays());
-        BigDecimal hours = new BigDecimal(duration.toHours());
-        BigDecimal minutes = new BigDecimal(duration.toMinutes());
+        // Get total milliseconds and convert to seconds for more precise calculations
+        double milliseconds = duration.toMillis();  // Milliseconds since the past timestamp
+        double seconds = milliseconds / 1000.0;
+        double minutes = seconds / 60.0;
+        double hours = minutes / 60.0;
+        double days = hours / 24.0;
+        double years = days / 365.0;
+        double decades = years / 10.0;
 
-        // Conversions for years and decades
-        BigDecimal years = days.divide(new BigDecimal(365), 2, RoundingMode.HALF_UP);
-        BigDecimal decades = years.divide(new BigDecimal(10), 1, RoundingMode.HALF_UP);
-
-        // Determine the largest time unit to display and format it
-        if (decades.compareTo(BigDecimal.ONE) >= 0) {
-            return decades + " decades ago";
-        } else if (years.compareTo(BigDecimal.ONE) >= 0) {
-            return years.setScale(1, RoundingMode.HALF_UP) + " years ago";
-        } else if (days.compareTo(BigDecimal.ONE) >= 0) {
-            BigDecimal exactDays = hours.divide(new BigDecimal(24), 1, RoundingMode.HALF_UP);
-            return exactDays + " days ago";
-        } else if (hours.compareTo(BigDecimal.ONE) >= 0) {
-            BigDecimal exactHours = minutes.divide(new BigDecimal(60), 1, RoundingMode.HALF_UP);
-            return exactHours + " hours ago";
+        // Determine the largest time unit to display and format it to 1 decimal place
+        if (decades >= 1) {
+            return String.format("%.1f decades ago", decades);
+        } else if (years >= 1) {
+            return String.format("%.1f years ago", years);
+        } else if (days >= 1) {
+            return String.format("%.1f days ago", days);
+        } else if (hours >= 1) {
+            return String.format("%.1f hours ago", hours);
+        } else if (minutes >= 1) {
+            return String.format("%.1f minutes ago", minutes);
         } else {
-            BigDecimal exactMinutes = new BigDecimal(duration.toMinutes());
-            return exactMinutes.setScale(1, RoundingMode.HALF_UP) + " minutes ago";
+            return String.format("%.1f seconds ago", seconds);
         }
     }
+
 }
