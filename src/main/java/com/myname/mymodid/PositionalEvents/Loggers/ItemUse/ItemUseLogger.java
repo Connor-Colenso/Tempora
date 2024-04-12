@@ -80,7 +80,7 @@ public class ItemUseLogger extends GenericPositionalLogger<ItemUseQueueElement> 
     public void threadedSaveEvent(ItemUseQueueElement itemUseQueueElement) {
         try {
             final String sql = "INSERT INTO " + getTableName()
-                + "(playerUUID, item, itemMetadata, x, y, z, dimensionID, timestamp) VALUES(?, ?, ?, ?, ?, ?, ?, ?)";
+                + "(playerUUID, itemID, itemMetadata, x, y, z, dimensionID, timestamp) VALUES(?, ?, ?, ?, ?, ?, ?, ?)";
             final PreparedStatement pstmt = positionLoggerDBConnection.prepareStatement(sql);
             pstmt.setString(1, itemUseQueueElement.playerName);
             pstmt.setInt(2, itemUseQueueElement.itemID);
