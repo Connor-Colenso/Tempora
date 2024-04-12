@@ -74,10 +74,6 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
     public abstract void handleConfig(Configuration config);
 
-    static {
-        TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
-    }
-
     public static final Set<GenericPositionalLogger<?>> loggerList = new HashSet<>();
 
     protected abstract ArrayList<ISerializable> generatePacket(ResultSet rs) throws SQLException;
@@ -103,7 +99,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
                     PreparedStatement pstmt = conn.prepareStatement(
                         "SELECT * FROM " + logger.getTableName()
                             + " WHERE ABS(x - ?) <= ? AND ABS(y - ?) <= ? AND ABS(z - ?) <= ?"
-                            + " AND dimensionID = ? AND timestamp >= ? ORDER BY timestamp LIMIT ?")) {
+                            + " AND dimensionID = ? AND timestamp >= ? ORDER BY timestamp DESC LIMIT ?")) {
 
                     pstmt.setDouble(1, posX);
                     pstmt.setInt(2, radius);

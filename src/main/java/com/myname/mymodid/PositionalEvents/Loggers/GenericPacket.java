@@ -4,6 +4,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.List;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.ChatComponentText;
@@ -137,7 +138,10 @@ public class GenericPacket implements IMessage {
         @Override
         public IMessage onMessage(final GenericPacket packet, MessageContext ctx) {
 
-            for (ISerializable iSerializable : packet.queueElementArrayList) {
+            // Assuming packet.queueElementArrayList is a List that supports accessing elements by index
+            List<ISerializable> list = packet.queueElementArrayList;
+            for (int i = list.size() - 1; i >= 0; i--) {
+                ISerializable iSerializable = list.get(i);
                 String message = iSerializable.localiseText();
                 if (message == null) continue;
 
