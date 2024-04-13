@@ -12,7 +12,7 @@ public class BlockUtils {
 
     /**
      * Get the localized name of a block from its ID and metadata, using caching to optimize.
-     * 
+     *
      * @param blockId the ID of the block
      * @param meta    the metadata of the block
      * @return the localized name of the block
@@ -28,7 +28,7 @@ public class BlockUtils {
         Block block = Block.getBlockById(blockId);
         if (block == null) {
             // Log an error or warning if the block is not found.
-            return "Unknown Block"; // Consider using a logging framework to log this situation.
+            return "[Unknown Block]"; // Consider using a logging framework to log this situation.
         }
 
         ItemStack stack = new ItemStack(block, 1, meta);
