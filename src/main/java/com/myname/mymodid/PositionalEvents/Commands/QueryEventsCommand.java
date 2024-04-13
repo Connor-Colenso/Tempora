@@ -46,7 +46,7 @@ public class QueryEventsCommand extends CommandBase {
         throw new WrongUsageException("Filter " + input + " is invalid");
     }
 
-    private void queryDatabases(ICommandSender sender, int radius, long seconds, String tableName) {
+    public static void queryDatabases(ICommandSender sender, int radius, long seconds, String tableName) {
         if (!(sender instanceof EntityPlayerMP)) {
             sender.addChatMessage(new ChatComponentText("This command can only be run by a user in-game."));
             return;

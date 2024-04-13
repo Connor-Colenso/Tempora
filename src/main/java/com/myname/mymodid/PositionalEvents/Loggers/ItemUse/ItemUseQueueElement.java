@@ -4,6 +4,8 @@ import com.myname.mymodid.PositionalEvents.Loggers.Generic.GenericQueueElement;
 import net.minecraft.util.StatCollector;
 import com.myname.mymodid.Utils.TimeUtils;
 
+import static com.myname.mymodid.Utils.ItemUtils.getNameOfItemStack;
+
 public class ItemUseQueueElement extends GenericQueueElement {
 
     public String playerName;
@@ -17,6 +19,7 @@ public class ItemUseQueueElement extends GenericQueueElement {
         return StatCollector.translateToLocalFormatted(
             "message.item_use",
             playerName,
+            getNameOfItemStack(itemID, itemMetadata),
             itemID,
             itemMetadata,
             String.format("%.1f", x),

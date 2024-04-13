@@ -1,33 +1,31 @@
 package com.myname.mymodid.PositionalEvents.Loggers.Generic;
 
-import static com.myname.mymodid.Tempora.NETWORK;
-
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.TimeZone;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicBoolean;
-
+import com.myname.mymodid.PositionalEvents.Loggers.GenericPacket;
+import com.myname.mymodid.PositionalEvents.Loggers.ISerializable;
+import com.myname.mymodid.TemporaUtils;
+import cpw.mods.fml.common.FMLCommonHandler;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentText;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
 
-import com.myname.mymodid.PositionalEvents.Loggers.GenericPacket;
-import com.myname.mymodid.PositionalEvents.Loggers.ISerializable;
-import com.myname.mymodid.TemporaUtils;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 
-import cpw.mods.fml.common.FMLCommonHandler;
+import static com.myname.mymodid.Tempora.NETWORK;
 
 public abstract class GenericPositionalLogger<EventToLog extends GenericQueueElement> {
 
@@ -151,13 +149,26 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
                     + "PositionalLogger.db");
             positionLoggerDBConnection = DriverManager
                 .getConnection(TemporaUtils.databaseDirectory() + "PositionalLogger.db");
-            for (GenericPositionalLogger<?> loggerPositional : loggerList) {
-                loggerPositional.initTable();
-            }
+
+            initAllTables();
+
+            // Init indexex for x, y, z, timestamp and dimensionID for all tables.
+            createAllIndexes();
+
             startEventProcessingThread(); // Start processing thread
         } catch (SQLException sqlException) {
             System.err.println("Critical exception, could not open Tempora databases properly.");
             sqlException.printStackTrace();
+        }
+    }
+
+
+    private static Connection getNewConnection() {
+        try {
+            return DriverManager.getConnection(TemporaUtils.databaseDirectory() + "PositionalLogger.db");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
         }
     }
 
@@ -175,6 +186,39 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
     public final String getTableName() {
         return getClass().getSimpleName();
+    }
+
+    private static void initAllTables() {
+        for (GenericPositionalLogger<?> loggerPositional : loggerList) {
+            loggerPositional.initTable();
+        }
+    }
+
+    private static void createAllIndexes() {
+        Connection dbConnection = getNewConnection();
+
+        try (Statement stmt = dbConnection.createStatement()) {
+            for (GenericPositionalLogger<?> logger : loggerList) {
+                String tableName = logger.getTableName();
+
+                // Creating a composite index for x, y, z, dimensionID and timestamp
+                String createCompositeIndex = String.format(
+                    "CREATE INDEX IF NOT EXISTS idx_%s_xyz_dimension_time ON %s (x, y, z, dimensionID, timestamp DESC);",
+                    tableName, tableName);
+                stmt.execute(createCompositeIndex);
+
+                // Creating an index for timestamp alone to optimize for queries primarily sorting or filtering on timestamp
+                String createTimestampIndex = String.format(
+                    "CREATE INDEX IF NOT EXISTS idx_%s_timestamp ON %s (timestamp DESC);",
+                    tableName, tableName);
+                stmt.execute(createTimestampIndex);
+
+                System.out.println("Indexes created for table: " + tableName);
+            }
+        } catch (SQLException e) {
+            System.err.println("Error creating indexes: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
 }

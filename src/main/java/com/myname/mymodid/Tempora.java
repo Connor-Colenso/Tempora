@@ -3,6 +3,7 @@ package com.myname.mymodid;
 import static com.myname.mymodid.Config.Config.synchronizeConfiguration;
 import static com.myname.mymodid.Tags.MODID;
 
+import com.myname.mymodid.Items.TemporaWand;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
 
@@ -60,6 +61,7 @@ public class Tempora {
     public void preInit(FMLPreInitializationEvent event) {
         config = new Configuration(event.getSuggestedConfigurationFile());
         GameRegistry.registerItem(new TemporaScannerItem(), "tempora_scanner");
+        GameRegistry.registerItem(new TemporaWand(), "admin_wand");
         Tempora.LOG.info("I am " + Tags.MODNAME + " at version " + Tags.VERSION);
     }
 
