@@ -20,6 +20,8 @@ public class BlockPlaceQueueElement extends GenericQueueElement {
             "message.block_place",
             playerNameWhoPlacedBlock,
             localizedName,
+            blockID,
+            metadata,
             Math.round(x),
             Math.round(y),
             Math.round(z),

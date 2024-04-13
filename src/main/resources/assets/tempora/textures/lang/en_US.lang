@@ -1,5 +1,5 @@
-message.block_break=%s broke %s at [%d, %d, %d] (%s).
-message.block_place=%s placed %s at [%d, %d, %d] (%s).
+message.block_break=%s broke %s (%d:%d) at [%d, %d, %d] (%s).
+message.block_place=%s placed %s (%d:%d) at [%d, %d, %d] (%s).
 message.command_issued=%s issued command /%s %s at [%s, %s, %s] (%s).
 message.entity_death=%s was killed by %s at [%s, %s, %s] (%s).
 message.entity_position=%s was located at [%s, %s, %s] (%s).
