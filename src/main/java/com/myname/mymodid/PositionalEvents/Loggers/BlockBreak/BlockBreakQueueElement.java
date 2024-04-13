@@ -21,6 +21,8 @@ public class BlockBreakQueueElement extends GenericQueueElement {
             "message.block_break",
             playerNameWhoBrokeBlock,
             localizedName,
+            blockID,
+            metadata,
             Math.round(x),
             Math.round(y),
             Math.round(z),
