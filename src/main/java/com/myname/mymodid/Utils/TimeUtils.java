@@ -3,8 +3,6 @@ package com.myname.mymodid.Utils;
 import net.minecraft.util.StatCollector;
 import net.minecraftforge.common.config.Configuration;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -16,10 +14,10 @@ import static com.myname.mymodid.Config.Config.formatCategory;
 
 public class TimeUtils {
 
-    private static boolean RELATIVE_TIME;
+    private static boolean ENABLE_RELATIVE_TIME;
 
     public static void handleConfig(Configuration config) {
-        RELATIVE_TIME = config.getBoolean(
+        ENABLE_RELATIVE_TIME = config.getBoolean(
             "enableRelativeTime",
             formatCategory,
             true,
@@ -34,7 +32,7 @@ public class TimeUtils {
      * @return A formatted date-time string.
      */
     public static String formatTime(long epochMillis) {
-        if (RELATIVE_TIME) {
+        if (ENABLE_RELATIVE_TIME) {
             return getRelativeTimeFromUnix(epochMillis);
         } else {
             return getExactTimeStampFromUnix(epochMillis);
@@ -79,17 +77,17 @@ public class TimeUtils {
 
         // Determine the largest time unit to display and format it to 1 decimal place
         if (decades >= 1) {
-            return String.format(StatCollector.translateToLocal("time.ago.decades"), decades);
+            return String.format(StatCollector.translateToLocal("time.ago.decades"), String.format("%.1f", decades));
         } else if (years >= 1) {
-            return String.format(StatCollector.translateToLocal("time.ago.years"), years);
+            return String.format(StatCollector.translateToLocal("time.ago.years"), String.format("%.1f", years));
         } else if (days >= 1) {
-            return String.format(StatCollector.translateToLocal("time.ago.days"), days);
+            return String.format(StatCollector.translateToLocal("time.ago.days"), String.format("%.1f", days));
         } else if (hours >= 1) {
-            return String.format(StatCollector.translateToLocal("time.ago.hours"), hours);
+            return String.format(StatCollector.translateToLocal("time.ago.hours"), String.format("%.1f", hours));
         } else if (minutes >= 1) {
-            return String.format(StatCollector.translateToLocal("time.ago.minutes"), minutes);
+            return String.format(StatCollector.translateToLocal("time.ago.minutes"), String.format("%.1f", minutes));
         } else {
-            return String.format(StatCollector.translateToLocal("time.ago.seconds"), seconds);
+            return String.format(StatCollector.translateToLocal("time.ago.seconds"), String.format("%.1f", seconds));
         }
     }
 }
