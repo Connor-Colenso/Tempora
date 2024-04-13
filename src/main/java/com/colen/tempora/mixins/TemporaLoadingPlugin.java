@@ -1,4 +1,4 @@
-package com.colen.tempora.Mixins;
+package com.colen.tempora.mixins;
 
 import cpw.mods.fml.relauncher.IFMLLoadingPlugin;
 
@@ -33,17 +33,15 @@ public final class TemporaLoadingPlugin implements IFMLLoadingPlugin, IEarlyMixi
     @Override
     public void injectData(Map<String, Object> data) {}
 
-//    @Override
-//    public String getMixinConfig() {
-//        return "mixins.postea.early.json";
-//    }
-//
-//    @Override
-//    public List<String> getMixins(Set<String> loadedCoreMods) {
-//        final List<String> mixins = new ArrayList<>();
-//        mixins.add("MixinItemStack");
-//        mixins.add("MixinChunk");
-//        mixins.add("MixinAnvilChunkLoader");
-//        return mixins;
-//    }
+    @Override
+    public String getMixinConfig() {
+        return "mixins.tempora.early.json";
+    }
+
+    @Override
+    public List<String> getMixins(Set<String> loadedCoreMods) {
+        final List<String> mixins = new ArrayList<>();
+        mixins.add("NetHandlerPlayServerMixin");
+        return mixins;
+    }
 }
