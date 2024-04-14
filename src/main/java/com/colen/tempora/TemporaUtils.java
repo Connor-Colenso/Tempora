@@ -8,10 +8,13 @@ import java.time.format.DateTimeFormatter;
 import java.util.concurrent.TimeUnit;
 
 import com.colen.tempora.Config.Config;
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.network.play.client.C0EPacketClickWindow;
 import net.minecraft.server.MinecraftServer;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.relauncher.Side;
+import org.spongepowered.asm.mixin.Unique;
 
 public class TemporaUtils {
 
@@ -77,5 +80,9 @@ public class TemporaUtils {
 
     public static String parseUnix(String timestamp) {
         return parseUnix(Long.parseLong(timestamp));
+    }
+
+    public static void process(C0EPacketClickWindow packet, EntityPlayerMP player) {
+        System.out.println(player.getDisplayName() + " " + packet.func_149546_g().getUnlocalizedName());
     }
 }
