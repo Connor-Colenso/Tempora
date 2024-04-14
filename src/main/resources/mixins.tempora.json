@@ -5,7 +5,9 @@
   "refmap": "mixins.tempora.refmap.json",
   "target": "@env(DEFAULT)",
   "compatibilityLevel": "JAVA_8",
-  "mixins": [],
+  "mixins": [
+    "MixinNetHandlerPlayServer"
+  ],
   "client": [],
   "server": []
 }
