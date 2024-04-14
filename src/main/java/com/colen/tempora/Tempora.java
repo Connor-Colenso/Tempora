@@ -1,7 +1,6 @@
 package com.colen.tempora;
 
 import static com.colen.tempora.Config.Config.synchronizeConfiguration;
-import static com.colen.tempora.Tags.MODID;
 
 import com.colen.tempora.Items.TemporaWand;
 import net.minecraftforge.common.MinecraftForge;
@@ -45,8 +44,11 @@ import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.relauncher.Side;
 
 @SuppressWarnings("unused")
-@Mod(modid = MODID, version = Tags.VERSION, name = Tags.MODNAME, acceptedMinecraftVersions = "[1.7.10]")
+@Mod(modid = Tempora.MODID, version = Tags.VERSION, name = Tempora.MODNAME, acceptedMinecraftVersions = "[1.7.10]")
 public class Tempora {
+
+    public static final String MODID = "tempora";
+    public static final String MODNAME = "Tempora";
 
     public static final SimpleNetworkWrapper NETWORK = NetworkRegistry.INSTANCE.newSimpleChannel(MODID);
 
@@ -62,7 +64,7 @@ public class Tempora {
         config = new Configuration(event.getSuggestedConfigurationFile());
         GameRegistry.registerItem(new TemporaScannerItem(), "tempora_scanner");
         GameRegistry.registerItem(new TemporaWand(), "admin_wand");
-        Tempora.LOG.info("I am " + Tags.MODNAME + " at version " + Tags.VERSION);
+        Tempora.LOG.info("I am " + Tempora.MODNAME + " at version " + Tags.VERSION);
     }
 
     @Mod.EventHandler
