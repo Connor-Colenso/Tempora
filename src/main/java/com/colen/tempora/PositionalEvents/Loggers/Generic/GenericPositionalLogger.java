@@ -30,6 +30,7 @@ import static com.colen.tempora.Tempora.NETWORK;
 public abstract class GenericPositionalLogger<EventToLog extends GenericQueueElement> {
 
     protected static final int MAX_DATA_ROWS_PER_PACKET = 5;
+    protected static AtomicBoolean savingData;
     private static final ExecutorService executor = Executors.newSingleThreadExecutor();
     private static final AtomicBoolean keepRunning = new AtomicBoolean(true);
     protected ConcurrentLinkedQueue<EventToLog> eventQueue = new ConcurrentLinkedQueue<>();
@@ -41,10 +42,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
             while (keepRunning.get()) {
                 try {
                     processAllLoggerQueues();
-                    Thread.sleep(5000);
-                } catch (InterruptedException e) {
-                    Thread.currentThread()
-                        .interrupt();
+                    //Thread.sleep(5000);
                 } catch (Exception e) {
                     System.err.println("An error occurred in the logging processor thread: " + e.getMessage());
                     e.printStackTrace();
