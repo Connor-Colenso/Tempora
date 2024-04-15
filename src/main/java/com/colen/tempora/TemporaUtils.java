@@ -70,8 +70,7 @@ public class TemporaUtils {
         };
     }
 
-    // Todo localise these depending on users date.
-    // Unix epoch in miliseconds -> Date
+    // Unix epoch in miliseconds -> Date string
     public static String parseUnix(long timestamp) {
         Instant instant = Instant.ofEpochMilli(timestamp);
         ZonedDateTime zdt = ZonedDateTime.ofInstant(instant, ZoneId.systemDefault());
