@@ -3,6 +3,7 @@ package com.colen.tempora;
 import static com.colen.tempora.Config.Config.synchronizeConfiguration;
 
 import com.colen.tempora.Items.TemporaWand;
+import com.colen.tempora.PositionalEvents.Loggers.PlayerInteractWithInventory.PlayerInteractWithInventoryLogger;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
 
@@ -58,6 +59,7 @@ public class Tempora {
     public static CommonProxy proxy;
 
     private static Configuration config;
+    public static PlayerInteractWithInventoryLogger playerInteractionLogger;
 
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {
@@ -84,6 +86,7 @@ public class Tempora {
             new ExplosionLogger();
             new ItemUseLogger();
             new PlayerMovementLogger();
+            playerInteractionLogger = new PlayerInteractWithInventoryLogger();
             new CommandLogger();
             new EntityPositionLogger();
             new EntityDeathLogger();
