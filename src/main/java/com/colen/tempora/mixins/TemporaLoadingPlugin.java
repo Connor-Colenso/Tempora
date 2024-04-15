@@ -33,15 +33,4 @@ public final class TemporaLoadingPlugin implements IFMLLoadingPlugin {
     @Override
     public void injectData(Map<String, Object> data) {}
 
-//    @Override
-//    public String getMixinConfig() {
-//        return "mixins.tempora.early.json";
-//    }
-//
-//    @Override
-//    public List<String> getMixins(Set<String> loadedCoreMods) {
-//        final List<String> mixins = new ArrayList<>();
-//        mixins.add("NetHandlerPlayServerMixin");
-//        return mixins;
-//    }
 }
