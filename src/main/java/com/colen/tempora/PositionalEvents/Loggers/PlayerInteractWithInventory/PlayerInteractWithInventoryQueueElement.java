@@ -20,20 +20,20 @@ public class PlayerInteractWithInventoryQueueElement extends GenericQueueElement
         String playerName = PlayerUtils.UUIDToName(playerUUID); // Converting player UUID to name.
         String itemDetails = getNameOfItemStack(itemId, itemMetadata); // Getting name and details of the item stack.
 
-        String interactionLocalized = interactionType.equals("Add") ? "added to" : "removed from";
+        String interactionLocalized = interactionType.equals("Add") ? "added" : "removed";
 
         return StatCollector.translateToLocalFormatted(
             "message.inventory_interaction",
             playerName,
             interactionLocalized,
-            containerName,
             itemDetails,
-            itemId, // Ensure this is an integer or is parsed to one if necessary.
-            itemMetadata, // Ensure this is an integer or is parsed to one if necessary.
-            String.format("%.1f", x), // Formatting the x coordinate to one decimal place.
-            String.format("%.1f", y), // Formatting the y coordinate to one decimal place.
-            String.format("%.1f", z), // Formatting the z coordinate to one decimal place.
-            formattedTime // Placing formatted time last as per the string format.
+            itemId,
+            itemMetadata,
+            containerName,
+            (int) x,
+            (int) y,
+            (int) z,
+            formattedTime
         );
     }
 
