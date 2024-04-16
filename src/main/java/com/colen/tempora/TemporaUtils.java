@@ -65,7 +65,7 @@ public class TemporaUtils {
             case 'm' -> TimeUnit.MINUTES.toSeconds(value);
             case 'h' -> TimeUnit.HOURS.toSeconds(value);
             case 'd' -> TimeUnit.DAYS.toSeconds(value);
-            default -> throw new IllegalArgumentException("Invalid time format provided.");
+            default -> -1;
             // Needs better handling.
         };
     }
