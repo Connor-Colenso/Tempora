@@ -44,6 +44,7 @@ public class PlayerInteractWithInventoryLogger extends GenericPositionalLogger<P
             queueElement.interactionType = rs.getString("interactionType");
             queueElement.itemId = rs.getInt("itemId");
             queueElement.itemMetadata = rs.getInt("itemMetadata");
+            queueElement.stacksize = rs.getInt("stacksize");
             eventList.add(queueElement);
         }
         return eventList;
@@ -55,7 +56,7 @@ public class PlayerInteractWithInventoryLogger extends GenericPositionalLogger<P
         try {
             PreparedStatement statement = positionLoggerDBConnection.prepareStatement(
                 "CREATE TABLE IF NOT EXISTS " + getTableName() +
-                    " (id INTEGER PRIMARY KEY AUTOINCREMENT, x REAL NOT NULL, y REAL NOT NULL, z REAL NOT NULL, dimensionID INTEGER NOT NULL, timestamp DATETIME NOT NULL, containerName TEXT NOT NULL, interactionType TEXT NOT NULL, playerUUID TEXT NOT NULL, itemId INTEGER, itemMetadata INTEGER);");
+                    " (id INTEGER PRIMARY KEY AUTOINCREMENT, x REAL NOT NULL, y REAL NOT NULL, z REAL NOT NULL, dimensionID INTEGER NOT NULL, timestamp DATETIME NOT NULL, containerName TEXT NOT NULL, interactionType TEXT NOT NULL, playerUUID TEXT NOT NULL, itemId INTEGER NOT NULL, itemMetadata INTEGER NOT NULL, stacksize INTEGER NOT NULL);");
             statement.execute();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -67,7 +68,7 @@ public class PlayerInteractWithInventoryLogger extends GenericPositionalLogger<P
     public void threadedSaveEvent(PlayerInteractWithInventoryQueueElement element) {
         try {
             PreparedStatement pstmt = positionLoggerDBConnection.prepareStatement(
-                "INSERT INTO " + getTableName() + " (x, y, z, dimensionID, timestamp, containerName, interactionType, itemId, itemMetadata, playerUUID) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                "INSERT INTO " + getTableName() + " (x, y, z, dimensionID, timestamp, containerName, interactionType, itemId, itemMetadata, playerUUID, stacksize) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
             pstmt.setDouble(1, element.x);
             pstmt.setDouble(2, element.y);
             pstmt.setDouble(3, element.z);
@@ -78,6 +79,7 @@ public class PlayerInteractWithInventoryLogger extends GenericPositionalLogger<P
             pstmt.setInt(8, element.itemId);
             pstmt.setInt(9, element.itemMetadata);
             pstmt.setString(10, element.playerUUID);
+            pstmt.setInt(11, element.stacksize);
             pstmt.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -122,6 +124,7 @@ public class PlayerInteractWithInventoryLogger extends GenericPositionalLogger<P
         queueElement.interactionType = packetClickWindow.func_149542_h() == 0 ? "Remove" : "Add";
         queueElement.itemId = Item.getIdFromItem(itemStack.getItem());
         queueElement.itemMetadata = itemStack.getItemDamage();
+        queueElement.stacksize = itemStack.stackSize;
 
         // todo stacksize
 
