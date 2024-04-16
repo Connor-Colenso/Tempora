@@ -31,7 +31,11 @@ public class QueryEventsCommand extends CommandBase {
         }
 
         int radius = parseInt(sender, args[0]);
-        long seconds = TemporaUtils.parseTime(args[1]);
+        long seconds = TemporaUtils.parseTime(args[1].toLowerCase());
+        if (seconds == -1) {
+            sender.addChatMessage(new ChatComponentText("Invalid date given, must provide e.g. 1d (1 day) or 1y (1 year)."));
+        }
+
         String tableName = args.length == 3 ? validateFilter(args[2]) : null;
 
         queryDatabases(sender, radius, seconds, tableName);
