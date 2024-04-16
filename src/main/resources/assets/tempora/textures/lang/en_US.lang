@@ -7,7 +7,7 @@ message.entity_spawn=%s spawned at [%s, %s, %s] (%s).
 message.explosion=Explosion caused by %s with strength %.1f near %s (%.1f meters away) at [%s, %s, %s] (%s).
 message.item_use=%s used %s (%d:%d) at [%s, %s, %s] (%s).
 message.player_movement=%s moved to [%s, %s, %s] (%s).
-message.inventory_interaction=%s %s %s (%d:%d) to %s at [%d, %d, %d] (%s).
+message.inventory_interaction=%s %s %dx%s (%d:%d) to %s at [%d, %d, %d] (%s).
 
 time.ago.decades=%s decades ago
 time.ago.years=%s years ago

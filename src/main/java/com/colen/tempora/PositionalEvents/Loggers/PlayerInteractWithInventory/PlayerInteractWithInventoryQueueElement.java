@@ -13,6 +13,7 @@ public class PlayerInteractWithInventoryQueueElement extends GenericQueueElement
     public int itemId;
     public int itemMetadata;
     public String playerUUID;
+    public int stacksize;
 
     @Override
     public String localiseText() {
@@ -26,6 +27,7 @@ public class PlayerInteractWithInventoryQueueElement extends GenericQueueElement
             "message.inventory_interaction",
             playerName,
             interactionLocalized,
+            stacksize,
             itemDetails,
             itemId,
             itemMetadata,
