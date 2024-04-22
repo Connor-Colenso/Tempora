@@ -82,7 +82,7 @@ public class QueryEventsCommand extends CommandBase {
 
     private List<String> getFilterOptions() {
         List<String> options = new ArrayList<>();
-        for (GenericPositionalLogger<?> logger : GenericPositionalLogger.loggerList) {
+        for (GenericPositionalLogger<?> logger : GenericPositionalLogger.getLoggerList()) {
             options.add(logger.getTableName());
         }
         return options;

@@ -18,6 +18,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -70,7 +71,13 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
     public abstract void handleConfig(Configuration config);
 
-    public static final Set<GenericPositionalLogger<?>> loggerList = new HashSet<>();
+    private static final Set<GenericPositionalLogger<?>> loggerList = new HashSet<>();
+    public static void registerLogger(GenericPositionalLogger<?> logger) {
+        loggerList.add(logger);
+    }
+    public static Set<GenericPositionalLogger<?>> getLoggerList() {
+        return Collections.unmodifiableSet(loggerList);
+    }
 
     protected abstract ArrayList<ISerializable> generatePacket(ResultSet rs) throws SQLException;
 

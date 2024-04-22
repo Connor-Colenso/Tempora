@@ -20,7 +20,7 @@ import java.util.ArrayList;
 public class PlayerInteractWithInventoryLogger extends GenericPositionalLogger<PlayerInteractWithInventoryQueueElement> {
 
     public PlayerInteractWithInventoryLogger() {
-        loggerList.add(this);
+        registerLogger(this);
         // No event logging needed, so we override the constructor here.
     }
 
