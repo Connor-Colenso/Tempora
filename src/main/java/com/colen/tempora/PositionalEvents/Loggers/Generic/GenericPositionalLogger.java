@@ -3,6 +3,7 @@ package com.colen.tempora.PositionalEvents.Loggers.Generic;
 import com.colen.tempora.PositionalEvents.Loggers.GenericPacket;
 import com.colen.tempora.PositionalEvents.Loggers.ISerializable;
 import com.colen.tempora.TemporaUtils;
+import com.colen.tempora.Utils.TimeUtils;
 import cpw.mods.fml.common.FMLCommonHandler;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -24,14 +25,49 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static com.colen.tempora.Config.Config.OLDEST_DATA_CATEGORY;
 import static com.colen.tempora.Tempora.NETWORK;
 
 public abstract class GenericPositionalLogger<EventToLog extends GenericQueueElement> {
 
+    // This is not strictly thread safe but since we are doing this before the server has even started properly
+    // nothing else is interacting with the db, so it's fine for now.
+    private void eraseOldData(long time) {
+        // Prepare SQL statement with the safe table name
+        String sql = "DELETE FROM " + this.getTableName() + " WHERE timestamp < ?";
+
+        try (PreparedStatement pstmt = getNewConnection().prepareStatement(sql)) {
+            // Set the parameter for the PreparedStatement
+            pstmt.setLong(1, time);
+
+            // Execute the update
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            System.err.println("SQL error could not erase old data: " + e.getMessage());
+        }
+
+    }
+
+    public String OLDEST_DATA_DEFAULT = "4m";
+
+    public void handleOldDataConfig(Configuration configuration) {
+
+        String configName = this.getClass().getSimpleName() + "_OldestDataCutoff";
+
+        String answer = configuration.getString(configName, OLDEST_DATA_CATEGORY, OLDEST_DATA_DEFAULT, "");
+        long time = TemporaUtils.parseTime(answer);
+        if (time == -1) {
+            System.err.println("INVALID TIMESTAMP " + answer + " for " + configName + " in " + OLDEST_DATA_DEFAULT + " tempora config. Cancelled deletion.");
+            return;
+        }
+
+        eraseOldData(time);
+    }
+
     protected static final int MAX_DATA_ROWS_PER_PACKET = 5;
-    protected static AtomicBoolean savingData;
     private static final ExecutorService executor = Executors.newSingleThreadExecutor();
     private static final AtomicBoolean keepRunning = new AtomicBoolean(true);
     protected ConcurrentLinkedQueue<EventToLog> eventQueue = new ConcurrentLinkedQueue<>();

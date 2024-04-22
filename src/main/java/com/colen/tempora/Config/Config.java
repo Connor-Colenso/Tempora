@@ -6,6 +6,7 @@ import net.minecraftforge.common.config.Configuration;
 public class Config {
 
     private static final String debugCategory = "Debug";
+    public static final String OLDEST_DATA_CATEGORY = "Oldest Data";
     public static final String formatCategory = "Format";
     public static final String loggingIntervals = "Logging Intervals";
 
