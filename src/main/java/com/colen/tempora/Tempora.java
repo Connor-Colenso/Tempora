@@ -94,7 +94,7 @@ public class Tempora {
         }
 
         // Each logger handles their own config settings.
-        for (GenericPositionalLogger<?> logger : GenericPositionalLogger.loggerList) {
+        for (GenericPositionalLogger<?> logger : GenericPositionalLogger.getLoggerList()) {
             logger.handleConfig(config);
         }
 
@@ -116,7 +116,7 @@ public class Tempora {
         // Only register this on the server side. We do it here because in SP, preInit etc only runs for the client.
 
         if (TemporaUtils.shouldTemporaRun()) {
-            for (GenericPositionalLogger<?> logger : GenericPositionalLogger.loggerList) {
+            for (GenericPositionalLogger<?> logger : GenericPositionalLogger.getLoggerList()) {
                 logger.registerEvent();
             }
         }

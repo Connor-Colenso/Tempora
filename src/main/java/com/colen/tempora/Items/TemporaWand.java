@@ -26,7 +26,7 @@ public class TemporaWand extends Item {
     public ItemStack onItemRightClick(ItemStack itemStackIn, World world, EntityPlayer player) {
 
         if (TemporaUtils.isServerSide()) {
-            for(GenericPositionalLogger<?> logger : GenericPositionalLogger.loggerList) {
+            for(GenericPositionalLogger<?> logger : GenericPositionalLogger.getLoggerList()) {
                 QueryEventsCommand.queryDatabases(player, 10, 3600, logger.getTableName());
             }
         }
