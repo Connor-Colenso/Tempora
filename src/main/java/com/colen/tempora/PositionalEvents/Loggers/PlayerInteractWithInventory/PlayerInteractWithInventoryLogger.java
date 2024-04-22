@@ -95,7 +95,10 @@ public class PlayerInteractWithInventoryLogger extends GenericPositionalLogger<P
         if (itemStack == null) return; // No item was involved in the interaction.
 
         double x = 0, y = 0, z = 0;
-        String containerType = "Unknown";
+        String containerType = "[TEMPORA_UNKNOWN_CONTAINER]";
+
+        System.out.println(packetClickWindow.func_149544_d());
+        System.out.println(packetClickWindow.serialize());
 
         // Check if the container is linked to a TileEntity
         if (!container.inventorySlots.isEmpty()) {
@@ -106,7 +109,7 @@ public class PlayerInteractWithInventoryLogger extends GenericPositionalLogger<P
                 z = tileEntity.zCoord;
                 containerType = tileEntity.getBlockType().getLocalizedName();
             } else {
-                containerType = "[TEMPORA_UNKNOWN_CONTAINER]";
+                containerType = inventory.getClass().getSimpleName();
                 x = playerMP.posX;
                 y = playerMP.posY;
                 z = playerMP.posZ;
@@ -121,12 +124,11 @@ public class PlayerInteractWithInventoryLogger extends GenericPositionalLogger<P
         queueElement.timestamp = System.currentTimeMillis();
         queueElement.playerUUID = playerMP.getUniqueID().toString();
         queueElement.containerName = containerType;
-        queueElement.interactionType = packetClickWindow.func_149542_h() == 0 ? "Remove" : "Add";
+        // 36 because of the size of the players inventory.
+        queueElement.interactionType = packetClickWindow.func_149544_d() < (playerMP.openContainer.inventorySlots.size() - 36) ? "Remove" : "Add";
         queueElement.itemId = Item.getIdFromItem(itemStack.getItem());
         queueElement.itemMetadata = itemStack.getItemDamage();
         queueElement.stacksize = itemStack.stackSize;
-
-        // todo stacksize
 
         eventQueue.add(queueElement);
     }
