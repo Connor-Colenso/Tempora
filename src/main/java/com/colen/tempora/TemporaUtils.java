@@ -1,20 +1,17 @@
 package com.colen.tempora;
 
+import com.colen.tempora.Config.Config;
+import cpw.mods.fml.common.FMLCommonHandler;
+import cpw.mods.fml.relauncher.Side;
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.network.play.client.C0EPacketClickWindow;
+import net.minecraft.server.MinecraftServer;
+
 import java.io.File;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.concurrent.TimeUnit;
-
-import com.colen.tempora.Config.Config;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.network.play.client.C0EPacketClickWindow;
-import net.minecraft.server.MinecraftServer;
-
-import cpw.mods.fml.common.FMLCommonHandler;
-import cpw.mods.fml.relauncher.Side;
-import org.spongepowered.asm.mixin.Unique;
 
 public class TemporaUtils {
 
@@ -50,24 +47,6 @@ public class TemporaUtils {
 
     public static boolean shouldTemporaRun() {
         return isServerSide() || Config.shouldTemporaRun;
-    }
-
-    public static String defaultDimID() {
-        return "999";
-    }
-
-    public static long parseTime(String time) {
-        char timeSpecifier = time.charAt(time.length() - 1);
-        int value = Integer.parseInt(time.substring(0, time.length() - 1));
-
-        return switch (timeSpecifier) {
-            case 's' -> value;
-            case 'm' -> TimeUnit.MINUTES.toSeconds(value);
-            case 'h' -> TimeUnit.HOURS.toSeconds(value);
-            case 'd' -> TimeUnit.DAYS.toSeconds(value);
-            default -> -1;
-            // Needs better handling.
-        };
     }
 
     // Unix epoch in miliseconds -> Date string

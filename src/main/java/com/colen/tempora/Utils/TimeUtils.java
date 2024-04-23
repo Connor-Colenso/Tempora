@@ -1,5 +1,6 @@
 package com.colen.tempora.Utils;
 
+import net.minecraft.command.CommandException;
 import net.minecraft.util.StatCollector;
 import net.minecraftforge.common.config.Configuration;
 
@@ -89,5 +90,32 @@ public class TimeUtils {
         } else {
             return String.format(StatCollector.translateToLocal("time.ago.seconds"), String.format("%.1f", seconds));
         }
+    }
+
+    public static long convertToSeconds(String timeDescription) {
+        // Use regular expressions to separate numbers from text
+        java.util.regex.Matcher matcher = java.util.regex.Pattern.compile("(\\d+)([a-zA-Z]+)").matcher(timeDescription);
+        if (!matcher.matches()) {
+            throw new CommandException("Invalid time description. It should be in the format 'numberunit', e.g., '1week' or '5months'.");
+        }
+
+        long number = Long.parseLong(matcher.group(1));
+        String unit = matcher.group(2).toLowerCase();
+        // Remove trailing 's' if present to handle both singular and plural forms
+        if (unit.endsWith("s")) {
+            unit = unit.substring(0, unit.length() - 1);
+        }
+
+        return switch (unit) {
+            case "second" -> number;
+            case "minute" -> number * 60;
+            case "hour" -> number * 3600;
+            case "day" -> number * 86400;
+            case "week" -> number * 604800;
+            case "month" -> number * 2592000; // Approximation using 30 days per month
+            case "year" -> number * 31557600; // Using 365.25 days per year
+            case "decade" -> number * 315576000; // 10 years
+            default -> throw new CommandException("Unsupported time unit. Use one of: second, minute, hour, day, week, month, year, decade.");
+        };
     }
 }

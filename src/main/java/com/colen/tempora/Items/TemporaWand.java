@@ -1,7 +1,7 @@
 package com.colen.tempora.Items;
 
-import com.colen.tempora.PositionalEvents.Commands.QueryEventsCommand;
-import com.colen.tempora.PositionalEvents.Loggers.Generic.GenericPositionalLogger;
+import com.colen.tempora.Logging.PositionalEvents.Commands.QueryEventsCommand;
+import com.colen.tempora.Logging.PositionalEvents.Loggers.Generic.GenericPositionalLogger;
 import com.colen.tempora.TemporaUtils;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.player.EntityPlayer;
