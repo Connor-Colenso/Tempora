@@ -3,7 +3,7 @@ package com.colen.tempora;
 import static com.colen.tempora.Config.Config.synchronizeConfiguration;
 
 import com.colen.tempora.Items.TemporaWand;
-import com.colen.tempora.PositionalEvents.Loggers.PlayerInteractWithInventory.PlayerInteractWithInventoryLogger;
+import com.colen.tempora.Logging.PositionalEvents.Loggers.PlayerInteractWithInventory.PlayerInteractWithInventoryLogger;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
 
@@ -18,18 +18,18 @@ import com.colen.tempora.Commands.TrackPlayer.Network.PlayerPositionPacketHandle
 import com.colen.tempora.Commands.TrackPlayer.PlayerTrackerRenderer;
 import com.colen.tempora.Commands.TrackPlayer.TrackPlayerCommand;
 import com.colen.tempora.Items.TemporaScannerItem;
-import com.colen.tempora.PositionalEvents.Commands.QueryEventsCommand;
-import com.colen.tempora.PositionalEvents.Loggers.BlockBreak.BlockBreakLogger;
-import com.colen.tempora.PositionalEvents.Loggers.BlockPlace.BlockPlaceLogger;
-import com.colen.tempora.PositionalEvents.Loggers.Command.CommandLogger;
-import com.colen.tempora.PositionalEvents.Loggers.EntityDeath.EntityDeathLogger;
-import com.colen.tempora.PositionalEvents.Loggers.EntityPosition.EntityPositionLogger;
-import com.colen.tempora.PositionalEvents.Loggers.EntitySpawn.EntitySpawnLogger;
-import com.colen.tempora.PositionalEvents.Loggers.Explosion.ExplosionLogger;
-import com.colen.tempora.PositionalEvents.Loggers.Generic.GenericPositionalLogger;
-import com.colen.tempora.PositionalEvents.Loggers.GenericPacket;
-import com.colen.tempora.PositionalEvents.Loggers.ItemUse.ItemUseLogger;
-import com.colen.tempora.PositionalEvents.Loggers.PlayerMovement.PlayerMovementLogger;
+import com.colen.tempora.Logging.PositionalEvents.Commands.QueryEventsCommand;
+import com.colen.tempora.Logging.PositionalEvents.Loggers.BlockBreak.BlockBreakLogger;
+import com.colen.tempora.Logging.PositionalEvents.Loggers.BlockPlace.BlockPlaceLogger;
+import com.colen.tempora.Logging.PositionalEvents.Loggers.Command.CommandLogger;
+import com.colen.tempora.Logging.PositionalEvents.Loggers.EntityDeath.EntityDeathLogger;
+import com.colen.tempora.Logging.PositionalEvents.Loggers.EntityPosition.EntityPositionLogger;
+import com.colen.tempora.Logging.PositionalEvents.Loggers.EntitySpawn.EntitySpawnLogger;
+import com.colen.tempora.Logging.PositionalEvents.Loggers.Explosion.ExplosionLogger;
+import com.colen.tempora.Logging.PositionalEvents.Loggers.Generic.GenericPositionalLogger;
+import com.colen.tempora.Logging.PositionalEvents.Loggers.GenericPacket;
+import com.colen.tempora.Logging.PositionalEvents.Loggers.ItemUse.ItemUseLogger;
+import com.colen.tempora.Logging.PositionalEvents.Loggers.PlayerMovement.PlayerMovementLogger;
 import com.colen.tempora.Rendering.RenderInWorldDispatcher;
 
 import cpw.mods.fml.common.Mod;
@@ -96,7 +96,6 @@ public class Tempora {
         // Each logger handles their own config settings.
         for (GenericPositionalLogger<?> logger : GenericPositionalLogger.getLoggerList()) {
             logger.handleConfig(config);
-            logger.handleOldDataConfig(config);
         }
 
         // After all config handling is done.
@@ -119,6 +118,7 @@ public class Tempora {
         if (TemporaUtils.shouldTemporaRun()) {
             for (GenericPositionalLogger<?> logger : GenericPositionalLogger.getLoggerList()) {
                 logger.registerEvent();
+                logger.handleOldDataConfig(config);
             }
         }
 

@@ -1,5 +1,6 @@
 package com.colen.tempora.Commands.HeatMap;
 
+import com.colen.tempora.Utils.TimeUtils;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
@@ -28,7 +29,7 @@ public class HeatMapCommand extends CommandBase {
         String playerToBeTracked = args[0];
         sender.addChatMessage(new ChatComponentText("Now tracking player " + playerToBeTracked + " with heatmap."));
 
-        long maxTime = TemporaUtils.parseTime(args[1]);
+        long maxTime = TimeUtils.convertToSeconds(args[1]);
 
         if ((args.length == 3) && (args[2].equalsIgnoreCase("t"))) {
             sender.addChatMessage(new ChatComponentText("Auto-updating heatmap enabled."));
