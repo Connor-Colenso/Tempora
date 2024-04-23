@@ -50,22 +50,14 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
     }
 
-    public String OLDEST_DATA_DEFAULT = "4months";
-
     public void handleOldDataConfig(Configuration configuration) {
-
         String configName = this.getClass().getSimpleName() + "_OldestDataCutoff";
-
         String answer = configuration.getString(configName, OLDEST_DATA_CATEGORY, OLDEST_DATA_DEFAULT, "");
-        long time = TimeUtils.convertToSeconds(answer);
-        if (time == -1) {
-            System.err.println("INVALID TIMESTAMP " + answer + " for " + configName + " in " + OLDEST_DATA_DEFAULT + " tempora config. Cancelled deletion.");
-            return;
-        }
 
-        eraseOldDataBeforeTime(System.currentTimeMillis() - time * 1000);
+        eraseOldDataBeforeTime(System.currentTimeMillis() - TimeUtils.convertToSeconds(answer) * 1000);
     }
 
+    public String OLDEST_DATA_DEFAULT = "4months";
     protected static final int MAX_DATA_ROWS_PER_PACKET = 5;
     private static final ExecutorService executor = Executors.newSingleThreadExecutor();
     private static final AtomicBoolean keepRunning = new AtomicBoolean(true);
