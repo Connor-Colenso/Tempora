@@ -1,36 +1,27 @@
 package com.colen.tempora;
 
-import static com.colen.tempora.Config.Config.synchronizeConfiguration;
+import static com.colen.tempora.config.Config.synchronizeConfiguration;
 
-import com.colen.tempora.Items.TemporaWand;
-import com.colen.tempora.Logging.PositionalEvents.Loggers.PlayerInteractWithInventory.PlayerInteractWithInventoryLogger;
+import com.colen.tempora.items.TemporaWand;
+import com.colen.tempora.logging.loggers.player_interact_with_inventory.PlayerInteractWithInventoryLogger;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.colen.tempora.Commands.HeatMap.HeatMapCommand;
-import com.colen.tempora.Commands.HeatMap.Network.HeatMapPacket;
-import com.colen.tempora.Commands.HeatMap.Network.HeatMapPacketHandler;
-import com.colen.tempora.Commands.TrackPlayer.Network.PlayerPositionPacket;
-import com.colen.tempora.Commands.TrackPlayer.Network.PlayerPositionPacketHandler;
-import com.colen.tempora.Commands.TrackPlayer.PlayerTrackerRenderer;
-import com.colen.tempora.Commands.TrackPlayer.TrackPlayerCommand;
-import com.colen.tempora.Items.TemporaScannerItem;
-import com.colen.tempora.Logging.PositionalEvents.Commands.QueryEventsCommand;
-import com.colen.tempora.Logging.PositionalEvents.Loggers.BlockBreak.BlockBreakLogger;
-import com.colen.tempora.Logging.PositionalEvents.Loggers.BlockPlace.BlockPlaceLogger;
-import com.colen.tempora.Logging.PositionalEvents.Loggers.Command.CommandLogger;
-import com.colen.tempora.Logging.PositionalEvents.Loggers.EntityDeath.EntityDeathLogger;
-import com.colen.tempora.Logging.PositionalEvents.Loggers.EntityPosition.EntityPositionLogger;
-import com.colen.tempora.Logging.PositionalEvents.Loggers.EntitySpawn.EntitySpawnLogger;
-import com.colen.tempora.Logging.PositionalEvents.Loggers.Explosion.ExplosionLogger;
-import com.colen.tempora.Logging.PositionalEvents.Loggers.Generic.GenericPositionalLogger;
-import com.colen.tempora.Logging.PositionalEvents.Loggers.GenericPacket;
-import com.colen.tempora.Logging.PositionalEvents.Loggers.ItemUse.ItemUseLogger;
-import com.colen.tempora.Logging.PositionalEvents.Loggers.PlayerMovement.PlayerMovementLogger;
-import com.colen.tempora.Rendering.RenderInWorldDispatcher;
+import com.colen.tempora.logging.commands.QueryEventsCommand;
+import com.colen.tempora.logging.loggers.block_break.BlockBreakLogger;
+import com.colen.tempora.logging.loggers.block_place.BlockPlaceLogger;
+import com.colen.tempora.logging.loggers.command.CommandLogger;
+import com.colen.tempora.logging.loggers.entity_death.EntityDeathLogger;
+import com.colen.tempora.logging.loggers.entity_position.EntityPositionLogger;
+import com.colen.tempora.logging.loggers.entity_spawn.EntitySpawnLogger;
+import com.colen.tempora.logging.loggers.explosion.ExplosionLogger;
+import com.colen.tempora.logging.loggers.generic.GenericPositionalLogger;
+import com.colen.tempora.logging.loggers.GenericPacket;
+import com.colen.tempora.logging.loggers.item_use.ItemUseLogger;
+import com.colen.tempora.logging.loggers.player_movement.PlayerMovementLogger;
 
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.SidedProxy;
@@ -64,16 +55,12 @@ public class Tempora {
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {
         config = new Configuration(event.getSuggestedConfigurationFile());
-        GameRegistry.registerItem(new TemporaScannerItem(), "tempora_scanner");
         GameRegistry.registerItem(new TemporaWand(), "admin_wand");
         Tempora.LOG.info("I am " + Tempora.MODNAME + " at version " + Tags.VERSION);
     }
 
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
-
-        NETWORK.registerMessage(PlayerPositionPacketHandler.class, PlayerPositionPacket.class, 0, Side.CLIENT);
-        NETWORK.registerMessage(HeatMapPacketHandler.class, HeatMapPacket.class, 1, Side.CLIENT);
 
         NETWORK.registerMessage(GenericPacket.ClientMessageHandler.class, GenericPacket.class, 11, Side.CLIENT);
 
@@ -103,9 +90,6 @@ public class Tempora {
             config.save();
         }
 
-        if (TemporaUtils.isClientSide()) {
-            MinecraftForge.EVENT_BUS.register(new RenderInWorldDispatcher());
-        }
     }
 
     @Mod.EventHandler
@@ -135,14 +119,11 @@ public class Tempora {
 
     private void registerNewCommands(FMLServerStartingEvent event) {
         event.registerServerCommand(new QueryEventsCommand());
-        event.registerServerCommand(new TrackPlayerCommand());
-        event.registerServerCommand(new HeatMapCommand());
     }
 
     @Mod.EventHandler
     public void serverStopping(FMLServerStoppingEvent event) {
         if (TemporaUtils.isServerSide()) {
-            PlayerTrackerRenderer.clearBuffer();
             GenericPositionalLogger.onServerClose();
         }
     }

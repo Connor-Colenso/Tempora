@@ -1,6 +1,6 @@
 package com.colen.tempora;
 
-import com.colen.tempora.Config.Config;
+import com.colen.tempora.config.Config;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.relauncher.Side;
 import net.minecraft.entity.player.EntityPlayerMP;
