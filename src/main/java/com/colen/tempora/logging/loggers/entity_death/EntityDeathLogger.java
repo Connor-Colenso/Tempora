@@ -58,7 +58,7 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueE
             queueElement.nameOfPlayerWhoKilledMob = "[" + event.source.damageType + "]";
         }
 
-        eventQueue.add(queueElement);
+        queueEvent(queueElement);
     }
 
     @Override

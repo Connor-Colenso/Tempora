@@ -123,6 +123,6 @@ public class BlockBreakLogger extends GenericPositionalLogger<BlockBreakQueueEle
             queueElement.playerNameWhoBrokeBlock = TemporaUtils.UNKNOWN_PLAYER_NAME;
         }
 
-        eventQueue.add(queueElement);
+        queueEvent(queueElement);
     }
 }

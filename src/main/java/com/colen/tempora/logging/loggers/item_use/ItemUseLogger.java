@@ -137,8 +137,7 @@ public class ItemUseLogger extends GenericPositionalLogger<ItemUseQueueElement> 
             queueElement.itemMetadata = 0;
         }
 
-        eventQueue.add(queueElement);
-
+        queueEvent(queueElement);
     }
 
 }

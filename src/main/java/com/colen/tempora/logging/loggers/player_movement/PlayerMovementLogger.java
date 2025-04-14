@@ -128,7 +128,7 @@ public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovement
         queueElement.playerName = player.getUniqueID()
             .toString();
 
-        eventQueue.add(queueElement);
+        queueEvent(queueElement);
     }
 
 }

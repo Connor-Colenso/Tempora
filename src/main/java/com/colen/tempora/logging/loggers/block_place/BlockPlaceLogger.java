@@ -115,6 +115,6 @@ public class BlockPlaceLogger extends GenericPositionalLogger<BlockPlaceQueueEle
             queueElement.playerNameWhoPlacedBlock = TemporaUtils.UNKNOWN_PLAYER_NAME;
         }
 
-        eventQueue.add(queueElement);
+        queueEvent(queueElement);
     }
 }

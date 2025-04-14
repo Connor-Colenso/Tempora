@@ -130,7 +130,7 @@ public class PlayerInteractWithInventoryLogger extends GenericPositionalLogger<P
         queueElement.itemMetadata = itemStack.getItemDamage();
         queueElement.stacksize = itemStack.stackSize;
 
-        eventQueue.add(queueElement);
+        queueEvent(queueElement);
     }
 
 }
