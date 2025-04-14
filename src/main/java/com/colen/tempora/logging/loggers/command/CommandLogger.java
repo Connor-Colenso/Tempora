@@ -116,7 +116,7 @@ public class CommandLogger extends GenericPositionalLogger<CommandQueueElement> 
             queueElement.commandName = command.getCommandName();
             queueElement.arguments = String.join(" ", args);
 
-            eventQueue.add(queueElement);
+            queueEvent(queueElement);
         }
     }
 }

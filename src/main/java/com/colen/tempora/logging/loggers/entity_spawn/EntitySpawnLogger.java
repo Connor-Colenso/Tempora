@@ -41,7 +41,7 @@ public class EntitySpawnLogger extends GenericPositionalLogger<EntitySpawnQueueE
 
         queueElement.entityName = event.entityLiving.getCommandSenderName();
 
-        eventQueue.add(queueElement);
+        queueEvent(queueElement);
     }
 
     @Override

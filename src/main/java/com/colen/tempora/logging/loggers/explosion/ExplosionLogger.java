@@ -137,7 +137,8 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionQueueEleme
         queueElement.exploderName = exploderName;
         queueElement.closestPlayerName = closestPlayerName;
         queueElement.closestPlayerDistance = closestDistance;
-        eventQueue.add(queueElement);
+
+        queueEvent(queueElement);
     }
 
 }

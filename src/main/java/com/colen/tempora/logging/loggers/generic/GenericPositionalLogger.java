@@ -25,6 +25,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.colen.tempora.config.Config.OLDEST_DATA_CATEGORY;
@@ -59,42 +60,10 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
     public String OLDEST_DATA_DEFAULT = "4months";
     protected static final int MAX_DATA_ROWS_PER_PACKET = 5;
-    private static final ExecutorService executor = Executors.newSingleThreadExecutor();
-    private static final AtomicBoolean keepRunning = new AtomicBoolean(true);
-    protected ConcurrentLinkedQueue<EventToLog> eventQueue = new ConcurrentLinkedQueue<>();
+    private static ExecutorService executor;
+    private final ConcurrentLinkedQueue<EventToLog> eventQueue = new ConcurrentLinkedQueue<>();
 
     public abstract void threadedSaveEvent(EventToLog event);
-
-    public static void startEventProcessingThread() {
-        executor.submit(() -> {
-            while (keepRunning.get()) {
-                try {
-                    processAllLoggerQueues();
-                    //Thread.sleep(5000);
-                } catch (Exception e) {
-                    System.err.println("An error occurred in the logging processor thread: " + e.getMessage());
-                    e.printStackTrace();
-                }
-            }
-        });
-    }
-
-    private static synchronized void processAllLoggerQueues() {
-        for (GenericPositionalLogger<?> logger : loggerList) {
-            processLoggerQueue(logger);
-        }
-    }
-
-    private static <T extends GenericQueueElement> void processLoggerQueue(GenericPositionalLogger<T> logger) {
-        while (!logger.eventQueue.isEmpty()) {
-            logger.threadedSaveEvent(logger.eventQueue.poll());
-        }
-    }
-
-    public static void stopEventProcessingThread() {
-        keepRunning.set(false);
-        executor.shutdownNow(); // Attempt to stop all actively executing tasks
-    }
 
     public abstract void handleConfig(Configuration config);
 
@@ -174,27 +143,6 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
         loggerList.add(this);
     }
 
-    public static void onServerStart() {
-        try {
-            System.out.println(
-                "Attempting to open tempora positional db at " + TemporaUtils.databaseDirectory()
-                    + "PositionalLogger.db");
-            positionLoggerDBConnection = DriverManager
-                .getConnection(TemporaUtils.databaseDirectory() + "PositionalLogger.db");
-
-            initAllTables();
-
-            // Init indexex for x, y, z, timestamp and dimensionID for all tables.
-            createAllIndexes();
-
-            startEventProcessingThread(); // Start processing thread
-        } catch (SQLException sqlException) {
-            System.err.println("Critical exception, could not open Tempora databases properly.");
-            sqlException.printStackTrace();
-        }
-    }
-
-
     private static Connection getNewConnection() {
         try {
             return DriverManager.getConnection(TemporaUtils.databaseDirectory() + "PositionalLogger.db");
@@ -204,15 +152,62 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
         }
     }
 
-    public static void onServerClose() {
+    public static void onServerStart() {
         try {
-            stopEventProcessingThread(); // Ensure the thread is stopped when the server is shutting down
-            positionLoggerDBConnection.close();
-        } catch (SQLException exception) {
-            System.err.println("Critical exception, could not close Tempora databases properly.");
-            exception.printStackTrace();
+            System.out.println("Opening Tempora DB...");
+            positionLoggerDBConnection = DriverManager.getConnection(TemporaUtils.databaseDirectory() + "PositionalLogger.db");
+
+            initAllTables();
+            createAllIndexes();
+
+            executor = Executors.newSingleThreadExecutor();
+
+        } catch (SQLException sqlException) {
+            System.err.println("Could not open Tempora databases.");
+            sqlException.printStackTrace();
         }
     }
+
+    public static void onServerClose() {
+        try {
+            if (positionLoggerDBConnection != null && !positionLoggerDBConnection.isClosed()) {
+                positionLoggerDBConnection.close();
+            }
+
+            if (executor != null && !executor.isShutdown()) {
+                executor.shutdown();
+                if (!executor.awaitTermination(10, TimeUnit.SECONDS)) {
+                    System.err.println("Executor timeout. Forcing shutdown.");
+                    executor.shutdownNow();
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Error closing resources:");
+            e.printStackTrace();
+        } finally {
+            executor = null;
+        }
+    }
+
+    public void queueEvent(EventToLog event) {
+        eventQueue.add(event);
+        if (executor != null && !executor.isShutdown()) {
+            executor.submit(this::processQueue);
+        }
+    }
+
+    private void processQueue() {
+        EventToLog event;
+        while ((event = eventQueue.poll()) != null) {
+            try {
+                threadedSaveEvent(event);
+            } catch (Exception e) {
+                System.err.println("Failed to save event: " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+    }
+
 
     public abstract void initTable();
 

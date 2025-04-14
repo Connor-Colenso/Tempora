@@ -110,7 +110,7 @@ public class EntityPositionLogger extends GenericPositionalLogger<EntityPosition
 
         queueElement.entityName = event.entityLiving.getCommandSenderName();
 
-        eventQueue.add(queueElement);
+        queueEvent(queueElement);
     }
 
 }
