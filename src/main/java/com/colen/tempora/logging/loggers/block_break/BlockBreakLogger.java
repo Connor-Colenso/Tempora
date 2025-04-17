@@ -26,7 +26,7 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 public class BlockBreakLogger extends GenericPositionalLogger<BlockBreakQueueElement> {
 
     @Override
-    public void handleConfig(Configuration config) {
+    public void handleCustomLoggerConfig(Configuration config) {
 
     }
 
@@ -61,7 +61,7 @@ public class BlockBreakLogger extends GenericPositionalLogger<BlockBreakQueueEle
     @Override
     public void initTable() {
         try {
-            positionLoggerDBConnection
+            positionalLoggerDBConnection
                 .prepareStatement(
                     "CREATE TABLE IF NOT EXISTS " + getLoggerName()
                         + " (id INTEGER PRIMARY KEY AUTOINCREMENT,"
@@ -84,7 +84,7 @@ public class BlockBreakLogger extends GenericPositionalLogger<BlockBreakQueueEle
         try {
             final String sql = "INSERT INTO " + getLoggerName()
                 + "(playerUUID, blockId, metadata, x, y, z, dimensionID, timestamp) VALUES(?, ?, ?, ?, ?, ?, ?, ?)";
-            final PreparedStatement pstmt = positionLoggerDBConnection.prepareStatement(sql);
+            final PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(sql);
             pstmt.setString(1, blockBreakQueueElement.playerNameWhoBrokeBlock);
             pstmt.setInt(2, blockBreakQueueElement.blockID);
             pstmt.setInt(3, blockBreakQueueElement.metadata);

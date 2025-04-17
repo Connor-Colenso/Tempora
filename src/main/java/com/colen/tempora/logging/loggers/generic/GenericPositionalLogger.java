@@ -35,8 +35,10 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
     private static final String OLDEST_DATA_DEFAULT = "4months";
     protected static final int MAX_DATA_ROWS_PER_PACKET = 5;
     private static ExecutorService executor;
+    protected static Connection positionalLoggerDBConnection;
     private final ConcurrentLinkedQueue<EventToLog> eventQueue = new ConcurrentLinkedQueue<>();
     private boolean isEnabled;
+    private String oldestDataCutoff;
     private static final Set<GenericPositionalLogger<?>> loggerList = new HashSet<>();
 
     public GenericPositionalLogger() {
@@ -58,23 +60,21 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
         } catch (SQLException e) {
             System.err.println("SQL error could not erase old data: " + e.getMessage());
         }
-
     }
 
-    public void handleOldDataConfig(Configuration configuration) {
-        final String answer = configuration.getString("OldestDataCutoff", getLoggerName(), OLDEST_DATA_DEFAULT, "Any records older than this relative to now, will be erased. This is unrecoverable, be careful!");
-
+    public void removeOldDatabaseData() {
         try {
-            eraseAllDataBeforeTime(System.currentTimeMillis() - TimeUtils.convertToSeconds(answer) * 1000);
+            eraseAllDataBeforeTime(System.currentTimeMillis() - TimeUtils.convertToSeconds(oldestDataCutoff) * 1000);
         } catch (Exception e) {
-            System.err.println("An error occurred while erasing old data in " + getLoggerName() + " are you sure you spelt the oldest data setting correctly (" + answer + ")? Check your tempora config." );
+            System.err.println("An error occurred while erasing old data in " + getLoggerName() + " are you sure you spelt the oldest data setting correctly (" + oldestDataCutoff + ")? Check your tempora config.");
+            System.exit(0);
             e.printStackTrace();
         }
     }
 
     public abstract void threadedSaveEvent(EventToLog event);
 
-    public abstract void handleConfig(Configuration config);
+    public abstract void handleCustomLoggerConfig(Configuration config);
 
     public static void registerLogger(GenericPositionalLogger<?> logger) {
         loggerList.add(logger);
@@ -138,8 +138,6 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
         }
     }
 
-    protected static Connection positionLoggerDBConnection;
-
     public final void registerEvent() {
         // Lazy but genuinely not sure how else to approach this generically without a big switch list.
 
@@ -162,7 +160,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
     public static void onServerStart() {
         try {
             System.out.println("Opening Tempora DB...");
-            positionLoggerDBConnection = DriverManager.getConnection(TemporaUtils.databaseDirectory() + "PositionalLogger.db");
+            positionalLoggerDBConnection = DriverManager.getConnection(TemporaUtils.databaseDirectory() + "PositionalLogger.db");
 
             initAllTables();
             createAllIndexes();
@@ -177,8 +175,8 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
     public static void onServerClose() {
         try {
-            if (positionLoggerDBConnection != null && !positionLoggerDBConnection.isClosed()) {
-                positionLoggerDBConnection.close();
+            if (positionalLoggerDBConnection != null && !positionalLoggerDBConnection.isClosed()) {
+                positionalLoggerDBConnection.close();
             }
 
             if (executor != null && !executor.isShutdown()) {
@@ -259,5 +257,6 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
     public final void genericConfig(@NotNull Configuration config) {
         isEnabled = config.getBoolean("isEnabled", getLoggerName(), true, "Enables this logger.");
+        oldestDataCutoff = config.getString("OldestDataCutoff", getLoggerName(), OLDEST_DATA_DEFAULT, "Any records older than this relative to now, will be erased. This is unrecoverable, be careful!");
     }
 }

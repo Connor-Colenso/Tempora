@@ -25,7 +25,7 @@ public class PlayerInteractWithInventoryLogger extends GenericPositionalLogger<P
     }
 
     @Override
-    public void handleConfig(Configuration config) {
+    public void handleCustomLoggerConfig(Configuration config) {
         // Implement configuration handling if needed
     }
 
@@ -54,7 +54,7 @@ public class PlayerInteractWithInventoryLogger extends GenericPositionalLogger<P
     @Override
     public void initTable() {
         try {
-            PreparedStatement statement = positionLoggerDBConnection.prepareStatement(
+            PreparedStatement statement = positionalLoggerDBConnection.prepareStatement(
                 "CREATE TABLE IF NOT EXISTS " + getLoggerName() +
                     " (id INTEGER PRIMARY KEY AUTOINCREMENT, x REAL NOT NULL, y REAL NOT NULL, z REAL NOT NULL, dimensionID INTEGER NOT NULL, timestamp DATETIME NOT NULL, containerName TEXT NOT NULL, interactionType TEXT NOT NULL, playerUUID TEXT NOT NULL, itemId INTEGER NOT NULL, itemMetadata INTEGER NOT NULL, stacksize INTEGER NOT NULL);");
             statement.execute();
@@ -66,7 +66,7 @@ public class PlayerInteractWithInventoryLogger extends GenericPositionalLogger<P
     @Override
     public void threadedSaveEvent(PlayerInteractWithInventoryQueueElement element) {
         try {
-            PreparedStatement pstmt = positionLoggerDBConnection.prepareStatement(
+            PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(
                 "INSERT INTO " + getLoggerName() + " (x, y, z, dimensionID, timestamp, containerName, interactionType, itemId, itemMetadata, playerUUID, stacksize) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
             pstmt.setDouble(1, element.x);
             pstmt.setDouble(2, element.y);

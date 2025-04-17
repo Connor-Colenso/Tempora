@@ -24,7 +24,7 @@ public class EntityPositionLogger extends GenericPositionalLogger<EntityPosition
     public static int entityMovementLoggingInterval;
 
     @Override
-    public void handleConfig(Configuration config) {
+    public void handleCustomLoggerConfig(Configuration config) {
         entityMovementLoggingInterval = config.getInt(
             "playerMovementLoggingInterval",
             loggingIntervals,
@@ -58,7 +58,7 @@ public class EntityPositionLogger extends GenericPositionalLogger<EntityPosition
     @Override
     public void initTable() {
         try {
-            positionLoggerDBConnection
+            positionalLoggerDBConnection
                 .prepareStatement(
                     "CREATE TABLE IF NOT EXISTS " + getLoggerName()
                         + " (id INTEGER PRIMARY KEY AUTOINCREMENT,"
@@ -79,7 +79,7 @@ public class EntityPositionLogger extends GenericPositionalLogger<EntityPosition
         try {
             final String sql = "INSERT INTO " + getLoggerName()
                 + "(entityName, x, y, z, dimensionID, timestamp) VALUES(?, ?, ?, ?, ?, ?)";
-            final PreparedStatement pstmt = positionLoggerDBConnection.prepareStatement(sql);
+            final PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(sql);
             pstmt.setString(1, entityPositionQueueElement.entityName);
             pstmt.setDouble(2, entityPositionQueueElement.x);
             pstmt.setDouble(3, entityPositionQueueElement.y);

@@ -26,7 +26,7 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 public class BlockPlaceLogger extends GenericPositionalLogger<BlockPlaceQueueElement> {
 
     @Override
-    public void handleConfig(Configuration config) {
+    public void handleCustomLoggerConfig(Configuration config) {
 
     }
 
@@ -55,7 +55,7 @@ public class BlockPlaceLogger extends GenericPositionalLogger<BlockPlaceQueueEle
     @Override
     public void initTable() {
         try {
-            positionLoggerDBConnection
+            positionalLoggerDBConnection
                 .prepareStatement(
                     "CREATE TABLE IF NOT EXISTS " + getLoggerName()
                         + " (id INTEGER PRIMARY KEY AUTOINCREMENT,"
@@ -78,7 +78,7 @@ public class BlockPlaceLogger extends GenericPositionalLogger<BlockPlaceQueueEle
         try {
             final String sql = "INSERT INTO " + getLoggerName()
                 + "(playerUUID, blockId, metadata, x, y, z, dimensionID, timestamp) VALUES(?, ?, ?, ?, ?, ?, ?, ?)";
-            final PreparedStatement pstmt = positionLoggerDBConnection.prepareStatement(sql);
+            final PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(sql);
             pstmt.setString(1, blockPlaceQueueElement.playerNameWhoPlacedBlock);
             pstmt.setInt(2, blockPlaceQueueElement.blockID);
             pstmt.setInt(3, blockPlaceQueueElement.metadata);

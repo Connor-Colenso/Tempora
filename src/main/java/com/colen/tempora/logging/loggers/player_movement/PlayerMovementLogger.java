@@ -36,7 +36,7 @@ public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovement
     private int playerMovementLoggingInterval;
 
     @Override
-    public void handleConfig(Configuration config) {
+    public void handleCustomLoggerConfig(Configuration config) {
         playerMovementLoggingInterval = config.getInt(
             "playerMovementLoggingInterval",
             loggingIntervals,
@@ -74,7 +74,7 @@ public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovement
     @Override
     public void initTable() {
         try {
-            positionLoggerDBConnection
+            positionalLoggerDBConnection
                 .prepareStatement(
                     "CREATE TABLE IF NOT EXISTS " + getLoggerName()
                         + " (id INTEGER PRIMARY KEY AUTOINCREMENT,"
@@ -95,7 +95,7 @@ public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovement
         try {
             final String sql = "INSERT INTO " + getLoggerName()
                 + "(playerUUID, x, y, z, dimensionID, timestamp) VALUES(?, ?, ?, ?, ?, ?)";
-            final PreparedStatement pstmt = positionLoggerDBConnection.prepareStatement(sql);
+            final PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(sql);
             pstmt.setString(1, playerMovementQueueElement.playerName);
             pstmt.setDouble(2, playerMovementQueueElement.x);
             pstmt.setDouble(3, playerMovementQueueElement.y);
