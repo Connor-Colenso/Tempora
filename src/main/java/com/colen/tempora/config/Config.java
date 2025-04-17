@@ -19,7 +19,7 @@ public class Config {
             "shouldTemporaRun",
             debugCategory,
             false,
-            "Runs all logging, not recommended unless you run a public server and want grief protection.");
+            "Runs all logging, not recommended unless you run a public server.");
 
         TimeUtils.handleConfig(configuration);
     }
