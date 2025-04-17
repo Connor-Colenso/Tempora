@@ -83,6 +83,7 @@ public class Tempora {
         // Each logger handles their own config settings.
         for (GenericPositionalLogger<?> logger : GenericPositionalLogger.getLoggerList()) {
             logger.handleConfig(config);
+            logger.genericConfig(config);
         }
 
         // After all config handling is done.

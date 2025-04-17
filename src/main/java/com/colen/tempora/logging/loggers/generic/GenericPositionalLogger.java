@@ -10,6 +10,7 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentText;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
+import org.jetbrains.annotations.NotNull;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -26,18 +27,27 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 
-import static com.colen.tempora.config.Config.OLDEST_DATA_CATEGORY;
 import static com.colen.tempora.Tempora.NETWORK;
 
 public abstract class GenericPositionalLogger<EventToLog extends GenericQueueElement> {
 
+    private static final String OLDEST_DATA_DEFAULT = "4months";
+    protected static final int MAX_DATA_ROWS_PER_PACKET = 5;
+    private static ExecutorService executor;
+    private final ConcurrentLinkedQueue<EventToLog> eventQueue = new ConcurrentLinkedQueue<>();
+    private boolean isEnabled;
+    private static final Set<GenericPositionalLogger<?>> loggerList = new HashSet<>();
+
+    public GenericPositionalLogger() {
+        loggerList.add(this);
+    }
+
     // This is not strictly thread safe but since we are doing this before the server has even started properly
     // nothing else is interacting with the db, so it's fine for now.
-    private void eraseOldDataBeforeTime(long time) {
+    private void eraseAllDataBeforeTime(long time) {
         // Prepare SQL statement with the safe table name
-        String sql = "DELETE FROM " + this.getTableName() + " WHERE timestamp < ?";
+        String sql = "DELETE FROM " + this.getLoggerName() + " WHERE timestamp < ?";
 
         try (PreparedStatement pstmt = getNewConnection().prepareStatement(sql)) {
             // Set the parameter for the PreparedStatement
@@ -52,25 +62,24 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
     }
 
     public void handleOldDataConfig(Configuration configuration) {
-        String configName = this.getClass().getSimpleName() + "_OldestDataCutoff";
-        String answer = configuration.getString(configName, OLDEST_DATA_CATEGORY, OLDEST_DATA_DEFAULT, "");
+        final String answer = configuration.getString("OldestDataCutoff", getLoggerName(), OLDEST_DATA_DEFAULT, "Any records older than this relative to now, will be erased. This is unrecoverable, be careful!");
 
-        eraseOldDataBeforeTime(System.currentTimeMillis() - TimeUtils.convertToSeconds(answer) * 1000);
+        try {
+            eraseAllDataBeforeTime(System.currentTimeMillis() - TimeUtils.convertToSeconds(answer) * 1000);
+        } catch (Exception e) {
+            System.err.println("An error occurred while erasing old data in " + getLoggerName() + " are you sure you spelt the oldest data setting correctly (" + answer + ")? Check your tempora config." );
+            e.printStackTrace();
+        }
     }
-
-    public String OLDEST_DATA_DEFAULT = "4months";
-    protected static final int MAX_DATA_ROWS_PER_PACKET = 5;
-    private static ExecutorService executor;
-    private final ConcurrentLinkedQueue<EventToLog> eventQueue = new ConcurrentLinkedQueue<>();
 
     public abstract void threadedSaveEvent(EventToLog event);
 
     public abstract void handleConfig(Configuration config);
 
-    private static final Set<GenericPositionalLogger<?>> loggerList = new HashSet<>();
     public static void registerLogger(GenericPositionalLogger<?> logger) {
         loggerList.add(logger);
     }
+
     public static Set<GenericPositionalLogger<?>> getLoggerList() {
         return Collections.unmodifiableSet(loggerList);
     }
@@ -90,13 +99,13 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
         synchronized (GenericPositionalLogger.class) {
             for (GenericPositionalLogger<?> logger : loggerList) {
-                if (tableName != null && !logger.getTableName()
+                if (tableName != null && !logger.getLoggerName()
                     .equals(tableName)) continue;
                 try (
                     Connection conn = DriverManager
                         .getConnection(TemporaUtils.databaseDirectory() + "PositionalLogger.db");
                     PreparedStatement pstmt = conn.prepareStatement(
-                        "SELECT * FROM " + logger.getTableName()
+                        "SELECT * FROM " + logger.getLoggerName()
                             + " WHERE ABS(x - ?) <= ? AND ABS(y - ?) <= ? AND ABS(z - ?) <= ?"
                             + " AND dimensionID = ? AND timestamp >= ? ORDER BY timestamp DESC LIMIT ?")) {
 
@@ -117,13 +126,13 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
                             NETWORK.sendTo(new GenericPacket(sendList), entityPlayerMP);
                         } else {
                             sender.addChatMessage(
-                                new ChatComponentText("No results found for " + logger.getTableName() + "."));
+                                new ChatComponentText("No results found for " + logger.getLoggerName() + "."));
                         }
                     }
                 } catch (SQLException e) {
                     sender.addChatMessage(
                         new ChatComponentText(
-                            "Database query failed on " + logger.getTableName() + ": " + e.getLocalizedMessage()));
+                            "Database query failed on " + logger.getLoggerName() + ": " + e.getLocalizedMessage()));
                 }
             }
         }
@@ -132,15 +141,13 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
     protected static Connection positionLoggerDBConnection;
 
     public final void registerEvent() {
+        // Lazy but genuinely not sure how else to approach this generically without a big switch list.
+
         MinecraftForge.EVENT_BUS.register(this);
 
         FMLCommonHandler.instance()
             .bus()
             .register(this);
-    }
-
-    public GenericPositionalLogger() {
-        loggerList.add(this);
     }
 
     private static Connection getNewConnection() {
@@ -190,6 +197,8 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
     }
 
     public void queueEvent(EventToLog event) {
+        if (!isEnabled) return;
+
         eventQueue.add(event);
         if (executor != null && !executor.isShutdown()) {
             executor.submit(this::processQueue);
@@ -211,10 +220,6 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
     public abstract void initTable();
 
-    public final String getTableName() {
-        return getClass().getSimpleName();
-    }
-
     private static void initAllTables() {
         for (GenericPositionalLogger<?> loggerPositional : loggerList) {
             loggerPositional.initTable();
@@ -226,7 +231,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
         try (Statement stmt = dbConnection.createStatement()) {
             for (GenericPositionalLogger<?> logger : loggerList) {
-                String tableName = logger.getTableName();
+                String tableName = logger.getLoggerName();
 
                 // Creating a composite index for x, y, z, dimensionID and timestamp
                 String createCompositeIndex = String.format(
@@ -248,4 +253,11 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
         }
     }
 
+    public final String getLoggerName() {
+        return getClass().getSimpleName();
+    }
+
+    public final void genericConfig(@NotNull Configuration config) {
+        isEnabled = config.getBoolean("isEnabled", getLoggerName(), true, "Enables this logger.");
+    }
 }

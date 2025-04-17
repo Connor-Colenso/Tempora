@@ -58,7 +58,7 @@ public class CommandLogger extends GenericPositionalLogger<CommandQueueElement> 
         try {
             positionLoggerDBConnection
                 .prepareStatement(
-                    "CREATE TABLE IF NOT EXISTS " + getTableName()
+                    "CREATE TABLE IF NOT EXISTS " + getLoggerName()
                         + " (id INTEGER PRIMARY KEY AUTOINCREMENT,"
                         + "playerUUID TEXT NOT NULL,"
                         + "command TEXT NOT NULL,"
@@ -77,7 +77,7 @@ public class CommandLogger extends GenericPositionalLogger<CommandQueueElement> 
     @Override
     public void threadedSaveEvent(CommandQueueElement commandQueueElement) {
         try {
-            final String sql = "INSERT INTO " + getTableName()
+            final String sql = "INSERT INTO " + getLoggerName()
                 + "(playerUUID, command, arguments, x, y, z, dimensionID, timestamp) VALUES(?, ?, ?, ?, ?, ?, ?, ?)";
             final PreparedStatement pstmt = positionLoggerDBConnection.prepareStatement(sql);
             pstmt.setString(1, commandQueueElement.playerNameWhoIssuedCommand);
