@@ -63,7 +63,7 @@ public class BlockBreakLogger extends GenericPositionalLogger<BlockBreakQueueEle
         try {
             positionLoggerDBConnection
                 .prepareStatement(
-                    "CREATE TABLE IF NOT EXISTS " + getTableName()
+                    "CREATE TABLE IF NOT EXISTS " + getLoggerName()
                         + " (id INTEGER PRIMARY KEY AUTOINCREMENT,"
                         + "playerUUID TEXT NOT NULL,"
                         + "metadata INTEGER NOT NULL,"
@@ -82,7 +82,7 @@ public class BlockBreakLogger extends GenericPositionalLogger<BlockBreakQueueEle
     @Override
     public void threadedSaveEvent(BlockBreakQueueElement blockBreakQueueElement) {
         try {
-            final String sql = "INSERT INTO " + getTableName()
+            final String sql = "INSERT INTO " + getLoggerName()
                 + "(playerUUID, blockId, metadata, x, y, z, dimensionID, timestamp) VALUES(?, ?, ?, ?, ?, ?, ?, ?)";
             final PreparedStatement pstmt = positionLoggerDBConnection.prepareStatement(sql);
             pstmt.setString(1, blockBreakQueueElement.playerNameWhoBrokeBlock);

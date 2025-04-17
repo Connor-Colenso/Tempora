@@ -27,7 +27,7 @@ public class TemporaWand extends Item {
 
         if (TemporaUtils.isServerSide()) {
             for(GenericPositionalLogger<?> logger : GenericPositionalLogger.getLoggerList()) {
-                QueryEventsCommand.queryDatabases(player, 10, 3600, logger.getTableName());
+                QueryEventsCommand.queryDatabases(player, 10, 3600, logger.getLoggerName());
             }
         }
 

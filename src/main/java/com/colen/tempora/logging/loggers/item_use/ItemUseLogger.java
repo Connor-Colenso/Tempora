@@ -60,7 +60,7 @@ public class ItemUseLogger extends GenericPositionalLogger<ItemUseQueueElement> 
         try {
             positionLoggerDBConnection
                 .prepareStatement(
-                    "CREATE TABLE IF NOT EXISTS " + getTableName()
+                    "CREATE TABLE IF NOT EXISTS " + getLoggerName()
                         + " (id INTEGER PRIMARY KEY AUTOINCREMENT,"
                         + "playerUUID TEXT NOT NULL,"
                         + "itemID INTEGER NOT NULL,"
@@ -79,7 +79,7 @@ public class ItemUseLogger extends GenericPositionalLogger<ItemUseQueueElement> 
     @Override
     public void threadedSaveEvent(ItemUseQueueElement itemUseQueueElement) {
         try {
-            final String sql = "INSERT INTO " + getTableName()
+            final String sql = "INSERT INTO " + getLoggerName()
                 + "(playerUUID, itemID, itemMetadata, x, y, z, dimensionID, timestamp) VALUES(?, ?, ?, ?, ?, ?, ?, ?)";
             final PreparedStatement pstmt = positionLoggerDBConnection.prepareStatement(sql);
             pstmt.setString(1, itemUseQueueElement.playerName);

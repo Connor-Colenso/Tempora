@@ -26,6 +26,7 @@ public class QueryEventsCommand extends CommandBase {
     @Override
     public void processCommand(ICommandSender sender, String[] args) {
         if (args.length < 2) {
+            sender.addChatMessage(new ChatComponentText(getCommandUsage(sender)));
             return;
         }
 
@@ -79,7 +80,7 @@ public class QueryEventsCommand extends CommandBase {
     private List<String> getFilterOptions() {
         List<String> options = new ArrayList<>();
         for (GenericPositionalLogger<?> logger : GenericPositionalLogger.getLoggerList()) {
-            options.add(logger.getTableName());
+            options.add(logger.getLoggerName());
         }
         return options;
     }

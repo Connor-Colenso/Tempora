@@ -69,7 +69,7 @@ public class EntitySpawnLogger extends GenericPositionalLogger<EntitySpawnQueueE
         try {
             positionLoggerDBConnection
                 .prepareStatement(
-                    "CREATE TABLE IF NOT EXISTS " + getTableName()
+                    "CREATE TABLE IF NOT EXISTS " + getLoggerName()
                         + " (id INTEGER PRIMARY KEY AUTOINCREMENT,"
                         + "entityName TEXT NOT NULL,"
                         + "x REAL NOT NULL,"
@@ -86,7 +86,7 @@ public class EntitySpawnLogger extends GenericPositionalLogger<EntitySpawnQueueE
     @Override
     public void threadedSaveEvent(EntitySpawnQueueElement entitySpawnQueueElement) {
         try {
-            final String sql = "INSERT INTO " + getTableName()
+            final String sql = "INSERT INTO " + getLoggerName()
                 + "(entityName, x, y, z, dimensionID, timestamp) VALUES(?, ?, ?, ?, ?, ?)";
             final PreparedStatement pstmt = positionLoggerDBConnection.prepareStatement(sql);
             pstmt.setString(1, entitySpawnQueueElement.entityName);

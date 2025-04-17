@@ -90,7 +90,7 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueE
         try {
             positionLoggerDBConnection
                 .prepareStatement(
-                    "CREATE TABLE IF NOT EXISTS " + getTableName()
+                    "CREATE TABLE IF NOT EXISTS " + getLoggerName()
                         + " (id INTEGER PRIMARY KEY AUTOINCREMENT,"
                         + "entityName TEXT NOT NULL,"
                         + "x REAL NOT NULL,"
@@ -107,7 +107,7 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueE
     @Override
     public void threadedSaveEvent(EntityDeathQueueElement entityDeathQueueElement) {
         try {
-            final String sql = "INSERT INTO " + getTableName()
+            final String sql = "INSERT INTO " + getLoggerName()
                 + "(entityName, x, y, z, dimensionID, timestamp) VALUES(?, ?, ?, ?, ?, ?)";
             final PreparedStatement pstmt = positionLoggerDBConnection.prepareStatement(sql);
             pstmt.setString(1, entityDeathQueueElement.nameOfDeadMob); // Name of the mob
