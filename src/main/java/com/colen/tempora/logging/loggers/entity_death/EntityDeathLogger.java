@@ -22,7 +22,7 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueElement> {
 
     @Override
-    public void handleConfig(Configuration config) {
+    public void handleCustomLoggerConfig(Configuration config) {
 
     }
 
@@ -88,7 +88,7 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueE
     @Override
     public void initTable() {
         try {
-            positionLoggerDBConnection
+            positionalLoggerDBConnection
                 .prepareStatement(
                     "CREATE TABLE IF NOT EXISTS " + getLoggerName()
                         + " (id INTEGER PRIMARY KEY AUTOINCREMENT,"
@@ -109,7 +109,7 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueE
         try {
             final String sql = "INSERT INTO " + getLoggerName()
                 + "(entityName, x, y, z, dimensionID, timestamp) VALUES(?, ?, ?, ?, ?, ?)";
-            final PreparedStatement pstmt = positionLoggerDBConnection.prepareStatement(sql);
+            final PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(sql);
             pstmt.setString(1, entityDeathQueueElement.nameOfDeadMob); // Name of the mob
             pstmt.setDouble(2, entityDeathQueueElement.x); // X coordinate
             pstmt.setDouble(3, entityDeathQueueElement.y); // Y coordinate

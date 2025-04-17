@@ -21,7 +21,7 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 public class EntitySpawnLogger extends GenericPositionalLogger<EntitySpawnQueueElement> {
 
     @Override
-    public void handleConfig(Configuration config) {
+    public void handleCustomLoggerConfig(Configuration config) {
 
     }
 
@@ -67,7 +67,7 @@ public class EntitySpawnLogger extends GenericPositionalLogger<EntitySpawnQueueE
     @Override
     public void initTable() {
         try {
-            positionLoggerDBConnection
+            positionalLoggerDBConnection
                 .prepareStatement(
                     "CREATE TABLE IF NOT EXISTS " + getLoggerName()
                         + " (id INTEGER PRIMARY KEY AUTOINCREMENT,"
@@ -88,7 +88,7 @@ public class EntitySpawnLogger extends GenericPositionalLogger<EntitySpawnQueueE
         try {
             final String sql = "INSERT INTO " + getLoggerName()
                 + "(entityName, x, y, z, dimensionID, timestamp) VALUES(?, ?, ?, ?, ?, ?)";
-            final PreparedStatement pstmt = positionLoggerDBConnection.prepareStatement(sql);
+            final PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(sql);
             pstmt.setString(1, entitySpawnQueueElement.entityName);
             pstmt.setDouble(2, entitySpawnQueueElement.x);
             pstmt.setDouble(3, entitySpawnQueueElement.y);

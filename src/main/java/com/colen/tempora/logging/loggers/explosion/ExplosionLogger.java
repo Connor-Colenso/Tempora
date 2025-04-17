@@ -27,7 +27,7 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 public class ExplosionLogger extends GenericPositionalLogger<ExplosionQueueElement> {
 
     @Override
-    public void handleConfig(Configuration config) {
+    public void handleCustomLoggerConfig(Configuration config) {
 
     }
 
@@ -57,7 +57,7 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionQueueEleme
     @Override
     public void initTable() {
         try {
-            positionLoggerDBConnection
+            positionalLoggerDBConnection
                 .prepareStatement(
                     "CREATE TABLE IF NOT EXISTS " + getLoggerName()
                         + " (id INTEGER PRIMARY KEY AUTOINCREMENT,"
@@ -81,7 +81,7 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionQueueEleme
         try {
             final String sql = "INSERT INTO " + getLoggerName()
                 + "(x, y, z, strength, exploderUUID, dimensionID, closestPlayerUUID, playerDistance, timestamp) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)";
-            final PreparedStatement pstmt = positionLoggerDBConnection.prepareStatement(sql);
+            final PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(sql);
             pstmt.setDouble(1, explosionQueueElement.x);
             pstmt.setDouble(2, explosionQueueElement.y);
             pstmt.setDouble(3, explosionQueueElement.z);

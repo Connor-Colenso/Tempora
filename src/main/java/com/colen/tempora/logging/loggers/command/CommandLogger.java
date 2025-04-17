@@ -23,7 +23,7 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 public class CommandLogger extends GenericPositionalLogger<CommandQueueElement> {
 
     @Override
-    public void handleConfig(Configuration config) {
+    public void handleCustomLoggerConfig(Configuration config) {
 
     }
 
@@ -56,7 +56,7 @@ public class CommandLogger extends GenericPositionalLogger<CommandQueueElement> 
     @Override
     public void initTable() {
         try {
-            positionLoggerDBConnection
+            positionalLoggerDBConnection
                 .prepareStatement(
                     "CREATE TABLE IF NOT EXISTS " + getLoggerName()
                         + " (id INTEGER PRIMARY KEY AUTOINCREMENT,"
@@ -79,7 +79,7 @@ public class CommandLogger extends GenericPositionalLogger<CommandQueueElement> 
         try {
             final String sql = "INSERT INTO " + getLoggerName()
                 + "(playerUUID, command, arguments, x, y, z, dimensionID, timestamp) VALUES(?, ?, ?, ?, ?, ?, ?, ?)";
-            final PreparedStatement pstmt = positionLoggerDBConnection.prepareStatement(sql);
+            final PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(sql);
             pstmt.setString(1, commandQueueElement.playerNameWhoIssuedCommand);
             pstmt.setString(2, commandQueueElement.commandName);
             pstmt.setString(3, commandQueueElement.arguments);

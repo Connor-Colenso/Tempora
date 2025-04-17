@@ -4,7 +4,6 @@ import static com.colen.tempora.config.Config.synchronizeConfiguration;
 
 import com.colen.tempora.items.TemporaWand;
 import com.colen.tempora.logging.loggers.player_interact_with_inventory.PlayerInteractWithInventoryLogger;
-import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
 
 import org.apache.logging.log4j.LogManager;
@@ -82,7 +81,7 @@ public class Tempora {
 
         // Each logger handles their own config settings.
         for (GenericPositionalLogger<?> logger : GenericPositionalLogger.getLoggerList()) {
-            logger.handleConfig(config);
+            logger.handleCustomLoggerConfig(config);
             logger.genericConfig(config);
         }
 
@@ -103,7 +102,7 @@ public class Tempora {
         if (TemporaUtils.shouldTemporaRun()) {
             for (GenericPositionalLogger<?> logger : GenericPositionalLogger.getLoggerList()) {
                 logger.registerEvent();
-                logger.handleOldDataConfig(config);
+                logger.removeOldDatabaseData();
             }
         }
 
