@@ -34,16 +34,24 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
     private static final String OLDEST_DATA_DEFAULT = "4months";
     protected static final int MAX_DATA_ROWS_PER_PACKET = 5;
+
     private static ExecutorService executor;
     protected static Connection positionalLoggerDBConnection;
+
     private final ConcurrentLinkedQueue<EventToLog> eventQueue = new ConcurrentLinkedQueue<>();
+    private static final Set<GenericPositionalLogger<?>> loggerList = new HashSet<>();
+
     private boolean isEnabled;
     private String oldestDataCutoff;
-    private static final Set<GenericPositionalLogger<?>> loggerList = new HashSet<>();
 
     public GenericPositionalLogger() {
         loggerList.add(this);
     }
+
+    public abstract void threadedSaveEvent(EventToLog event);
+    public abstract void handleCustomLoggerConfig(Configuration config);
+    public abstract void initTable();
+    protected abstract ArrayList<ISerializable> generatePacket(ResultSet rs) throws SQLException;
 
     // This is not strictly thread safe but since we are doing this before the server has even started properly
     // nothing else is interacting with the db, so it's fine for now.
@@ -62,7 +70,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
         }
     }
 
-    public void removeOldDatabaseData() {
+    public final void removeOldDatabaseData() {
         try {
             eraseAllDataBeforeTime(System.currentTimeMillis() - TimeUtils.convertToSeconds(oldestDataCutoff) * 1000);
         } catch (Exception e) {
@@ -72,9 +80,49 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
         }
     }
 
-    public abstract void threadedSaveEvent(EventToLog event);
+    public final void registerEvent() {
+        // Lazy but genuinely not sure how else to approach this generically without a big switch list.
 
-    public abstract void handleCustomLoggerConfig(Configuration config);
+        MinecraftForge.EVENT_BUS.register(this);
+
+        FMLCommonHandler.instance()
+            .bus()
+            .register(this);
+    }
+
+    public final void queueEvent(EventToLog event) {
+        if (!isEnabled) return;
+
+        eventQueue.add(event);
+        if (executor != null && !executor.isShutdown()) {
+            executor.submit(this::processQueue);
+        }
+    }
+
+    private void processQueue() {
+        EventToLog event;
+        while ((event = eventQueue.poll()) != null) {
+            try {
+                threadedSaveEvent(event);
+            } catch (Exception e) {
+                System.err.println("Failed to save event: " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public final String getLoggerName() {
+        return getClass().getSimpleName();
+    }
+
+    public final void genericConfig(@NotNull Configuration config) {
+        isEnabled = config.getBoolean("isEnabled", getLoggerName(), true, "Enables this logger.");
+        oldestDataCutoff = config.getString("OldestDataCutoff", getLoggerName(), OLDEST_DATA_DEFAULT, "Any records older than this relative to now, will be erased. This is unrecoverable, be careful!");
+    }
+
+    // --------------------------------------
+    // Static methods
+    // --------------------------------------
 
     public static void registerLogger(GenericPositionalLogger<?> logger) {
         loggerList.add(logger);
@@ -84,10 +132,8 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
         return Collections.unmodifiableSet(loggerList);
     }
 
-    protected abstract ArrayList<ISerializable> generatePacket(ResultSet rs) throws SQLException;
-
     public static void queryEventsWithinRadiusAndTime(ICommandSender sender, int radius, long seconds,
-        String tableName) {
+                                                      String tableName) {
 
         if (!(sender instanceof EntityPlayerMP entityPlayerMP)) return;
         int posX = entityPlayerMP.getPlayerCoordinates().posX;
@@ -138,16 +184,6 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
         }
     }
 
-    public final void registerEvent() {
-        // Lazy but genuinely not sure how else to approach this generically without a big switch list.
-
-        MinecraftForge.EVENT_BUS.register(this);
-
-        FMLCommonHandler.instance()
-            .bus()
-            .register(this);
-    }
-
     private static Connection getNewConnection() {
         try {
             return DriverManager.getConnection(TemporaUtils.databaseDirectory() + "PositionalLogger.db");
@@ -194,30 +230,6 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
         }
     }
 
-    public void queueEvent(EventToLog event) {
-        if (!isEnabled) return;
-
-        eventQueue.add(event);
-        if (executor != null && !executor.isShutdown()) {
-            executor.submit(this::processQueue);
-        }
-    }
-
-    private void processQueue() {
-        EventToLog event;
-        while ((event = eventQueue.poll()) != null) {
-            try {
-                threadedSaveEvent(event);
-            } catch (Exception e) {
-                System.err.println("Failed to save event: " + e.getMessage());
-                e.printStackTrace();
-            }
-        }
-    }
-
-
-    public abstract void initTable();
-
     private static void initAllTables() {
         for (GenericPositionalLogger<?> loggerPositional : loggerList) {
             loggerPositional.initTable();
@@ -249,14 +261,5 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
             System.err.println("Error creating indexes: " + e.getMessage());
             e.printStackTrace();
         }
-    }
-
-    public final String getLoggerName() {
-        return getClass().getSimpleName();
-    }
-
-    public final void genericConfig(@NotNull Configuration config) {
-        isEnabled = config.getBoolean("isEnabled", getLoggerName(), true, "Enables this logger.");
-        oldestDataCutoff = config.getString("OldestDataCutoff", getLoggerName(), OLDEST_DATA_DEFAULT, "Any records older than this relative to now, will be erased. This is unrecoverable, be careful!");
     }
 }
