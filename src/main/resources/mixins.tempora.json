@@ -6,8 +6,7 @@
   "target": "@env(DEFAULT)",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
-    "MixinNetHandlerPlayServer",
-    "MixinNetworkManager"
+    "MixinNetHandlerPlayServer"
   ],
   "client": [],
   "server": []
