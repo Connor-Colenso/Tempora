@@ -1,7 +1,8 @@
 package com.colen.tempora.config;
 
-import com.colen.tempora.utils.TimeUtils;
 import net.minecraftforge.common.config.Configuration;
+
+import com.colen.tempora.utils.TimeUtils;
 
 public class Config {
 

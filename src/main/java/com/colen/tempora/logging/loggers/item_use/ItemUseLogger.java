@@ -8,7 +8,6 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 
-import com.colen.tempora.logging.loggers.generic.GenericPositionalLogger;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -20,6 +19,7 @@ import net.minecraftforge.event.entity.player.PlayerUseItemEvent;
 import org.jetbrains.annotations.NotNull;
 
 import com.colen.tempora.logging.loggers.ISerializable;
+import com.colen.tempora.logging.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.utils.PlayerUtils;
 
 import cpw.mods.fml.common.eventhandler.EventPriority;

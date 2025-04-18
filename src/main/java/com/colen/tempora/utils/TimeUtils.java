@@ -1,8 +1,6 @@
 package com.colen.tempora.utils;
 
-import net.minecraft.command.CommandException;
-import net.minecraft.util.StatCollector;
-import net.minecraftforge.common.config.Configuration;
+import static com.colen.tempora.config.Config.formatCategory;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -11,7 +9,9 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
-import static com.colen.tempora.config.Config.formatCategory;
+import net.minecraft.command.CommandException;
+import net.minecraft.util.StatCollector;
+import net.minecraftforge.common.config.Configuration;
 
 public class TimeUtils {
 
@@ -68,7 +68,7 @@ public class TimeUtils {
         Duration duration = Duration.between(past, now);
 
         // Get total milliseconds and convert to seconds for more precise calculations
-        double milliseconds = duration.toMillis();  // Milliseconds since the past timestamp
+        double milliseconds = duration.toMillis(); // Milliseconds since the past timestamp
         double seconds = milliseconds / 1000.0;
         double minutes = seconds / 60.0;
         double hours = minutes / 60.0;
@@ -94,13 +94,16 @@ public class TimeUtils {
 
     public static long convertToSeconds(String timeDescription) {
         // Use regular expressions to separate numbers from text
-        java.util.regex.Matcher matcher = java.util.regex.Pattern.compile("(\\d+)([a-zA-Z]+)").matcher(timeDescription);
+        java.util.regex.Matcher matcher = java.util.regex.Pattern.compile("(\\d+)([a-zA-Z]+)")
+            .matcher(timeDescription);
         if (!matcher.matches()) {
-            throw new CommandException("Invalid time description. It should be in the format 'numberunit', e.g., '1week' or '5months'.");
+            throw new CommandException(
+                "Invalid time description. It should be in the format 'numberunit', e.g., '1week' or '5months'.");
         }
 
         long number = Long.parseLong(matcher.group(1));
-        String unit = matcher.group(2).toLowerCase();
+        String unit = matcher.group(2)
+            .toLowerCase();
         // Remove trailing 's' if present to handle both singular and plural forms
         if (unit.endsWith("s")) {
             unit = unit.substring(0, unit.length() - 1);
@@ -115,7 +118,8 @@ public class TimeUtils {
             case "month" -> number * 2592000; // Approximation using 30 days per month
             case "year" -> number * 31557600; // Using 365.25 days per year
             case "decade" -> number * 315576000; // 10 years
-            default -> throw new CommandException("Unsupported time unit. Use one of: second, minute, hour, day, week, month, year, decade.");
+            default -> throw new CommandException(
+                "Unsupported time unit. Use one of: second, minute, hour, day, week, month, year, decade.");
         };
     }
 }

@@ -1,13 +1,14 @@
 package com.colen.tempora.logging.loggers.block_break;
 
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import net.minecraft.client.gui.inventory.GuiInventory;
 import net.minecraft.util.StatCollector;
+import net.minecraftforge.client.event.GuiOpenEvent;
 
 import com.colen.tempora.logging.loggers.generic.GenericQueueElement;
 import com.colen.tempora.utils.BlockUtils;
 import com.colen.tempora.utils.TimeUtils;
-import net.minecraftforge.client.event.GuiOpenEvent;
+
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
 public class BlockBreakQueueElement extends GenericQueueElement {
 
@@ -38,6 +39,5 @@ public class BlockBreakQueueElement extends GenericQueueElement {
             // Code to execute when the player's inventory is opened
         }
     }
-
 
 }

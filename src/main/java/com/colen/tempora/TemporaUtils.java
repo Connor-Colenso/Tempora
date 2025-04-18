@@ -1,17 +1,19 @@
 package com.colen.tempora;
 
-import com.colen.tempora.config.Config;
-import cpw.mods.fml.common.FMLCommonHandler;
-import cpw.mods.fml.relauncher.Side;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.network.play.client.C0EPacketClickWindow;
-import net.minecraft.server.MinecraftServer;
-
 import java.io.File;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.network.play.client.C0EPacketClickWindow;
+import net.minecraft.server.MinecraftServer;
+
+import com.colen.tempora.config.Config;
+
+import cpw.mods.fml.common.FMLCommonHandler;
+import cpw.mods.fml.relauncher.Side;
 
 public class TemporaUtils {
 
@@ -61,6 +63,9 @@ public class TemporaUtils {
     }
 
     public static void process(C0EPacketClickWindow packet, EntityPlayerMP player) {
-        System.out.println(player.getDisplayName() + " " + packet.func_149546_g().getUnlocalizedName());
+        System.out.println(
+            player.getDisplayName() + " "
+                + packet.func_149546_g()
+                    .getUnlocalizedName());
     }
 }

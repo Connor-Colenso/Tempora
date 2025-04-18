@@ -1,7 +1,11 @@
 package com.colen.tempora.logging.loggers.player_interact_with_inventory;
 
-import com.colen.tempora.logging.loggers.generic.GenericPositionalLogger;
-import com.colen.tempora.logging.loggers.ISerializable;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.IInventory;
@@ -11,13 +15,11 @@ import net.minecraft.network.play.client.C0EPacketClickWindow;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraftforge.common.config.Configuration;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Timestamp;
-import java.util.ArrayList;
+import com.colen.tempora.logging.loggers.ISerializable;
+import com.colen.tempora.logging.loggers.generic.GenericPositionalLogger;
 
-public class PlayerInteractWithInventoryLogger extends GenericPositionalLogger<PlayerInteractWithInventoryQueueElement> {
+public class PlayerInteractWithInventoryLogger
+    extends GenericPositionalLogger<PlayerInteractWithInventoryQueueElement> {
 
     public PlayerInteractWithInventoryLogger() {
         registerLogger(this);
@@ -50,13 +52,12 @@ public class PlayerInteractWithInventoryLogger extends GenericPositionalLogger<P
         return eventList;
     }
 
-
     @Override
     public void initTable() {
         try {
             PreparedStatement statement = positionalLoggerDBConnection.prepareStatement(
-                "CREATE TABLE IF NOT EXISTS " + getLoggerName() +
-                    " (id INTEGER PRIMARY KEY AUTOINCREMENT, x REAL NOT NULL, y REAL NOT NULL, z REAL NOT NULL, dimensionID INTEGER NOT NULL, timestamp DATETIME NOT NULL, containerName TEXT NOT NULL, interactionType TEXT NOT NULL, playerUUID TEXT NOT NULL, itemId INTEGER NOT NULL, itemMetadata INTEGER NOT NULL, stacksize INTEGER NOT NULL);");
+                "CREATE TABLE IF NOT EXISTS " + getLoggerName()
+                    + " (id INTEGER PRIMARY KEY AUTOINCREMENT, x REAL NOT NULL, y REAL NOT NULL, z REAL NOT NULL, dimensionID INTEGER NOT NULL, timestamp DATETIME NOT NULL, containerName TEXT NOT NULL, interactionType TEXT NOT NULL, playerUUID TEXT NOT NULL, itemId INTEGER NOT NULL, itemMetadata INTEGER NOT NULL, stacksize INTEGER NOT NULL);");
             statement.execute();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -67,7 +68,8 @@ public class PlayerInteractWithInventoryLogger extends GenericPositionalLogger<P
     public void threadedSaveEvent(PlayerInteractWithInventoryQueueElement element) {
         try {
             PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(
-                "INSERT INTO " + getLoggerName() + " (x, y, z, dimensionID, timestamp, containerName, interactionType, itemId, itemMetadata, playerUUID, stacksize) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                "INSERT INTO " + getLoggerName()
+                    + " (x, y, z, dimensionID, timestamp, containerName, interactionType, itemId, itemMetadata, playerUUID, stacksize) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
             pstmt.setDouble(1, element.x);
             pstmt.setDouble(2, element.y);
             pstmt.setDouble(3, element.z);
@@ -84,7 +86,6 @@ public class PlayerInteractWithInventoryLogger extends GenericPositionalLogger<P
             e.printStackTrace();
         }
     }
-
 
     public void playerInteractedWithInventory(EntityPlayerMP playerMP, C0EPacketClickWindow packetClickWindow) {
         Container container = playerMP.openContainer;
@@ -106,9 +107,11 @@ public class PlayerInteractWithInventoryLogger extends GenericPositionalLogger<P
                 x = tileEntity.xCoord;
                 y = tileEntity.yCoord;
                 z = tileEntity.zCoord;
-                containerType = tileEntity.getBlockType().getLocalizedName();
+                containerType = tileEntity.getBlockType()
+                    .getLocalizedName();
             } else {
-                containerType = inventory.getClass().getSimpleName();
+                containerType = inventory.getClass()
+                    .getSimpleName();
                 x = playerMP.posX;
                 y = playerMP.posY;
                 z = playerMP.posZ;
@@ -121,10 +124,12 @@ public class PlayerInteractWithInventoryLogger extends GenericPositionalLogger<P
         queueElement.z = z;
         queueElement.dimensionId = playerMP.dimension;
         queueElement.timestamp = System.currentTimeMillis();
-        queueElement.playerUUID = playerMP.getUniqueID().toString();
+        queueElement.playerUUID = playerMP.getUniqueID()
+            .toString();
         queueElement.containerName = containerType;
         // 36 because of the size of the players inventory.
-        queueElement.interactionType = packetClickWindow.func_149544_d() < (playerMP.openContainer.inventorySlots.size() - 36) ? "Remove" : "Add";
+        queueElement.interactionType = packetClickWindow.func_149544_d()
+            < (playerMP.openContainer.inventorySlots.size() - 36) ? "Remove" : "Add";
         queueElement.itemId = Item.getIdFromItem(itemStack.getItem());
         queueElement.itemMetadata = itemStack.getItemDamage();
         queueElement.stacksize = itemStack.stackSize;

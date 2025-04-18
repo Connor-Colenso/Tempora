@@ -1,10 +1,11 @@
 package com.colen.tempora.logging.loggers.item_use;
 
-import com.colen.tempora.logging.loggers.generic.GenericQueueElement;
-import net.minecraft.util.StatCollector;
-import com.colen.tempora.utils.TimeUtils;
-
 import static com.colen.tempora.utils.ItemUtils.getNameOfItemStack;
+
+import net.minecraft.util.StatCollector;
+
+import com.colen.tempora.logging.loggers.generic.GenericQueueElement;
+import com.colen.tempora.utils.TimeUtils;
 
 public class ItemUseQueueElement extends GenericQueueElement {
 

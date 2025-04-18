@@ -6,12 +6,12 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.colen.tempora.TemporaUtils;
-import cpw.mods.fml.common.FMLLog;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.ChatComponentText;
 
 import org.apache.commons.lang3.NotImplementedException;
+
+import com.colen.tempora.TemporaUtils;
 
 import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import cpw.mods.fml.common.network.simpleimpl.IMessageHandler;
@@ -34,9 +34,10 @@ public class GenericPacket implements IMessage {
     public void fromBytes(ByteBuf buf) {
 
         if (TemporaUtils.isServerSide()) {
-            System.err.println("Warning! Tempora has detected suspicious behaviour with incorrect packets being sent to the server. This may be a malicious actor.");
+            System.err.println(
+                "Warning! Tempora has detected suspicious behaviour with incorrect packets being sent to the server. This may be a malicious actor.");
             return;
-        };
+        } ;
 
         try {
             // Read the class name from the buffer

@@ -1,9 +1,10 @@
 package com.colen.tempora.logging.loggers.block_place;
 
+import net.minecraft.util.StatCollector;
+
 import com.colen.tempora.logging.loggers.generic.GenericQueueElement;
 import com.colen.tempora.utils.BlockUtils;
 import com.colen.tempora.utils.TimeUtils;
-import net.minecraft.util.StatCollector;
 
 public class BlockPlaceQueueElement extends GenericQueueElement {
 

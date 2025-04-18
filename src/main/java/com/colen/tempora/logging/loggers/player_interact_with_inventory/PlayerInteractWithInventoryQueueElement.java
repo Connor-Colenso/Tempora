@@ -1,13 +1,15 @@
 package com.colen.tempora.logging.loggers.player_interact_with_inventory;
 
+import static com.colen.tempora.utils.ItemUtils.getNameOfItemStack;
+
+import net.minecraft.util.StatCollector;
+
 import com.colen.tempora.logging.loggers.generic.GenericQueueElement;
 import com.colen.tempora.utils.PlayerUtils;
 import com.colen.tempora.utils.TimeUtils;
-import net.minecraft.util.StatCollector;
-
-import static com.colen.tempora.utils.ItemUtils.getNameOfItemStack;
 
 public class PlayerInteractWithInventoryQueueElement extends GenericQueueElement {
+
     public String containerName;
     public String interactionType;
     public int itemId;
@@ -35,9 +37,7 @@ public class PlayerInteractWithInventoryQueueElement extends GenericQueueElement
             (int) x,
             (int) y,
             (int) z,
-            formattedTime
-        );
+            formattedTime);
     }
-
 
 }

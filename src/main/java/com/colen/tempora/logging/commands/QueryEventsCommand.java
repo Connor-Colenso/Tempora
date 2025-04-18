@@ -3,13 +3,14 @@ package com.colen.tempora.logging.commands;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.colen.tempora.logging.loggers.generic.GenericPositionalLogger;
-import com.colen.tempora.utils.TimeUtils;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentText;
+
+import com.colen.tempora.logging.loggers.generic.GenericPositionalLogger;
+import com.colen.tempora.utils.TimeUtils;
 
 public class QueryEventsCommand extends CommandBase {
 

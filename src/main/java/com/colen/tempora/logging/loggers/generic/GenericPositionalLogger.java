@@ -1,16 +1,6 @@
 package com.colen.tempora.logging.loggers.generic;
 
-import com.colen.tempora.logging.loggers.GenericPacket;
-import com.colen.tempora.logging.loggers.ISerializable;
-import com.colen.tempora.TemporaUtils;
-import com.colen.tempora.utils.TimeUtils;
-import cpw.mods.fml.common.FMLCommonHandler;
-import net.minecraft.command.ICommandSender;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.util.ChatComponentText;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.common.config.Configuration;
-import org.jetbrains.annotations.NotNull;
+import static com.colen.tempora.Tempora.NETWORK;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -28,7 +18,20 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import static com.colen.tempora.Tempora.NETWORK;
+import net.minecraft.command.ICommandSender;
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.util.ChatComponentText;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.common.config.Configuration;
+
+import org.jetbrains.annotations.NotNull;
+
+import com.colen.tempora.TemporaUtils;
+import com.colen.tempora.logging.loggers.GenericPacket;
+import com.colen.tempora.logging.loggers.ISerializable;
+import com.colen.tempora.utils.TimeUtils;
+
+import cpw.mods.fml.common.FMLCommonHandler;
 
 public abstract class GenericPositionalLogger<EventToLog extends GenericQueueElement> {
 
@@ -49,8 +52,11 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
     }
 
     public abstract void threadedSaveEvent(EventToLog event);
+
     public abstract void handleCustomLoggerConfig(Configuration config);
+
     public abstract void initTable();
+
     protected abstract ArrayList<ISerializable> generatePacket(ResultSet rs) throws SQLException;
 
     // This is not strictly thread safe but since we are doing this before the server has even started properly
@@ -74,7 +80,11 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
         try {
             eraseAllDataBeforeTime(System.currentTimeMillis() - TimeUtils.convertToSeconds(oldestDataCutoff) * 1000);
         } catch (Exception e) {
-            System.err.println("An error occurred while erasing old data in " + getLoggerName() + " are you sure you spelt the oldest data setting correctly (" + oldestDataCutoff + ")? Check your tempora config.");
+            System.err.println(
+                "An error occurred while erasing old data in " + getLoggerName()
+                    + " are you sure you spelt the oldest data setting correctly ("
+                    + oldestDataCutoff
+                    + ")? Check your tempora config.");
             System.exit(0);
             e.printStackTrace();
         }
@@ -117,7 +127,11 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
     public final void genericConfig(@NotNull Configuration config) {
         isEnabled = config.getBoolean("isEnabled", getLoggerName(), true, "Enables this logger.");
-        oldestDataCutoff = config.getString("OldestDataCutoff", getLoggerName(), OLDEST_DATA_DEFAULT, "Any records older than this relative to now, will be erased. This is unrecoverable, be careful!");
+        oldestDataCutoff = config.getString(
+            "OldestDataCutoff",
+            getLoggerName(),
+            OLDEST_DATA_DEFAULT,
+            "Any records older than this relative to now, will be erased. This is unrecoverable, be careful!");
     }
 
     // --------------------------------------
@@ -133,7 +147,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
     }
 
     public static void queryEventsWithinRadiusAndTime(ICommandSender sender, int radius, long seconds,
-                                                      String tableName) {
+        String tableName) {
 
         if (!(sender instanceof EntityPlayerMP entityPlayerMP)) return;
         int posX = entityPlayerMP.getPlayerCoordinates().posX;
@@ -196,7 +210,8 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
     public static void onServerStart() {
         try {
             System.out.println("Opening Tempora DB...");
-            positionalLoggerDBConnection = DriverManager.getConnection(TemporaUtils.databaseDirectory() + "PositionalLogger.db");
+            positionalLoggerDBConnection = DriverManager
+                .getConnection(TemporaUtils.databaseDirectory() + "PositionalLogger.db");
 
             initAllTables();
             createAllIndexes();
@@ -246,13 +261,16 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
                 // Creating a composite index for x, y, z, dimensionID and timestamp
                 String createCompositeIndex = String.format(
                     "CREATE INDEX IF NOT EXISTS idx_%s_xyz_dimension_time ON %s (x, y, z, dimensionID, timestamp DESC);",
-                    tableName, tableName);
+                    tableName,
+                    tableName);
                 stmt.execute(createCompositeIndex);
 
-                // Creating an index for timestamp alone to optimize for queries primarily sorting or filtering on timestamp
+                // Creating an index for timestamp alone to optimize for queries primarily sorting or filtering on
+                // timestamp
                 String createTimestampIndex = String.format(
                     "CREATE INDEX IF NOT EXISTS idx_%s_timestamp ON %s (timestamp DESC);",
-                    tableName, tableName);
+                    tableName,
+                    tableName);
                 stmt.execute(createTimestampIndex);
 
                 System.out.println("Indexes created for table: " + tableName);
