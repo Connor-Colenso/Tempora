@@ -1,7 +1,8 @@
 package com.colen.tempora.logging.loggers.entity_spawn;
 
-import com.colen.tempora.logging.loggers.generic.GenericQueueElement;
 import net.minecraft.util.StatCollector;
+
+import com.colen.tempora.logging.loggers.generic.GenericQueueElement;
 import com.colen.tempora.utils.TimeUtils;
 
 public class EntitySpawnQueueElement extends GenericQueueElement {

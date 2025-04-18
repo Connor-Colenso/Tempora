@@ -1,17 +1,18 @@
 package com.colen.tempora.items;
 
-import com.colen.tempora.logging.commands.QueryEventsCommand;
-import com.colen.tempora.logging.loggers.generic.GenericPositionalLogger;
-import com.colen.tempora.TemporaUtils;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
 
+import com.colen.tempora.TemporaUtils;
+import com.colen.tempora.logging.commands.QueryEventsCommand;
+import com.colen.tempora.logging.loggers.generic.GenericPositionalLogger;
+
 public class TemporaWand extends Item {
 
-     public TemporaWand() {
+    public TemporaWand() {
         // Max stack size. Common values are 1 for tools/weapons, 16 for special items, and 64 for most other items.
         this.setMaxStackSize(1);
 
@@ -26,7 +27,7 @@ public class TemporaWand extends Item {
     public ItemStack onItemRightClick(ItemStack itemStackIn, World world, EntityPlayer player) {
 
         if (TemporaUtils.isServerSide()) {
-            for(GenericPositionalLogger<?> logger : GenericPositionalLogger.getLoggerList()) {
+            for (GenericPositionalLogger<?> logger : GenericPositionalLogger.getLoggerList()) {
                 QueryEventsCommand.queryDatabases(player, 10, 3600, logger.getLoggerName());
             }
         }

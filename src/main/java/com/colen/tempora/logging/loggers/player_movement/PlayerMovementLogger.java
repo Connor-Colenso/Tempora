@@ -1,6 +1,5 @@
 package com.colen.tempora.logging.loggers.player_movement;
 
-import static com.colen.tempora.config.Config.loggingIntervals;
 import static com.colen.tempora.TemporaUtils.isClientSide;
 
 import java.sql.PreparedStatement;
@@ -14,8 +13,8 @@ import net.minecraftforge.common.config.Configuration;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.colen.tempora.logging.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.logging.loggers.ISerializable;
+import com.colen.tempora.logging.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.utils.PlayerUtils;
 
 import cpw.mods.fml.common.FMLCommonHandler;
@@ -39,11 +38,11 @@ public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovement
     public void handleCustomLoggerConfig(Configuration config) {
         playerMovementLoggingInterval = config.getInt(
             "playerMovementLoggingInterval",
-            loggingIntervals,
+            getLoggerName(),
             200,
             1,
             Integer.MAX_VALUE,
-            "How often player location is recorded to the database. Measured in ticks (20/second).");
+            "How often player location is recorded by tempora. Measured in ticks (20/second).");
     }
 
     @Override

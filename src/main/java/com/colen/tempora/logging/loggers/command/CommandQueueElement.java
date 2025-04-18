@@ -1,8 +1,9 @@
 package com.colen.tempora.logging.loggers.command;
 
+import net.minecraft.util.StatCollector;
+
 import com.colen.tempora.logging.loggers.generic.GenericQueueElement;
 import com.colen.tempora.utils.TimeUtils;
-import net.minecraft.util.StatCollector;
 
 public class CommandQueueElement extends GenericQueueElement {
 

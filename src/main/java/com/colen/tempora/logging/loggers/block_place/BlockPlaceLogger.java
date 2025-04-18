@@ -15,9 +15,9 @@ import net.minecraftforge.event.world.BlockEvent.PlaceEvent;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.colen.tempora.logging.loggers.generic.GenericPositionalLogger;
-import com.colen.tempora.logging.loggers.ISerializable;
 import com.colen.tempora.TemporaUtils;
+import com.colen.tempora.logging.loggers.ISerializable;
+import com.colen.tempora.logging.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.utils.PlayerUtils;
 
 import cpw.mods.fml.common.eventhandler.EventPriority;

@@ -1,7 +1,7 @@
 package com.colen.tempora.logging.loggers.entity_position;
 
-import static com.colen.tempora.config.Config.loggingIntervals;
 import static com.colen.tempora.TemporaUtils.isClientSide;
+import static com.colen.tempora.config.Config.loggingIntervals;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -13,8 +13,8 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
 
-import com.colen.tempora.logging.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.logging.loggers.ISerializable;
+import com.colen.tempora.logging.loggers.generic.GenericPositionalLogger;
 
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
