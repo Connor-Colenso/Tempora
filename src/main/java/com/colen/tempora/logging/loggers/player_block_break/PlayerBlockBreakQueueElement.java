@@ -1,4 +1,4 @@
-package com.colen.tempora.logging.loggers.block_break;
+package com.colen.tempora.logging.loggers.player_block_break;
 
 import net.minecraft.client.gui.inventory.GuiInventory;
 import net.minecraft.util.StatCollector;
@@ -10,7 +10,7 @@ import com.colen.tempora.utils.TimeUtils;
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
-public class BlockBreakQueueElement extends GenericQueueElement {
+public class PlayerBlockBreakQueueElement extends GenericQueueElement {
 
     public int blockID;
     public int metadata;

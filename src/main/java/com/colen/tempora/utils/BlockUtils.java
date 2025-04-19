@@ -14,6 +14,10 @@ public class BlockUtils {
      * Get the localized name of a block from its ID and metadata, using caching to optimize.
      */
     public static String getLocalizedName(int blockId, int metadata) {
+        if (blockId == 0 && metadata == 0) {
+            return "Air";
+        }
+
         String cacheKey = blockId + ":" + metadata;
         if (nameCache.containsKey(cacheKey)) {
             return nameCache.get(cacheKey);
