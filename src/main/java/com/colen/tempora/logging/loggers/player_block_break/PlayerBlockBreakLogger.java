@@ -1,4 +1,4 @@
-package com.colen.tempora.logging.loggers.block_break;
+package com.colen.tempora.logging.loggers.player_block_break;
 
 import static com.colen.tempora.TemporaUtils.isClientSide;
 
@@ -10,7 +10,6 @@ import java.util.ArrayList;
 
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.event.world.BlockEvent;
 
 import org.jetbrains.annotations.NotNull;
@@ -23,7 +22,7 @@ import com.colen.tempora.utils.PlayerUtils;
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
-public class BlockBreakLogger extends GenericPositionalLogger<BlockBreakQueueElement> {
+public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockBreakQueueElement> {
 
     @Override
     protected ArrayList<ISerializable> generatePacket(ResultSet resultSet) throws SQLException {
@@ -33,7 +32,7 @@ public class BlockBreakLogger extends GenericPositionalLogger<BlockBreakQueueEle
 
             while (resultSet.next()) {
 
-                BlockBreakQueueElement queueElement = new BlockBreakQueueElement();
+                PlayerBlockBreakQueueElement queueElement = new PlayerBlockBreakQueueElement();
                 queueElement.x = resultSet.getInt("x");
                 queueElement.y = resultSet.getInt("y");
                 queueElement.z = resultSet.getInt("z");
@@ -75,7 +74,7 @@ public class BlockBreakLogger extends GenericPositionalLogger<BlockBreakQueueEle
     }
 
     @Override
-    public void threadedSaveEvent(BlockBreakQueueElement blockBreakQueueElement) {
+    public void threadedSaveEvent(PlayerBlockBreakQueueElement blockBreakQueueElement) {
         try {
             final String sql = "INSERT INTO " + getLoggerName()
                 + "(playerUUID, blockId, metadata, x, y, z, dimensionID, timestamp) VALUES(?, ?, ?, ?, ?, ?, ?, ?)";
@@ -100,7 +99,7 @@ public class BlockBreakLogger extends GenericPositionalLogger<BlockBreakQueueEle
         // Server side only.
         if (isClientSide()) return;
 
-        BlockBreakQueueElement queueElement = new BlockBreakQueueElement();
+        PlayerBlockBreakQueueElement queueElement = new PlayerBlockBreakQueueElement();
         queueElement.x = event.x;
         queueElement.y = event.y;
         queueElement.z = event.z;

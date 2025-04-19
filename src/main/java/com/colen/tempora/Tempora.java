@@ -2,6 +2,7 @@ package com.colen.tempora;
 
 import static com.colen.tempora.config.Config.synchronizeConfiguration;
 
+import com.colen.tempora.logging.loggers.block_change_logger.BlockChangeLogger;
 import net.minecraftforge.common.config.Configuration;
 
 import org.apache.logging.log4j.LogManager;
@@ -10,7 +11,7 @@ import org.apache.logging.log4j.Logger;
 import com.colen.tempora.items.TemporaWand;
 import com.colen.tempora.logging.commands.QueryEventsCommand;
 import com.colen.tempora.logging.loggers.GenericPacket;
-import com.colen.tempora.logging.loggers.block_break.BlockBreakLogger;
+import com.colen.tempora.logging.loggers.player_block_break.PlayerBlockBreakLogger;
 import com.colen.tempora.logging.loggers.block_place.BlockPlaceLogger;
 import com.colen.tempora.logging.loggers.command.CommandLogger;
 import com.colen.tempora.logging.loggers.entity_death.EntityDeathLogger;
@@ -49,7 +50,9 @@ public class Tempora {
     public static CommonProxy proxy;
 
     private static Configuration config;
-    public static PlayerInteractWithInventoryLogger playerInteractionLogger;
+
+    public static PlayerInteractWithInventoryLogger playerInteractWithInventoryLogger;
+    public static BlockChangeLogger blockChangeLogger;
 
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {
@@ -67,12 +70,13 @@ public class Tempora {
         synchronizeConfiguration(config);
 
         if (TemporaUtils.shouldTemporaRun()) {
-            new BlockBreakLogger();
+            new PlayerBlockBreakLogger();
             new BlockPlaceLogger();
             new ExplosionLogger();
             new ItemUseLogger();
             new PlayerMovementLogger();
-            playerInteractionLogger = new PlayerInteractWithInventoryLogger();
+            playerInteractWithInventoryLogger = new PlayerInteractWithInventoryLogger();
+            blockChangeLogger = new BlockChangeLogger();
             new CommandLogger();
             new EntityPositionLogger();
             new EntityDeathLogger();

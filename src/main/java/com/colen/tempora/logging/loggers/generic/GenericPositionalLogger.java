@@ -128,7 +128,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
     }
 
     public final void genericConfig(@NotNull Configuration config) {
-        isEnabled = config.getBoolean("isEnabled", getLoggerName(), true, "Enables this logger.");
+        isEnabled = config.getBoolean("isEnabled", getLoggerName(), loggerEnabledByDefault(), "Enables this logger.");
         oldestDataCutoff = config.getString(
             "OldestDataCutoff",
             getLoggerName(),
@@ -281,5 +281,9 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
             System.err.println("Error creating indexes: " + e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    private boolean loggerEnabledByDefault() {
+        return true;
     }
 }
