@@ -6,9 +6,8 @@ import com.colen.tempora.utils.TimeUtils;
 
 public class Config {
 
-    private static final String debugCategory = "Debug";
+    private static final String DEBUG_CATEGORY = "Debug";
     public static final String formatCategory = "Format";
-    public static final String loggingIntervals = "Logging Intervals";
 
     // This is more of a debug option, but can be used in single player if you really want.
     public static boolean shouldTemporaRun;
@@ -17,7 +16,7 @@ public class Config {
 
         shouldTemporaRun = configuration.getBoolean(
             "shouldTemporaRun",
-            debugCategory,
+            DEBUG_CATEGORY,
             false,
             "Runs all logging, not recommended unless you run a public server.");
 

@@ -27,11 +27,6 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 public class ExplosionLogger extends GenericPositionalLogger<ExplosionQueueElement> {
 
     @Override
-    public void handleCustomLoggerConfig(Configuration config) {
-
-    }
-
-    @Override
     protected ArrayList<ISerializable> generatePacket(ResultSet resultSet) throws SQLException {
         ArrayList<ISerializable> eventList = new ArrayList<>();
 

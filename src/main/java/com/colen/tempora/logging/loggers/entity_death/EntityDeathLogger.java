@@ -1,6 +1,7 @@
 package com.colen.tempora.logging.loggers.entity_death;
 
 import static com.colen.tempora.TemporaUtils.isClientSide;
+import static com.colen.tempora.utils.PlayerUtils.isUUID;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -8,9 +9,9 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 
+import com.colen.tempora.utils.PlayerUtils;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 
 import com.colen.tempora.logging.loggers.ISerializable;
@@ -20,11 +21,6 @@ import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
 public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueElement> {
-
-    @Override
-    public void handleCustomLoggerConfig(Configuration config) {
-
-    }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
     @SuppressWarnings("unused")
@@ -47,15 +43,15 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueE
         if (trueSource != null) {
             if (trueSource instanceof EntityPlayerMP player) {
                 // This is specific for players
-                queueElement.nameOfPlayerWhoKilledMob = player.getUniqueID()
+                queueElement.killedBy = player.getUniqueID()
                     .toString();
             } else {
                 // For non-player entities
-                queueElement.nameOfPlayerWhoKilledMob = "[" + trueSource.getClass()
+                queueElement.killedBy = "[" + trueSource.getClass()
                     .getSimpleName() + "]";
             }
         } else {
-            queueElement.nameOfPlayerWhoKilledMob = "[" + event.source.damageType + "]";
+            queueElement.killedBy = "[" + event.source.damageType + "]";
         }
 
         queueEvent(queueElement);
@@ -66,24 +62,28 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueE
         ArrayList<ISerializable> eventList = new ArrayList<>();
 
         while (resultSet.next()) {
-
             EntityDeathQueueElement queueElement = new EntityDeathQueueElement();
             queueElement.x = resultSet.getDouble("x");
             queueElement.y = resultSet.getDouble("y");
             queueElement.z = resultSet.getDouble("z");
             queueElement.dimensionId = resultSet.getInt("dimensionID");
             queueElement.nameOfDeadMob = resultSet.getString("entityName");
-            queueElement.timestamp = resultSet.getTimestamp("timestamp")
-                .getTime();
 
-            // Optionally add 'killedBy' data if available in your table
-            // queueElement.killedBy = resultSet.getString("killedBy");
+            String killedBy = resultSet.getString("killedBy");
+            if (isUUID(killedBy)) {
+                queueElement.killedBy = PlayerUtils.UUIDToName(killedBy);
+            } else {
+                queueElement.killedBy = killedBy;
+            }
+
+            queueElement.timestamp = resultSet.getTimestamp("timestamp").getTime();
 
             eventList.add(queueElement);
         }
 
         return eventList;
     }
+
 
     @Override
     public void initTable() {
@@ -93,6 +93,7 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueE
                     "CREATE TABLE IF NOT EXISTS " + getLoggerName()
                         + " (id INTEGER PRIMARY KEY AUTOINCREMENT,"
                         + "entityName TEXT NOT NULL,"
+                        + "killedBy TEXT,"
                         + "x REAL NOT NULL,"
                         + "y REAL NOT NULL,"
                         + "z REAL NOT NULL,"
@@ -108,18 +109,18 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueE
     public void threadedSaveEvent(EntityDeathQueueElement entityDeathQueueElement) {
         try {
             final String sql = "INSERT INTO " + getLoggerName()
-                + "(entityName, x, y, z, dimensionID, timestamp) VALUES(?, ?, ?, ?, ?, ?)";
+                + "(entityName, killedBy, x, y, z, dimensionID, timestamp) VALUES(?, ?, ?, ?, ?, ?, ?)";
             final PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(sql);
             pstmt.setString(1, entityDeathQueueElement.nameOfDeadMob); // Name of the mob
-            pstmt.setDouble(2, entityDeathQueueElement.x); // X coordinate
-            pstmt.setDouble(3, entityDeathQueueElement.y); // Y coordinate
-            pstmt.setDouble(4, entityDeathQueueElement.z); // Z coordinate
-            pstmt.setInt(5, entityDeathQueueElement.dimensionId); // Dimension ID
-            pstmt.setTimestamp(6, new Timestamp(entityDeathQueueElement.timestamp)); // Timestamp of death
+            pstmt.setString(2, entityDeathQueueElement.killedBy); // Who killed it
+            pstmt.setDouble(3, entityDeathQueueElement.x); // X coordinate
+            pstmt.setDouble(4, entityDeathQueueElement.y); // Y coordinate
+            pstmt.setDouble(5, entityDeathQueueElement.z); // Z coordinate
+            pstmt.setInt(6, entityDeathQueueElement.dimensionId); // Dimension ID
+            pstmt.setTimestamp(7, new Timestamp(entityDeathQueueElement.timestamp)); // Timestamp of death
             pstmt.executeUpdate();
         } catch (final SQLException e) {
             e.printStackTrace();
         }
     }
-
 }

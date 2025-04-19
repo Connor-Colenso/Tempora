@@ -27,11 +27,6 @@ public class PlayerInteractWithInventoryLogger
     }
 
     @Override
-    public void handleCustomLoggerConfig(Configuration config) {
-        // Implement configuration handling if needed
-    }
-
-    @Override
     protected ArrayList<ISerializable> generatePacket(ResultSet rs) throws SQLException {
         ArrayList<ISerializable> eventList = new ArrayList<>();
         while (rs.next()) {
