@@ -23,11 +23,6 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 public class CommandLogger extends GenericPositionalLogger<CommandQueueElement> {
 
     @Override
-    public void handleCustomLoggerConfig(Configuration config) {
-
-    }
-
-    @Override
     protected ArrayList<ISerializable> generatePacket(ResultSet resultSet) throws SQLException {
         ArrayList<ISerializable> eventList = new ArrayList<>();
 

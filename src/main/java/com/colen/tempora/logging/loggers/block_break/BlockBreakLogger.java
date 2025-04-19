@@ -26,11 +26,6 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 public class BlockBreakLogger extends GenericPositionalLogger<BlockBreakQueueElement> {
 
     @Override
-    public void handleCustomLoggerConfig(Configuration config) {
-
-    }
-
-    @Override
     protected ArrayList<ISerializable> generatePacket(ResultSet resultSet) throws SQLException {
 
         try {

@@ -20,11 +20,6 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
 public class EntitySpawnLogger extends GenericPositionalLogger<EntitySpawnQueueElement> {
 
-    @Override
-    public void handleCustomLoggerConfig(Configuration config) {
-
-    }
-
     @SubscribeEvent(priority = EventPriority.LOWEST)
     @SuppressWarnings("unused")
     public void onEntitySpawn(LivingSpawnEvent.SpecialSpawn event) {

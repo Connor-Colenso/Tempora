@@ -42,7 +42,7 @@ public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovement
             200,
             1,
             Integer.MAX_VALUE,
-            "How often player location is recorded by tempora. Measured in ticks (20/second).");
+            "How often player location is recorded by Tempora. Measured in ticks (20/second).");
     }
 
     @Override

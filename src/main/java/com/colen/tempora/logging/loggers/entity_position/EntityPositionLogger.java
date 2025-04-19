@@ -1,7 +1,6 @@
 package com.colen.tempora.logging.loggers.entity_position;
 
 import static com.colen.tempora.TemporaUtils.isClientSide;
-import static com.colen.tempora.config.Config.loggingIntervals;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -21,17 +20,17 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
 public class EntityPositionLogger extends GenericPositionalLogger<EntityPositionQueueElement> {
 
-    public static int entityMovementLoggingInterval;
+    private static int entityMovementLoggingInterval;
 
     @Override
     public void handleCustomLoggerConfig(Configuration config) {
         entityMovementLoggingInterval = config.getInt(
-            "playerMovementLoggingInterval",
-            loggingIntervals,
+            "entity_position_logging_interval",
+            getLoggerName(),
             500,
             1,
             Integer.MAX_VALUE,
-            "How often entities location is recorded to the database. Measured in ticks (20/second).");
+            "How frequently are non-player entity locations recorded to the database, measured in ticks (20 ticks per second)?");
     }
 
     @Override

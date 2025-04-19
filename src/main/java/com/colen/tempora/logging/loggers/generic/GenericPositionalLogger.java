@@ -53,7 +53,9 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
     public abstract void threadedSaveEvent(EventToLog event);
 
-    public abstract void handleCustomLoggerConfig(Configuration config);
+    public void handleCustomLoggerConfig(Configuration config) {
+
+    }
 
     public abstract void initTable();
 
