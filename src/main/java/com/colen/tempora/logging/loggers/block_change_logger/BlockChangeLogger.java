@@ -3,6 +3,9 @@ package com.colen.tempora.logging.loggers.block_change_logger;
 import com.colen.tempora.logging.loggers.ISerializable;
 import com.colen.tempora.logging.loggers.generic.GenericPositionalLogger;
 
+import com.colen.tempora.utils.GenericUtils;
+import cpw.mods.fml.common.FMLContainer;
+import cpw.mods.fml.common.Loader;
 import net.minecraft.block.Block;
 
 import java.sql.PreparedStatement;
@@ -21,6 +24,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
                     "id INTEGER PRIMARY KEY AUTOINCREMENT," +
                     "blockId INTEGER NOT NULL," +
                     "metadata INTEGER NOT NULL," +
+                    "stackTrace TEXT," +
                     "x INTEGER NOT NULL," +
                     "y INTEGER NOT NULL," +
                     "z INTEGER NOT NULL," +
@@ -33,18 +37,19 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
     }
 
     @Override
-    public void threadedSaveEvent(BlockChangeQueueElement e) {
+    public void threadedSaveEvent(BlockChangeQueueElement queueElement) {
         try {
             final String sql = "INSERT INTO " + getLoggerName() +
-                "(blockId, metadata, x, y, z, dimensionID, timestamp) VALUES(?, ?, ?, ?, ?, ?, ?)";
+                " (blockId, metadata, stackTrace, x, y, z, dimensionID, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
             final PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(sql);
-            pstmt.setInt(1, e.blockID);
-            pstmt.setInt(2, e.metadata);
-            pstmt.setInt(3, (int) Math.round(e.x));
-            pstmt.setInt(4, (int) Math.round(e.y));
-            pstmt.setInt(5, (int) Math.round(e.z));
-            pstmt.setInt(6, e.dimensionId);
-            pstmt.setTimestamp(7, new Timestamp(e.timestamp));
+            pstmt.setInt(1, queueElement.blockID);
+            pstmt.setInt(2, queueElement.metadata);
+            pstmt.setString(3, queueElement.stackTrace);
+            pstmt.setInt(4, (int) Math.round(queueElement.x));
+            pstmt.setInt(5, (int) Math.round(queueElement.y));
+            pstmt.setInt(6, (int) Math.round(queueElement.z));
+            pstmt.setInt(7, queueElement.dimensionId);
+            pstmt.setTimestamp(8, new Timestamp(queueElement.timestamp));
             pstmt.executeUpdate();
         } catch (SQLException ex) {
             ex.printStackTrace();
@@ -58,6 +63,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
             BlockChangeQueueElement queueElement = new BlockChangeQueueElement();
             queueElement.blockID = resultSet.getInt("blockId");
             queueElement.metadata = resultSet.getInt("metadata");
+            queueElement.stackTrace = resultSet.getString("stackTrace");
             queueElement.x = resultSet.getInt("x");
             queueElement.y = resultSet.getInt("y");
             queueElement.z = resultSet.getInt("z");
@@ -68,13 +74,14 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
         return events;
     }
 
-    public void recordSetBlock(int x, int y, int z, Block blockIn, int metadataIn, int dimensionId) {
+    public void recordSetBlock(int x, int y, int z, Block blockIn, int metadataIn, int dimensionId, String modID) {
         BlockChangeQueueElement queueElement = new BlockChangeQueueElement();
         queueElement.x = x;
         queueElement.y = y;
         queueElement.z = z;
         queueElement.dimensionId = dimensionId;
         queueElement.timestamp = System.currentTimeMillis();
+        queueElement.stackTrace = modID + " : " + GenericUtils.getCallingClassChain();
         queueElement.blockID = Block.getIdFromBlock(blockIn);
         queueElement.metadata = metadataIn;
 
