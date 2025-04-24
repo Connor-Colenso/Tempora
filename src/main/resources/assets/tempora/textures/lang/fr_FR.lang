@@ -1,9 +1,0 @@
-message.block_break=%s a cassé %s à [%d, %d, %d] (%s).
-message.block_place=%s a placé %s à [%d, %d, %d] (%s).
-message.command_issued=%s a exécuté la commande /%s %s à [%s, %s, %s] (%s).
-message.entity_death=%s a été tué par %s à [%s, %s, %s] (%s).
-message.entity_position=%s a été localisé à [%s, %s, %s] (%s).
-message.entity_spawn=%s est apparu à [%s, %s, %s] (%s).
-message.explosion=Explosion provoquée par %s avec une force de %.1f près de %s (à %.1f mètres) à [%s, %s, %s] (%s).
-message.item_use=%s a utilisé l'ID d'objet %d avec métadonnée %d à [%s, %s, %s] (%s).
-message.player_movement=%s s'est déplacé à [%s, %s, %s] (%s).
