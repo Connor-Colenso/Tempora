@@ -22,7 +22,7 @@ public abstract class MixinNetHandlerPlayServer {
     @Inject(method = "processClickWindow", at = @At("HEAD"))
     private void onProcessClickWindow(C0EPacketClickWindow packetIn, CallbackInfo ci) {
         if (TemporaUtils.isServerSide() && TemporaUtils.shouldTemporaRun()) {
-            Tempora.playerInteractWithInventoryLogger.playerInteractedWithInventory(playerEntity, packetIn);
+//            Tempora.playerInteractWithInventoryLogger.playerInteractedWithInventory(playerEntity, packetIn);
         }
     }
 }

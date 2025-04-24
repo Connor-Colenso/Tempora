@@ -7,8 +7,10 @@
   "compatibilityLevel": "JAVA_8",
   "mixins": [
     "MixinNetHandlerPlayServer",
-    "MixinWorld"
+    "MixinWorld",
+    "MixinContainer"
   ],
   "client": [],
-  "server": []
+  "server": [
+  ]
 }
