@@ -6,14 +6,12 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 
-import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Container;
-import net.minecraft.inventory.IInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.network.play.client.C0EPacketClickWindow;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraftforge.common.config.Configuration;
+import com.gtnewhorizons.modularui.common.internal.wrapper.ModularUIContainer;
 
 import com.colen.tempora.logging.loggers.ISerializable;
 import com.colen.tempora.logging.loggers.generic.GenericPositionalLogger;
@@ -82,49 +80,31 @@ public class PlayerInteractWithInventoryLogger
         }
     }
 
-    public void playerInteractedWithInventory(EntityPlayerMP playerMP, C0EPacketClickWindow packetClickWindow) {
-        Container container = playerMP.openContainer;
-        if (container == null) return;
+    public void playerInteractedWithInventory(EntityPlayer playerMP, Container container, ItemStack itemStack, Direction direction, TileEntity tileEntity) {
 
-        ItemStack itemStack = packetClickWindow.func_149546_g();
-        if (itemStack == null) return; // No item was involved in the interaction.
-
-        double x = 0, y = 0, z = 0;
-        String containerType = "[TEMPORA_UNKNOWN_CONTAINER]";
-
-        System.out.println(packetClickWindow.func_149544_d());
-        System.out.println(packetClickWindow.serialize());
-
-        // Check if the container is linked to a TileEntity
-        if (!container.inventorySlots.isEmpty()) {
-            IInventory inventory = container.inventorySlots.get(0).inventory;
-            if (inventory instanceof TileEntity tileEntity) {
-                x = tileEntity.xCoord;
-                y = tileEntity.yCoord;
-                z = tileEntity.zCoord;
-                containerType = tileEntity.getBlockType()
-                    .getLocalizedName();
+        PlayerInteractWithInventoryQueueElement queueElement = new PlayerInteractWithInventoryQueueElement();
+        if (tileEntity != null) {
+            queueElement.x = tileEntity.xCoord;
+            queueElement.y = tileEntity.yCoord;
+            queueElement.z = tileEntity.zCoord;
+            queueElement.containerName = tileEntity.getClass().getSimpleName();
+        } else {
+            // Backup
+            queueElement.x = playerMP.posX;
+            queueElement.y = playerMP.posY;
+            queueElement.z = playerMP.posZ;
+            if (container instanceof ModularUIContainer modularUIContainer) {
+                queueElement.containerName = modularUIContainer.getClass().getSimpleName();
             } else {
-                containerType = inventory.getClass()
-                    .getSimpleName();
-                x = playerMP.posX;
-                y = playerMP.posY;
-                z = playerMP.posZ;
+                queueElement.containerName = container.getClass().getSimpleName();
             }
         }
 
-        PlayerInteractWithInventoryQueueElement queueElement = new PlayerInteractWithInventoryQueueElement();
-        queueElement.x = x;
-        queueElement.y = y;
-        queueElement.z = z;
         queueElement.dimensionId = playerMP.dimension;
         queueElement.timestamp = System.currentTimeMillis();
         queueElement.playerUUID = playerMP.getUniqueID()
             .toString();
-        queueElement.containerName = containerType;
-        // 36 because of the size of the players inventory.
-        queueElement.interactionType = packetClickWindow.func_149544_d()
-            < (playerMP.openContainer.inventorySlots.size() - 36) ? "Remove" : "Add";
+        queueElement.interactionType = direction == Direction.ToPlayer ? "Remove" : "Add";
         queueElement.itemId = Item.getIdFromItem(itemStack.getItem());
         queueElement.itemMetadata = itemStack.getItemDamage();
         queueElement.stacksize = itemStack.stackSize;
@@ -132,4 +112,19 @@ public class PlayerInteractWithInventoryLogger
         queueEvent(queueElement);
     }
 
+    // Never change the values here.
+    public enum Direction {
+        ToPlayer(0),
+        FromPlayer(1);
+
+        private final int id;
+
+        Direction(int id) {
+            this.id = id;
+        }
+
+        public int getId() {
+            return id;
+        }
+    }
 }
