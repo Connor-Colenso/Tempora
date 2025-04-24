@@ -9,7 +9,6 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.event.entity.living.LivingSpawnEvent;
 
 import com.colen.tempora.logging.loggers.ISerializable;

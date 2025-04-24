@@ -9,13 +9,13 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 
-import com.colen.tempora.utils.PlayerUtils;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 
 import com.colen.tempora.logging.loggers.ISerializable;
 import com.colen.tempora.logging.loggers.generic.GenericPositionalLogger;
+import com.colen.tempora.utils.PlayerUtils;
 
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
@@ -76,14 +76,14 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueE
                 queueElement.killedBy = killedBy;
             }
 
-            queueElement.timestamp = resultSet.getTimestamp("timestamp").getTime();
+            queueElement.timestamp = resultSet.getTimestamp("timestamp")
+                .getTime();
 
             eventList.add(queueElement);
         }
 
         return eventList;
     }
-
 
     @Override
     public void initTable() {

@@ -17,13 +17,13 @@ public class BlockChangeQueueElement extends GenericQueueElement {
         String localizedName = BlockUtils.getLocalizedName(blockID, metadata);
         String formattedTime = TimeUtils.formatTime(timestamp);
 
-        return StatCollector.translateToLocalFormatted("message.block_change",
+        return StatCollector.translateToLocalFormatted(
+            "message.block_change",
             localizedName,
             Math.round(x),
             Math.round(y),
             Math.round(z),
             formattedTime,
-            stackTrace
-        );
+            stackTrace);
     }
 }

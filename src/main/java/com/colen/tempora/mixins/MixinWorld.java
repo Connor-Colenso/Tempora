@@ -1,18 +1,21 @@
 package com.colen.tempora.mixins;
 
-import com.colen.tempora.Tempora;
-import cpw.mods.fml.common.Loader;
-import cpw.mods.fml.common.ModContainer;
 import net.minecraft.block.Block;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldProvider;
 import net.minecraft.world.chunk.IChunkProvider;
 import net.minecraft.world.gen.ChunkProviderGenerate;
+
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+
+import com.colen.tempora.Tempora;
+
+import cpw.mods.fml.common.Loader;
+import cpw.mods.fml.common.ModContainer;
 
 @Mixin(World.class)
 public class MixinWorld {
@@ -24,17 +27,19 @@ public class MixinWorld {
     protected IChunkProvider chunkProvider;
 
     @Inject(method = "setBlock", at = @At("RETURN"))
-    private void onSetBlockReturn(int x, int y, int z, Block blockIn, int metadataIn, int flags, CallbackInfoReturnable<Boolean> cir) {
+    private void onSetBlockReturn(int x, int y, int z, Block blockIn, int metadataIn, int flags,
+        CallbackInfoReturnable<Boolean> cir) {
 
         if (chunkProvider instanceof ChunkProviderGenerate) {
             // Don't log during world generation
             return;
         }
 
-        ModContainer modContainer = Loader.instance().activeModContainer();
+        ModContainer modContainer = Loader.instance()
+            .activeModContainer();
         String modID;
         if (modContainer == null) {
-            modID  = "[NO MOD]";
+            modID = "[NO MOD]";
         } else {
             modID = modContainer.getModId();
         }
