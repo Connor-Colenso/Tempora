@@ -11,7 +11,6 @@ import net.minecraft.inventory.Container;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
-import com.gtnewhorizons.modularui.common.internal.wrapper.ModularUIContainer;
 
 import com.colen.tempora.logging.loggers.ISerializable;
 import com.colen.tempora.logging.loggers.generic.GenericPositionalLogger;
@@ -93,11 +92,7 @@ public class PlayerInteractWithInventoryLogger
             queueElement.x = playerMP.posX;
             queueElement.y = playerMP.posY;
             queueElement.z = playerMP.posZ;
-            if (container instanceof ModularUIContainer modularUIContainer) {
-                queueElement.containerName = modularUIContainer.getClass().getSimpleName();
-            } else {
-                queueElement.containerName = container.getClass().getSimpleName();
-            }
+            queueElement.containerName = container.getClass().getSimpleName();
         }
 
         queueElement.dimensionId = playerMP.dimension;

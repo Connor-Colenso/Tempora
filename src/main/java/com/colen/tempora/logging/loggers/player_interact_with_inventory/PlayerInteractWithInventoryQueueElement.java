@@ -23,21 +23,33 @@ public class PlayerInteractWithInventoryQueueElement extends GenericQueueElement
         String playerName = PlayerUtils.UUIDToName(playerUUID); // Converting player UUID to name.
         String itemDetails = getNameOfItemStack(itemId, itemMetadata); // Getting name and details of the item stack.
 
-        String interactionLocalized = interactionType.equals("Add") ? "added" : "removed";
-
-        return StatCollector.translateToLocalFormatted(
-            "message.inventory_interaction",
-            playerName,
-            interactionLocalized,
-            stacksize,
-            itemDetails,
-            itemId,
-            itemMetadata,
-            containerName,
-            (int) x,
-            (int) y,
-            (int) z,
-            formattedTime);
+        if (interactionType.equals("Added")) {
+            return StatCollector.translateToLocalFormatted(
+                "message.inventory_interaction_added",
+                playerName,
+                stacksize,
+                itemDetails,
+                itemId,
+                itemMetadata,
+                containerName,
+                (int) x,
+                (int) y,
+                (int) z,
+                formattedTime);
+        } else {
+            return StatCollector.translateToLocalFormatted(
+                "message.inventory_interaction_removed",
+                playerName,
+                stacksize,
+                itemDetails,
+                itemId,
+                itemMetadata,
+                containerName,
+                (int) x,
+                (int) y,
+                (int) z,
+                formattedTime);
+        }
     }
 
 }
