@@ -74,21 +74,17 @@ public class EntityPositionLogger extends GenericPositionalLogger<EntityPosition
     }
 
     @Override
-    public void threadedSaveEvent(EntityPositionQueueElement entityPositionQueueElement) {
-        try {
-            final String sql = "INSERT INTO " + getLoggerName()
-                + "(entityName, x, y, z, dimensionID, timestamp) VALUES(?, ?, ?, ?, ?, ?)";
-            final PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(sql);
-            pstmt.setString(1, entityPositionQueueElement.entityName);
-            pstmt.setDouble(2, entityPositionQueueElement.x);
-            pstmt.setDouble(3, entityPositionQueueElement.y);
-            pstmt.setDouble(4, entityPositionQueueElement.z);
-            pstmt.setInt(5, entityPositionQueueElement.dimensionId);
-            pstmt.setTimestamp(6, new Timestamp(entityPositionQueueElement.timestamp));
-            pstmt.executeUpdate();
-        } catch (final SQLException e) {
-            e.printStackTrace();
-        }
+    public void threadedSaveEvent(EntityPositionQueueElement entityPositionQueueElement) throws SQLException {
+        final String sql = "INSERT INTO " + getLoggerName()
+            + "(entityName, x, y, z, dimensionID, timestamp) VALUES(?, ?, ?, ?, ?, ?)";
+        final PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(sql);
+        pstmt.setString(1, entityPositionQueueElement.entityName);
+        pstmt.setDouble(2, entityPositionQueueElement.x);
+        pstmt.setDouble(3, entityPositionQueueElement.y);
+        pstmt.setDouble(4, entityPositionQueueElement.z);
+        pstmt.setInt(5, entityPositionQueueElement.dimensionId);
+        pstmt.setTimestamp(6, new Timestamp(entityPositionQueueElement.timestamp));
+        pstmt.executeUpdate();
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)

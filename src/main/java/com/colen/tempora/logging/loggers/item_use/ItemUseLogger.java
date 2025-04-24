@@ -72,23 +72,19 @@ public class ItemUseLogger extends GenericPositionalLogger<ItemUseQueueElement> 
     }
 
     @Override
-    public void threadedSaveEvent(ItemUseQueueElement itemUseQueueElement) {
-        try {
-            final String sql = "INSERT INTO " + getLoggerName()
-                + "(playerUUID, itemID, itemMetadata, x, y, z, dimensionID, timestamp) VALUES(?, ?, ?, ?, ?, ?, ?, ?)";
-            final PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(sql);
-            pstmt.setString(1, itemUseQueueElement.playerName);
-            pstmt.setInt(2, itemUseQueueElement.itemID);
-            pstmt.setInt(3, itemUseQueueElement.itemMetadata);
-            pstmt.setDouble(4, itemUseQueueElement.x);
-            pstmt.setDouble(5, itemUseQueueElement.y);
-            pstmt.setDouble(6, itemUseQueueElement.z);
-            pstmt.setInt(7, itemUseQueueElement.dimensionId);
-            pstmt.setTimestamp(8, new Timestamp(itemUseQueueElement.timestamp));
-            pstmt.executeUpdate();
-        } catch (final SQLException e) {
-            e.printStackTrace();
-        }
+    public void threadedSaveEvent(ItemUseQueueElement itemUseQueueElement) throws SQLException {
+        final String sql = "INSERT INTO " + getLoggerName()
+            + "(playerUUID, itemID, itemMetadata, x, y, z, dimensionID, timestamp) VALUES(?, ?, ?, ?, ?, ?, ?, ?)";
+        final PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(sql);
+        pstmt.setString(1, itemUseQueueElement.playerName);
+        pstmt.setInt(2, itemUseQueueElement.itemID);
+        pstmt.setInt(3, itemUseQueueElement.itemMetadata);
+        pstmt.setDouble(4, itemUseQueueElement.x);
+        pstmt.setDouble(5, itemUseQueueElement.y);
+        pstmt.setDouble(6, itemUseQueueElement.z);
+        pstmt.setInt(7, itemUseQueueElement.dimensionId);
+        pstmt.setTimestamp(8, new Timestamp(itemUseQueueElement.timestamp));
+        pstmt.executeUpdate();
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)

@@ -51,7 +51,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
         loggerList.add(this);
     }
 
-    public abstract void threadedSaveEvent(EventToLog event);
+    public abstract void threadedSaveEvent(EventToLog event) throws SQLException;
 
     public void handleCustomLoggerConfig(Configuration config) {
 

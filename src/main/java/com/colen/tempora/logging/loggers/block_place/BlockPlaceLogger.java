@@ -69,23 +69,19 @@ public class BlockPlaceLogger extends GenericPositionalLogger<BlockPlaceQueueEle
     }
 
     @Override
-    public void threadedSaveEvent(BlockPlaceQueueElement blockPlaceQueueElement) {
-        try {
-            final String sql = "INSERT INTO " + getLoggerName()
-                + "(playerUUID, blockId, metadata, x, y, z, dimensionID, timestamp) VALUES(?, ?, ?, ?, ?, ?, ?, ?)";
-            final PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(sql);
-            pstmt.setString(1, blockPlaceQueueElement.playerNameWhoPlacedBlock);
-            pstmt.setInt(2, blockPlaceQueueElement.blockID);
-            pstmt.setInt(3, blockPlaceQueueElement.metadata);
-            pstmt.setDouble(4, blockPlaceQueueElement.x);
-            pstmt.setDouble(5, blockPlaceQueueElement.y);
-            pstmt.setDouble(6, blockPlaceQueueElement.z);
-            pstmt.setInt(7, blockPlaceQueueElement.dimensionId);
-            pstmt.setTimestamp(8, new Timestamp(blockPlaceQueueElement.timestamp));
-            pstmt.executeUpdate();
-        } catch (final SQLException e) {
-            e.printStackTrace();
-        }
+    public void threadedSaveEvent(BlockPlaceQueueElement blockPlaceQueueElement) throws SQLException {
+        final String sql = "INSERT INTO " + getLoggerName()
+            + "(playerUUID, blockId, metadata, x, y, z, dimensionID, timestamp) VALUES(?, ?, ?, ?, ?, ?, ?, ?)";
+        final PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(sql);
+        pstmt.setString(1, blockPlaceQueueElement.playerNameWhoPlacedBlock);
+        pstmt.setInt(2, blockPlaceQueueElement.blockID);
+        pstmt.setInt(3, blockPlaceQueueElement.metadata);
+        pstmt.setDouble(4, blockPlaceQueueElement.x);
+        pstmt.setDouble(5, blockPlaceQueueElement.y);
+        pstmt.setDouble(6, blockPlaceQueueElement.z);
+        pstmt.setInt(7, blockPlaceQueueElement.dimensionId);
+        pstmt.setTimestamp(8, new Timestamp(blockPlaceQueueElement.timestamp));
+        pstmt.executeUpdate();
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)

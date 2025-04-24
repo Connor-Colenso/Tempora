@@ -1,10 +1,10 @@
 message.block_break=%s broke %s (%d:%d) at [%d, %d, %d] (%s).
 message.block_place=%s placed %s (%d:%d) at [%d, %d, %d] (%s).
 message.command_issued=%s issued command /%s %s at [%s, %s, %s] (%s).
-message.entity_death=%s was killed by %s at (%.1f, %.1f, %.1f) (%s).
+message.entity_death=%s was killed by %s at [%s, %s, %s] (%s).
 message.entity_position=%s was located at [%s, %s, %s] (%s).
 message.entity_spawn=%s spawned at [%s, %s, %s] (%s).
-message.explosion=Explosion caused by %s with strength %.1f near %s (%.1f meters away) at [%s, %s, %s] (%s).
+message.explosion=Explosion caused by %s with strength %s near player %s (%s meters away) at [%s, %s, %s] (%s).
 message.item_use=%s used %s (%d:%d) at [%s, %s, %s] (%s).
 message.player_movement=%s moved to [%s, %s, %s] (%s).
 message.inventory_interaction_added=%s added %dx%s (%d:%d) to %s at [%d, %d, %d] (%s).
