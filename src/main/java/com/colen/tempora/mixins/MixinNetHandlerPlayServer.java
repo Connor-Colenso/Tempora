@@ -10,7 +10,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import com.colen.tempora.Tempora;
 import com.colen.tempora.TemporaUtils;
 
 @Mixin(NetHandlerPlayServer.class)
@@ -22,7 +21,7 @@ public abstract class MixinNetHandlerPlayServer {
     @Inject(method = "processClickWindow", at = @At("HEAD"))
     private void onProcessClickWindow(C0EPacketClickWindow packetIn, CallbackInfo ci) {
         if (TemporaUtils.isServerSide() && TemporaUtils.shouldTemporaRun()) {
-//            Tempora.playerInteractWithInventoryLogger.playerInteractedWithInventory(playerEntity, packetIn);
+            // Tempora.playerInteractWithInventoryLogger.playerInteractedWithInventory(playerEntity, packetIn);
         }
     }
 }

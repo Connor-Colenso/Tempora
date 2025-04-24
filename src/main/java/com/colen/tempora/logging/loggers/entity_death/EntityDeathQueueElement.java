@@ -1,6 +1,5 @@
 package com.colen.tempora.logging.loggers.entity_death;
 
-import com.colen.tempora.utils.PlayerUtils;
 import net.minecraft.util.StatCollector;
 
 import com.colen.tempora.logging.loggers.generic.GenericQueueElement;
@@ -15,13 +14,7 @@ public class EntityDeathQueueElement extends GenericQueueElement {
     public String localiseText() {
         String formattedTime = TimeUtils.formatTime(timestamp);
 
-        return StatCollector.translateToLocalFormatted(
-            "message.entity_death",
-            nameOfDeadMob,
-            killedBy,
-            x,
-            y,
-            z,
-            formattedTime);
+        return StatCollector
+            .translateToLocalFormatted("message.entity_death", nameOfDeadMob, killedBy, x, y, z, formattedTime);
     }
 }

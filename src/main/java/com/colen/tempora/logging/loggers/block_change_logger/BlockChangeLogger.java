@@ -1,36 +1,36 @@
 package com.colen.tempora.logging.loggers.block_change_logger;
 
-import com.colen.tempora.logging.loggers.ISerializable;
-import com.colen.tempora.logging.loggers.generic.GenericPositionalLogger;
-
-import com.colen.tempora.utils.GenericUtils;
-import cpw.mods.fml.common.FMLContainer;
-import cpw.mods.fml.common.Loader;
-import net.minecraft.block.Block;
-
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 
+import net.minecraft.block.Block;
+
+import com.colen.tempora.logging.loggers.ISerializable;
+import com.colen.tempora.logging.loggers.generic.GenericPositionalLogger;
+import com.colen.tempora.utils.GenericUtils;
+
 public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueElement> {
 
     @Override
     public void initTable() {
         try {
-            positionalLoggerDBConnection.prepareStatement(
-                "CREATE TABLE IF NOT EXISTS " + getLoggerName() + " (" +
-                    "id INTEGER PRIMARY KEY AUTOINCREMENT," +
-                    "blockId INTEGER NOT NULL," +
-                    "metadata INTEGER NOT NULL," +
-                    "stackTrace TEXT," +
-                    "x INTEGER NOT NULL," +
-                    "y INTEGER NOT NULL," +
-                    "z INTEGER NOT NULL," +
-                    "dimensionID INTEGER NOT NULL," +
-                    "timestamp DATETIME NOT NULL);"
-            ).execute();
+            positionalLoggerDBConnection
+                .prepareStatement(
+                    "CREATE TABLE IF NOT EXISTS " + getLoggerName()
+                        + " ("
+                        + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+                        + "blockId INTEGER NOT NULL,"
+                        + "metadata INTEGER NOT NULL,"
+                        + "stackTrace TEXT,"
+                        + "x INTEGER NOT NULL,"
+                        + "y INTEGER NOT NULL,"
+                        + "z INTEGER NOT NULL,"
+                        + "dimensionID INTEGER NOT NULL,"
+                        + "timestamp DATETIME NOT NULL);")
+                .execute();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -38,8 +38,8 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
 
     @Override
     public void threadedSaveEvent(BlockChangeQueueElement queueElement) throws SQLException {
-        final String sql = "INSERT INTO " + getLoggerName() +
-            " (blockId, metadata, stackTrace, x, y, z, dimensionID, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        final String sql = "INSERT INTO " + getLoggerName()
+            + " (blockId, metadata, stackTrace, x, y, z, dimensionID, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         final PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(sql);
         pstmt.setInt(1, queueElement.blockID);
         pstmt.setInt(2, queueElement.metadata);

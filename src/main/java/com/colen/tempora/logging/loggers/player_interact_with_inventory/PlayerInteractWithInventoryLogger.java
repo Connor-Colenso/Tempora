@@ -75,20 +75,23 @@ public class PlayerInteractWithInventoryLogger
         pstmt.executeUpdate();
     }
 
-    public void playerInteractedWithInventory(EntityPlayer playerMP, Container container, ItemStack itemStack, Direction direction, TileEntity tileEntity) {
+    public void playerInteractedWithInventory(EntityPlayer playerMP, Container container, ItemStack itemStack,
+        Direction direction, TileEntity tileEntity) {
 
         PlayerInteractWithInventoryQueueElement queueElement = new PlayerInteractWithInventoryQueueElement();
         if (tileEntity != null) {
             queueElement.x = tileEntity.xCoord;
             queueElement.y = tileEntity.yCoord;
             queueElement.z = tileEntity.zCoord;
-            queueElement.containerName = tileEntity.getClass().getSimpleName();
+            queueElement.containerName = tileEntity.getClass()
+                .getSimpleName();
         } else {
             // Backup
             queueElement.x = playerMP.posX;
             queueElement.y = playerMP.posY;
             queueElement.z = playerMP.posZ;
-            queueElement.containerName = container.getClass().getSimpleName();
+            queueElement.containerName = container.getClass()
+                .getSimpleName();
         }
 
         queueElement.dimensionId = playerMP.dimension;
@@ -105,6 +108,7 @@ public class PlayerInteractWithInventoryLogger
 
     // Never change the values here.
     public enum Direction {
+
         ToPlayer(0),
         FromPlayer(1);
 

@@ -1,6 +1,5 @@
 package com.colen.tempora.logging.loggers.explosion;
 
-import com.colen.tempora.utils.PlayerUtils;
 import net.minecraft.util.StatCollector;
 
 import com.colen.tempora.logging.loggers.generic.GenericQueueElement;
@@ -24,7 +23,6 @@ public class ExplosionQueueElement extends GenericQueueElement {
             String.format("%.1f", x),
             String.format("%.1f", y),
             String.format("%.1f", z),
-            TimeUtils.formatTime(timestamp)
-        );
+            TimeUtils.formatTime(timestamp));
     }
 }
