@@ -37,23 +37,19 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
     }
 
     @Override
-    public void threadedSaveEvent(BlockChangeQueueElement queueElement) {
-        try {
-            final String sql = "INSERT INTO " + getLoggerName() +
-                " (blockId, metadata, stackTrace, x, y, z, dimensionID, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-            final PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(sql);
-            pstmt.setInt(1, queueElement.blockID);
-            pstmt.setInt(2, queueElement.metadata);
-            pstmt.setString(3, queueElement.stackTrace);
-            pstmt.setInt(4, (int) Math.round(queueElement.x));
-            pstmt.setInt(5, (int) Math.round(queueElement.y));
-            pstmt.setInt(6, (int) Math.round(queueElement.z));
-            pstmt.setInt(7, queueElement.dimensionId);
-            pstmt.setTimestamp(8, new Timestamp(queueElement.timestamp));
-            pstmt.executeUpdate();
-        } catch (SQLException ex) {
-            ex.printStackTrace();
-        }
+    public void threadedSaveEvent(BlockChangeQueueElement queueElement) throws SQLException {
+        final String sql = "INSERT INTO " + getLoggerName() +
+            " (blockId, metadata, stackTrace, x, y, z, dimensionID, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        final PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(sql);
+        pstmt.setInt(1, queueElement.blockID);
+        pstmt.setInt(2, queueElement.metadata);
+        pstmt.setString(3, queueElement.stackTrace);
+        pstmt.setInt(4, (int) Math.round(queueElement.x));
+        pstmt.setInt(5, (int) Math.round(queueElement.y));
+        pstmt.setInt(6, (int) Math.round(queueElement.z));
+        pstmt.setInt(7, queueElement.dimensionId);
+        pstmt.setTimestamp(8, new Timestamp(queueElement.timestamp));
+        pstmt.executeUpdate();
     }
 
     @Override

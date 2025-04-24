@@ -57,26 +57,22 @@ public class PlayerInteractWithInventoryLogger
     }
 
     @Override
-    public void threadedSaveEvent(PlayerInteractWithInventoryQueueElement element) {
-        try {
-            PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(
-                "INSERT INTO " + getLoggerName()
-                    + " (x, y, z, dimensionID, timestamp, containerName, interactionType, itemId, itemMetadata, playerUUID, stacksize) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-            pstmt.setDouble(1, element.x);
-            pstmt.setDouble(2, element.y);
-            pstmt.setDouble(3, element.z);
-            pstmt.setInt(4, element.dimensionId);
-            pstmt.setTimestamp(5, new Timestamp(element.timestamp));
-            pstmt.setString(6, element.containerName);
-            pstmt.setString(7, element.interactionType);
-            pstmt.setInt(8, element.itemId);
-            pstmt.setInt(9, element.itemMetadata);
-            pstmt.setString(10, element.playerUUID);
-            pstmt.setInt(11, element.stacksize);
-            pstmt.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+    public void threadedSaveEvent(PlayerInteractWithInventoryQueueElement element) throws SQLException {
+        PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(
+            "INSERT INTO " + getLoggerName()
+                + " (x, y, z, dimensionID, timestamp, containerName, interactionType, itemId, itemMetadata, playerUUID, stacksize) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        pstmt.setDouble(1, element.x);
+        pstmt.setDouble(2, element.y);
+        pstmt.setDouble(3, element.z);
+        pstmt.setInt(4, element.dimensionId);
+        pstmt.setTimestamp(5, new Timestamp(element.timestamp));
+        pstmt.setString(6, element.containerName);
+        pstmt.setString(7, element.interactionType);
+        pstmt.setInt(8, element.itemId);
+        pstmt.setInt(9, element.itemMetadata);
+        pstmt.setString(10, element.playerUUID);
+        pstmt.setInt(11, element.stacksize);
+        pstmt.executeUpdate();
     }
 
     public void playerInteractedWithInventory(EntityPlayer playerMP, Container container, ItemStack itemStack, Direction direction, TileEntity tileEntity) {

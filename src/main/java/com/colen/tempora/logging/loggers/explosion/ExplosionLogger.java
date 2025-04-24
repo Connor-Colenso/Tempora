@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.world.World;
-import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.event.world.ExplosionEvent;
 
 import org.jetbrains.annotations.NotNull;
@@ -38,9 +37,22 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionQueueEleme
             queueElement.z = resultSet.getDouble("z");
             queueElement.dimensionId = resultSet.getInt("dimensionID");
             queueElement.strength = resultSet.getFloat("strength");
-            queueElement.exploderName = PlayerUtils.UUIDToName(resultSet.getString("exploderUUID"));
-            queueElement.closestPlayerName = PlayerUtils.UUIDToName(resultSet.getString("closestPlayerUUID"));
-            queueElement.closestPlayerDistance = resultSet.getDouble("playerDistance");
+
+            String exploderUUID = resultSet.getString("exploderUUID");
+            if (exploderUUID.equals(TemporaUtils.UNKNOWN_PLAYER_NAME)) {
+                queueElement.exploderUUID = exploderUUID;
+            } else {
+                queueElement.exploderUUID = PlayerUtils.UUIDToName(resultSet.getString("exploderUUID"));
+            }
+
+            String closestPlayerUUID = resultSet.getString("closestPlayerUUID");
+            if (closestPlayerUUID.equals(TemporaUtils.UNKNOWN_PLAYER_NAME)) {
+                queueElement.closestPlayerUUID = closestPlayerUUID;
+            } else {
+                queueElement.closestPlayerUUID = PlayerUtils.UUIDToName(closestPlayerUUID);
+            }
+
+            queueElement.closestPlayerDistance = resultSet.getDouble("closestPlayerDistance");
             queueElement.timestamp = resultSet.getLong("timestamp");
 
             eventList.add(queueElement);
@@ -62,8 +74,8 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionQueueEleme
                         + "strength REAL NOT NULL,"
                         + "exploderUUID TEXT NOT NULL,"
                         + "dimensionID INTEGER DEFAULT 0 NOT NULL,"
-                        + "closestPlayer TEXT NOT NULL,"
-                        + "closestPlayerUUID REAL NOT NULL,"
+                        + "closestPlayerUUID TEXT NOT NULL,"
+                        + "closestPlayerDistance REAL NOT NULL,"
                         + "timestamp DATETIME NOT NULL);")
                 .execute();
         } catch (SQLException e) {
@@ -72,24 +84,20 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionQueueEleme
     }
 
     @Override
-    public void threadedSaveEvent(ExplosionQueueElement explosionQueueElement) {
-        try {
-            final String sql = "INSERT INTO " + getLoggerName()
-                + "(x, y, z, strength, exploderUUID, dimensionID, closestPlayerUUID, playerDistance, timestamp) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)";
-            final PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(sql);
-            pstmt.setDouble(1, explosionQueueElement.x);
-            pstmt.setDouble(2, explosionQueueElement.y);
-            pstmt.setDouble(3, explosionQueueElement.z);
-            pstmt.setFloat(4, explosionQueueElement.strength);
-            pstmt.setString(5, explosionQueueElement.exploderName);
-            pstmt.setInt(6, explosionQueueElement.dimensionId);
-            pstmt.setString(7, explosionQueueElement.closestPlayerName);
-            pstmt.setDouble(8, explosionQueueElement.closestPlayerDistance);
-            pstmt.setTimestamp(9, new Timestamp(explosionQueueElement.timestamp));
-            pstmt.executeUpdate();
-        } catch (final SQLException e) {
-            e.printStackTrace();
-        }
+    public void threadedSaveEvent(ExplosionQueueElement explosionQueueElement) throws SQLException {
+        final String sql = "INSERT INTO " + getLoggerName()
+            + "(x, y, z, strength, exploderUUID, dimensionID, closestPlayerUUID, closestPlayerDistance, timestamp) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        final PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(sql);
+        pstmt.setDouble(1, explosionQueueElement.x);
+        pstmt.setDouble(2, explosionQueueElement.y);
+        pstmt.setDouble(3, explosionQueueElement.z);
+        pstmt.setFloat(4, explosionQueueElement.strength);
+        pstmt.setString(5, explosionQueueElement.exploderUUID);
+        pstmt.setInt(6, explosionQueueElement.dimensionId);
+        pstmt.setString(7, explosionQueueElement.closestPlayerUUID);
+        pstmt.setDouble(8, explosionQueueElement.closestPlayerDistance);
+        pstmt.setTimestamp(9, new Timestamp(explosionQueueElement.timestamp));
+        pstmt.executeUpdate();
     }
 
     @SuppressWarnings("unused")
@@ -129,8 +137,8 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionQueueEleme
         queueElement.timestamp = System.currentTimeMillis();
 
         queueElement.strength = strength;
-        queueElement.exploderName = exploderName;
-        queueElement.closestPlayerName = closestPlayerName;
+        queueElement.exploderUUID = exploderName;
+        queueElement.closestPlayerUUID = closestPlayerName;
         queueElement.closestPlayerDistance = closestDistance;
 
         queueEvent(queueElement);

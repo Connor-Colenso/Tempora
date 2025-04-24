@@ -19,9 +19,9 @@ public class EntityDeathQueueElement extends GenericQueueElement {
             "message.entity_death",
             nameOfDeadMob,
             killedBy,
-            String.format("%.1f", x),
-            String.format("%.1f", y),
-            String.format("%.1f", z),
+            x,
+            y,
+            z,
             formattedTime);
     }
 }
