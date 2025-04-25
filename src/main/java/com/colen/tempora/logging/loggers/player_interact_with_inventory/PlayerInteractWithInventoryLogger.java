@@ -8,6 +8,7 @@ import java.util.ArrayList;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Container;
+import net.minecraft.inventory.IInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
@@ -83,8 +84,11 @@ public class PlayerInteractWithInventoryLogger
             queueElement.x = tileEntity.xCoord;
             queueElement.y = tileEntity.yCoord;
             queueElement.z = tileEntity.zCoord;
-            queueElement.containerName = tileEntity.getClass()
-                .getSimpleName();
+            if (tileEntity instanceof IInventory inventory) {
+                queueElement.containerName = inventory.getInventoryName();
+            } else {
+                queueElement.containerName = tileEntity.getClass().getSimpleName();
+            }
         } else {
             // Backup
             queueElement.x = playerMP.posX;
