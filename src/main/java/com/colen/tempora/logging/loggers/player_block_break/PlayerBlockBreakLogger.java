@@ -7,6 +7,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -16,6 +18,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.colen.tempora.TemporaUtils;
 import com.colen.tempora.logging.loggers.ISerializable;
+import com.colen.tempora.logging.loggers.generic.ColumnDef;
 import com.colen.tempora.logging.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.utils.PlayerUtils;
 
@@ -23,6 +26,14 @@ import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
 public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockBreakQueueElement> {
+
+    @Override
+    protected List<ColumnDef> getTableColumns() {
+        return Arrays.asList(
+            new ColumnDef("playerUUID", "TEXT", "NOT NULL"),
+            new ColumnDef("metadata", "INTEGER", "NOT NULL"),
+            new ColumnDef("blockId", "INTEGER", "NOT NULL"));
+    }
 
     @Override
     protected ArrayList<ISerializable> generatePacket(ResultSet resultSet) throws SQLException {
@@ -49,27 +60,6 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
             return eventList;
         } catch (Exception e) {
             return null;
-        }
-    }
-
-    @Override
-    public void initTable() {
-        try {
-            positionalLoggerDBConnection
-                .prepareStatement(
-                    "CREATE TABLE IF NOT EXISTS " + getLoggerName()
-                        + " (id INTEGER PRIMARY KEY AUTOINCREMENT,"
-                        + "playerUUID TEXT NOT NULL,"
-                        + "metadata INTEGER NOT NULL,"
-                        + "blockId INTEGER NOT NULL,"
-                        + "x REAL NOT NULL,"
-                        + "y REAL NOT NULL,"
-                        + "z REAL NOT NULL,"
-                        + "dimensionID INTEGER DEFAULT 0 NOT NULL,"
-                        + "timestamp DATETIME NOT NULL);")
-                .execute();
-        } catch (final SQLException e) {
-            e.printStackTrace();
         }
     }
 

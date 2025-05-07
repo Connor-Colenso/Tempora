@@ -5,35 +5,24 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import net.minecraft.block.Block;
 
 import com.colen.tempora.logging.loggers.ISerializable;
+import com.colen.tempora.logging.loggers.generic.ColumnDef;
 import com.colen.tempora.logging.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.utils.GenericUtils;
 
 public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueElement> {
 
     @Override
-    public void initTable() {
-        try {
-            positionalLoggerDBConnection
-                .prepareStatement(
-                    "CREATE TABLE IF NOT EXISTS " + getLoggerName()
-                        + " ("
-                        + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
-                        + "blockId INTEGER NOT NULL,"
-                        + "metadata INTEGER NOT NULL,"
-                        + "stackTrace TEXT,"
-                        + "x INTEGER NOT NULL,"
-                        + "y INTEGER NOT NULL,"
-                        + "z INTEGER NOT NULL,"
-                        + "dimensionID INTEGER NOT NULL,"
-                        + "timestamp DATETIME NOT NULL);")
-                .execute();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+    protected List<ColumnDef> getTableColumns() {
+        return Arrays.asList(
+            new ColumnDef("blockId", "INTEGER", "NOT NULL"),
+            new ColumnDef("metadata", "INTEGER", "NOT NULL"),
+            new ColumnDef("stackTrace", "TEXT"));
     }
 
     @Override
