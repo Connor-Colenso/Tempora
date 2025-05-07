@@ -7,6 +7,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -14,7 +15,7 @@ import net.minecraftforge.common.config.Configuration;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.colen.tempora.logging.loggers.ISerializable;
+import com.colen.tempora.logging.loggers.generic.ISerializable;
 import com.colen.tempora.logging.loggers.generic.ColumnDef;
 import com.colen.tempora.logging.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.utils.PlayerUtils;
@@ -36,7 +37,7 @@ public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovement
 
     @Override
     protected List<ColumnDef> getTableColumns() {
-        return List.of(new ColumnDef("playerUUID", "TEXT", "NOT NULL"));
+        return Arrays.asList(new ColumnDef("playerUUID", "TEXT", "NOT NULL"));
     }
 
     private int playerMovementLoggingInterval;

@@ -15,7 +15,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 
-import com.colen.tempora.logging.loggers.ISerializable;
+import com.colen.tempora.logging.loggers.generic.ISerializable;
 import com.colen.tempora.logging.loggers.generic.ColumnDef;
 import com.colen.tempora.logging.loggers.generic.GenericPositionalLogger;
 

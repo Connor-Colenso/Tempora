@@ -11,6 +11,8 @@ public class BlockChangeQueueElement extends GenericQueueElement {
     public int blockID;
     public int metadata;
     public String stackTrace;
+    public String closestPlayerUUID;
+    public double closestPlayerDistance;
 
     @Override
     public String localiseText() {
@@ -24,6 +26,9 @@ public class BlockChangeQueueElement extends GenericQueueElement {
             Math.round(y),
             Math.round(z),
             formattedTime,
-            stackTrace);
+            stackTrace,
+            closestPlayerUUID,
+            String.format("%.1f", closestPlayerDistance)
+        );
     }
 }

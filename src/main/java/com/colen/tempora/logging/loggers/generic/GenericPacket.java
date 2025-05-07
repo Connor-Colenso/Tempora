@@ -1,4 +1,4 @@
-package com.colen.tempora.logging.loggers;
+package com.colen.tempora.logging.loggers.generic;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Type;

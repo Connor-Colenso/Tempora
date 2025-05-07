@@ -8,12 +8,16 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.colen.tempora.TemporaUtils;
+import com.colen.tempora.utils.PlayerUtils;
 import net.minecraft.block.Block;
 
-import com.colen.tempora.logging.loggers.ISerializable;
+import com.colen.tempora.logging.loggers.generic.ISerializable;
 import com.colen.tempora.logging.loggers.generic.ColumnDef;
 import com.colen.tempora.logging.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.utils.GenericUtils;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.server.MinecraftServer;
 
 public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueElement> {
 
@@ -22,13 +26,15 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
         return Arrays.asList(
             new ColumnDef("blockId", "INTEGER", "NOT NULL"),
             new ColumnDef("metadata", "INTEGER", "NOT NULL"),
-            new ColumnDef("stackTrace", "TEXT", "NOT NULL"));
+            new ColumnDef("stackTrace", "TEXT", "NOT NULL"),
+            new ColumnDef("closestPlayerUUID", "TEXT", "NOT NULL"),
+            new ColumnDef("closestPlayerDistance", "REAL", "NOT NULL"));
     }
 
     @Override
     public void threadedSaveEvent(BlockChangeQueueElement queueElement) throws SQLException {
         final String sql = "INSERT INTO " + getLoggerName()
-            + " (blockId, metadata, stackTrace, x, y, z, dimensionID, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+            + " (blockId, metadata, stackTrace, x, y, z, dimensionID, timestamp, closestPlayerUUID, closestPlayerDistance) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         final PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(sql);
         pstmt.setInt(1, queueElement.blockID);
         pstmt.setInt(2, queueElement.metadata);
@@ -38,6 +44,8 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
         pstmt.setInt(6, (int) Math.round(queueElement.z));
         pstmt.setInt(7, queueElement.dimensionId);
         pstmt.setTimestamp(8, new Timestamp(queueElement.timestamp));
+        pstmt.setString(9, queueElement.closestPlayerUUID);
+        pstmt.setDouble(10, queueElement.closestPlayerDistance);
         pstmt.executeUpdate();
     }
 
@@ -54,6 +62,9 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
             queueElement.z = resultSet.getInt("z");
             queueElement.dimensionId = resultSet.getInt("dimensionID");
             queueElement.timestamp = resultSet.getLong("timestamp");
+            queueElement.closestPlayerUUID = PlayerUtils.UUIDToName(resultSet.getString("closestPlayerUUID"));
+            queueElement.closestPlayerDistance = resultSet.getDouble("closestPlayerDistance");
+
             events.add(queueElement);
         }
         return events;
@@ -69,6 +80,24 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
         queueElement.stackTrace = modID + " : " + GenericUtils.getCallingClassChain();
         queueElement.blockID = Block.getIdFromBlock(blockIn);
         queueElement.metadata = metadataIn;
+
+        EntityPlayer closestPlayer = null;
+        double closestDistance = Double.MAX_VALUE;
+
+        for (EntityPlayer player : MinecraftServer.getServer().worldServerForDimension(dimensionId).playerEntities) {
+            double distance = player.getDistanceSq(x, y, z);
+            if (distance < closestDistance) {
+                closestPlayer = player;
+                closestDistance = distance;
+            }
+        }
+
+        String closestPlayerName = closestPlayer != null ? closestPlayer.getUniqueID()
+            .toString() : TemporaUtils.UNKNOWN_PLAYER_NAME;
+        closestDistance = Math.sqrt(closestDistance); // Convert from square distance to actual distance
+
+        queueElement.closestPlayerUUID = closestPlayerName;
+        queueElement.closestPlayerDistance = closestDistance;
 
         queueEvent(queueElement);
     }

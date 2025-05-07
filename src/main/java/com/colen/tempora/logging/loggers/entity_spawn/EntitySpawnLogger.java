@@ -7,12 +7,13 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.event.entity.living.LivingSpawnEvent;
 
-import com.colen.tempora.logging.loggers.ISerializable;
+import com.colen.tempora.logging.loggers.generic.ISerializable;
 import com.colen.tempora.logging.loggers.generic.ColumnDef;
 import com.colen.tempora.logging.loggers.generic.GenericPositionalLogger;
 
@@ -23,7 +24,7 @@ public class EntitySpawnLogger extends GenericPositionalLogger<EntitySpawnQueueE
 
     @Override
     protected List<ColumnDef> getTableColumns() {
-        return List.of(new ColumnDef("entityName", "TEXT", "NOT NULL"));
+        return Arrays.asList(new ColumnDef("entityName", "TEXT", "NOT NULL"));
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)

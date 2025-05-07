@@ -18,7 +18,7 @@ import net.minecraftforge.event.world.ExplosionEvent;
 import org.jetbrains.annotations.NotNull;
 
 import com.colen.tempora.TemporaUtils;
-import com.colen.tempora.logging.loggers.ISerializable;
+import com.colen.tempora.logging.loggers.generic.ISerializable;
 import com.colen.tempora.logging.loggers.generic.ColumnDef;
 import com.colen.tempora.logging.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.utils.PlayerUtils;
