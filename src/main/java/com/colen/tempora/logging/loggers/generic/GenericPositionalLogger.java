@@ -29,8 +29,6 @@ import net.minecraftforge.common.config.Configuration;
 import org.jetbrains.annotations.NotNull;
 
 import com.colen.tempora.TemporaUtils;
-import com.colen.tempora.logging.loggers.GenericPacket;
-import com.colen.tempora.logging.loggers.ISerializable;
 import com.colen.tempora.utils.TimeUtils;
 
 import cpw.mods.fml.common.FMLCommonHandler;
@@ -72,7 +70,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
     public void initTable() {
         String tableName = getLoggerName();
-        List<ColumnDef> columns = getTableColumns();
+        List<ColumnDef> columns = new ArrayList<>(getTableColumns());
         columns.addAll(getDefaultColumns());
 
         try {

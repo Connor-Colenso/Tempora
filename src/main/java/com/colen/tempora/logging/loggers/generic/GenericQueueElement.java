@@ -1,7 +1,5 @@
 package com.colen.tempora.logging.loggers.generic;
 
-import com.colen.tempora.logging.loggers.ISerializable;
-
 public abstract class GenericQueueElement implements ISerializable {
 
     public double x;

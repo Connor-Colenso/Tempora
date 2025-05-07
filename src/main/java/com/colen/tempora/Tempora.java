@@ -9,7 +9,7 @@ import org.apache.logging.log4j.Logger;
 
 import com.colen.tempora.items.TemporaWand;
 import com.colen.tempora.logging.commands.QueryEventsCommand;
-import com.colen.tempora.logging.loggers.GenericPacket;
+import com.colen.tempora.logging.loggers.generic.GenericPacket;
 import com.colen.tempora.logging.loggers.block_change_logger.BlockChangeLogger;
 import com.colen.tempora.logging.loggers.block_place.BlockPlaceLogger;
 import com.colen.tempora.logging.loggers.command.CommandLogger;
