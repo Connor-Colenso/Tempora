@@ -5,6 +5,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Container;
@@ -14,10 +16,22 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 
 import com.colen.tempora.logging.loggers.ISerializable;
+import com.colen.tempora.logging.loggers.generic.ColumnDef;
 import com.colen.tempora.logging.loggers.generic.GenericPositionalLogger;
 
 public class PlayerInteractWithInventoryLogger
     extends GenericPositionalLogger<PlayerInteractWithInventoryQueueElement> {
+
+    @Override
+    protected List<ColumnDef> getTableColumns() {
+        return Arrays.asList(
+            new ColumnDef("containerName", "TEXT", "NOT NULL"),
+            new ColumnDef("interactionType", "TEXT", "NOT NULL"),
+            new ColumnDef("playerUUID", "TEXT", "NOT NULL"),
+            new ColumnDef("itemId", "INTEGER", "NOT NULL"),
+            new ColumnDef("itemMetadata", "INTEGER", "NOT NULL"),
+            new ColumnDef("stacksize", "INTEGER", "NOT NULL"));
+    }
 
     public PlayerInteractWithInventoryLogger() {
         registerLogger(this);
@@ -43,18 +57,6 @@ public class PlayerInteractWithInventoryLogger
             eventList.add(queueElement);
         }
         return eventList;
-    }
-
-    @Override
-    public void initTable() {
-        try {
-            PreparedStatement statement = positionalLoggerDBConnection.prepareStatement(
-                "CREATE TABLE IF NOT EXISTS " + getLoggerName()
-                    + " (id INTEGER PRIMARY KEY AUTOINCREMENT, x REAL NOT NULL, y REAL NOT NULL, z REAL NOT NULL, dimensionID INTEGER NOT NULL, timestamp DATETIME NOT NULL, containerName TEXT NOT NULL, interactionType TEXT NOT NULL, playerUUID TEXT NOT NULL, itemId INTEGER NOT NULL, itemMetadata INTEGER NOT NULL, stacksize INTEGER NOT NULL);");
-            statement.execute();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
     }
 
     @Override

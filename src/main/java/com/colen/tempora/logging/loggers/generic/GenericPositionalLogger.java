@@ -10,8 +10,10 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
@@ -57,7 +59,78 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
     }
 
-    public abstract void initTable();
+    protected abstract List<ColumnDef> getTableColumns();
+
+    private List<ColumnDef> getDefaultColumns() {
+        return Arrays.asList(
+            new ColumnDef("x", "INTEGER", "NOT NULL"),
+            new ColumnDef("y", "INTEGER", "NOT NULL"),
+            new ColumnDef("z", "INTEGER", "NOT NULL"),
+            new ColumnDef("timestamp", "DATETIME", "NOT NULL"),
+            new ColumnDef("dimensionID", "INTEGER", "NOT NULL"));
+    }
+
+    public void initTable() {
+        String tableName = getLoggerName();
+        List<ColumnDef> columns = getTableColumns();
+        columns.addAll(getDefaultColumns());
+
+        try {
+            // Step 1: CREATE TABLE IF NOT EXISTS
+            StringBuilder createSQL = new StringBuilder("CREATE TABLE IF NOT EXISTS ").append(tableName)
+                .append(" (id INTEGER PRIMARY KEY AUTOINCREMENT");
+
+            for (ColumnDef col : columns) {
+                createSQL.append(", ")
+                    .append(col.name)
+                    .append(" ")
+                    .append(col.type);
+                if (col.extraCondition != null && !col.extraCondition.isEmpty()) {
+                    createSQL.append(" ")
+                        .append(col.extraCondition);
+                }
+            }
+
+            createSQL.append(");");
+
+            positionalLoggerDBConnection.prepareStatement(createSQL.toString())
+                .execute();
+
+            // Step 2: Check existing columns
+            Set<String> existingColumns = new HashSet<>();
+            try (
+                PreparedStatement stmt = positionalLoggerDBConnection
+                    .prepareStatement("PRAGMA table_info(" + tableName + ");");
+                ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    existingColumns.add(rs.getString("name"));
+                }
+            }
+
+            // Step 3: ALTER TABLE to add missing columns
+            for (ColumnDef col : columns) {
+                if (!existingColumns.contains(col.name)) {
+                    StringBuilder alterSQL = new StringBuilder("ALTER TABLE ").append(tableName)
+                        .append(" ADD COLUMN ")
+                        .append(col.name)
+                        .append(" ")
+                        .append(col.type);
+
+                    if (col.extraCondition != null && !col.extraCondition.isEmpty()) {
+                        alterSQL.append(" ")
+                            .append(col.extraCondition);
+                    }
+
+                    alterSQL.append(";");
+                    positionalLoggerDBConnection.prepareStatement(alterSQL.toString())
+                        .execute();
+                }
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 
     protected abstract ArrayList<ISerializable> generatePacket(ResultSet rs) throws SQLException;
 

@@ -7,17 +7,24 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.List;
 
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.event.entity.living.LivingSpawnEvent;
 
 import com.colen.tempora.logging.loggers.ISerializable;
+import com.colen.tempora.logging.loggers.generic.ColumnDef;
 import com.colen.tempora.logging.loggers.generic.GenericPositionalLogger;
 
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
 public class EntitySpawnLogger extends GenericPositionalLogger<EntitySpawnQueueElement> {
+
+    @Override
+    protected List<ColumnDef> getTableColumns() {
+        return List.of(new ColumnDef("entityName", "TEXT", "NOT NULL"));
+    }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
     @SuppressWarnings("unused")
@@ -56,25 +63,6 @@ public class EntitySpawnLogger extends GenericPositionalLogger<EntitySpawnQueueE
         }
 
         return eventList;
-    }
-
-    @Override
-    public void initTable() {
-        try {
-            positionalLoggerDBConnection
-                .prepareStatement(
-                    "CREATE TABLE IF NOT EXISTS " + getLoggerName()
-                        + " (id INTEGER PRIMARY KEY AUTOINCREMENT,"
-                        + "entityName TEXT NOT NULL,"
-                        + "x REAL NOT NULL,"
-                        + "y REAL NOT NULL,"
-                        + "z REAL NOT NULL,"
-                        + "dimensionID INTEGER DEFAULT 0 NOT NULL,"
-                        + "timestamp DATETIME NOT NULL);")
-                .execute();
-        } catch (final SQLException e) {
-            e.printStackTrace();
-        }
     }
 
     @Override

@@ -7,12 +7,15 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import net.minecraft.command.ICommand;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.event.CommandEvent;
 
 import com.colen.tempora.logging.loggers.ISerializable;
+import com.colen.tempora.logging.loggers.generic.ColumnDef;
 import com.colen.tempora.logging.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.utils.PlayerUtils;
 
@@ -20,6 +23,14 @@ import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
 public class CommandLogger extends GenericPositionalLogger<CommandQueueElement> {
+
+    @Override
+    protected List<ColumnDef> getTableColumns() {
+        return Arrays.asList(
+            new ColumnDef("playerUUID", "TEXT", "NOT NULL"),
+            new ColumnDef("command", "TEXT", "NOT NULL"),
+            new ColumnDef("arguments", "TEXT", "NOT NULL"));
+    }
 
     @Override
     protected ArrayList<ISerializable> generatePacket(ResultSet resultSet) throws SQLException {
@@ -45,27 +56,6 @@ public class CommandLogger extends GenericPositionalLogger<CommandQueueElement> 
         }
 
         return eventList;
-    }
-
-    @Override
-    public void initTable() {
-        try {
-            positionalLoggerDBConnection
-                .prepareStatement(
-                    "CREATE TABLE IF NOT EXISTS " + getLoggerName()
-                        + " (id INTEGER PRIMARY KEY AUTOINCREMENT,"
-                        + "playerUUID TEXT NOT NULL,"
-                        + "command TEXT NOT NULL,"
-                        + "arguments TEXT NOT NULL,"
-                        + "x REAL NOT NULL,"
-                        + "y REAL NOT NULL,"
-                        + "z REAL NOT NULL,"
-                        + "dimensionID INTEGER DEFAULT 0 NOT NULL,"
-                        + "timestamp DATETIME NOT NULL);")
-                .execute();
-        } catch (final SQLException e) {
-            e.printStackTrace();
-        }
     }
 
     @Override

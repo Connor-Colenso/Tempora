@@ -7,6 +7,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
@@ -17,6 +19,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.colen.tempora.TemporaUtils;
 import com.colen.tempora.logging.loggers.ISerializable;
+import com.colen.tempora.logging.loggers.generic.ColumnDef;
 import com.colen.tempora.logging.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.utils.PlayerUtils;
 
@@ -62,25 +65,12 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionQueueEleme
     }
 
     @Override
-    public void initTable() {
-        try {
-            positionalLoggerDBConnection
-                .prepareStatement(
-                    "CREATE TABLE IF NOT EXISTS " + getLoggerName()
-                        + " (id INTEGER PRIMARY KEY AUTOINCREMENT,"
-                        + "x REAL NOT NULL,"
-                        + "y REAL NOT NULL,"
-                        + "z REAL NOT NULL,"
-                        + "strength REAL NOT NULL,"
-                        + "exploderUUID TEXT NOT NULL,"
-                        + "dimensionID INTEGER DEFAULT 0 NOT NULL,"
-                        + "closestPlayerUUID TEXT NOT NULL,"
-                        + "closestPlayerDistance REAL NOT NULL,"
-                        + "timestamp DATETIME NOT NULL);")
-                .execute();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+    protected List<ColumnDef> getTableColumns() {
+        return Arrays.asList(
+            new ColumnDef("strength", "REAL", "NOT NULL"),
+            new ColumnDef("exploderUUID", "TEXT", "NOT NULL"),
+            new ColumnDef("closestPlayerUUID", "TEXT", "NOT NULL"),
+            new ColumnDef("closestPlayerDistance", "REAL", "NOT NULL"));
     }
 
     @Override

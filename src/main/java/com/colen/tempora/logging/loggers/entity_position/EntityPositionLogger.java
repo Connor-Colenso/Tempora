@@ -7,12 +7,14 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.List;
 
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
 
 import com.colen.tempora.logging.loggers.ISerializable;
+import com.colen.tempora.logging.loggers.generic.ColumnDef;
 import com.colen.tempora.logging.loggers.generic.GenericPositionalLogger;
 
 import cpw.mods.fml.common.eventhandler.EventPriority;
@@ -55,22 +57,8 @@ public class EntityPositionLogger extends GenericPositionalLogger<EntityPosition
     }
 
     @Override
-    public void initTable() {
-        try {
-            positionalLoggerDBConnection
-                .prepareStatement(
-                    "CREATE TABLE IF NOT EXISTS " + getLoggerName()
-                        + " (id INTEGER PRIMARY KEY AUTOINCREMENT,"
-                        + "entityName TEXT NOT NULL,"
-                        + "x REAL NOT NULL,"
-                        + "y REAL NOT NULL,"
-                        + "z REAL NOT NULL,"
-                        + "dimensionID INTEGER DEFAULT 0 NOT NULL,"
-                        + "timestamp DATETIME NOT NULL);")
-                .execute();
-        } catch (final SQLException e) {
-            e.printStackTrace();
-        }
+    protected List<ColumnDef> getTableColumns() {
+        return List.of(new ColumnDef("entityName", "TEXT", "NOT NULL"));
     }
 
     @Override
