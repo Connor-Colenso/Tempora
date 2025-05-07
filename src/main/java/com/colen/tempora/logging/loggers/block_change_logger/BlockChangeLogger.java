@@ -22,7 +22,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
         return Arrays.asList(
             new ColumnDef("blockId", "INTEGER", "NOT NULL"),
             new ColumnDef("metadata", "INTEGER", "NOT NULL"),
-            new ColumnDef("stackTrace", "TEXT"));
+            new ColumnDef("stackTrace", "TEXT", "NOT NULL"));
     }
 
     @Override
