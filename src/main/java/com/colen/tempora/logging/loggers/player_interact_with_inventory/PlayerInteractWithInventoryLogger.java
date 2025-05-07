@@ -87,7 +87,8 @@ public class PlayerInteractWithInventoryLogger
             if (tileEntity instanceof IInventory inventory) {
                 queueElement.containerName = inventory.getInventoryName();
             } else {
-                queueElement.containerName = tileEntity.getClass().getSimpleName();
+                queueElement.containerName = tileEntity.getClass()
+                    .getSimpleName();
             }
         } else {
             // Backup

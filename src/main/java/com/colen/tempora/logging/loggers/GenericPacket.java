@@ -37,7 +37,7 @@ public class GenericPacket implements IMessage {
             System.err.println(
                 "Warning! Tempora has detected suspicious behaviour with incorrect packets being sent to the server. This may be a malicious actor.");
             return;
-        } ;
+        }
 
         try {
             // Read the class name from the buffer
