@@ -18,6 +18,8 @@ import com.colen.tempora.logging.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.utils.GenericUtils;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.World;
+import net.minecraft.world.chunk.Chunk;
 
 public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueElement> {
 
@@ -28,7 +30,8 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
             new ColumnDef("metadata", "INTEGER", "NOT NULL"),
             new ColumnDef("stackTrace", "TEXT", "NOT NULL"),
             new ColumnDef("closestPlayerUUID", "TEXT", "NOT NULL"),
-            new ColumnDef("closestPlayerDistance", "REAL", "NOT NULL"));
+            new ColumnDef("closestPlayerDistance", "REAL", "NOT NULL")
+        );
     }
 
     @Override
@@ -71,7 +74,11 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
     }
 
     public void recordSetBlock(int x, int y, int z, Block blockIn, int metadataIn, int dimensionId, String modID) {
-        BlockChangeQueueElement queueElement = new BlockChangeQueueElement();
+        final World world = MinecraftServer.getServer().worldServerForDimension(dimensionId);
+
+        if (!isChunkPopulatedAt(world, x, z)) return;
+
+        final BlockChangeQueueElement queueElement = new BlockChangeQueueElement();
         queueElement.x = x;
         queueElement.y = y;
         queueElement.z = z;
@@ -84,12 +91,18 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
         EntityPlayer closestPlayer = null;
         double closestDistance = Double.MAX_VALUE;
 
-        for (EntityPlayer player : MinecraftServer.getServer().worldServerForDimension(dimensionId).playerEntities) {
-            double distance = player.getDistanceSq(x, y, z);
-            if (distance < closestDistance) {
-                closestPlayer = player;
-                closestDistance = distance;
+        final List<EntityPlayer> playerList = world.playerEntities;
+
+        if (!playerList.isEmpty()) {
+            for (EntityPlayer player : playerList) {
+                double distance = player.getDistanceSq(x, y, z);
+                if (distance < closestDistance) {
+                    closestPlayer = player;
+                    closestDistance = distance;
+                }
             }
+        } else {
+            closestDistance = 0;
         }
 
         String closestPlayerName = closestPlayer != null ? closestPlayer.getUniqueID()
@@ -100,5 +113,16 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
         queueElement.closestPlayerDistance = closestDistance;
 
         queueEvent(queueElement);
+    }
+
+    public boolean isChunkPopulatedAt(World world, int blockX, int blockZ) {
+        // Convert block coordinates to chunk coordinates
+        int chunkX = blockX >> 4; // divide by 16
+        int chunkZ = blockZ >> 4;
+
+        // Get the chunk object
+        Chunk chunk = world.getChunkFromChunkCoords(chunkX, chunkZ);
+
+        return chunk.isTerrainPopulated;
     }
 }
