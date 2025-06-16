@@ -194,9 +194,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
         }
     }
 
-    public final String getLoggerName() {
-        return getClass().getSimpleName();
-    }
+    public abstract String getLoggerName();
 
     public final void genericConfig(@NotNull Configuration config) {
         isEnabled = config.getBoolean("isEnabled", getLoggerName(), loggerEnabledByDefault(), "Enables this logger.");
