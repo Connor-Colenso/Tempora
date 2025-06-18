@@ -98,7 +98,7 @@ public class TimeUtils {
             .matcher(timeDescription);
         if (!matcher.matches()) {
             throw new CommandException(
-                "Invalid time description. It should be in the format 'numberunit', e.g., '1week' or '5months'.");
+                "Invalid time description. It should be in the format e.g., '1week' or '5months'.");
         }
 
         long number = Long.parseLong(matcher.group(1));
