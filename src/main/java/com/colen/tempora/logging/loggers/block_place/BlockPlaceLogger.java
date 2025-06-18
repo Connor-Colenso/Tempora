@@ -28,6 +28,11 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 public class BlockPlaceLogger extends GenericPositionalLogger<BlockPlaceQueueElement> {
 
     @Override
+    public String getSQLTableName() {
+        return "BlockPlaceLogger";
+    }
+
+    @Override
     protected List<ColumnDef> getTableColumns() {
         return Arrays.asList(
             new ColumnDef("playerUUID", "TEXT", "NOT NULL"),
@@ -59,7 +64,7 @@ public class BlockPlaceLogger extends GenericPositionalLogger<BlockPlaceQueueEle
 
     @Override
     public void threadedSaveEvent(BlockPlaceQueueElement blockPlaceQueueElement) throws SQLException {
-        final String sql = "INSERT INTO " + getLoggerName()
+        final String sql = "INSERT INTO " + getSQLTableName()
             + "(playerUUID, blockId, metadata, x, y, z, dimensionID, timestamp) VALUES(?, ?, ?, ?, ?, ?, ?, ?)";
         final PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(sql);
         pstmt.setString(1, blockPlaceQueueElement.playerNameWhoPlacedBlock);

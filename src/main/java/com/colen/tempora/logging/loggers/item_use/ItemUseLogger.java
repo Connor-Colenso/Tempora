@@ -30,6 +30,11 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 public class ItemUseLogger extends GenericPositionalLogger<ItemUseQueueElement> {
 
     @Override
+    public String getSQLTableName() {
+        return "ItemUseLogger";
+    }
+
+    @Override
     protected ArrayList<ISerializable> generatePacket(ResultSet resultSet) throws SQLException {
         ArrayList<ISerializable> eventList = new ArrayList<>();
 
@@ -62,7 +67,7 @@ public class ItemUseLogger extends GenericPositionalLogger<ItemUseQueueElement> 
 
     @Override
     public void threadedSaveEvent(ItemUseQueueElement itemUseQueueElement) throws SQLException {
-        final String sql = "INSERT INTO " + getLoggerName()
+        final String sql = "INSERT INTO " + getSQLTableName()
             + "(playerUUID, itemID, itemMetadata, x, y, z, dimensionID, timestamp) VALUES(?, ?, ?, ?, ?, ?, ?, ?)";
         final PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(sql);
         pstmt.setString(1, itemUseQueueElement.playerName);

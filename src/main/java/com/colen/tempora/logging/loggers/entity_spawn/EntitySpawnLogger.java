@@ -23,6 +23,11 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 public class EntitySpawnLogger extends GenericPositionalLogger<EntitySpawnQueueElement> {
 
     @Override
+    public String getSQLTableName() {
+        return "EntitySpawnLogger";
+    }
+
+    @Override
     protected List<ColumnDef> getTableColumns() {
         return Arrays.asList(new ColumnDef("entityName", "TEXT", "NOT NULL"));
     }
@@ -68,7 +73,7 @@ public class EntitySpawnLogger extends GenericPositionalLogger<EntitySpawnQueueE
 
     @Override
     public void threadedSaveEvent(EntitySpawnQueueElement entitySpawnQueueElement) throws SQLException {
-        final String sql = "INSERT INTO " + getLoggerName()
+        final String sql = "INSERT INTO " + getSQLTableName()
             + "(entityName, x, y, z, dimensionID, timestamp) VALUES(?, ?, ?, ?, ?, ?)";
         final PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(sql);
         pstmt.setString(1, entitySpawnQueueElement.entityName);

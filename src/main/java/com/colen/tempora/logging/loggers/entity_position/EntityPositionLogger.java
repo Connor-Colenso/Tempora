@@ -23,13 +23,18 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
 public class EntityPositionLogger extends GenericPositionalLogger<EntityPositionQueueElement> {
 
+    @Override
+    public String getSQLTableName() {
+        return "EntityPositionLogger";
+    }
+
     private static int entityMovementLoggingInterval;
 
     @Override
     public void handleCustomLoggerConfig(Configuration config) {
         entityMovementLoggingInterval = config.getInt(
             "entity_position_logging_interval",
-            getLoggerName(),
+            getSQLTableName(),
             500,
             1,
             Integer.MAX_VALUE,
@@ -64,7 +69,7 @@ public class EntityPositionLogger extends GenericPositionalLogger<EntityPosition
 
     @Override
     public void threadedSaveEvent(EntityPositionQueueElement entityPositionQueueElement) throws SQLException {
-        final String sql = "INSERT INTO " + getLoggerName()
+        final String sql = "INSERT INTO " + getSQLTableName()
             + "(entityName, x, y, z, dimensionID, timestamp) VALUES(?, ?, ?, ?, ?, ?)";
         final PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(sql);
         pstmt.setString(1, entityPositionQueueElement.entityName);

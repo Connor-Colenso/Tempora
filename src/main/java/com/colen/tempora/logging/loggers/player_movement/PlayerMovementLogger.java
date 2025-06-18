@@ -27,6 +27,11 @@ import cpw.mods.fml.common.gameevent.TickEvent.PlayerTickEvent;
 
 public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovementQueueElement> {
 
+    @Override
+    public String getSQLTableName() {
+        return "PlayerMovementLogger";
+    }
+
     // This class logs three items to the same database.
     // 1. Player movement every n ticks. By default, n = 200 ticks.
     // 2. Player teleportation between dimensions. Prevents users from evading the above detector by switching dims very
@@ -46,7 +51,7 @@ public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovement
     public void handleCustomLoggerConfig(Configuration config) {
         playerMovementLoggingInterval = config.getInt(
             "playerMovementLoggingInterval",
-            getLoggerName(),
+            getSQLTableName(),
             200,
             1,
             Integer.MAX_VALUE,
@@ -80,7 +85,7 @@ public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovement
 
     @Override
     public void threadedSaveEvent(PlayerMovementQueueElement playerMovementQueueElement) throws SQLException {
-        final String sql = "INSERT INTO " + getLoggerName()
+        final String sql = "INSERT INTO " + getSQLTableName()
             + "(playerUUID, x, y, z, dimensionID, timestamp) VALUES(?, ?, ?, ?, ?, ?)";
         final PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(sql);
         pstmt.setString(1, playerMovementQueueElement.playerName);

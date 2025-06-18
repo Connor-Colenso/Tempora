@@ -25,6 +25,11 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
 public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueElement> {
 
+    @Override
+    public String getSQLTableName() {
+        return "EntityDeathLogger";
+    }
+
     @SubscribeEvent(priority = EventPriority.LOWEST)
     @SuppressWarnings("unused")
     public void onEntityDeath(LivingDeathEvent event) {
@@ -98,7 +103,7 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueE
 
     @Override
     public void threadedSaveEvent(EntityDeathQueueElement entityDeathQueueElement) throws SQLException {
-        final String sql = "INSERT INTO " + getLoggerName()
+        final String sql = "INSERT INTO " + getSQLTableName()
             + "(entityName, killedBy, x, y, z, dimensionID, timestamp) VALUES(?, ?, ?, ?, ?, ?, ?)";
         final PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(sql);
         pstmt.setString(1, entityDeathQueueElement.nameOfDeadMob); // Name of the mob
