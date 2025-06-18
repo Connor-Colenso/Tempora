@@ -69,7 +69,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
     }
 
     public void initTable() {
-        String tableName = getLoggerName();
+        String tableName = getSQLTableName();
         List<ColumnDef> columns = new ArrayList<>(getTableColumns());
         columns.addAll(getDefaultColumns());
 
@@ -136,7 +136,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
     // nothing else is interacting with the db, so it's fine for now.
     private void eraseAllDataBeforeTime(long time) {
         // Prepare SQL statement with the safe table name
-        String sql = "DELETE FROM " + this.getLoggerName() + " WHERE timestamp < ?";
+        String sql = "DELETE FROM " + this.getSQLTableName() + " WHERE timestamp < ?";
 
         try (PreparedStatement pstmt = getNewConnection().prepareStatement(sql)) {
             // Set the parameter for the PreparedStatement
@@ -154,7 +154,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
             eraseAllDataBeforeTime(System.currentTimeMillis() - TimeUtils.convertToSeconds(oldestDataCutoff) * 1000);
         } catch (Exception e) {
             System.err.println(
-                "An error occurred while erasing old data in " + getLoggerName()
+                "An error occurred while erasing old data in " + getSQLTableName()
                     + " are you sure you spelt the oldest data setting correctly ("
                     + oldestDataCutoff
                     + ")? Check your tempora config.");
@@ -194,13 +194,13 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
         }
     }
 
-    public abstract String getLoggerName();
+    public abstract String getSQLTableName();
 
     public final void genericConfig(@NotNull Configuration config) {
-        isEnabled = config.getBoolean("isEnabled", getLoggerName(), loggerEnabledByDefault(), "Enables this logger.");
+        isEnabled = config.getBoolean("isEnabled", getSQLTableName(), loggerEnabledByDefault(), "Enables this logger.");
         oldestDataCutoff = config.getString(
             "OldestDataCutoff",
-            getLoggerName(),
+            getSQLTableName(),
             OLDEST_DATA_DEFAULT,
             "Any records older than this relative to now, will be erased. This is unrecoverable, be careful!");
     }
@@ -230,13 +230,13 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
         synchronized (GenericPositionalLogger.class) {
             for (GenericPositionalLogger<?> logger : loggerList) {
-                if (tableName != null && !logger.getLoggerName()
+                if (tableName != null && !logger.getSQLTableName()
                     .equals(tableName)) continue;
                 try (
                     Connection conn = DriverManager
                         .getConnection(TemporaUtils.databaseDirectory() + "PositionalLogger.db");
                     PreparedStatement pstmt = conn.prepareStatement(
-                        "SELECT * FROM " + logger.getLoggerName()
+                        "SELECT * FROM " + logger.getSQLTableName()
                             + " WHERE ABS(x - ?) <= ? AND ABS(y - ?) <= ? AND ABS(z - ?) <= ?"
                             + " AND dimensionID = ? AND timestamp >= ? ORDER BY timestamp DESC LIMIT ?")) {
 
@@ -257,13 +257,13 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
                             NETWORK.sendTo(new GenericPacket(sendList), entityPlayerMP);
                         } else {
                             sender.addChatMessage(
-                                new ChatComponentText("No results found for " + logger.getLoggerName() + "."));
+                                new ChatComponentText("No results found for " + logger.getSQLTableName() + "."));
                         }
                     }
                 } catch (SQLException e) {
                     sender.addChatMessage(
                         new ChatComponentText(
-                            "Database query failed on " + logger.getLoggerName() + ": " + e.getLocalizedMessage()));
+                            "Database query failed on " + logger.getSQLTableName() + ": " + e.getLocalizedMessage()));
                 }
             }
         }
@@ -327,7 +327,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
         try (Statement stmt = dbConnection.createStatement()) {
             for (GenericPositionalLogger<?> logger : loggerList) {
-                String tableName = logger.getLoggerName();
+                String tableName = logger.getSQLTableName();
 
                 // Creating a composite index for x, y, z, dimensionID and timestamp
                 String createCompositeIndex = String.format(

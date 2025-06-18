@@ -29,6 +29,11 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 public class ExplosionLogger extends GenericPositionalLogger<ExplosionQueueElement> {
 
     @Override
+    public String getSQLTableName() {
+        return "ExplosionLogger";
+    }
+
+    @Override
     protected ArrayList<ISerializable> generatePacket(ResultSet resultSet) throws SQLException {
         ArrayList<ISerializable> eventList = new ArrayList<>();
 
@@ -75,7 +80,7 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionQueueEleme
 
     @Override
     public void threadedSaveEvent(ExplosionQueueElement explosionQueueElement) throws SQLException {
-        final String sql = "INSERT INTO " + getLoggerName()
+        final String sql = "INSERT INTO " + getSQLTableName()
             + "(x, y, z, strength, exploderUUID, dimensionID, closestPlayerUUID, closestPlayerDistance, timestamp) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)";
         final PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(sql);
         pstmt.setDouble(1, explosionQueueElement.x);

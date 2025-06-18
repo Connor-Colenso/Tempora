@@ -25,6 +25,11 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 public class CommandLogger extends GenericPositionalLogger<CommandQueueElement> {
 
     @Override
+    public String getSQLTableName() {
+        return "CommandLogger";
+    }
+
+    @Override
     protected List<ColumnDef> getTableColumns() {
         return Arrays.asList(
             new ColumnDef("playerUUID", "TEXT", "NOT NULL"),
@@ -60,7 +65,7 @@ public class CommandLogger extends GenericPositionalLogger<CommandQueueElement> 
 
     @Override
     public void threadedSaveEvent(CommandQueueElement commandQueueElement) throws SQLException {
-        final String sql = "INSERT INTO " + getLoggerName()
+        final String sql = "INSERT INTO " + getSQLTableName()
             + "(playerUUID, command, arguments, x, y, z, dimensionID, timestamp) VALUES(?, ?, ?, ?, ?, ?, ?, ?)";
         final PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(sql);
         pstmt.setString(1, commandQueueElement.playerNameWhoIssuedCommand);

@@ -23,6 +23,11 @@ public class PlayerInteractWithInventoryLogger
     extends GenericPositionalLogger<PlayerInteractWithInventoryQueueElement> {
 
     @Override
+    public String getSQLTableName() {
+        return "PlayerInteractWithInventoryLogger";
+    }
+
+    @Override
     protected List<ColumnDef> getTableColumns() {
         return Arrays.asList(
             new ColumnDef("containerName", "TEXT", "NOT NULL"),
@@ -62,7 +67,7 @@ public class PlayerInteractWithInventoryLogger
     @Override
     public void threadedSaveEvent(PlayerInteractWithInventoryQueueElement element) throws SQLException {
         PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(
-            "INSERT INTO " + getLoggerName()
+            "INSERT INTO " + getSQLTableName()
                 + " (x, y, z, dimensionID, timestamp, containerName, interactionType, itemId, itemMetadata, playerUUID, stacksize) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
         pstmt.setDouble(1, element.x);
         pstmt.setDouble(2, element.y);

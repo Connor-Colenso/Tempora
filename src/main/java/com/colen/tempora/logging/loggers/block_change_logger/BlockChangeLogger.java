@@ -24,6 +24,11 @@ import net.minecraft.world.chunk.Chunk;
 public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueElement> {
 
     @Override
+    public String getSQLTableName() {
+        return "BlockChangeLogger";
+    }
+
+    @Override
     protected List<ColumnDef> getTableColumns() {
         return Arrays.asList(
             new ColumnDef("blockId", "INTEGER", "NOT NULL"),
@@ -36,7 +41,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
 
     @Override
     public void threadedSaveEvent(BlockChangeQueueElement queueElement) throws SQLException {
-        final String sql = "INSERT INTO " + getLoggerName()
+        final String sql = "INSERT INTO " + getSQLTableName()
             + " (blockId, metadata, stackTrace, x, y, z, dimensionID, timestamp, closestPlayerUUID, closestPlayerDistance) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         final PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(sql);
         pstmt.setInt(1, queueElement.blockID);
