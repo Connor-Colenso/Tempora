@@ -247,7 +247,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
                     pstmt.setDouble(5, posZ);
                     pstmt.setInt(6, radius);
                     pstmt.setInt(7, dimensionId);
-                    pstmt.setTimestamp(8, new Timestamp(pastTime)); // Filter events from pastTime onwards]
+                    pstmt.setTimestamp(8, new Timestamp(pastTime)); // Filter events from pastTime onwards
                     pstmt.setInt(9, MAX_DATA_ROWS_PER_PACKET);
 
                     // Execute and submit to client via a custom packet if not empty.
