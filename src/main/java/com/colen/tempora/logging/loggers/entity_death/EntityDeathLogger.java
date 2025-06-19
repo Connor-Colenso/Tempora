@@ -102,17 +102,26 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueE
     }
 
     @Override
-    public void threadedSaveEvent(EntityDeathQueueElement entityDeathQueueElement) throws SQLException {
+    public void threadedSaveEvents(List<EntityDeathQueueElement> queueElements) throws SQLException {
+        if (queueElements == null || queueElements.isEmpty()) return;
+
         final String sql = "INSERT INTO " + getSQLTableName()
-            + "(entityName, killedBy, x, y, z, dimensionID, timestamp) VALUES(?, ?, ?, ?, ?, ?, ?)";
-        final PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(sql);
-        pstmt.setString(1, entityDeathQueueElement.nameOfDeadMob); // Name of the mob
-        pstmt.setString(2, entityDeathQueueElement.killedBy); // Who killed it
-        pstmt.setDouble(3, entityDeathQueueElement.x); // X coordinate
-        pstmt.setDouble(4, entityDeathQueueElement.y); // Y coordinate
-        pstmt.setDouble(5, entityDeathQueueElement.z); // Z coordinate
-        pstmt.setInt(6, entityDeathQueueElement.dimensionId); // Dimension ID
-        pstmt.setTimestamp(7, new Timestamp(entityDeathQueueElement.timestamp)); // Timestamp of death
-        pstmt.executeUpdate();
+            + " (entityName, killedBy, x, y, z, dimensionID, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?)";
+
+        try (PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(sql)) {
+            for (EntityDeathQueueElement entity : queueElements) {
+                pstmt.setString(1, entity.nameOfDeadMob);
+                pstmt.setString(2, entity.killedBy);
+                pstmt.setDouble(3, entity.x);
+                pstmt.setDouble(4, entity.y);
+                pstmt.setDouble(5, entity.z);
+                pstmt.setInt(6, entity.dimensionId);
+                pstmt.setTimestamp(7, new Timestamp(entity.timestamp));
+                pstmt.addBatch();
+            }
+
+            pstmt.executeBatch();
+        }
     }
+
 }

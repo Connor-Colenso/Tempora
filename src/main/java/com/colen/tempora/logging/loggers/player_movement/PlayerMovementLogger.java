@@ -84,17 +84,25 @@ public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovement
     }
 
     @Override
-    public void threadedSaveEvent(PlayerMovementQueueElement playerMovementQueueElement) throws SQLException {
+    public void threadedSaveEvents(List<PlayerMovementQueueElement> playerMovementQueueElements) throws SQLException {
+        if (playerMovementQueueElements == null || playerMovementQueueElements.isEmpty()) return;
+
         final String sql = "INSERT INTO " + getSQLTableName()
-            + "(playerUUID, x, y, z, dimensionID, timestamp) VALUES(?, ?, ?, ?, ?, ?)";
-        final PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(sql);
-        pstmt.setString(1, playerMovementQueueElement.playerName);
-        pstmt.setDouble(2, playerMovementQueueElement.x);
-        pstmt.setDouble(3, playerMovementQueueElement.y);
-        pstmt.setDouble(4, playerMovementQueueElement.z);
-        pstmt.setInt(5, playerMovementQueueElement.dimensionId);
-        pstmt.setTimestamp(6, new Timestamp(playerMovementQueueElement.timestamp));
-        pstmt.executeUpdate();
+            + " (playerUUID, x, y, z, dimensionID, timestamp) VALUES (?, ?, ?, ?, ?, ?)";
+
+        try (PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(sql)) {
+            for (PlayerMovementQueueElement elem : playerMovementQueueElements) {
+                pstmt.setString(1, elem.playerName);
+                pstmt.setDouble(2, elem.x);
+                pstmt.setDouble(3, elem.y);
+                pstmt.setDouble(4, elem.z);
+                pstmt.setInt(5, elem.dimensionId);
+                pstmt.setTimestamp(6, new Timestamp(elem.timestamp));
+                pstmt.addBatch();
+            }
+
+            pstmt.executeBatch();
+        }
     }
 
     @SubscribeEvent

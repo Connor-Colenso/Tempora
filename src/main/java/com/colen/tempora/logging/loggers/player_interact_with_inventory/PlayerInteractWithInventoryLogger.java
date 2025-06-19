@@ -65,22 +65,31 @@ public class PlayerInteractWithInventoryLogger
     }
 
     @Override
-    public void threadedSaveEvent(PlayerInteractWithInventoryQueueElement element) throws SQLException {
-        PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(
-            "INSERT INTO " + getSQLTableName()
-                + " (x, y, z, dimensionID, timestamp, containerName, interactionType, itemId, itemMetadata, playerUUID, stacksize) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-        pstmt.setDouble(1, element.x);
-        pstmt.setDouble(2, element.y);
-        pstmt.setDouble(3, element.z);
-        pstmt.setInt(4, element.dimensionId);
-        pstmt.setTimestamp(5, new Timestamp(element.timestamp));
-        pstmt.setString(6, element.containerName);
-        pstmt.setString(7, element.interactionType);
-        pstmt.setInt(8, element.itemId);
-        pstmt.setInt(9, element.itemMetadata);
-        pstmt.setString(10, element.playerUUID);
-        pstmt.setInt(11, element.stacksize);
-        pstmt.executeUpdate();
+    public void threadedSaveEvents(List<PlayerInteractWithInventoryQueueElement> elements) throws SQLException {
+        if (elements == null || elements.isEmpty()) return;
+
+        final String sql = "INSERT INTO " + getSQLTableName()
+            + " (x, y, z, dimensionID, timestamp, containerName, interactionType, itemId, itemMetadata, playerUUID, stacksize) "
+            + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+        try (PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(sql)) {
+            for (PlayerInteractWithInventoryQueueElement element : elements) {
+                pstmt.setDouble(1, element.x);
+                pstmt.setDouble(2, element.y);
+                pstmt.setDouble(3, element.z);
+                pstmt.setInt(4, element.dimensionId);
+                pstmt.setTimestamp(5, new Timestamp(element.timestamp));
+                pstmt.setString(6, element.containerName);
+                pstmt.setString(7, element.interactionType);
+                pstmt.setInt(8, element.itemId);
+                pstmt.setInt(9, element.itemMetadata);
+                pstmt.setString(10, element.playerUUID);
+                pstmt.setInt(11, element.stacksize);
+                pstmt.addBatch();
+            }
+
+            pstmt.executeBatch();
+        }
     }
 
     public void playerInteractedWithInventory(EntityPlayer playerMP, Container container, ItemStack itemStack,

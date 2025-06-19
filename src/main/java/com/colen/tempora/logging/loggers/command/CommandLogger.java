@@ -64,19 +64,28 @@ public class CommandLogger extends GenericPositionalLogger<CommandQueueElement> 
     }
 
     @Override
-    public void threadedSaveEvent(CommandQueueElement commandQueueElement) throws SQLException {
+    public void threadedSaveEvents(List<CommandQueueElement> commandQueueElements) throws SQLException {
+        if (commandQueueElements == null || commandQueueElements.isEmpty()) return;
+
         final String sql = "INSERT INTO " + getSQLTableName()
-            + "(playerUUID, command, arguments, x, y, z, dimensionID, timestamp) VALUES(?, ?, ?, ?, ?, ?, ?, ?)";
-        final PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(sql);
-        pstmt.setString(1, commandQueueElement.playerNameWhoIssuedCommand);
-        pstmt.setString(2, commandQueueElement.commandName);
-        pstmt.setString(3, commandQueueElement.arguments);
-        pstmt.setDouble(4, commandQueueElement.x);
-        pstmt.setDouble(5, commandQueueElement.y);
-        pstmt.setDouble(6, commandQueueElement.z);
-        pstmt.setInt(7, commandQueueElement.dimensionId);
-        pstmt.setTimestamp(8, new Timestamp(commandQueueElement.timestamp));
-        pstmt.executeUpdate();
+            + " (playerUUID, command, arguments, x, y, z, dimensionID, timestamp) "
+            + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+
+        try (PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(sql)) {
+            for (CommandQueueElement commandQueueElement : commandQueueElements) {
+                pstmt.setString(1, commandQueueElement.playerNameWhoIssuedCommand);
+                pstmt.setString(2, commandQueueElement.commandName);
+                pstmt.setString(3, commandQueueElement.arguments);
+                pstmt.setDouble(4, commandQueueElement.x);
+                pstmt.setDouble(5, commandQueueElement.y);
+                pstmt.setDouble(6, commandQueueElement.z);
+                pstmt.setInt(7, commandQueueElement.dimensionId);
+                pstmt.setTimestamp(8, new Timestamp(commandQueueElement.timestamp));
+                pstmt.addBatch();
+            }
+
+            pstmt.executeBatch();
+        }
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)

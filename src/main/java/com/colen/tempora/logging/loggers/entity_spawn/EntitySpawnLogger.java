@@ -72,16 +72,24 @@ public class EntitySpawnLogger extends GenericPositionalLogger<EntitySpawnQueueE
     }
 
     @Override
-    public void threadedSaveEvent(EntitySpawnQueueElement entitySpawnQueueElement) throws SQLException {
+    public void threadedSaveEvents(List<EntitySpawnQueueElement> entitySpawnQueueElements) throws SQLException {
+        if (entitySpawnQueueElements == null || entitySpawnQueueElements.isEmpty()) return;
+
         final String sql = "INSERT INTO " + getSQLTableName()
-            + "(entityName, x, y, z, dimensionID, timestamp) VALUES(?, ?, ?, ?, ?, ?)";
-        final PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(sql);
-        pstmt.setString(1, entitySpawnQueueElement.entityName);
-        pstmt.setDouble(2, entitySpawnQueueElement.x);
-        pstmt.setDouble(3, entitySpawnQueueElement.y);
-        pstmt.setDouble(4, entitySpawnQueueElement.z);
-        pstmt.setInt(5, entitySpawnQueueElement.dimensionId);
-        pstmt.setTimestamp(6, new Timestamp(entitySpawnQueueElement.timestamp));
-        pstmt.executeUpdate();
+            + " (entityName, x, y, z, dimensionID, timestamp) VALUES (?, ?, ?, ?, ?, ?)";
+
+        try (PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(sql)) {
+            for (EntitySpawnQueueElement element : entitySpawnQueueElements) {
+                pstmt.setString(1, element.entityName);
+                pstmt.setDouble(2, element.x);
+                pstmt.setDouble(3, element.y);
+                pstmt.setDouble(4, element.z);
+                pstmt.setInt(5, element.dimensionId);
+                pstmt.setTimestamp(6, new Timestamp(element.timestamp));
+                pstmt.addBatch();
+            }
+
+            pstmt.executeBatch();
+        }
     }
 }

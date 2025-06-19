@@ -69,20 +69,29 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
     }
 
     @Override
-    public void threadedSaveEvent(PlayerBlockBreakQueueElement blockBreakQueueElement) throws SQLException {
+    public void threadedSaveEvents(List<PlayerBlockBreakQueueElement> elements) throws SQLException {
+        if (elements == null || elements.isEmpty()) return;
+
         final String sql = "INSERT INTO " + getSQLTableName()
-            + "(playerUUID, blockId, metadata, x, y, z, dimensionID, timestamp) VALUES(?, ?, ?, ?, ?, ?, ?, ?)";
-        final PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(sql);
-        pstmt.setString(1, blockBreakQueueElement.playerNameWhoBrokeBlock);
-        pstmt.setInt(2, blockBreakQueueElement.blockID);
-        pstmt.setInt(3, blockBreakQueueElement.metadata);
-        pstmt.setDouble(4, blockBreakQueueElement.x);
-        pstmt.setDouble(5, blockBreakQueueElement.y);
-        pstmt.setDouble(6, blockBreakQueueElement.z);
-        pstmt.setInt(7, blockBreakQueueElement.dimensionId);
-        pstmt.setTimestamp(8, new Timestamp(blockBreakQueueElement.timestamp));
-        pstmt.executeUpdate();
+            + " (playerUUID, blockId, metadata, x, y, z, dimensionID, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+
+        try (PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(sql)) {
+            for (PlayerBlockBreakQueueElement elem : elements) {
+                pstmt.setString(1, elem.playerNameWhoBrokeBlock);
+                pstmt.setInt(2, elem.blockID);
+                pstmt.setInt(3, elem.metadata);
+                pstmt.setDouble(4, elem.x);
+                pstmt.setDouble(5, elem.y);
+                pstmt.setDouble(6, elem.z);
+                pstmt.setInt(7, elem.dimensionId);
+                pstmt.setTimestamp(8, new Timestamp(elem.timestamp));
+                pstmt.addBatch();
+            }
+
+            pstmt.executeBatch();
+        }
     }
+
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
     @SuppressWarnings("unused")
