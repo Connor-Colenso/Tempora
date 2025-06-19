@@ -40,21 +40,30 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
     }
 
     @Override
-    public void threadedSaveEvent(BlockChangeQueueElement queueElement) throws SQLException {
+    public void threadedSaveEvents(List<BlockChangeQueueElement> queueElements) throws SQLException {
+        if (queueElements == null || queueElements.isEmpty()) return;
+
         final String sql = "INSERT INTO " + getSQLTableName()
-            + " (blockId, metadata, stackTrace, x, y, z, dimensionID, timestamp, closestPlayerUUID, closestPlayerDistance) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        final PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(sql);
-        pstmt.setInt(1, queueElement.blockID);
-        pstmt.setInt(2, queueElement.metadata);
-        pstmt.setString(3, queueElement.stackTrace);
-        pstmt.setInt(4, (int) Math.round(queueElement.x));
-        pstmt.setInt(5, (int) Math.round(queueElement.y));
-        pstmt.setInt(6, (int) Math.round(queueElement.z));
-        pstmt.setInt(7, queueElement.dimensionId);
-        pstmt.setTimestamp(8, new Timestamp(queueElement.timestamp));
-        pstmt.setString(9, queueElement.closestPlayerUUID);
-        pstmt.setDouble(10, queueElement.closestPlayerDistance);
-        pstmt.executeUpdate();
+            + " (blockId, metadata, stackTrace, x, y, z, dimensionID, timestamp, closestPlayerUUID, closestPlayerDistance) "
+            + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+        try (PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(sql)) {
+            for (BlockChangeQueueElement queueElement : queueElements) {
+                pstmt.setInt(1, queueElement.blockID);
+                pstmt.setInt(2, queueElement.metadata);
+                pstmt.setString(3, queueElement.stackTrace);
+                pstmt.setInt(4, (int) Math.round(queueElement.x));
+                pstmt.setInt(5, (int) Math.round(queueElement.y));
+                pstmt.setInt(6, (int) Math.round(queueElement.z));
+                pstmt.setInt(7, queueElement.dimensionId);
+                pstmt.setTimestamp(8, new Timestamp(queueElement.timestamp));
+                pstmt.setString(9, queueElement.closestPlayerUUID);
+                pstmt.setDouble(10, queueElement.closestPlayerDistance);
+                pstmt.addBatch();
+            }
+
+            pstmt.executeBatch();
+        }
     }
 
     @Override

@@ -38,7 +38,8 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
     private static final String OLDEST_DATA_DEFAULT = "4months";
     protected static final int MAX_DATA_ROWS_PER_PACKET = 5;
 
-    private static ExecutorService executor;
+    private static ExecutorService executor = Executors.newSingleThreadExecutor();
+    private static volatile boolean running = true;
     protected static Connection positionalLoggerDBConnection;
 
     private final ConcurrentLinkedQueue<EventToLog> eventQueue = new ConcurrentLinkedQueue<>();
@@ -51,7 +52,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
         loggerList.add(this);
     }
 
-    public abstract void threadedSaveEvent(EventToLog event) throws SQLException;
+    public abstract void threadedSaveEvents(List<EventToLog> event) throws SQLException;
 
     public void handleCustomLoggerConfig(Configuration config) {
 
@@ -175,23 +176,55 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
     public final void queueEvent(EventToLog event) {
         if (!isEnabled) return;
-
-        eventQueue.add(event);
-        if (executor != null && !executor.isShutdown()) {
-            executor.submit(this::processQueue);
-        }
+        eventQueue.offer(event); // Non-blocking, thread-safe
     }
 
-    private void processQueue() {
-        EventToLog event;
-        while ((event = eventQueue.poll()) != null) {
-            try {
-                threadedSaveEvent(event);
-            } catch (Exception e) {
-                System.err.println("Failed to save event: " + e.getMessage());
-                e.printStackTrace();
+    private void startQueueWorker() {
+        executor.submit(() -> {
+            List<EventToLog> buffer = new ArrayList<>();
+            final int BATCH_SIZE = 100;
+            final int FLUSH_INTERVAL_MS = 100;
+
+            long lastFlushTime = System.currentTimeMillis();
+
+            while (running || !eventQueue.isEmpty()) {
+                EventToLog event = eventQueue.poll();
+                if (event != null) {
+                    buffer.add(event);
+                }
+
+                long now = System.currentTimeMillis();
+
+                // Flush if enough events or time has passed
+                if (buffer.size() >= BATCH_SIZE || (!buffer.isEmpty() && now - lastFlushTime >= FLUSH_INTERVAL_MS)) {
+                    try {
+                        positionalLoggerDBConnection.setAutoCommit(false); // Batch in one transaction
+                        threadedSaveEvents(buffer);
+                        positionalLoggerDBConnection.commit();
+                        positionalLoggerDBConnection.setAutoCommit(true);
+                    } catch (Exception e) {
+                        System.err.println("Batch write failed: " + e.getMessage());
+                        e.printStackTrace();
+                    }
+                    buffer.clear();
+                    lastFlushTime = now;
+                }
             }
-        }
+
+            // Final flush on shutdown
+            if (!buffer.isEmpty()) {
+                try {
+                    positionalLoggerDBConnection.setAutoCommit(false); // Batch in one transaction
+                    threadedSaveEvents(buffer);
+                    positionalLoggerDBConnection.commit();
+                    positionalLoggerDBConnection.setAutoCommit(true);
+                } catch (Exception e) {
+                    System.err.println("Final batch write failed: " + e.getMessage());
+                    e.printStackTrace();
+                }
+            }
+        });
+
     }
 
     public abstract String getSQLTableName();
@@ -284,10 +317,13 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
             positionalLoggerDBConnection = DriverManager
                 .getConnection(TemporaUtils.databaseDirectory() + "PositionalLogger.db");
 
+            executor = Executors.newSingleThreadExecutor(); // ← already done above
             initAllTables();
             createAllIndexes();
 
-            executor = Executors.newSingleThreadExecutor();
+            for (GenericPositionalLogger<?> logger : loggerList) {
+                logger.startQueueWorker(); // <- Start processing
+            }
 
         } catch (SQLException sqlException) {
             System.err.println("Could not open Tempora databases.");
@@ -297,9 +333,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
     public static void onServerClose() {
         try {
-            if (positionalLoggerDBConnection != null && !positionalLoggerDBConnection.isClosed()) {
-                positionalLoggerDBConnection.close();
-            }
+            running = false; // Signal worker to stop
 
             if (executor != null && !executor.isShutdown()) {
                 executor.shutdown();
@@ -307,6 +341,10 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
                     System.err.println("Executor timeout. Forcing shutdown.");
                     executor.shutdownNow();
                 }
+            }
+
+            if (positionalLoggerDBConnection != null && !positionalLoggerDBConnection.isClosed()) {
+                positionalLoggerDBConnection.close();
             }
         } catch (Exception e) {
             System.err.println("Error closing resources:");

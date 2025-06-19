@@ -79,20 +79,29 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionQueueEleme
     }
 
     @Override
-    public void threadedSaveEvent(ExplosionQueueElement explosionQueueElement) throws SQLException {
+    public void threadedSaveEvents(List<ExplosionQueueElement> explosionQueueElements) throws SQLException {
+        if (explosionQueueElements == null || explosionQueueElements.isEmpty()) return;
+
         final String sql = "INSERT INTO " + getSQLTableName()
-            + "(x, y, z, strength, exploderUUID, dimensionID, closestPlayerUUID, closestPlayerDistance, timestamp) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        final PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(sql);
-        pstmt.setDouble(1, explosionQueueElement.x);
-        pstmt.setDouble(2, explosionQueueElement.y);
-        pstmt.setDouble(3, explosionQueueElement.z);
-        pstmt.setFloat(4, explosionQueueElement.strength);
-        pstmt.setString(5, explosionQueueElement.exploderUUID);
-        pstmt.setInt(6, explosionQueueElement.dimensionId);
-        pstmt.setString(7, explosionQueueElement.closestPlayerUUID);
-        pstmt.setDouble(8, explosionQueueElement.closestPlayerDistance);
-        pstmt.setTimestamp(9, new Timestamp(explosionQueueElement.timestamp));
-        pstmt.executeUpdate();
+            + " (x, y, z, strength, exploderUUID, dimensionID, closestPlayerUUID, closestPlayerDistance, timestamp) "
+            + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+        try (PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(sql)) {
+            for (ExplosionQueueElement explosion : explosionQueueElements) {
+                pstmt.setDouble(1, explosion.x);
+                pstmt.setDouble(2, explosion.y);
+                pstmt.setDouble(3, explosion.z);
+                pstmt.setFloat(4, explosion.strength);
+                pstmt.setString(5, explosion.exploderUUID);
+                pstmt.setInt(6, explosion.dimensionId);
+                pstmt.setString(7, explosion.closestPlayerUUID);
+                pstmt.setDouble(8, explosion.closestPlayerDistance);
+                pstmt.setTimestamp(9, new Timestamp(explosion.timestamp));
+                pstmt.addBatch();
+            }
+
+            pstmt.executeBatch();
+        }
     }
 
     @SuppressWarnings("unused")

@@ -66,20 +66,28 @@ public class ItemUseLogger extends GenericPositionalLogger<ItemUseQueueElement> 
     }
 
     @Override
-    public void threadedSaveEvent(ItemUseQueueElement itemUseQueueElement) throws SQLException {
+    public void threadedSaveEvents(List<ItemUseQueueElement> itemUseQueueElements) throws SQLException {
+        if (itemUseQueueElements == null || itemUseQueueElements.isEmpty()) return;
+
         final String sql = "INSERT INTO " + getSQLTableName()
-            + "(playerUUID, itemID, itemMetadata, x, y, z, dimensionID, timestamp) VALUES(?, ?, ?, ?, ?, ?, ?, ?)";
-        final PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(sql);
-        pstmt.setString(1, itemUseQueueElement.playerName);
-        pstmt.setInt(2, itemUseQueueElement.itemID);
-        pstmt.setInt(3, itemUseQueueElement.itemMetadata);
-        pstmt.setDouble(4, itemUseQueueElement.x);
-        pstmt.setDouble(5, itemUseQueueElement.y);
-        pstmt.setDouble(6, itemUseQueueElement.z);
-        pstmt.setInt(7, itemUseQueueElement.dimensionId);
-        pstmt.setTimestamp(8, new Timestamp(itemUseQueueElement.timestamp));
-        pstmt.executeUpdate();
+            + " (playerUUID, itemID, itemMetadata, x, y, z, dimensionID, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+
+        try (PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(sql)) {
+            for (ItemUseQueueElement elem : itemUseQueueElements) {
+                pstmt.setString(1, elem.playerName);
+                pstmt.setInt(2, elem.itemID);
+                pstmt.setInt(3, elem.itemMetadata);
+                pstmt.setDouble(4, elem.x);
+                pstmt.setDouble(5, elem.y);
+                pstmt.setDouble(6, elem.z);
+                pstmt.setInt(7, elem.dimensionId);
+                pstmt.setTimestamp(8, new Timestamp(elem.timestamp));
+                pstmt.addBatch();
+            }
+            pstmt.executeBatch();
+        }
     }
+
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
     @SuppressWarnings("unused")
