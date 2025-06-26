@@ -15,9 +15,9 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 import net.minecraft.command.ICommandSender;
@@ -38,11 +38,12 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
     private static final String OLDEST_DATA_DEFAULT = "4months";
     protected static final int MAX_DATA_ROWS_PER_PACKET = 5;
 
-    private static ExecutorService executor = Executors.newSingleThreadExecutor();
+    private static ExecutorService executor;
     private static volatile boolean running = true;
-    protected static Connection positionalLoggerDBConnection;
+    protected Connection positionalLoggerDBConnection;
 
-    private final ConcurrentLinkedQueue<EventToLog> eventQueue = new ConcurrentLinkedQueue<>();
+    private final LinkedBlockingQueue<EventToLog> eventQueue = new LinkedBlockingQueue<>();
+    private final ArrayList<EventToLog> buffer = new  ArrayList<>();
     private static final Set<GenericPositionalLogger<?>> loggerList = new HashSet<>();
 
     private boolean isEnabled;
@@ -182,50 +183,36 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
     private void startQueueWorker() {
         executor.submit(() -> {
             List<EventToLog> buffer = new ArrayList<>();
-            final int BATCH_SIZE = 100;
             final int FLUSH_INTERVAL_MS = 100;
 
-            long lastFlushTime = System.currentTimeMillis();
+            try {
+                while (running || !eventQueue.isEmpty()) {
+                    // Wait up to FLUSH_INTERVAL_MS for an event
+                    EventToLog event = eventQueue.poll(FLUSH_INTERVAL_MS, TimeUnit.MILLISECONDS);
 
-            while (running || !eventQueue.isEmpty()) {
-                EventToLog event = eventQueue.poll();
-                if (event != null) {
-                    buffer.add(event);
-                }
-
-                long now = System.currentTimeMillis();
-
-                // Flush if enough events or time has passed
-                if (buffer.size() >= BATCH_SIZE || (!buffer.isEmpty() && now - lastFlushTime >= FLUSH_INTERVAL_MS)) {
-                    try {
-                        positionalLoggerDBConnection.setAutoCommit(false); // Batch in one transaction
-                        threadedSaveEvents(buffer);
-                        positionalLoggerDBConnection.commit();
-                        positionalLoggerDBConnection.setAutoCommit(true);
-                    } catch (Exception e) {
-                        System.err.println("Batch write failed: " + e.getMessage());
-                        e.printStackTrace();
+                    if (event != null) {
+                        buffer.add(event);
                     }
-                    buffer.clear();
-                    lastFlushTime = now;
-                }
-            }
 
-            // Final flush on shutdown
-            if (!buffer.isEmpty()) {
-                try {
-                    positionalLoggerDBConnection.setAutoCommit(false); // Batch in one transaction
-                    threadedSaveEvents(buffer);
-                    positionalLoggerDBConnection.commit();
-                    positionalLoggerDBConnection.setAutoCommit(true);
-                } catch (Exception e) {
-                    System.err.println("Final batch write failed: " + e.getMessage());
-                    e.printStackTrace();
+                    // Flush if enough time has passed
+                    if (!buffer.isEmpty()) {
+                        try {
+                            threadedSaveEvents(buffer);
+                            positionalLoggerDBConnection.commit();
+                        } catch (Exception e) {
+                            System.err.println("Batch write failed: " + e.getMessage());
+                            e.printStackTrace();
+                        }
+                        buffer.clear();
+                    }
                 }
+
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();  // Restore interrupt status
             }
         });
-
     }
+
 
     public abstract String getSQLTableName();
 
@@ -313,16 +300,18 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
     public static void onServerStart() {
         try {
-            System.out.println("Opening Tempora DB...");
-            positionalLoggerDBConnection = DriverManager
-                .getConnection(TemporaUtils.databaseDirectory() + "PositionalLogger.db");
+            System.out.println("Opening Tempora DBs...");
 
-            executor = Executors.newSingleThreadExecutor(); // ← already done above
-            initAllTables();
-            createAllIndexes();
+            executor = Executors.newFixedThreadPool(4);
 
             for (GenericPositionalLogger<?> logger : loggerList) {
-                logger.startQueueWorker(); // <- Start processing
+                logger.positionalLoggerDBConnection = DriverManager.getConnection(TemporaUtils.databaseDirectory() + logger.getSQLTableName() + ".db");
+                logger.positionalLoggerDBConnection.setAutoCommit(false); // Batch in one transaction
+
+                logger.initTable();
+                logger.createAllIndexes();
+
+                logger.startQueueWorker();
             }
 
         } catch (SQLException sqlException) {
@@ -343,9 +332,14 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
                 }
             }
 
-            if (positionalLoggerDBConnection != null && !positionalLoggerDBConnection.isClosed()) {
-                positionalLoggerDBConnection.close();
+            // Shut down each db.
+            for (GenericPositionalLogger<?> logger : loggerList) {
+                if (logger.positionalLoggerDBConnection != null && !logger.positionalLoggerDBConnection.isClosed()) {
+                    logger.positionalLoggerDBConnection.close();
+                }
             }
+
+
         } catch (Exception e) {
             System.err.println("Error closing resources:");
             e.printStackTrace();
@@ -354,36 +348,28 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
         }
     }
 
-    private static void initAllTables() {
-        for (GenericPositionalLogger<?> loggerPositional : loggerList) {
-            loggerPositional.initTable();
-        }
-    }
-
-    private static void createAllIndexes() {
+    private void createAllIndexes() {
         Connection dbConnection = getNewConnection();
 
         try (Statement stmt = dbConnection.createStatement()) {
-            for (GenericPositionalLogger<?> logger : loggerList) {
-                String tableName = logger.getSQLTableName();
+            String tableName = getSQLTableName();
 
-                // Creating a composite index for x, y, z, dimensionID and timestamp
-                String createCompositeIndex = String.format(
-                    "CREATE INDEX IF NOT EXISTS idx_%s_xyz_dimension_time ON %s (x, y, z, dimensionID, timestamp DESC);",
-                    tableName,
-                    tableName);
-                stmt.execute(createCompositeIndex);
+            // Creating a composite index for x, y, z, dimensionID and timestamp
+            String createCompositeIndex = String.format(
+                "CREATE INDEX IF NOT EXISTS idx_%s_xyz_dimension_time ON %s (x, y, z, dimensionID, timestamp DESC);",
+                tableName,
+                tableName);
+            stmt.execute(createCompositeIndex);
 
-                // Creating an index for timestamp alone to optimize for queries primarily sorting or filtering on
-                // timestamp
-                String createTimestampIndex = String.format(
-                    "CREATE INDEX IF NOT EXISTS idx_%s_timestamp ON %s (timestamp DESC);",
-                    tableName,
-                    tableName);
-                stmt.execute(createTimestampIndex);
+            // Creating an index for timestamp alone to optimize for queries primarily sorting or filtering on
+            // timestamp
+            String createTimestampIndex = String.format(
+                "CREATE INDEX IF NOT EXISTS idx_%s_timestamp ON %s (timestamp DESC);",
+                tableName,
+                tableName);
+            stmt.execute(createTimestampIndex);
 
-                System.out.println("Indexes created for table: " + tableName);
-            }
+            System.out.println("Indexes created for table: " + tableName);
         } catch (SQLException e) {
             System.err.println("Error creating indexes: " + e.getMessage());
             e.printStackTrace();
