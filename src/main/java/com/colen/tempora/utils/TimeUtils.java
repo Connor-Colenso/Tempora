@@ -2,27 +2,33 @@ package com.colen.tempora.utils;
 
 import static com.colen.tempora.config.Config.formatCategory;
 
-import java.time.Duration;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.Locale;
 
 import net.minecraft.command.CommandException;
-import net.minecraft.util.StatCollector;
+import net.minecraft.event.HoverEvent;
+import net.minecraft.util.*;
 import net.minecraftforge.common.config.Configuration;
+
+import javax.annotation.Nullable;
 
 public class TimeUtils {
 
-    private static boolean ENABLE_RELATIVE_TIME;
+    public static @Nullable String getTimeZone(String uuid) {
+        return UUIDtoTimeZone.getOrDefault(uuid, null);
+    }
+
+    public static void setTimeZone(String uuid, String timezone) {
+        UUIDtoTimeZone.put(uuid, timezone);
+    }
+
+    public static HashMap<String, String> UUIDtoTimeZone = new HashMap<>();
+
 
     public static void handleConfig(Configuration config) {
-        ENABLE_RELATIVE_TIME = config.getBoolean(
-            "enableRelativeTime",
-            formatCategory,
-            true,
-            "Gets the relative time instead of a timestamp e.g. 6 hours ago.");
+
     }
 
     /**
@@ -32,12 +38,8 @@ public class TimeUtils {
      * @param epochMillis The timestamp to format, in milliseconds.
      * @return A formatted date-time string.
      */
-    public static String formatTime(long epochMillis) {
-        if (ENABLE_RELATIVE_TIME) {
-            return getRelativeTimeFromUnix(epochMillis);
-        } else {
-            return getExactTimeStampFromUnix(epochMillis);
-        }
+    public static IChatComponent formatTime(long epochMillis, String uuid) {
+        return getRelativeTimeFromUnix(epochMillis, getTimeZone(uuid));
     }
 
     public static String getExactTimeStampFromUnix(long pastTimestamp) {
@@ -59,38 +61,66 @@ public class TimeUtils {
         return zonedDateTime.format(formatter);
     }
 
-    public static String getRelativeTimeFromUnix(long pastTimestamp) {
-        // Current timestamp and past timestamp as Instant objects
+    public static IChatComponent getRelativeTimeFromUnix(long pastTimestamp, String timezoneId) {
+        // Convert input to Instants
         Instant now = Instant.now();
         Instant past = Instant.ofEpochMilli(pastTimestamp);
-
-        // Calculate the duration between now and the past timestamp
         Duration duration = Duration.between(past, now);
 
-        // Get total milliseconds and convert to seconds for more precise calculations
-        double milliseconds = duration.toMillis(); // Milliseconds since the past timestamp
-        double seconds = milliseconds / 1000.0;
+        // Calculate time units
+        double seconds = duration.toMillis() / 1000.0;
         double minutes = seconds / 60.0;
         double hours = minutes / 60.0;
         double days = hours / 24.0;
         double years = days / 365.0;
         double decades = years / 10.0;
 
-        // Determine the largest time unit to display and format it to 1 decimal place
-        if (decades >= 1) {
-            return String.format(StatCollector.translateToLocal("time.ago.decades"), String.format("%.1f", decades));
-        } else if (years >= 1) {
-            return String.format(StatCollector.translateToLocal("time.ago.years"), String.format("%.1f", years));
-        } else if (days >= 1) {
-            return String.format(StatCollector.translateToLocal("time.ago.days"), String.format("%.1f", days));
-        } else if (hours >= 1) {
-            return String.format(StatCollector.translateToLocal("time.ago.hours"), String.format("%.1f", hours));
-        } else if (minutes >= 1) {
-            return String.format(StatCollector.translateToLocal("time.ago.minutes"), String.format("%.1f", minutes));
-        } else {
-            return String.format(StatCollector.translateToLocal("time.ago.seconds"), String.format("%.1f", seconds));
+        // Format the exact time in the given timezone
+        ZoneId zoneId;
+        try {
+            zoneId = ZoneId.of(timezoneId);
+        } catch (DateTimeException e) {
+            zoneId = ZoneOffset.UTC; // fallback
         }
+
+        ZonedDateTime localDateTime = ZonedDateTime.ofInstant(past, zoneId);
+        String formattedTime = localDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z"));
+
+        // Choose appropriate message key and formatted number
+        String key;
+        String formattedValue;
+
+        if (decades >= 1) {
+            key = "time.ago.decades";
+            formattedValue = String.format("%.1f", decades);
+        } else if (years >= 1) {
+            key = "time.ago.years";
+            formattedValue = String.format("%.1f", years);
+        } else if (days >= 1) {
+            key = "time.ago.days";
+            formattedValue = String.format("%.1f", days);
+        } else if (hours >= 1) {
+            key = "time.ago.hours";
+            formattedValue = String.format("%.1f", hours);
+        } else if (minutes >= 1) {
+            key = "time.ago.minutes";
+            formattedValue = String.format("%.1f", minutes);
+        } else {
+            key = "time.ago.seconds";
+            formattedValue = String.format("%.1f", seconds);
+        }
+
+        // Create translated component
+        ChatComponentTranslation translated = new ChatComponentTranslation(key, formattedValue);
+
+        // Add hover text showing the exact timestamp
+        translated.setChatStyle(new ChatStyle().setChatHoverEvent(
+            new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText("§7" + formattedTime))
+        ));
+
+        return translated;
     }
+
 
     public static long convertToSeconds(String timeDescription) {
         // Use regular expressions to separate numbers from text

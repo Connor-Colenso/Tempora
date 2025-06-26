@@ -9,25 +9,28 @@ import com.colen.tempora.utils.TimeUtils;
 
 public class BlockChangeQueueElement extends GenericQueueElement {
 
-    public int blockID;
-    public int metadata;
+    public int    blockID;
+    public int    metadata;
     public String stackTrace;
     public String closestPlayerUUID;
     public double closestPlayerDistance;
 
     @Override
-    public IChatComponent localiseText() {
-        String localizedName = BlockUtils.getLocalizedName(blockID, metadata);
-        String formattedTime = TimeUtils.formatTime(timestamp);
+    public IChatComponent localiseText(String uuid) {
+
+        IChatComponent blockName = BlockUtils.getUnlocalisedChatComponent(blockID, metadata);
+        IChatComponent coords    = generateTeleportChatComponent(x, y, z, CoordFormat.INT);
+        // We use UUID to determine timezone, for localising.
+        IChatComponent timeAgo   = TimeUtils.formatTime(timestamp, uuid);
 
         return new ChatComponentTranslation(
             "message.block_change",
-            localizedName,
-            generateTeleportChatComponent(x, y, z, CoordFormat.INT),
-            formattedTime,
-            stackTrace,
-            closestPlayerUUID,
-            String.format("%.1f", closestPlayerDistance)
+            blockName,                               // %s  (block name, localised client-side)
+            coords,                                  // %s  (clickable coordinates)
+            stackTrace,                              // %s  (who/what set the block)
+            timeAgo,                                 // %s  (relative time component)
+            closestPlayerUUID,                       // %s  (nearest player)
+            String.format("%.1f", closestPlayerDistance) // %s  (distance)
         );
     }
 }

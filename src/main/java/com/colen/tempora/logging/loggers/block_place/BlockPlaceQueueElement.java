@@ -9,26 +9,30 @@ import com.colen.tempora.utils.TimeUtils;
 
 public class BlockPlaceQueueElement extends GenericQueueElement {
 
-    public int blockID;
-    public int metadata;
+    public int    blockID;
+    public int    metadata;
     public String playerNameWhoPlacedBlock;
 
     @Override
-    public IChatComponent localiseText() {
-        String localizedName = BlockUtils.getLocalizedName(blockID, metadata);
-        String formattedTime = TimeUtils.formatTime(timestamp);
+    public IChatComponent localiseText(String uuid) {
 
-        IChatComponent coords =
-            generateTeleportChatComponent(x, y, z, CoordFormat.INT);
+        /*  Block name as an *unlocalized* key, wrapped so the CLIENT localises it  */
+        IChatComponent block = BlockUtils.getUnlocalisedChatComponent(blockID, metadata);
+
+        /*  Clickable coordinates component  */
+        IChatComponent coords = generateTeleportChatComponent(x, y, z, CoordFormat.INT);
+
+        /*  Relative-time component (hover shows exact time, already handled in TimeUtils)  */
+        IChatComponent timeAgo = TimeUtils.formatTime(timestamp, uuid);
 
         return new ChatComponentTranslation(
             "message.block_place",
-            playerNameWhoPlacedBlock,   // %1$s – player name
-            localizedName,              // %2$s – block name
-            blockID,                    // %3$d – id
-            metadata,                   // %4$d – meta
-            coords,                     // %5$s – clickable “123 64 -217”
-            formattedTime               // %6$s – date/time
+            playerNameWhoPlacedBlock, // %0 – player name
+            block,                    // %1 – block name (localised client-side)
+            blockID,                  // %2 – raw ID
+            metadata,                 // %3 – meta
+            coords,                   // %4 – clickable coords
+            timeAgo                   // %5 – “x minutes ago”
         );
     }
 }
