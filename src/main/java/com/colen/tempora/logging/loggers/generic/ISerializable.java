@@ -4,5 +4,5 @@ import net.minecraft.util.IChatComponent;
 
 public interface ISerializable {
 
-    IChatComponent localiseText();
+    IChatComponent localiseText(String uuid);
 }

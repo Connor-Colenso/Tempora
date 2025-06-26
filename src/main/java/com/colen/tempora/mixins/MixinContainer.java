@@ -22,6 +22,7 @@ public class MixinContainer {
         CallbackInfoReturnable<ItemStack> cir) {
         if (player.worldObj.isRemote) return;
         if (slotId < 0) return; // -999 = click outside inventory
+        if (Tempora.playerInteractWithInventoryLogger == null) return;
 
         Container container = (Container) (Object) this;
 

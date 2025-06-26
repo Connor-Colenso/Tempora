@@ -15,19 +15,18 @@ public class ItemUseQueueElement extends GenericQueueElement {
     public int itemMetadata;
 
     @Override
-    public IChatComponent localiseText() {
-        String formattedTime = TimeUtils.formatTime(timestamp);
-
-        IChatComponent coords = generateTeleportChatComponent(x, y, z, CoordFormat.FLOAT_1DP);
+    public IChatComponent localiseText(String uuid) {
+        IChatComponent coords   = generateTeleportChatComponent(x, y, z, CoordFormat.FLOAT_1DP);
+        IChatComponent timeAgo  = TimeUtils.formatTime(timestamp, uuid);
 
         return new ChatComponentTranslation(
             "message.item_use",
-            playerName,                   // %1$s - player name
-            getNameOfItemStack(itemID, itemMetadata), // %2$s - item display name
-            itemID,                      // %3$d - item ID
-            itemMetadata,                // %4$d - item metadata
-            coords,                      // %5$s - clickable coordinates
-            formattedTime                // %6$s - formatted time
+            playerName,                         // %s - player name
+            getNameOfItemStack(itemID, itemMetadata), // %s - item display name
+            itemID,                            // %d - item ID
+            itemMetadata,                      // %d - item metadata
+            coords,                           // %s - clickable coords
+            timeAgo                           // %s - relative time
         );
     }
 }

@@ -14,20 +14,19 @@ public class PlayerBlockBreakQueueElement extends GenericQueueElement {
     public String playerNameWhoBrokeBlock;
 
     @Override
-    public IChatComponent localiseText() {
-        String localizedName = BlockUtils.getLocalizedName(blockID, metadata);
-        String formattedTime = TimeUtils.formatTime(timestamp);
-
+    public IChatComponent localiseText(String uuid) {
+        IChatComponent block = BlockUtils.getUnlocalisedChatComponent(blockID, metadata);
         IChatComponent coords = generateTeleportChatComponent(x, y, z, CoordFormat.INT);
+        IChatComponent timeAgo = TimeUtils.formatTime(timestamp, uuid);
 
         return new ChatComponentTranslation(
             "message.block_break",
             playerNameWhoBrokeBlock, // %1$s - player name
-            localizedName,           // %2$s - block localized name
+            block,                   // %2$s - block localized name
             blockID,                 // %3$d - block ID
             metadata,                // %4$d - metadata
             coords,                  // %5$s - clickable coordinates
-            formattedTime            // %6$s - formatted time
+            timeAgo                  // %6$s - localized relative time
         );
     }
 }

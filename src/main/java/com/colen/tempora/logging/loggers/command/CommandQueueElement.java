@@ -13,18 +13,20 @@ public class CommandQueueElement extends GenericQueueElement {
     public String arguments;
 
     @Override
-    public IChatComponent localiseText() {
-        String formattedTime = TimeUtils.formatTime(timestamp);
+    public IChatComponent localiseText(String uuid) {
+        // Relative time (as chat component with hover info)
+        IChatComponent timeAgo = TimeUtils.formatTime(timestamp, uuid);
 
+        // Clickable coordinates with limited float precision
         IChatComponent coords = generateTeleportChatComponent(x, y, z, CoordFormat.FLOAT_1DP);
 
         return new ChatComponentTranslation(
             "message.command_issued",
-            playerNameWhoIssuedCommand, // %1$s - player name
-            commandName,                // %2$s - command name
-            arguments,                  // %3$s - arguments
-            coords,                     // %4$s - clickable coords (instead of raw x,y,z)
-            formattedTime               // %5$s - time
+            playerNameWhoIssuedCommand, // %s – player name
+            commandName,                // %s – command (e.g. tp)
+            arguments,                  // %s – arguments
+            coords,                     // %s – clickable location
+            timeAgo                     // %s – relative time
         );
     }
 }

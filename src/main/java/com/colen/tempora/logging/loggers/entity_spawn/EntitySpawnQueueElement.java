@@ -11,16 +11,15 @@ public class EntitySpawnQueueElement extends GenericQueueElement {
     public String entityName;
 
     @Override
-    public IChatComponent localiseText() {
-        String formattedTime = TimeUtils.formatTime(timestamp);
-
-        IChatComponent coords = generateTeleportChatComponent(x, y, z, CoordFormat.FLOAT_1DP);
+    public IChatComponent localiseText(String uuid) {
+        IChatComponent coords   = generateTeleportChatComponent(x, y, z, CoordFormat.FLOAT_1DP);
+        IChatComponent timeAgo  = TimeUtils.formatTime(timestamp, uuid);
 
         return new ChatComponentTranslation(
             "message.entity_spawn",
-            entityName,   // %1$s - entity name
-            coords,       // %2$s - clickable coordinates
-            formattedTime // %3$s - formatted time
+            entityName,  // %s - entity name
+            coords,      // %s - clickable coordinates
+            timeAgo      // %s - relative time
         );
     }
 }

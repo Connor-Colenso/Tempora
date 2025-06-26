@@ -29,6 +29,7 @@ public class MixinWorld {
     @Inject(method = "setBlock", at = @At("RETURN"))
     private void onSetBlockReturn(int x, int y, int z, Block blockIn, int metadataIn, int flags,
         CallbackInfoReturnable<Boolean> cir) {
+        if (Tempora.blockChangeLogger == null) return;
 
         if (chunkProvider instanceof ChunkProviderGenerate) {
             // Don't log during world generation

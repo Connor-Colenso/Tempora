@@ -2,6 +2,9 @@ package com.colen.tempora;
 
 import static com.colen.tempora.config.Config.synchronizeConfiguration;
 
+import com.colen.tempora.events.PlayerLogin;
+import com.colen.tempora.networking.PacketTimeZone;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
 
 import org.apache.logging.log4j.LogManager;
@@ -9,7 +12,6 @@ import org.apache.logging.log4j.Logger;
 
 import com.colen.tempora.items.TemporaWand;
 import com.colen.tempora.logging.commands.QueryEventsCommand;
-import com.colen.tempora.logging.loggers.generic.GenericPacket;
 import com.colen.tempora.logging.loggers.block_change_logger.BlockChangeLogger;
 import com.colen.tempora.logging.loggers.block_place.BlockPlaceLogger;
 import com.colen.tempora.logging.loggers.command.CommandLogger;
@@ -64,10 +66,11 @@ public class Tempora {
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
 
-        NETWORK.registerMessage(GenericPacket.ClientMessageHandler.class, GenericPacket.class, 11, Side.CLIENT);
-
+        NETWORK.registerMessage(PacketTimeZone.Handler.class, PacketTimeZone.class, 0, Side.SERVER);
         // This must happen before we start registering events.
         synchronizeConfiguration(config);
+
+        MinecraftForge.EVENT_BUS.register(new PlayerLogin());
 
         if (TemporaUtils.shouldTemporaRun()) {
             new PlayerBlockBreakLogger();

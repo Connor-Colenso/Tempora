@@ -11,16 +11,15 @@ public class PlayerMovementQueueElement extends GenericQueueElement {
     public String playerName;
 
     @Override
-    public IChatComponent localiseText() {
-        String formattedTime = TimeUtils.formatTime(timestamp);
-
+    public IChatComponent localiseText(String uuid) {
+        IChatComponent formattedTime = TimeUtils.formatTime(timestamp, uuid);
         IChatComponent coords = generateTeleportChatComponent(x, y, z, CoordFormat.FLOAT_1DP);
 
         return new ChatComponentTranslation(
             "message.player_movement",
             playerName,   // %1$s - player name
             coords,       // %2$s - clickable coordinates
-            formattedTime // %3$s - formatted time
+            formattedTime // %3$s - localized formatted time
         );
     }
 }

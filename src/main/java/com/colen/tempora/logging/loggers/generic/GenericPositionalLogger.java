@@ -1,6 +1,7 @@
 package com.colen.tempora.logging.loggers.generic;
 
 import static com.colen.tempora.Tempora.NETWORK;
+import static java.lang.Math.min;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -277,7 +278,9 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
                     try (ResultSet rs = pstmt.executeQuery()) {
                         ArrayList<ISerializable> sendList = logger.generatePacket(rs);
                         if (!sendList.isEmpty()) {
-                            NETWORK.sendTo(new GenericPacket(sendList), entityPlayerMP);
+                            for (ISerializable packet : sendList) {
+                                entityPlayerMP.addChatMessage(packet.localiseText(entityPlayerMP.getUniqueID().toString()));
+                            }
                         } else {
                             sender.addChatMessage(
                                 new ChatComponentText("No results found for " + logger.getSQLTableName() + "."));
@@ -305,7 +308,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
         try {
             System.out.println("Opening Tempora DBs...");
 
-            executor = Executors.newFixedThreadPool(loggerList.size());
+            executor = Executors.newFixedThreadPool(Math.max(loggerList.size(), 1));
 
             for (GenericPositionalLogger<?> logger : loggerList) {
                 logger.positionalLoggerDBConnection = DriverManager.getConnection(TemporaUtils.databaseDirectory() + logger.getSQLTableName() + ".db");
