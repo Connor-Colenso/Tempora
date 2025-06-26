@@ -88,7 +88,13 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
     }
 
     public void recordSetBlock(int x, int y, int z, Block blockIn, int metadataIn, int dimensionId, String modID) {
-        final World world = MinecraftServer.getServer().worldServerForDimension(dimensionId);
+        World world = null;
+
+        try {
+            world = MinecraftServer.getServer().worldServerForDimension(dimensionId);
+        } catch (Exception e) {
+            return;
+        }
 
         if (!isChunkPopulatedAt(world, x, z)) return;
 
