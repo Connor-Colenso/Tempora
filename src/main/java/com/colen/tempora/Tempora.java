@@ -70,7 +70,9 @@ public class Tempora {
         // This must happen before we start registering events.
         synchronizeConfiguration(config);
 
-        MinecraftForge.EVENT_BUS.register(new PlayerLogin());
+        if (TemporaUtils.isClientSide()) {
+            MinecraftForge.EVENT_BUS.register(new PlayerLogin());
+        }
 
         if (TemporaUtils.shouldTemporaRun()) {
             new PlayerBlockBreakLogger();
@@ -109,7 +111,6 @@ public class Tempora {
         if (TemporaUtils.shouldTemporaRun()) {
             for (GenericPositionalLogger<?> logger : GenericPositionalLogger.getLoggerList()) {
                 logger.registerEvent();
-                logger.removeOldDatabaseData();
             }
         }
 

@@ -142,7 +142,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
     // nothing else is interacting with the db, so it's fine for now.
     private void eraseAllDataBeforeTime(long time) {
         // Prepare SQL statement with the safe table name
-        String sql = "DELETE FROM " + this.getSQLTableName() + " WHERE timestamp < ?";
+        String sql = "DELETE FROM " + getSQLTableName() + " WHERE timestamp < ?";
 
         try (PreparedStatement pstmt = getNewConnection().prepareStatement(sql)) {
             // Set the parameter for the PreparedStatement
@@ -257,8 +257,6 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
                 if (tableName != null && !logger.getSQLTableName()
                     .equals(tableName)) continue;
                 try (
-                    Connection conn = DriverManager
-                        .getConnection(TemporaUtils.databaseDirectory() + "PositionalLogger.db");
                     PreparedStatement pstmt = logger.getDBConn().prepareStatement(
                         "SELECT * FROM " + logger.getSQLTableName()
                             + " WHERE ABS(x - ?) <= ? AND ABS(y - ?) <= ? AND ABS(z - ?) <= ?"
@@ -295,9 +293,9 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
         }
     }
 
-    private static Connection getNewConnection() {
+    private Connection getNewConnection() {
         try {
-            return DriverManager.getConnection(TemporaUtils.databaseDirectory() + "PositionalLogger.db");
+            return DriverManager.getConnection(TemporaUtils.jdbcUrl(getSQLTableName() + ".db"));
         } catch (Exception e) {
             e.printStackTrace();
             return null;
@@ -311,11 +309,13 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
             executor = Executors.newFixedThreadPool(Math.max(loggerList.size(), 1));
 
             for (GenericPositionalLogger<?> logger : loggerList) {
-                logger.positionalLoggerDBConnection = DriverManager.getConnection(TemporaUtils.databaseDirectory() + logger.getSQLTableName() + ".db");
+                String dbUrl = TemporaUtils.jdbcUrl(logger.getSQLTableName() + ".db");
+                logger.positionalLoggerDBConnection = DriverManager.getConnection(dbUrl);
                 logger.getDBConn().setAutoCommit(false); // Batch in one transaction
 
                 logger.initTable();
                 logger.createAllIndexes();
+                logger.removeOldDatabaseData();
 
                 logger.startQueueWorker();
             }
@@ -355,9 +355,8 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
     }
 
     private void createAllIndexes() {
-        Connection dbConnection = getNewConnection();
 
-        try (Statement stmt = dbConnection.createStatement()) {
+        try (Statement stmt = getDBConn().createStatement()) {
             String tableName = getSQLTableName();
 
             // Creating a composite index for x, y, z, dimensionID and timestamp

@@ -100,7 +100,7 @@ public class BlockPlaceLogger extends GenericPositionalLogger<BlockPlaceQueueEle
         queueElement.timestamp = System.currentTimeMillis();
 
         queueElement.blockID = Block.getIdFromBlock(event.block);
-        queueElement.metadata = event.blockMetadata;
+        queueElement.metadata = event.world.getBlockMetadata(event.x , event.y , event.z);
 
         if (event.player instanceof EntityPlayerMP) {
             queueElement.playerNameWhoPlacedBlock = event.player.getUniqueID()

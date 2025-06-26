@@ -1,6 +1,8 @@
 package com.colen.tempora;
 
-import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -8,29 +10,33 @@ import java.time.format.DateTimeFormatter;
 
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.network.play.client.C0EPacketClickWindow;
-import net.minecraft.server.MinecraftServer;
 
 import com.colen.tempora.config.Config;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.relauncher.Side;
+import net.minecraftforge.common.DimensionManager;
 
 public class TemporaUtils {
 
     public static final String UNKNOWN_PLAYER_NAME = "[UNKNOWN]";
 
-    public static String databaseDirectory() {
+    private static Path databaseDir() {
+        // Works for both dedicated and integrated servers.
+        Path worldDir = DimensionManager.getCurrentSaveRootDirectory().toPath();
+        Path dir      = worldDir.resolve("TemporaDatabases");
 
-        final String path = "./Saves/" + MinecraftServer.getServer()
-            .getFolderName() + "/TemporaDatabases/";
-
-        // Create the directory if it doesn't exist.
-        final File directory = new File(path);
-        if (!directory.exists()) {
-            directory.mkdirs();
+        try {
+            Files.createDirectories(dir);
+        } catch (IOException e) {
+            throw new RuntimeException("Cannot create database directory: " + dir, e);
         }
+        return dir;
+    }
 
-        return "jdbc:sqlite:" + path;
+    /** Absolute JDBC URL for the given database file (e.g. "blocks.db"). */
+    public static String jdbcUrl(String fileName) {
+        return "jdbc:sqlite:" + databaseDir().resolve(fileName).toAbsolutePath();
     }
 
     /**
