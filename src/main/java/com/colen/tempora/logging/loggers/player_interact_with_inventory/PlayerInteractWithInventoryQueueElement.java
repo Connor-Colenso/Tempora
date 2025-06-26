@@ -2,7 +2,8 @@ package com.colen.tempora.logging.loggers.player_interact_with_inventory;
 
 import static com.colen.tempora.utils.ItemUtils.getNameOfItemStack;
 
-import net.minecraft.util.StatCollector;
+import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.IChatComponent;
 
 import com.colen.tempora.logging.loggers.generic.GenericQueueElement;
 import com.colen.tempora.utils.PlayerUtils;
@@ -18,38 +19,30 @@ public class PlayerInteractWithInventoryQueueElement extends GenericQueueElement
     public int stacksize;
 
     @Override
-    public String localiseText() {
-        String formattedTime = TimeUtils.formatTime(timestamp); // Formatting the timestamp into a readable time.
-        String playerName = PlayerUtils.UUIDToName(playerUUID); // Converting player UUID to name.
-        String itemDetails = getNameOfItemStack(itemId, itemMetadata); // Getting name and details of the item stack.
+    public IChatComponent localiseText() {
+        String formattedTime = TimeUtils.formatTime(timestamp);
+        String playerName = PlayerUtils.UUIDToName(playerUUID);
+        String itemDetails = getNameOfItemStack(itemId, itemMetadata);
 
-        if (interactionType.equals("Added")) {
-            return StatCollector.translateToLocalFormatted(
-                "message.inventory_interaction_added",
-                playerName,
-                stacksize,
-                itemDetails,
-                itemId,
-                itemMetadata,
-                containerName,
-                (int) x,
-                (int) y,
-                (int) z,
-                formattedTime);
+        IChatComponent coords = generateTeleportChatComponent(x, y, z, CoordFormat.INT);
+
+        String translationKey;
+        if ("Added".equals(interactionType)) {
+            translationKey = "message.inventory_interaction_added";
         } else {
-            return StatCollector.translateToLocalFormatted(
-                "message.inventory_interaction_removed",
-                playerName,
-                stacksize,
-                itemDetails,
-                itemId,
-                itemMetadata,
-                containerName,
-                (int) x,
-                (int) y,
-                (int) z,
-                formattedTime);
+            translationKey = "message.inventory_interaction_removed";
         }
-    }
 
+        return new ChatComponentTranslation(
+            translationKey,
+            playerName,      // %1$s - player name
+            stacksize,       // %2$d - stack size
+            itemDetails,     // %3$s - item name/details
+            itemId,          // %4$d - item ID
+            itemMetadata,    // %5$d - item metadata
+            containerName,   // %6$s - container name
+            coords,          // %7$s - clickable coordinates
+            formattedTime    // %8$s - formatted time
+        );
+    }
 }

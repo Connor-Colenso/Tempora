@@ -7,8 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.util.ChatComponentText;
 
+import net.minecraft.util.IChatComponent;
 import org.apache.commons.lang3.NotImplementedException;
 
 import com.colen.tempora.TemporaUtils;
@@ -152,10 +152,10 @@ public class GenericPacket implements IMessage {
             List<ISerializable> list = packet.queueElementArrayList;
             for (int i = list.size() - 1; i >= 0; i--) {
                 ISerializable iSerializable = list.get(i);
-                String message = iSerializable.localiseText();
+                IChatComponent message = iSerializable.localiseText();
                 if (message == null) continue;
 
-                Minecraft.getMinecraft().thePlayer.addChatComponentMessage(new ChatComponentText(message));
+                Minecraft.getMinecraft().thePlayer.addChatComponentMessage(message);
             }
 
             return null; // No response packet needed

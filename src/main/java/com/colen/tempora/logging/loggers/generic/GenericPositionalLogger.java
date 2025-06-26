@@ -305,7 +305,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
         try {
             System.out.println("Opening Tempora DBs...");
 
-            executor = Executors.newFixedThreadPool(12);
+            executor = Executors.newFixedThreadPool(loggerList.size());
 
             for (GenericPositionalLogger<?> logger : loggerList) {
                 logger.positionalLoggerDBConnection = DriverManager.getConnection(TemporaUtils.databaseDirectory() + logger.getSQLTableName() + ".db");
