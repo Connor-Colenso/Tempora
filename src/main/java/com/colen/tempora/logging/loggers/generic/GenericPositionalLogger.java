@@ -43,7 +43,6 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
     protected Connection positionalLoggerDBConnection;
 
     private final LinkedBlockingQueue<EventToLog> eventQueue = new LinkedBlockingQueue<>();
-    private final ArrayList<EventToLog> buffer = new  ArrayList<>();
     private static final Set<GenericPositionalLogger<?>> loggerList = new HashSet<>();
 
     private boolean isEnabled;
@@ -57,6 +56,10 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
     public void handleCustomLoggerConfig(Configuration config) {
 
+    }
+
+    public Connection getDBConn() {
+        return positionalLoggerDBConnection;
     }
 
     protected abstract List<ColumnDef> getTableColumns();
@@ -93,13 +96,13 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
             createSQL.append(");");
 
-            positionalLoggerDBConnection.prepareStatement(createSQL.toString())
+            getDBConn().prepareStatement(createSQL.toString())
                 .execute();
 
             // Step 2: Check existing columns
             Set<String> existingColumns = new HashSet<>();
             try (
-                PreparedStatement stmt = positionalLoggerDBConnection
+                PreparedStatement stmt = getDBConn()
                     .prepareStatement("PRAGMA table_info(" + tableName + ");");
                 ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
@@ -122,7 +125,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
                     }
 
                     alterSQL.append(";");
-                    positionalLoggerDBConnection.prepareStatement(alterSQL.toString())
+                    getDBConn().prepareStatement(alterSQL.toString())
                         .execute();
                 }
             }
@@ -198,7 +201,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
                     if (!buffer.isEmpty()) {
                         try {
                             threadedSaveEvents(buffer);
-                            positionalLoggerDBConnection.commit();
+                            getDBConn().commit();
                         } catch (Exception e) {
                             System.err.println("Batch write failed: " + e.getMessage());
                             e.printStackTrace();
@@ -255,7 +258,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
                 try (
                     Connection conn = DriverManager
                         .getConnection(TemporaUtils.databaseDirectory() + "PositionalLogger.db");
-                    PreparedStatement pstmt = conn.prepareStatement(
+                    PreparedStatement pstmt = logger.getDBConn().prepareStatement(
                         "SELECT * FROM " + logger.getSQLTableName()
                             + " WHERE ABS(x - ?) <= ? AND ABS(y - ?) <= ? AND ABS(z - ?) <= ?"
                             + " AND dimensionID = ? AND timestamp >= ? ORDER BY timestamp DESC LIMIT ?")) {
@@ -302,11 +305,11 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
         try {
             System.out.println("Opening Tempora DBs...");
 
-            executor = Executors.newFixedThreadPool(4);
+            executor = Executors.newFixedThreadPool(12);
 
             for (GenericPositionalLogger<?> logger : loggerList) {
                 logger.positionalLoggerDBConnection = DriverManager.getConnection(TemporaUtils.databaseDirectory() + logger.getSQLTableName() + ".db");
-                logger.positionalLoggerDBConnection.setAutoCommit(false); // Batch in one transaction
+                logger.getDBConn().setAutoCommit(false); // Batch in one transaction
 
                 logger.initTable();
                 logger.createAllIndexes();
@@ -334,8 +337,8 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
             // Shut down each db.
             for (GenericPositionalLogger<?> logger : loggerList) {
-                if (logger.positionalLoggerDBConnection != null && !logger.positionalLoggerDBConnection.isClosed()) {
-                    logger.positionalLoggerDBConnection.close();
+                if (logger.getDBConn() != null && !logger.getDBConn().isClosed()) {
+                    logger.getDBConn().close();
                 }
             }
 
