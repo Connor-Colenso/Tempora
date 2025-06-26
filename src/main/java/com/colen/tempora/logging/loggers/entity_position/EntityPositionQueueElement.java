@@ -1,6 +1,7 @@
 package com.colen.tempora.logging.loggers.entity_position;
 
-import net.minecraft.util.StatCollector;
+import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.IChatComponent;
 
 import com.colen.tempora.logging.loggers.generic.GenericQueueElement;
 import com.colen.tempora.utils.TimeUtils;
@@ -10,15 +11,16 @@ public class EntityPositionQueueElement extends GenericQueueElement {
     public String entityName;
 
     @Override
-    public String localiseText() {
+    public IChatComponent localiseText() {
         String formattedTime = TimeUtils.formatTime(timestamp);
 
-        return StatCollector.translateToLocalFormatted(
+        IChatComponent coords = generateTeleportChatComponent(x, y, z, CoordFormat.FLOAT_1DP);
+
+        return new ChatComponentTranslation(
             "message.entity_position",
-            entityName,
-            String.format("%.1f", x),
-            String.format("%.1f", y),
-            String.format("%.1f", z),
-            formattedTime);
+            entityName,   // %1$s - entity name
+            coords,       // %2$s - clickable coordinates
+            formattedTime // %3$s - formatted time
+        );
     }
 }

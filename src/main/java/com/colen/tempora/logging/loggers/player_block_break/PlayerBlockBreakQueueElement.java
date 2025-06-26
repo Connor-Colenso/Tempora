@@ -1,14 +1,11 @@
 package com.colen.tempora.logging.loggers.player_block_break;
 
-import net.minecraft.client.gui.inventory.GuiInventory;
-import net.minecraft.util.StatCollector;
-import net.minecraftforge.client.event.GuiOpenEvent;
+import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.IChatComponent;
 
 import com.colen.tempora.logging.loggers.generic.GenericQueueElement;
 import com.colen.tempora.utils.BlockUtils;
 import com.colen.tempora.utils.TimeUtils;
-
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
 public class PlayerBlockBreakQueueElement extends GenericQueueElement {
 
@@ -17,27 +14,20 @@ public class PlayerBlockBreakQueueElement extends GenericQueueElement {
     public String playerNameWhoBrokeBlock;
 
     @Override
-    public String localiseText() {
+    public IChatComponent localiseText() {
         String localizedName = BlockUtils.getLocalizedName(blockID, metadata);
         String formattedTime = TimeUtils.formatTime(timestamp);
 
-        return StatCollector.translateToLocalFormatted(
+        IChatComponent coords = generateTeleportChatComponent(x, y, z, CoordFormat.INT);
+
+        return new ChatComponentTranslation(
             "message.block_break",
-            playerNameWhoBrokeBlock,
-            localizedName,
-            blockID,
-            metadata,
-            Math.round(x),
-            Math.round(y),
-            Math.round(z),
-            formattedTime);
+            playerNameWhoBrokeBlock, // %1$s - player name
+            localizedName,           // %2$s - block localized name
+            blockID,                 // %3$d - block ID
+            metadata,                // %4$d - metadata
+            coords,                  // %5$s - clickable coordinates
+            formattedTime            // %6$s - formatted time
+        );
     }
-
-    @SubscribeEvent
-    public void onGuiOpen(GuiOpenEvent event) {
-        if (event.gui instanceof GuiInventory) {
-            // Code to execute when the player's inventory is opened
-        }
-    }
-
 }

@@ -26,6 +26,7 @@ public class QueryEventsCommand extends CommandBase {
 
     @Override
     public void processCommand(ICommandSender sender, String[] args) {
+
         if (args.length < 2) {
             sender.addChatMessage(new ChatComponentText(getCommandUsage(sender)));
             return;
