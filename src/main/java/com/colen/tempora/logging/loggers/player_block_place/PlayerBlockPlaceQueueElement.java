@@ -1,4 +1,4 @@
-package com.colen.tempora.logging.loggers.block_place;
+package com.colen.tempora.logging.loggers.player_block_place;
 
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
@@ -7,7 +7,7 @@ import com.colen.tempora.logging.loggers.generic.GenericQueueElement;
 import com.colen.tempora.utils.BlockUtils;
 import com.colen.tempora.utils.TimeUtils;
 
-public class BlockPlaceQueueElement extends GenericQueueElement {
+public class PlayerBlockPlaceQueueElement extends GenericQueueElement {
     public int blockID;
     public int metadata;
     public int pickBlockID;

@@ -75,7 +75,21 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
             new ColumnDef("dimensionID", "INTEGER", "NOT NULL"));
     }
 
-    public void initTable() {
+    private void configureDBSafetyLevel() {
+        Connection conn = getDBConn();
+
+        try (Statement st = conn.createStatement()) {
+            if (dbRisk()) {
+                st.execute("PRAGMA synchronous=OFF;");
+                st.execute("PRAGMA wal_autocheckpoint=10000;");
+            }
+        } catch (Exception e) {
+            // Rethrow as unchecked to crash without compiler complaining.
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void initTable() {
         String tableName = getSQLTableName();
         List<ColumnDef> columns = new ArrayList<>(getTableColumns());
         columns.addAll(getDefaultColumns());
@@ -156,7 +170,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
         }
     }
 
-    public final void removeOldDatabaseData() {
+    private void removeOldDatabaseData() {
         try {
             eraseAllDataBeforeTime(System.currentTimeMillis() - TimeUtils.convertToSeconds(oldestDataCutoff) * 1000);
         } catch (Exception e) {
@@ -318,7 +332,13 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
             for (GenericPositionalLogger<?> logger : loggerList) {
                 String dbUrl = TemporaUtils.jdbcUrl(logger.getSQLTableName() + ".db");
                 logger.positionalLoggerDBConnection = DriverManager.getConnection(dbUrl);
-                logger.getDBConn().setAutoCommit(false); // Batch in one transaction
+
+                if (logger.dbRisk()) {
+                    logger.configureDBSafetyLevel();
+                }
+
+                // Enable batching, to reduce overhead on db writes.
+                logger.getDBConn().setAutoCommit(false);
 
                 logger.initTable();
                 logger.createAllIndexes();
@@ -364,6 +384,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
     private void createAllIndexes() {
 
         try (Statement stmt = getDBConn().createStatement()) {
+
             String tableName = getSQLTableName();
 
             // Creating a composite index for x, y, z, dimensionID and timestamp
@@ -386,6 +407,12 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
             System.err.println("Error creating indexes: " + e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    // Use the fastest durability mode: may lose or corrupt the DB on sudden power loss.
+    // Only recommended if recent data loss is acceptable and backups exist.
+    protected boolean dbRisk() {
+        return false;
     }
 
     private boolean loggerEnabledByDefault() {

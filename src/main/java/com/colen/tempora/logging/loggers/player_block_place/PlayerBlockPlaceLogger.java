@@ -1,4 +1,4 @@
-package com.colen.tempora.logging.loggers.block_place;
+package com.colen.tempora.logging.loggers.player_block_place;
 
 import static com.colen.tempora.TemporaUtils.isClientSide;
 
@@ -27,11 +27,11 @@ import com.colen.tempora.utils.PlayerUtils;
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
-public class BlockPlaceLogger extends GenericPositionalLogger<BlockPlaceQueueElement> {
+public class PlayerBlockPlaceLogger extends GenericPositionalLogger<PlayerBlockPlaceQueueElement> {
 
     @Override
     public String getSQLTableName() {
-        return "BlockPlaceLogger";
+        return "PlayerBlockPlaceLogger";
     }
 
     @Override
@@ -50,7 +50,7 @@ public class BlockPlaceLogger extends GenericPositionalLogger<BlockPlaceQueueEle
 
         while (resultSet.next()) {
 
-            BlockPlaceQueueElement queueElement = new BlockPlaceQueueElement();
+            PlayerBlockPlaceQueueElement queueElement = new PlayerBlockPlaceQueueElement();
             queueElement.x = resultSet.getInt("x");
             queueElement.y = resultSet.getInt("y");
             queueElement.z = resultSet.getInt("z");
@@ -69,7 +69,7 @@ public class BlockPlaceLogger extends GenericPositionalLogger<BlockPlaceQueueEle
     }
 
     @Override
-    public void threadedSaveEvents(List<BlockPlaceQueueElement> blockPlaceQueueElements) throws SQLException {
+    public void threadedSaveEvents(List<PlayerBlockPlaceQueueElement> blockPlaceQueueElements) throws SQLException {
         if (blockPlaceQueueElements == null || blockPlaceQueueElements.isEmpty()) return;
 
         final String sql = "INSERT INTO " + getSQLTableName()
@@ -77,7 +77,7 @@ public class BlockPlaceLogger extends GenericPositionalLogger<BlockPlaceQueueEle
             + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(sql)) {
-            for (BlockPlaceQueueElement element : blockPlaceQueueElements) {
+            for (PlayerBlockPlaceQueueElement element : blockPlaceQueueElements) {
                 pstmt.setString(1, element.playerNameWhoPlacedBlock);
                 pstmt.setInt(2, element.blockID);
                 pstmt.setInt(3, element.metadata);
@@ -101,7 +101,7 @@ public class BlockPlaceLogger extends GenericPositionalLogger<BlockPlaceQueueEle
     public void onBlockPlace(final @NotNull PlaceEvent event) {
         if (isClientSide()) return; // Server side only
 
-        BlockPlaceQueueElement queueElement = new BlockPlaceQueueElement();
+        PlayerBlockPlaceQueueElement queueElement = new PlayerBlockPlaceQueueElement();
 
         queueElement.x = event.x;
         queueElement.y = event.y;
