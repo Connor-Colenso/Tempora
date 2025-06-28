@@ -1,4 +1,4 @@
-package com.colen.tempora.logging.loggers.block_change_logger;
+package com.colen.tempora.logging.loggers.block_change;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -28,6 +28,11 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
     @Override
     public String getSQLTableName() {
         return "BlockChangeLogger";
+    }
+
+    @Override
+    protected boolean dbRisk() {
+        return true;
     }
 
     @Override

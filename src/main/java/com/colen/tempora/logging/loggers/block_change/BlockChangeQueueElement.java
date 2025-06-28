@@ -1,4 +1,4 @@
-package com.colen.tempora.logging.loggers.block_change_logger;
+package com.colen.tempora.logging.loggers.block_change;
 
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;

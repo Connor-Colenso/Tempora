@@ -12,8 +12,8 @@ import org.apache.logging.log4j.Logger;
 
 import com.colen.tempora.items.TemporaWand;
 import com.colen.tempora.logging.commands.QueryEventsCommand;
-import com.colen.tempora.logging.loggers.block_change_logger.BlockChangeLogger;
-import com.colen.tempora.logging.loggers.block_place.BlockPlaceLogger;
+import com.colen.tempora.logging.loggers.block_change.BlockChangeLogger;
+import com.colen.tempora.logging.loggers.player_block_place.PlayerBlockPlaceLogger;
 import com.colen.tempora.logging.loggers.command.CommandLogger;
 import com.colen.tempora.logging.loggers.entity_death.EntityDeathLogger;
 import com.colen.tempora.logging.loggers.entity_position.EntityPositionLogger;
@@ -76,7 +76,7 @@ public class Tempora {
 
         if (TemporaUtils.shouldTemporaRun()) {
             new PlayerBlockBreakLogger();
-            new BlockPlaceLogger();
+            new PlayerBlockPlaceLogger();
             new ExplosionLogger();
             new ItemUseLogger();
             new PlayerMovementLogger();
