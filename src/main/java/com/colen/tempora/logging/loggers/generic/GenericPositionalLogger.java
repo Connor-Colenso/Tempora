@@ -1,6 +1,5 @@
 package com.colen.tempora.logging.loggers.generic;
 
-import static com.colen.tempora.Tempora.NETWORK;
 import static java.lang.Math.min;
 
 import java.sql.Connection;
@@ -37,7 +36,7 @@ import cpw.mods.fml.common.FMLCommonHandler;
 public abstract class GenericPositionalLogger<EventToLog extends GenericQueueElement> {
 
     private static final String OLDEST_DATA_DEFAULT = "4months";
-    protected static final int MAX_DATA_ROWS_PER_PACKET = 5;
+    protected static final int MAX_DATA_ROWS_PER_DB = 5;
 
     private static ExecutorService executor;
     private static volatile boolean running = true;
@@ -136,7 +135,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
         }
     }
 
-    protected abstract ArrayList<ISerializable> generatePacket(ResultSet rs) throws SQLException;
+    protected abstract ArrayList<ISerializable> generateQueryResults(ResultSet rs) throws SQLException;
 
     // This is not strictly thread safe but since we are doing this before the server has even started properly
     // nothing else is interacting with the db, so it's fine for now.
@@ -270,20 +269,22 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
                     pstmt.setInt(6, radius);
                     pstmt.setInt(7, dimensionId);
                     pstmt.setTimestamp(8, new Timestamp(pastTime)); // Filter events from pastTime onwards
-                    pstmt.setInt(9, MAX_DATA_ROWS_PER_PACKET);
+                    pstmt.setInt(9, MAX_DATA_ROWS_PER_DB);
 
-                    // Execute and submit to client via a custom packet if not empty.
+                    // Try send the result to the player.
                     try (ResultSet rs = pstmt.executeQuery()) {
-                        ArrayList<ISerializable> sendList = logger.generatePacket(rs);
-                        if (!sendList.isEmpty()) {
-                            for (ISerializable packet : sendList) {
-                                entityPlayerMP.addChatMessage(packet.localiseText(entityPlayerMP.getUniqueID().toString()));
-                            }
-                        } else {
-                            sender.addChatMessage(
-                                new ChatComponentText("No results found for " + logger.getSQLTableName() + "."));
+                        List<ISerializable> packets = logger.generateQueryResults(rs);
+
+                        if (packets.isEmpty()) {
+                            sender.addChatMessage(new ChatComponentText(
+                                "No results found for " + logger.getSQLTableName() + '.'));
+                            return;
                         }
+
+                        String uuid = entityPlayerMP.getUniqueID().toString();
+                        packets.forEach(p -> entityPlayerMP.addChatMessage(p.localiseText(uuid)));
                     }
+
                 } catch (SQLException e) {
                     sender.addChatMessage(
                         new ChatComponentText(
