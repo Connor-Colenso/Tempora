@@ -12,6 +12,8 @@ import java.util.List;
 
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 import net.minecraftforge.event.world.BlockEvent.PlaceEvent;
 
 import org.jetbrains.annotations.NotNull;
@@ -37,11 +39,13 @@ public class BlockPlaceLogger extends GenericPositionalLogger<BlockPlaceQueueEle
         return Arrays.asList(
             new ColumnDef("playerUUID", "TEXT", "NOT NULL"),
             new ColumnDef("metadata", "INTEGER", "NOT NULL"),
-            new ColumnDef("blockId", "INTEGER", "NOT NULL"));
+            new ColumnDef("blockId", "INTEGER", "NOT NULL"),
+            new ColumnDef("pickBlockMeta", "INTEGER", "NOT NULL"),
+            new ColumnDef("pickBlockID", "INTEGER", "NOT NULL"));
     }
 
     @Override
-    protected ArrayList<ISerializable> generatePacket(ResultSet resultSet) throws SQLException {
+    protected ArrayList<ISerializable> generateQueryResults(ResultSet resultSet) throws SQLException {
         ArrayList<ISerializable> eventList = new ArrayList<>();
 
         while (resultSet.next()) {
@@ -54,6 +58,8 @@ public class BlockPlaceLogger extends GenericPositionalLogger<BlockPlaceQueueEle
             queueElement.playerNameWhoPlacedBlock = PlayerUtils.UUIDToName(resultSet.getString("playerUUID"));
             queueElement.blockID = resultSet.getInt("blockId");
             queueElement.metadata = resultSet.getInt("metadata");
+            queueElement.pickBlockID = resultSet.getInt("pickBlockId");
+            queueElement.pickBlockMeta = resultSet.getInt("pickBlockMeta");
             queueElement.timestamp = resultSet.getLong("timestamp");
 
             eventList.add(queueElement);
@@ -67,19 +73,21 @@ public class BlockPlaceLogger extends GenericPositionalLogger<BlockPlaceQueueEle
         if (blockPlaceQueueElements == null || blockPlaceQueueElements.isEmpty()) return;
 
         final String sql = "INSERT INTO " + getSQLTableName()
-            + " (playerUUID, blockId, metadata, x, y, z, dimensionID, timestamp) "
-            + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+            + " (playerUUID, blockId, metadata, pickBlockId, pickBlockMeta, x, y, z, dimensionID, timestamp) "
+            + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(sql)) {
             for (BlockPlaceQueueElement element : blockPlaceQueueElements) {
                 pstmt.setString(1, element.playerNameWhoPlacedBlock);
                 pstmt.setInt(2, element.blockID);
                 pstmt.setInt(3, element.metadata);
-                pstmt.setDouble(4, element.x);
-                pstmt.setDouble(5, element.y);
-                pstmt.setDouble(6, element.z);
-                pstmt.setInt(7, element.dimensionId);
-                pstmt.setTimestamp(8, new Timestamp(element.timestamp));
+                pstmt.setInt(4, element.pickBlockID);
+                pstmt.setInt(5, element.pickBlockMeta);
+                pstmt.setDouble(6, element.x);
+                pstmt.setDouble(7, element.y);
+                pstmt.setDouble(8, element.z);
+                pstmt.setInt(9, element.dimensionId);
+                pstmt.setTimestamp(10, new Timestamp(element.timestamp));
                 pstmt.addBatch();
             }
 
@@ -87,12 +95,14 @@ public class BlockPlaceLogger extends GenericPositionalLogger<BlockPlaceQueueEle
         }
     }
 
+
     @SubscribeEvent(priority = EventPriority.LOWEST)
     @SuppressWarnings("unused")
     public void onBlockPlace(final @NotNull PlaceEvent event) {
         if (isClientSide()) return; // Server side only
 
         BlockPlaceQueueElement queueElement = new BlockPlaceQueueElement();
+
         queueElement.x = event.x;
         queueElement.y = event.y;
         queueElement.z = event.z;
@@ -100,15 +110,26 @@ public class BlockPlaceLogger extends GenericPositionalLogger<BlockPlaceQueueEle
         queueElement.timestamp = System.currentTimeMillis();
 
         queueElement.blockID = Block.getIdFromBlock(event.block);
-        queueElement.metadata = event.world.getBlockMetadata(event.x , event.y , event.z);
+        queueElement.metadata = event.world.getBlockMetadata(event.x, event.y, event.z);
+
+        // Calculate pickBlockID and pickBlockMeta using getPickBlock
+        ItemStack pickStack = event.block.getPickBlock(null, event.world, event.x, event.y, event.z);
+        if (pickStack != null && pickStack.getItem() != null) {
+            queueElement.pickBlockID = Item.getIdFromItem(pickStack.getItem());
+            queueElement.pickBlockMeta = pickStack.getItemDamage();
+        } else {
+            // Fallback to raw values if pickBlock is null
+            queueElement.pickBlockID = queueElement.blockID;
+            queueElement.pickBlockMeta = queueElement.metadata;
+        }
 
         if (event.player instanceof EntityPlayerMP) {
-            queueElement.playerNameWhoPlacedBlock = event.player.getUniqueID()
-                .toString();
+            queueElement.playerNameWhoPlacedBlock = event.player.getUniqueID().toString();
         } else {
             queueElement.playerNameWhoPlacedBlock = TemporaUtils.UNKNOWN_PLAYER_NAME;
         }
 
         queueEvent(queueElement);
     }
+
 }

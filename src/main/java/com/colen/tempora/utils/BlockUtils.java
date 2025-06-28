@@ -1,35 +1,35 @@
 package com.colen.tempora.utils;
 
 import net.minecraft.block.Block;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 
+import java.lang.reflect.Method;
+
 public class BlockUtils {
 
-    public static IChatComponent getUnlocalisedChatComponent(int blockID, int metadata) {
+    public static IChatComponent getUnlocalisedChatComponent(int blockID, int meta) {
         if (blockID == 0) return new ChatComponentText("Air");
 
         Block block = Block.getBlockById(blockID);
-        if (block != null) {
-            // Try to get the ItemBlock for this block
-            ItemStack stack = new ItemStack(block, 1, metadata);
+        if (block == null) return new ChatComponentText("[Unknown block " + blockID + ']');
 
-            String unlocalized = stack.getUnlocalizedName(); // usually something like "tile.wool.colored.white" or "tile.grass.default"
+        Item item = Item.getItemFromBlock(block);
+        if (item == null) return new ChatComponentText(block.getLocalizedName());
 
-            // Normalize the unlocalized name to avoid ".default"
-            if (unlocalized.endsWith(".default")) {
-                unlocalized = unlocalized.substring(0, unlocalized.length() - ".default".length());
-            }
+        ItemStack stack = new ItemStack(item, 1, meta);
+        String key = item.getUnlocalizedName(stack);
 
-            // Add ".name" suffix since lang keys usually end like "tile.wool.colored.white.name"
-            String langKey = unlocalized + ".name";
+        if (key.endsWith(".default"))
+            key = key.substring(0, key.length() - ".default".length());
 
-            return new ChatComponentTranslation(langKey);
-        } else {
-            return new ChatComponentText("[Unknown Block]");
-        }
+        return new ChatComponentTranslation(key + ".name");
     }
+
+
+
 
 }
