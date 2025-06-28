@@ -12,6 +12,8 @@ import java.util.List;
 
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 import net.minecraftforge.event.world.BlockEvent;
 
 import org.jetbrains.annotations.NotNull;
@@ -20,7 +22,6 @@ import com.colen.tempora.TemporaUtils;
 import com.colen.tempora.logging.loggers.generic.ISerializable;
 import com.colen.tempora.logging.loggers.generic.ColumnDef;
 import com.colen.tempora.logging.loggers.generic.GenericPositionalLogger;
-import com.colen.tempora.utils.PlayerUtils;
 
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
@@ -37,7 +38,9 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
         return Arrays.asList(
             new ColumnDef("playerUUID", "TEXT", "NOT NULL"),
             new ColumnDef("metadata", "INTEGER", "NOT NULL"),
-            new ColumnDef("blockId", "INTEGER", "NOT NULL"));
+            new ColumnDef("blockId", "INTEGER", "NOT NULL"),
+            new ColumnDef("pickBlockID", "INTEGER", "NOT NULL"),
+            new ColumnDef("pickBlockMeta", "INTEGER", "NOT NULL"));
     }
 
     @Override
@@ -55,9 +58,11 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
                 queueElement.dimensionId = resultSet.getInt("dimensionID");
                 queueElement.timestamp = resultSet.getLong("timestamp");
 
-                queueElement.playerNameWhoBrokeBlock = PlayerUtils.UUIDToName(resultSet.getString("playerUUID"));
+                queueElement.playerUUIDWhoBrokeBlock = resultSet.getString("playerUUID");
                 queueElement.blockID = resultSet.getInt("blockId");
                 queueElement.metadata = resultSet.getInt("metadata");
+                queueElement.pickBlockID = resultSet.getInt("pickBlockID");
+                queueElement.pickBlockMeta = resultSet.getInt("pickBlockMeta");
 
                 eventList.add(queueElement);
             }
@@ -73,18 +78,20 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
         if (elements == null || elements.isEmpty()) return;
 
         final String sql = "INSERT INTO " + getSQLTableName()
-            + " (playerUUID, blockId, metadata, x, y, z, dimensionID, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+            + " (playerUUID, blockId, metadata, pickBlockID, pickBlockMeta, x, y, z, dimensionID, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(sql)) {
             for (PlayerBlockBreakQueueElement elem : elements) {
-                pstmt.setString(1, elem.playerNameWhoBrokeBlock);
+                pstmt.setString(1, elem.playerUUIDWhoBrokeBlock);
                 pstmt.setInt(2, elem.blockID);
                 pstmt.setInt(3, elem.metadata);
-                pstmt.setDouble(4, elem.x);
-                pstmt.setDouble(5, elem.y);
-                pstmt.setDouble(6, elem.z);
-                pstmt.setInt(7, elem.dimensionId);
-                pstmt.setTimestamp(8, new Timestamp(elem.timestamp));
+                pstmt.setInt(4, elem.pickBlockID);
+                pstmt.setInt(5, elem.pickBlockMeta);
+                pstmt.setDouble(6, elem.x);
+                pstmt.setDouble(7, elem.y);
+                pstmt.setDouble(8, elem.z);
+                pstmt.setInt(9, elem.dimensionId);
+                pstmt.setTimestamp(10, new Timestamp(elem.timestamp));
                 pstmt.addBatch();
             }
 
@@ -109,12 +116,23 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
         queueElement.blockID = Block.getIdFromBlock(event.block);
         queueElement.metadata = event.blockMetadata;
 
+        // Calculate pickBlockID and pickBlockMeta using getPickBlock
+        ItemStack pickStack = event.block.getPickBlock(null, event.world, event.x, event.y, event.z);
+        if (pickStack != null && pickStack.getItem() != null) {
+            queueElement.pickBlockID = Item.getIdFromItem(pickStack.getItem());
+            queueElement.pickBlockMeta = pickStack.getItemDamage();
+        } else {
+            // Fallback to raw values if pickBlock is null
+            queueElement.pickBlockID = queueElement.blockID;
+            queueElement.pickBlockMeta = queueElement.metadata;
+        }
+
         if (event.getPlayer() instanceof EntityPlayerMP) {
-            queueElement.playerNameWhoBrokeBlock = event.getPlayer()
+            queueElement.playerUUIDWhoBrokeBlock = event.getPlayer()
                 .getUniqueID()
                 .toString();
         } else {
-            queueElement.playerNameWhoBrokeBlock = TemporaUtils.UNKNOWN_PLAYER_NAME;
+            queueElement.playerUUIDWhoBrokeBlock = TemporaUtils.UNKNOWN_PLAYER_NAME;
         }
 
         queueEvent(queueElement);
