@@ -1,5 +1,6 @@
 package com.colen.tempora.logging.loggers.generic;
 
+import static java.lang.Math.log;
 import static java.lang.Math.min;
 
 import java.sql.Connection;
@@ -20,6 +21,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import cpw.mods.fml.common.FMLLog;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentText;
@@ -183,19 +185,23 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
         eventQueue.offer(event); // Non-blocking, thread-safe
     }
 
-    private void startQueueWorker() {
+    private void startQueueWorker(String sqlTableName) {
         executor.submit(() -> {
             List<EventToLog> buffer = new ArrayList<>();
-            final int FLUSH_INTERVAL_MS = 100;
+            final int LARGE_QUEUE_THRESHOLD = 5000;
 
             try {
                 while (running || !eventQueue.isEmpty()) {
                     // Wait up to FLUSH_INTERVAL_MS for an event
-                    EventToLog event = eventQueue.poll(FLUSH_INTERVAL_MS, TimeUnit.MILLISECONDS);
+                    EventToLog event = eventQueue.take();
 
-                    if (event != null) {
-                        buffer.add(event);
+                    // If the queue is busy, warn the user.
+                    if (eventQueue.size() > LARGE_QUEUE_THRESHOLD) {
+                        FMLLog.warning("%s has %d elements waiting to store in Tempora's Database. This may indicate the server is struggling to keep up with logging.", sqlTableName, eventQueue.size());
                     }
+
+                    buffer.add(event);
+                    eventQueue.drainTo(buffer);
 
                     // Flush if enough time has passed
                     if (!buffer.isEmpty()) {
@@ -318,7 +324,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
                 logger.createAllIndexes();
                 logger.removeOldDatabaseData();
 
-                logger.startQueueWorker();
+                logger.startQueueWorker(logger.getSQLTableName());
             }
 
         } catch (SQLException sqlException) {
