@@ -1,5 +1,6 @@
 package com.colen.tempora.logging.loggers.player_block_break;
 
+import com.colen.tempora.utils.PlayerUtils;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 
@@ -11,22 +12,24 @@ public class PlayerBlockBreakQueueElement extends GenericQueueElement {
 
     public int blockID;
     public int metadata;
-    public String playerNameWhoBrokeBlock;
+    public int pickBlockID;
+    public int pickBlockMeta;
+    public String playerUUIDWhoBrokeBlock;
 
     @Override
     public IChatComponent localiseText(String uuid) {
-        IChatComponent block = BlockUtils.getUnlocalisedChatComponent(blockID, metadata);
+        IChatComponent block = BlockUtils.getUnlocalisedChatComponent(pickBlockID, pickBlockMeta);
         IChatComponent coords = generateTeleportChatComponent(x, y, z, CoordFormat.INT);
         IChatComponent timeAgo = TimeUtils.formatTime(timestamp, uuid);
 
         return new ChatComponentTranslation(
             "message.block_break",
-            playerNameWhoBrokeBlock, // %1$s - player name
-            block,                   // %2$s - block localized name
-            blockID,                 // %3$d - block ID
-            metadata,                // %4$d - metadata
-            coords,                  // %5$s - clickable coordinates
-            timeAgo                  // %6$s - localized relative time
+            PlayerUtils.UUIDToName(playerUUIDWhoBrokeBlock), //  player name
+            block,                                           // block localized name
+            blockID,                                         // block ID
+            metadata,                                        // metadata
+            coords,                                          // clickable coordinates
+            timeAgo                                          // localized relative time
         );
     }
 }
