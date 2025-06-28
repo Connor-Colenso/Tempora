@@ -59,7 +59,7 @@ public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovement
     }
 
     @Override
-    protected ArrayList<ISerializable> generatePacket(ResultSet resultSet) throws SQLException {
+    protected ArrayList<ISerializable> generateQueryResults(ResultSet resultSet) throws SQLException {
         ArrayList<ISerializable> eventList = new ArrayList<>();
 
         while (resultSet.next()) {

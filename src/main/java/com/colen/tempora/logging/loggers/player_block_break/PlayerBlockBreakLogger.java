@@ -41,7 +41,7 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
     }
 
     @Override
-    protected ArrayList<ISerializable> generatePacket(ResultSet resultSet) throws SQLException {
+    protected ArrayList<ISerializable> generateQueryResults(ResultSet resultSet) throws SQLException {
 
         try {
             ArrayList<ISerializable> eventList = new ArrayList<>();
