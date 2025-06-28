@@ -17,6 +17,8 @@ import com.colen.tempora.logging.loggers.generic.ColumnDef;
 import com.colen.tempora.logging.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.utils.GenericUtils;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
@@ -31,8 +33,10 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
     @Override
     protected List<ColumnDef> getTableColumns() {
         return Arrays.asList(
-            new ColumnDef("blockId", "INTEGER", "NOT NULL"),
+            new ColumnDef("blockID", "INTEGER", "NOT NULL"),
             new ColumnDef("metadata", "INTEGER", "NOT NULL"),
+            new ColumnDef("pickBlockID", "INTEGER", "NOT NULL"),
+            new ColumnDef("pickBlockMeta", "INTEGER", "NOT NULL"),
             new ColumnDef("stackTrace", "TEXT", "NOT NULL"),
             new ColumnDef("closestPlayerUUID", "TEXT", "NOT NULL"),
             new ColumnDef("closestPlayerDistance", "REAL", "NOT NULL")
@@ -44,21 +48,23 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
         if (queueElements == null || queueElements.isEmpty()) return;
 
         final String sql = "INSERT INTO " + getSQLTableName()
-            + " (blockId, metadata, stackTrace, x, y, z, dimensionID, timestamp, closestPlayerUUID, closestPlayerDistance) "
-            + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            + " (blockID, metadata, pickBlockID, pickBlockMeta, stackTrace, x, y, z, dimensionID, timestamp, closestPlayerUUID, closestPlayerDistance) "
+            + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(sql)) {
             for (BlockChangeQueueElement queueElement : queueElements) {
                 pstmt.setInt(1, queueElement.blockID);
                 pstmt.setInt(2, queueElement.metadata);
-                pstmt.setString(3, queueElement.stackTrace);
-                pstmt.setInt(4, (int) Math.round(queueElement.x));
-                pstmt.setInt(5, (int) Math.round(queueElement.y));
-                pstmt.setInt(6, (int) Math.round(queueElement.z));
-                pstmt.setInt(7, queueElement.dimensionId);
-                pstmt.setTimestamp(8, new Timestamp(queueElement.timestamp));
-                pstmt.setString(9, queueElement.closestPlayerUUID);
-                pstmt.setDouble(10, queueElement.closestPlayerDistance);
+                pstmt.setInt(3, queueElement.pickBlockID);
+                pstmt.setInt(4, queueElement.pickBlockMeta);
+                pstmt.setString(5, queueElement.stackTrace);
+                pstmt.setInt(6, (int) Math.round(queueElement.x));
+                pstmt.setInt(7, (int) Math.round(queueElement.y));
+                pstmt.setInt(8, (int) Math.round(queueElement.z));
+                pstmt.setInt(9, queueElement.dimensionId);
+                pstmt.setTimestamp(10, new Timestamp(queueElement.timestamp));
+                pstmt.setString(11, queueElement.closestPlayerUUID);
+                pstmt.setDouble(12, queueElement.closestPlayerDistance);
                 pstmt.addBatch();
             }
 
@@ -88,7 +94,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
     }
 
     public void recordSetBlock(int x, int y, int z, Block blockIn, int metadataIn, int dimensionId, String modID) {
-        World world = null;
+        World world;
 
         try {
             world = MinecraftServer.getServer().worldServerForDimension(dimensionId);
@@ -107,6 +113,16 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
         queueElement.stackTrace = modID + " : " + GenericUtils.getCallingClassChain();
         queueElement.blockID = Block.getIdFromBlock(blockIn);
         queueElement.metadata = metadataIn;
+
+        ItemStack pickStack = blockIn.getPickBlock(null, world, x, y, z);
+        if (pickStack != null && pickStack.getItem() != null) {
+            queueElement.pickBlockID   = Item.getIdFromItem(pickStack.getItem());
+            queueElement.pickBlockMeta = pickStack.getItemDamage();
+        } else {
+            // Fallback to the raw place‑block data
+            queueElement.pickBlockID   = queueElement.blockID;
+            queueElement.pickBlockMeta = queueElement.metadata;
+        }
 
         EntityPlayer closestPlayer = null;
         double closestDistance = Double.MAX_VALUE;
