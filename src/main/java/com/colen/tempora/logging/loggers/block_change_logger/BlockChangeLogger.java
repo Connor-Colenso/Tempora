@@ -67,7 +67,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
     }
 
     @Override
-    protected ArrayList<ISerializable> generatePacket(ResultSet resultSet) throws SQLException {
+    protected ArrayList<ISerializable> generateQueryResults(ResultSet resultSet) throws SQLException {
         ArrayList<ISerializable> events = new ArrayList<>();
         while (resultSet.next()) {
             BlockChangeQueueElement queueElement = new BlockChangeQueueElement();

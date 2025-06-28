@@ -44,7 +44,7 @@ public class PlayerInteractWithInventoryLogger
     }
 
     @Override
-    protected ArrayList<ISerializable> generatePacket(ResultSet rs) throws SQLException {
+    protected ArrayList<ISerializable> generateQueryResults(ResultSet rs) throws SQLException {
         ArrayList<ISerializable> eventList = new ArrayList<>();
         while (rs.next()) {
             PlayerInteractWithInventoryQueueElement queueElement = new PlayerInteractWithInventoryQueueElement();
