@@ -7,10 +7,14 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
+import com.colen.tempora.Tempora;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.IInventory;
+import net.minecraft.inventory.Slot;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
@@ -21,6 +25,33 @@ import com.colen.tempora.logging.loggers.generic.GenericPositionalLogger;
 
 public class InventoryLogger
     extends GenericPositionalLogger<PlayerInteractWithInventoryQueueElement> {
+
+    public static void preLogLogic(EntityPlayer player, Container container, List<Slot> inventorySlots, Map<Integer, ItemStack> snapshot) {
+        for (Slot s : inventorySlots) {
+            ItemStack before = snapshot.get(s.slotNumber);
+            ItemStack after  = s.getStack();
+
+            if (!ItemStack.areItemStacksEqual(before, after)) {
+                int beforeCnt = before == null ? 0 : before.stackSize;
+                int afterCnt  = after  == null ? 0 : after.stackSize;
+                int delta     = afterCnt - beforeCnt;     // + = added, − = removed
+
+                Direction dir = (s.inventory instanceof InventoryPlayer)
+                    ? (delta > 0 ? Direction.IN_TO_PLAYER
+                    : Direction.OUT_OF_PLAYER)
+                    : (delta > 0 ? Direction.IN_TO_CONTAINER
+                    : Direction.OUT_OF_CONTAINER);
+
+                TileEntity te = null;
+                if (s.inventory instanceof TileEntity) {
+                    te = (TileEntity) s.inventory;
+                }
+
+                Tempora.inventoryLogger.playerInteractedWithInventory(player,
+                    delta, after == null ? before : after, dir, te, container);
+            }
+        }
+    }
 
     @Override
     public String getSQLTableName() {
