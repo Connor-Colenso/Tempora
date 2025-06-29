@@ -11,6 +11,7 @@ public class Config {
 
     // This is more of a debug option, but can be used in single player if you really want.
     public static boolean shouldTemporaRun;
+    public static boolean shouldTemporaAlwaysWait;
 
     public static void synchronizeConfiguration(Configuration configuration) {
 
@@ -19,6 +20,13 @@ public class Config {
             DEBUG_CATEGORY,
             false,
             "Runs all logging, not recommended unless you run a public server.");
+
+        shouldTemporaAlwaysWait = configuration.getBoolean(
+            "shouldTemporaAlwaysWait",
+            DEBUG_CATEGORY,
+            false,
+            "Prevents the server shutting down if logging has not finished, by default we wait 10 seconds and then shut down.");
+
 
         TimeUtils.handleConfig(configuration);
     }

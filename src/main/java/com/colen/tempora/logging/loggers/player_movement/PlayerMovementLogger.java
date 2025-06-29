@@ -90,7 +90,7 @@ public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovement
         final String sql = "INSERT INTO " + getSQLTableName()
             + " (playerUUID, x, y, z, dimensionID, timestamp) VALUES (?, ?, ?, ?, ?, ?)";
 
-        try (PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(sql)) {
+        try (PreparedStatement pstmt = getDBConn().prepareStatement(sql)) {
             for (PlayerMovementQueueElement elem : playerMovementQueueElements) {
                 pstmt.setString(1, elem.playerName);
                 pstmt.setDouble(2, elem.x);
