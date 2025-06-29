@@ -5,6 +5,7 @@ import static com.colen.tempora.config.Config.synchronizeConfiguration;
 import com.colen.tempora.events.PlayerLogin;
 import com.colen.tempora.logging.commands.CreateRegion;
 import com.colen.tempora.logging.commands.RemoveRegion;
+import com.colen.tempora.logging.loggers.inventory.InventoryLogger;
 import com.colen.tempora.networking.PacketTimeZone;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
@@ -24,7 +25,6 @@ import com.colen.tempora.logging.loggers.explosion.ExplosionLogger;
 import com.colen.tempora.logging.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.logging.loggers.item_use.ItemUseLogger;
 import com.colen.tempora.logging.loggers.player_block_break.PlayerBlockBreakLogger;
-import com.colen.tempora.logging.loggers.player_interact_with_inventory.PlayerInteractWithInventoryLogger;
 import com.colen.tempora.logging.loggers.player_movement.PlayerMovementLogger;
 
 import cpw.mods.fml.common.Mod;
@@ -55,7 +55,7 @@ public class Tempora {
 
     private static Configuration config;
 
-    public static PlayerInteractWithInventoryLogger playerInteractWithInventoryLogger;
+    public static InventoryLogger inventoryLogger;
     public static BlockChangeLogger blockChangeLogger;
 
     @Mod.EventHandler
@@ -82,7 +82,7 @@ public class Tempora {
             new ExplosionLogger();
             new ItemUseLogger();
             new PlayerMovementLogger();
-            playerInteractWithInventoryLogger = new PlayerInteractWithInventoryLogger();
+            inventoryLogger = new InventoryLogger();
             blockChangeLogger = new BlockChangeLogger();
             new CommandLogger();
             new EntityPositionLogger();

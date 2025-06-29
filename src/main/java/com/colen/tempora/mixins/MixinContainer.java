@@ -1,12 +1,13 @@
 package com.colen.tempora.mixins;
 
-import com.colen.tempora.logging.loggers.player_interact_with_inventory.PlayerInteractWithInventoryLogger;
-import com.colen.tempora.logging.loggers.player_interact_with_inventory.PlayerInteractWithInventoryLogger.Direction;
+import com.colen.tempora.Tempora;
+import com.colen.tempora.logging.loggers.inventory.InventoryLogger.Direction;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
+import net.minecraft.tileentity.TileEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -60,8 +61,15 @@ public abstract class MixinContainer {
                         : (delta > 0 ? Direction.IN_TO_CONTAINER
                         : Direction.OUT_OF_CONTAINER);
 
-                PlayerInteractWithInventoryLogger.log(player, s.inventory, s.slotNumber,
-                        delta, after == null ? before : after, dir);
+                TileEntity te = null;
+                if (s.inventory instanceof TileEntity) {
+                    te = (TileEntity) s.inventory;
+                }
+
+                Container container = (Container)(Object) this;
+
+                Tempora.inventoryLogger.playerInteractedWithInventory(player,
+                        delta, after == null ? before : after, dir, te, container);
             }
         }
     }

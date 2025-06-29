@@ -1,4 +1,4 @@
-package com.colen.tempora.logging.loggers.player_interact_with_inventory;
+package com.colen.tempora.logging.loggers.inventory;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -8,11 +8,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import com.colen.tempora.Tempora;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.IInventory;
-import net.minecraft.inventory.Slot;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
@@ -21,16 +19,12 @@ import com.colen.tempora.logging.loggers.generic.ISerializable;
 import com.colen.tempora.logging.loggers.generic.ColumnDef;
 import com.colen.tempora.logging.loggers.generic.GenericPositionalLogger;
 
-public class PlayerInteractWithInventoryLogger
+public class InventoryLogger
     extends GenericPositionalLogger<PlayerInteractWithInventoryQueueElement> {
-
-    public static void log(EntityPlayer player, IInventory inventory, int slotNumber, int delta, ItemStack itemStack, Direction dir) {
-        System.out.println(dir.toString());
-    }
 
     @Override
     public String getSQLTableName() {
-        return "PlayerInteractWithInventoryLogger";
+        return "InventoryLogger";
     }
 
     @Override
@@ -44,7 +38,7 @@ public class PlayerInteractWithInventoryLogger
             new ColumnDef("stacksize", "INTEGER", "NOT NULL"));
     }
 
-    public PlayerInteractWithInventoryLogger() {
+    public InventoryLogger() {
         registerLogger(this);
         // No event logging needed, so we override the constructor here.
     }
@@ -61,10 +55,10 @@ public class PlayerInteractWithInventoryLogger
             queueElement.timestamp = rs.getLong("timestamp");
             queueElement.containerName = rs.getString("containerName");
             queueElement.playerUUID = rs.getString("playerUUID");
-            queueElement.interactionType = rs.getString("interactionType");
+            queueElement.interactionType = rs.getInt("interactionType");
             queueElement.itemId = rs.getInt("itemId");
             queueElement.itemMetadata = rs.getInt("itemMetadata");
-            queueElement.stacksize = rs.getInt("stacksize");
+            queueElement.stackSize = rs.getInt("stacksize");
             eventList.add(queueElement);
         }
         return eventList;
@@ -86,11 +80,11 @@ public class PlayerInteractWithInventoryLogger
                 pstmt.setInt(4, element.dimensionId);
                 pstmt.setTimestamp(5, new Timestamp(element.timestamp));
                 pstmt.setString(6, element.containerName);
-                pstmt.setString(7, element.interactionType);
+                pstmt.setInt(7, element.interactionType);
                 pstmt.setInt(8, element.itemId);
                 pstmt.setInt(9, element.itemMetadata);
                 pstmt.setString(10, element.playerUUID);
-                pstmt.setInt(11, element.stacksize);
+                pstmt.setInt(11, element.stackSize);
                 pstmt.addBatch();
             }
 
@@ -98,39 +92,9 @@ public class PlayerInteractWithInventoryLogger
         }
     }
 
-
-    // This method purely exists to take logic out of the mixin, so we can use the debugger as break points do not work in mixins.
-    public static void handleSlotClick(Container container, int slotId, EntityPlayer player) {
-        if (player.worldObj.isRemote) return;
-        if (slotId < 0) return; // -999 = click outside inventory
-        if (Tempora.playerInteractWithInventoryLogger == null) return;
-        if (slotId >= container.inventorySlots.size()) return;
-
-        Slot slot = container.getSlot(slotId);
-        if (slot == null) return;
-
-        ItemStack stack = slot.getStack();
-        if (stack == null || stack.stackSize <= 0) return;
-
-        // Work out direction (from player → container, or vice‑versa)
-        boolean fromPlayerInv = (slot.inventory == player.inventory);
-        PlayerInteractWithInventoryLogger.Direction direction = fromPlayerInv
-            ? PlayerInteractWithInventoryLogger.Direction.FromPlayer
-            : PlayerInteractWithInventoryLogger.Direction.ToPlayer;
-
-        // Dispatch to logger, passing the owning TileEntity if present
-        if (slot.inventory instanceof TileEntity tileEntity) {
-            Tempora.playerInteractWithInventoryLogger
-                .playerInteractedWithInventory(player, container, stack, direction, tileEntity);
-        } else {
-            Tempora.playerInteractWithInventoryLogger
-                .playerInteractedWithInventory(player, container, stack, direction, null);
-        }
-    }
-
-
-    public void playerInteractedWithInventory(EntityPlayer playerMP, Container container, ItemStack itemStack,
-        Direction direction, TileEntity tileEntity) {
+    public void playerInteractedWithInventory(EntityPlayer playerMP, int delta, ItemStack itemStack, Direction dir, TileEntity tileEntity, Container container) {
+        ItemStack copyStack = itemStack.copy();
+        copyStack.stackSize = Math.abs(delta);
 
         PlayerInteractWithInventoryQueueElement queueElement = new PlayerInteractWithInventoryQueueElement();
         if (tileEntity != null) {
@@ -156,32 +120,38 @@ public class PlayerInteractWithInventoryLogger
         queueElement.timestamp = System.currentTimeMillis();
         queueElement.playerUUID = playerMP.getUniqueID()
             .toString();
-        queueElement.interactionType = direction == Direction.ToPlayer ? "Remove" : "Add";
-        queueElement.itemId = Item.getIdFromItem(itemStack.getItem());
-        queueElement.itemMetadata = itemStack.getItemDamage();
-        queueElement.stacksize = itemStack.stackSize;
+        queueElement.interactionType = dir.getDbId();
+        queueElement.itemId = Item.getIdFromItem(copyStack.getItem());
+        queueElement.itemMetadata = copyStack.getItemDamage();
+        queueElement.stackSize = copyStack.stackSize;
 
         queueEvent(queueElement);
     }
 
     // Never change the values here.
     public enum Direction {
+        IN_TO_CONTAINER (0,    true),
+        IN_TO_PLAYER    (1,    true),
+        OUT_OF_CONTAINER(2,    false),
+        OUT_OF_PLAYER   (3,    false);
 
-        ToPlayer(0),
-        FromPlayer(1),
-        IN_TO_PLAYER(3),
-        OUT_OF_PLAYER(4),
-        IN_TO_CONTAINER(5),
-        OUT_OF_CONTAINER(6);
+        private final int dbId;
+        private final boolean addition;
 
-        private final int id;
-
-        Direction(int id) {
-            this.id = id;
+        Direction(int dbId, boolean addition) {
+            this.dbId = dbId;
+            this.addition = addition;
         }
 
-        public int getId() {
-            return id;
+        public int  getDbId() { return dbId; }
+        public boolean isAddition(){ return addition; }
+
+        public static Direction fromOrdinal(int ordinal) {
+            Direction[] values = values();
+            if (ordinal < 0 || ordinal >= values.length) {
+                return null;
+            }
+            return values[ordinal];
         }
     }
 }

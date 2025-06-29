@@ -1,5 +1,7 @@
 package com.colen.tempora.logging.loggers.block_change;
 
+import net.minecraft.block.Block;
+import net.minecraft.item.ItemBlock;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 

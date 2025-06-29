@@ -11,23 +11,29 @@ import java.lang.reflect.Method;
 
 public class BlockUtils {
 
-    public static IChatComponent getUnlocalisedChatComponent(int blockID, int meta) {
-        if (blockID == 0) return new ChatComponentText("Air");
+    public static IChatComponent getUnlocalisedChatComponent(int blockId, int meta)
+    {
+        // 0 is hard‑wired vanilla Air
+        if (blockId == 0)
+            return new ChatComponentTranslation("tile.air.name");
 
-        Block block = Block.getBlockById(blockID);
-        if (block == null) return new ChatComponentText("[Unknown block " + blockID + ']');
 
-        Item item = Item.getItemFromBlock(block);
-        if (item == null) return new ChatComponentText(block.getLocalizedName());
+        Item item = Item.getItemById(blockId);
+        if (item == null) {
+            Block blk = Block.getBlockById(blockId);
+            if (blk != null)
+                item = Item.getItemFromBlock(blk);
+        }
+
+        if (item == null) {
+            return new ChatComponentText("[unknown ID " + blockId + "]");
+        }
 
         ItemStack stack = new ItemStack(item, 1, meta);
-        String key = item.getUnlocalizedName(stack);
 
-        if (key.endsWith(".default"))
-            key = key.substring(0, key.length() - ".default".length());
-
-        return new ChatComponentTranslation(key + ".name");
+        return new ChatComponentTranslation(stack.getDisplayName());
     }
+
 
 
 
