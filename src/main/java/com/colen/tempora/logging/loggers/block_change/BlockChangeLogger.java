@@ -23,8 +23,11 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
+import net.minecraftforge.common.config.Configuration;
 
 public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueElement> {
+
+    private boolean globalBlockChangeLogging;
 
     @Override
     protected LogWriteSafety defaultLogWriteSafetyMode() {
@@ -46,6 +49,19 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
             new ColumnDef("stackTrace", "TEXT", "NOT NULL"),
             new ColumnDef("closestPlayerUUID", "TEXT", "NOT NULL"),
             new ColumnDef("closestPlayerDistance", "REAL", "NOT NULL")
+        );
+    }
+
+    @Override
+    public void handleCustomLoggerConfig(Configuration config) {
+        globalBlockChangeLogging = config.getBoolean(
+            "globalBlockChangeLogging",
+            getSQLTableName(),
+            false,
+            """
+                 If true, overrides all regions and logs every setBlock call across the entire world.
+                 WARNING: This will generate an enormous number of events and rapidly bloat your database.
+                 """
         );
     }
 
@@ -109,7 +125,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
         }
 
         // Only log changes if (x, y, z) is inside a defined region
-        if (!RegionRegistry.get(world).containsBlock(dimensionId, x, y, z)) {
+        if (!globalBlockChangeLogging && !RegionRegistry.get(world).containsBlock(dimensionId, x, y, z)) {
             return;
         }
 
