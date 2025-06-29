@@ -78,7 +78,7 @@ public class EntitySpawnLogger extends GenericPositionalLogger<EntitySpawnQueueE
         final String sql = "INSERT INTO " + getSQLTableName()
             + " (entityName, x, y, z, dimensionID, timestamp) VALUES (?, ?, ?, ?, ?, ?)";
 
-        try (PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(sql)) {
+        try (PreparedStatement pstmt = getDBConn().prepareStatement(sql)) {
             for (EntitySpawnQueueElement element : entitySpawnQueueElements) {
                 pstmt.setString(1, element.entityName);
                 pstmt.setDouble(2, element.x);

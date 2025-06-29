@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.colen.tempora.TemporaUtils;
+import com.colen.tempora.logging.loggers.generic.LogWriteSafety;
 import com.colen.tempora.utils.PlayerUtils;
 import net.minecraft.block.Block;
 
@@ -26,13 +27,13 @@ import net.minecraft.world.chunk.Chunk;
 public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueElement> {
 
     @Override
-    public String getSQLTableName() {
-        return "BlockChangeLogger";
+    protected LogWriteSafety defaultLogWriteSafetyMode() {
+        return LogWriteSafety.HIGH_RISK;
     }
 
     @Override
-    protected boolean dbRisk() {
-        return true;
+    public String getSQLTableName() {
+        return "BlockChangeLogger";
     }
 
     @Override
@@ -56,7 +57,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
             + " (blockID, metadata, pickBlockID, pickBlockMeta, stackTrace, x, y, z, dimensionID, timestamp, closestPlayerUUID, closestPlayerDistance) "
             + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-        try (PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(sql)) {
+        try (PreparedStatement pstmt = getDBConn().prepareStatement(sql)) {
             for (BlockChangeQueueElement queueElement : queueElements) {
                 pstmt.setInt(1, queueElement.blockID);
                 pstmt.setInt(2, queueElement.metadata);

@@ -72,7 +72,7 @@ public class PlayerInteractWithInventoryLogger
             + " (x, y, z, dimensionID, timestamp, containerName, interactionType, itemId, itemMetadata, playerUUID, stacksize) "
             + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-        try (PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(sql)) {
+        try (PreparedStatement pstmt = getDBConn().prepareStatement(sql)) {
             for (PlayerInteractWithInventoryQueueElement element : elements) {
                 pstmt.setDouble(1, element.x);
                 pstmt.setDouble(2, element.y);

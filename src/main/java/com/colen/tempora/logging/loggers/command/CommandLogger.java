@@ -71,7 +71,7 @@ public class CommandLogger extends GenericPositionalLogger<CommandQueueElement> 
             + " (playerUUID, command, arguments, x, y, z, dimensionID, timestamp) "
             + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
-        try (PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(sql)) {
+        try (PreparedStatement pstmt = getDBConn().prepareStatement(sql)) {
             for (CommandQueueElement commandQueueElement : commandQueueElements) {
                 pstmt.setString(1, commandQueueElement.playerNameWhoIssuedCommand);
                 pstmt.setString(2, commandQueueElement.commandName);

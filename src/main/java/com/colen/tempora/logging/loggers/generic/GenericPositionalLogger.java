@@ -1,8 +1,5 @@
 package com.colen.tempora.logging.loggers.generic;
 
-import static java.lang.Math.log;
-import static java.lang.Math.min;
-
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -21,10 +18,12 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import com.colen.tempora.config.Config;
 import cpw.mods.fml.common.FMLLog;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
 
@@ -38,14 +37,15 @@ import cpw.mods.fml.common.FMLCommonHandler;
 public abstract class GenericPositionalLogger<EventToLog extends GenericQueueElement> {
 
     private static final String OLDEST_DATA_DEFAULT = "4months";
-    protected static final int MAX_DATA_ROWS_PER_DB = 5;
+    private static final int MAX_DATA_ROWS_PER_DB = 5;
 
-    private static ExecutorService executor;
+    private ExecutorService executor;
     private static volatile boolean running = true;
-    protected Connection positionalLoggerDBConnection;
+    private Connection positionalLoggerDBConnection;
 
     private final LinkedBlockingQueue<EventToLog> eventQueue = new LinkedBlockingQueue<>();
     private static final Set<GenericPositionalLogger<?>> loggerList = new HashSet<>();
+    private LogWriteSafety durabilityMode;
 
     private boolean isEnabled;
     private String oldestDataCutoff;
@@ -54,17 +54,20 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
         loggerList.add(this);
     }
 
-    public abstract void threadedSaveEvents(List<EventToLog> event) throws SQLException;
-
-    public void handleCustomLoggerConfig(Configuration config) {
-
+    protected LogWriteSafety defaultLogWriteSafetyMode() {
+        return LogWriteSafety.NORMAL;
     }
+
+    public abstract void threadedSaveEvents(List<EventToLog> event) throws SQLException;
+    protected abstract ArrayList<ISerializable> generateQueryResults(ResultSet rs) throws SQLException;
+    public abstract String getSQLTableName();
+    protected abstract List<ColumnDef> getTableColumns();
+
+    public void handleCustomLoggerConfig(Configuration config) { }
 
     public Connection getDBConn() {
         return positionalLoggerDBConnection;
     }
-
-    protected abstract List<ColumnDef> getTableColumns();
 
     private List<ColumnDef> getDefaultColumns() {
         return Arrays.asList(
@@ -75,14 +78,12 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
             new ColumnDef("dimensionID", "INTEGER", "NOT NULL"));
     }
 
-    private void configureDBSafetyLevel() {
+    private void enableHighRiskFastMode() {
         Connection conn = getDBConn();
 
         try (Statement st = conn.createStatement()) {
-            if (dbRisk()) {
-                st.execute("PRAGMA synchronous=OFF;");
-                st.execute("PRAGMA wal_autocheckpoint=10000;");
-            }
+            st.execute("PRAGMA synchronous=OFF;");
+            st.execute("PRAGMA wal_autocheckpoint=10000;");
         } catch (Exception e) {
             // Rethrow as unchecked to crash without compiler complaining.
             throw new RuntimeException(e);
@@ -151,15 +152,13 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
         }
     }
 
-    protected abstract ArrayList<ISerializable> generateQueryResults(ResultSet rs) throws SQLException;
-
     // This is not strictly thread safe but since we are doing this before the server has even started properly
     // nothing else is interacting with the db, so it's fine for now.
     private void eraseAllDataBeforeTime(long time) {
         // Prepare SQL statement with the safe table name
         String sql = "DELETE FROM " + getSQLTableName() + " WHERE timestamp < ?";
 
-        try (PreparedStatement pstmt = getNewConnection().prepareStatement(sql)) {
+        try (PreparedStatement pstmt = getDBConn().prepareStatement(sql)) {
             // Set the parameter for the PreparedStatement
             pstmt.setLong(1, time);
 
@@ -200,6 +199,8 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
     }
 
     private void startQueueWorker(String sqlTableName) {
+        executor = Executors.newSingleThreadExecutor(r -> new Thread(r, "Tempora-" + sqlTableName));
+
         executor.submit(() -> {
             List<EventToLog> buffer = new ArrayList<>();
             final int LARGE_QUEUE_THRESHOLD = 5000;
@@ -207,7 +208,11 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
             try {
                 while (running || !eventQueue.isEmpty()) {
                     // Wait up to FLUSH_INTERVAL_MS for an event
-                    EventToLog event = eventQueue.take();
+                    EventToLog event = eventQueue.poll(100, TimeUnit.MILLISECONDS);
+
+                    if (event == null) {
+                        continue;
+                    }
 
                     // If the queue is busy, warn the user.
                     if (eventQueue.size() > LARGE_QUEUE_THRESHOLD) {
@@ -236,9 +241,6 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
         });
     }
 
-
-    public abstract String getSQLTableName();
-
     public final void genericConfig(@NotNull Configuration config) {
         isEnabled = config.getBoolean("isEnabled", getSQLTableName(), loggerEnabledByDefault(), "Enables this logger.");
         oldestDataCutoff = config.getString(
@@ -246,6 +248,36 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
             getSQLTableName(),
             OLDEST_DATA_DEFAULT,
             "Any records older than this relative to now, will be erased. This is unrecoverable, be careful!");
+
+
+        String raw = config.get(
+            getSQLTableName(),
+            "LogWriteSafety",
+            defaultLogWriteSafetyMode().name(),
+            """
+            NORMAL – Safer, but slower
+              • Best for long-term stability.
+              • Every log is saved to disk right away, so even if your server crashes or the power goes out, your logs will be intact.
+              • Slightly slower performance—may reduce TPS during heavy activity like world edits or explosions.
+
+            HIGH_RISK – Much faster, but riskier
+              • Boosts performance by delaying how often logs are saved to disk.
+              • Helps maintain TPS during intense events (e.g., TNT, worldedit, busy modpacks).
+              • WARNING: if your server crashes or shuts down suddenly, the last few seconds of logs may be lost or corrupted. This does **not** affect your world—only the logs.
+              • Only recommended if you make regular backups or can afford to lose a few seconds of log data.
+
+            Tip: Start with HIGH_RISK if you're concerned about performance (there will be warnings in the log if Tempora is struggling to keep up).
+                 If you need 100% reliable logging, switch to NORMAL once you're happy with how the server runs.
+            """
+        ).getString().trim().toUpperCase();
+
+        try {
+            durabilityMode = LogWriteSafety.valueOf(raw);
+        } catch (IllegalArgumentException ex) {
+            throw new RuntimeException(
+                "Invalid DurabilityMode \"" + raw + "\" in " + getSQLTableName()
+                    + ". Valid values are " + LogWriteSafety.NORMAL + " or " + LogWriteSafety.HIGH_RISK + ".", ex);
+        }
     }
 
     // --------------------------------------
@@ -297,8 +329,16 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
                         if (packets.isEmpty()) {
                             sender.addChatMessage(new ChatComponentText(
-                                "No results found for " + logger.getSQLTableName() + '.'));
+                                EnumChatFormatting.GRAY + "No results found for " + logger.getSQLTableName() + '.'));
                             return;
+                        } else {
+                            sender.addChatMessage(new ChatComponentText(
+                                EnumChatFormatting.GRAY + "Showing latest " + packets.size() + " results for " + logger.getSQLTableName() + ':'));
+                        }
+
+                        if (logger.eventQueue.size() > 100) {
+                            sender.addChatMessage(new ChatComponentText(
+                                EnumChatFormatting.RED + "Warning, due to high volume, there are still " + logger.eventQueue.size() + " events pending, query results may be outdated/inaccurate."));
                         }
 
                         String uuid = entityPlayerMP.getUniqueID().toString();
@@ -314,27 +354,16 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
         }
     }
 
-    private Connection getNewConnection() {
-        try {
-            return DriverManager.getConnection(TemporaUtils.jdbcUrl(getSQLTableName() + ".db"));
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
     public static void onServerStart() {
         try {
             System.out.println("Opening Tempora DBs...");
-
-            executor = Executors.newFixedThreadPool(Math.max(loggerList.size(), 1));
 
             for (GenericPositionalLogger<?> logger : loggerList) {
                 String dbUrl = TemporaUtils.jdbcUrl(logger.getSQLTableName() + ".db");
                 logger.positionalLoggerDBConnection = DriverManager.getConnection(dbUrl);
 
-                if (logger.dbRisk()) {
-                    logger.configureDBSafetyLevel();
+                if (logger.isHighRiskModeEnabled()) {
+                    logger.enableHighRiskFastMode();
                 }
 
                 // Enable batching, to reduce overhead on db writes.
@@ -357,29 +386,40 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
         try {
             running = false; // Signal worker to stop
 
-            if (executor != null && !executor.isShutdown()) {
-                executor.shutdown();
-                if (!executor.awaitTermination(10, TimeUnit.SECONDS)) {
-                    System.err.println("Executor timeout. Forcing shutdown.");
-                    executor.shutdownNow();
-                }
-            }
-
-            // Shut down each db.
             for (GenericPositionalLogger<?> logger : loggerList) {
+                // Shut down each executor.
+                logger.shutdownExecutor();
+
+                // Shut down each db.
                 if (logger.getDBConn() != null && !logger.getDBConn().isClosed()) {
                     logger.getDBConn().close();
                 }
             }
 
-
         } catch (Exception e) {
             System.err.println("Error closing resources:");
             e.printStackTrace();
-        } finally {
-            executor = null;
         }
     }
+
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    private void shutdownExecutor() throws InterruptedException {
+        if (executor != null && !executor.isShutdown()) {
+            executor.shutdown();
+
+            if (Config.shouldTemporaAlwaysWait) {
+                // Wait indefinitely until tasks finish.
+                executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+            } else {
+                // Wait up to 10 seconds, then force shutdown if needed.
+                if (!executor.awaitTermination(30, TimeUnit.SECONDS)) {
+                    System.err.println("Executor timeout. Forcing shutdown.");
+                    executor.shutdownNow();
+                }
+            }
+        }
+    }
+
 
     private void createAllIndexes() {
 
@@ -411,11 +451,12 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
     // Use the fastest durability mode: may lose or corrupt the DB on sudden power loss.
     // Only recommended if recent data loss is acceptable and backups exist.
-    protected boolean dbRisk() {
-        return false;
+    public final boolean isHighRiskModeEnabled() {
+        return durabilityMode == LogWriteSafety.HIGH_RISK;
     }
 
     private boolean loggerEnabledByDefault() {
         return true;
     }
+
 }

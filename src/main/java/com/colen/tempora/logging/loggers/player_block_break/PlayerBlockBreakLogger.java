@@ -80,7 +80,7 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
         final String sql = "INSERT INTO " + getSQLTableName()
             + " (playerUUID, blockId, metadata, pickBlockID, pickBlockMeta, x, y, z, dimensionID, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-        try (PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(sql)) {
+        try (PreparedStatement pstmt = getDBConn().prepareStatement(sql)) {
             for (PlayerBlockBreakQueueElement elem : elements) {
                 pstmt.setString(1, elem.playerUUIDWhoBrokeBlock);
                 pstmt.setInt(2, elem.blockID);

@@ -76,7 +76,7 @@ public class PlayerBlockPlaceLogger extends GenericPositionalLogger<PlayerBlockP
             + " (playerUUID, blockId, metadata, pickBlockId, pickBlockMeta, x, y, z, dimensionID, timestamp) "
             + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-        try (PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(sql)) {
+        try (PreparedStatement pstmt = getDBConn().prepareStatement(sql)) {
             for (PlayerBlockPlaceQueueElement element : blockPlaceQueueElements) {
                 pstmt.setString(1, element.playerNameWhoPlacedBlock);
                 pstmt.setInt(2, element.blockID);

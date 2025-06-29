@@ -86,7 +86,7 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionQueueEleme
             + " (x, y, z, strength, exploderUUID, dimensionID, closestPlayerUUID, closestPlayerDistance, timestamp) "
             + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-        try (PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(sql)) {
+        try (PreparedStatement pstmt = getDBConn().prepareStatement(sql)) {
             for (ExplosionQueueElement explosion : explosionQueueElements) {
                 pstmt.setDouble(1, explosion.x);
                 pstmt.setDouble(2, explosion.y);

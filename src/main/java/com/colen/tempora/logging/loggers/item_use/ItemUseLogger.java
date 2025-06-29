@@ -72,7 +72,7 @@ public class ItemUseLogger extends GenericPositionalLogger<ItemUseQueueElement> 
         final String sql = "INSERT INTO " + getSQLTableName()
             + " (playerUUID, itemID, itemMetadata, x, y, z, dimensionID, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
-        try (PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(sql)) {
+        try (PreparedStatement pstmt = getDBConn().prepareStatement(sql)) {
             for (ItemUseQueueElement elem : itemUseQueueElements) {
                 pstmt.setString(1, elem.playerName);
                 pstmt.setInt(2, elem.itemID);

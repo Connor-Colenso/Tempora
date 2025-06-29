@@ -108,7 +108,7 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueE
         final String sql = "INSERT INTO " + getSQLTableName()
             + " (entityName, killedBy, x, y, z, dimensionID, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?)";
 
-        try (PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(sql)) {
+        try (PreparedStatement pstmt = getDBConn().prepareStatement(sql)) {
             for (EntityDeathQueueElement entity : queueElements) {
                 pstmt.setString(1, entity.nameOfDeadMob);
                 pstmt.setString(2, entity.killedBy);
