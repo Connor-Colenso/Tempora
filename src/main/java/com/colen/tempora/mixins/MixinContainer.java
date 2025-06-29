@@ -1,29 +1,68 @@
 package com.colen.tempora.mixins;
 
+import com.colen.tempora.logging.loggers.player_interact_with_inventory.PlayerInteractWithInventoryLogger;
+import com.colen.tempora.logging.loggers.player_interact_with_inventory.PlayerInteractWithInventoryLogger.Direction;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
-import net.minecraft.tileentity.TileEntity;
-
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import com.colen.tempora.Tempora;
-import com.colen.tempora.logging.loggers.player_interact_with_inventory.PlayerInteractWithInventoryLogger;
-
-import static com.colen.tempora.logging.loggers.player_interact_with_inventory.PlayerInteractWithInventoryLogger.handleSlotClick;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Mixin(Container.class)
-public class MixinContainer {
+public abstract class MixinContainer {
+    @Shadow
+    public List<Slot> inventorySlots;
 
+    // holds a shallow copy of all stacks before the click
+    private Map<Integer, ItemStack> snapshot;
+
+    /* ─────── capture BEFORE vanilla runs ─────── */
     @Inject(method = "slotClick", at = @At("HEAD"))
-    private void onSlotClick(int slotId, int button, int mode,
-                             EntityPlayer player, CallbackInfoReturnable<ItemStack> cir) {
-        // Cast once here so the helper can stay completely vanilla
-        handleSlotClick((Container) (Object) this, slotId, player);
+    private void pre(int slot, int button, int mode,
+                     EntityPlayer player,
+                     CallbackInfoReturnable<ItemStack> cir) {
+        if (player.worldObj.isRemote) return;          // ignore client side
+        snapshot = new HashMap<>();
+        for (Slot s : inventorySlots) {
+            snapshot.put(s.slotNumber,
+                    s.getStack() == null ? null : s.getStack().copy());
+        }
     }
 
+    /* ─────── diff AFTER vanilla is done ─────── */
+    @Inject(method = "slotClick", at = @At("RETURN"))
+    private void post(int slot, int button, int mode,
+                      EntityPlayer player,
+                      CallbackInfoReturnable<ItemStack> cir) {
+        if (player.worldObj.isRemote) return;
+
+        for (Slot s : inventorySlots) {
+            ItemStack before = snapshot.get(s.slotNumber);
+            ItemStack after  = s.getStack();
+
+            if (!ItemStack.areItemStacksEqual(before, after)) {
+                int beforeCnt = before == null ? 0 : before.stackSize;
+                int afterCnt  = after  == null ? 0 : after.stackSize;
+                int delta     = afterCnt - beforeCnt;     // + = added, − = removed
+
+                Direction dir = (s.inventory instanceof InventoryPlayer)
+                        ? (delta > 0 ? Direction.IN_TO_PLAYER
+                        : Direction.OUT_OF_PLAYER)
+                        : (delta > 0 ? Direction.IN_TO_CONTAINER
+                        : Direction.OUT_OF_CONTAINER);
+
+                PlayerInteractWithInventoryLogger.log(player, s.inventory, s.slotNumber,
+                        delta, after == null ? before : after, dir);
+            }
+        }
+    }
 }

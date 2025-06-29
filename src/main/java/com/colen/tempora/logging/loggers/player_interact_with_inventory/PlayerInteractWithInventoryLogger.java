@@ -24,6 +24,10 @@ import com.colen.tempora.logging.loggers.generic.GenericPositionalLogger;
 public class PlayerInteractWithInventoryLogger
     extends GenericPositionalLogger<PlayerInteractWithInventoryQueueElement> {
 
+    public static void log(EntityPlayer player, IInventory inventory, int slotNumber, int delta, ItemStack itemStack, Direction dir) {
+        System.out.println(dir.toString());
+    }
+
     @Override
     public String getSQLTableName() {
         return "PlayerInteractWithInventoryLogger";
@@ -164,7 +168,11 @@ public class PlayerInteractWithInventoryLogger
     public enum Direction {
 
         ToPlayer(0),
-        FromPlayer(1);
+        FromPlayer(1),
+        IN_TO_PLAYER(3),
+        OUT_OF_PLAYER(4),
+        IN_TO_CONTAINER(5),
+        OUT_OF_CONTAINER(6);
 
         private final int id;
 
