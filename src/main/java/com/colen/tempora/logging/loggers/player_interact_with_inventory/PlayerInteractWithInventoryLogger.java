@@ -8,9 +8,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.colen.tempora.Tempora;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.IInventory;
+import net.minecraft.inventory.Slot;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
@@ -91,6 +93,37 @@ public class PlayerInteractWithInventoryLogger
             pstmt.executeBatch();
         }
     }
+
+
+    // This method purely exists to take logic out of the mixin, so we can use the debugger as break points do not work in mixins.
+    public static void handleSlotClick(Container container, int slotId, EntityPlayer player) {
+        if (player.worldObj.isRemote) return;
+        if (slotId < 0) return; // -999 = click outside inventory
+        if (Tempora.playerInteractWithInventoryLogger == null) return;
+        if (slotId >= container.inventorySlots.size()) return;
+
+        Slot slot = container.getSlot(slotId);
+        if (slot == null) return;
+
+        ItemStack stack = slot.getStack();
+        if (stack == null || stack.stackSize <= 0) return;
+
+        // Work out direction (from player → container, or vice‑versa)
+        boolean fromPlayerInv = (slot.inventory == player.inventory);
+        PlayerInteractWithInventoryLogger.Direction direction = fromPlayerInv
+            ? PlayerInteractWithInventoryLogger.Direction.FromPlayer
+            : PlayerInteractWithInventoryLogger.Direction.ToPlayer;
+
+        // Dispatch to logger, passing the owning TileEntity if present
+        if (slot.inventory instanceof TileEntity tileEntity) {
+            Tempora.playerInteractWithInventoryLogger
+                .playerInteractedWithInventory(player, container, stack, direction, tileEntity);
+        } else {
+            Tempora.playerInteractWithInventoryLogger
+                .playerInteractedWithInventory(player, container, stack, direction, null);
+        }
+    }
+
 
     public void playerInteractedWithInventory(EntityPlayer playerMP, Container container, ItemStack itemStack,
         Direction direction, TileEntity tileEntity) {
