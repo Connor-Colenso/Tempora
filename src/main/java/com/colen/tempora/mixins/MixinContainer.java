@@ -1,6 +1,7 @@
 package com.colen.tempora.mixins;
 
 import com.colen.tempora.Tempora;
+import com.colen.tempora.logging.loggers.inventory.InventoryLogger;
 import com.colen.tempora.logging.loggers.inventory.InventoryLogger.Direction;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
@@ -46,31 +47,8 @@ public abstract class MixinContainer {
                       CallbackInfoReturnable<ItemStack> cir) {
         if (player.worldObj.isRemote) return;
 
-        for (Slot s : inventorySlots) {
-            ItemStack before = snapshot.get(s.slotNumber);
-            ItemStack after  = s.getStack();
+        Container container = (Container)(Object) this;
 
-            if (!ItemStack.areItemStacksEqual(before, after)) {
-                int beforeCnt = before == null ? 0 : before.stackSize;
-                int afterCnt  = after  == null ? 0 : after.stackSize;
-                int delta     = afterCnt - beforeCnt;     // + = added, − = removed
-
-                Direction dir = (s.inventory instanceof InventoryPlayer)
-                        ? (delta > 0 ? Direction.IN_TO_PLAYER
-                        : Direction.OUT_OF_PLAYER)
-                        : (delta > 0 ? Direction.IN_TO_CONTAINER
-                        : Direction.OUT_OF_CONTAINER);
-
-                TileEntity te = null;
-                if (s.inventory instanceof TileEntity) {
-                    te = (TileEntity) s.inventory;
-                }
-
-                Container container = (Container)(Object) this;
-
-                Tempora.inventoryLogger.playerInteractedWithInventory(player,
-                        delta, after == null ? before : after, dir, te, container);
-            }
-        }
+        InventoryLogger.preLogLogic(player, container, inventorySlots, snapshot);
     }
 }
