@@ -1,5 +1,7 @@
-package com.colen.tempora.logging.loggers.player_interact_with_inventory;
+package com.colen.tempora.logging.loggers.inventory;
 
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
@@ -7,35 +9,41 @@ import net.minecraft.util.IChatComponent;
 import com.colen.tempora.logging.loggers.generic.GenericQueueElement;
 import com.colen.tempora.utils.PlayerUtils;
 import com.colen.tempora.utils.TimeUtils;
-import com.colen.tempora.utils.ItemUtils;
 
 public class PlayerInteractWithInventoryQueueElement extends GenericQueueElement {
 
     public String containerName;
-    public String interactionType;
+    public int interactionType;
     public int itemId;
     public int itemMetadata;
     public String playerUUID;
-    public int stacksize;
+    public int stackSize;
 
     @Override
     public IChatComponent localiseText(String uuid) {
         IChatComponent formattedTime = TimeUtils.formatTime(timestamp, uuid);
         String playerName = PlayerUtils.UUIDToName(playerUUID);
 
-        // Create an IChatComponent for the item details - if no such method exists, fallback to plain text:
-        IChatComponent itemDetails = new ChatComponentText(ItemUtils.getNameOfItemStack(itemId, itemMetadata));
+        // Try localise the item name...
+        ItemStack itemStack = new ItemStack(Item.getItemById(itemId), stackSize, itemMetadata);
+        IChatComponent itemDetails = new ChatComponentTranslation(itemStack.getDisplayName());
 
         IChatComponent coords = generateTeleportChatComponent(x, y, z, CoordFormat.INT);
 
-        String translationKey = "Added".equals(interactionType)
+        InventoryLogger.Direction dir = InventoryLogger.Direction.fromOrdinal(interactionType);
+
+        if (dir == null) {
+            return new ChatComponentText("Error: invalid interactionType " + interactionType + " in InventoryLogger DB. Please report this.");
+        }
+
+        String translationKey = dir.isAddition()
             ? "message.inventory_interaction_added"
             : "message.inventory_interaction_removed";
 
         return new ChatComponentTranslation(
             translationKey,
             playerName,      // %1$s - player name
-            stacksize,       // %2$d - stack size
+            stackSize,       // %2$d - stack size
             itemDetails,     // %3$s - item name/details (IChatComponent)
             itemId,          // %4$d - item ID
             itemMetadata,    // %5$d - item metadata
