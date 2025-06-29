@@ -3,6 +3,8 @@ package com.colen.tempora;
 import static com.colen.tempora.config.Config.synchronizeConfiguration;
 
 import com.colen.tempora.events.PlayerLogin;
+import com.colen.tempora.logging.commands.CreateRegion;
+import com.colen.tempora.logging.commands.RemoveRegion;
 import com.colen.tempora.networking.PacketTimeZone;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
@@ -127,6 +129,8 @@ public class Tempora {
 
     private void registerNewCommands(FMLServerStartingEvent event) {
         event.registerServerCommand(new QueryEventsCommand());
+        event.registerServerCommand(new CreateRegion());
+        event.registerServerCommand(new RemoveRegion());
     }
 
     @Mod.EventHandler

@@ -108,6 +108,11 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
             return;
         }
 
+        // Only log changes if (x, y, z) is inside a defined region
+        if (!RegionRegistry.get(world).containsBlock(dimensionId, x, y, z)) {
+            return;
+        }
+
         if (!isChunkPopulatedAt(world, x, z)) return;
 
         final BlockChangeQueueElement queueElement = new BlockChangeQueueElement();
