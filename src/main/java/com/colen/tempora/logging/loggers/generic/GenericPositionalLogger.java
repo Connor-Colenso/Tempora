@@ -1,5 +1,7 @@
 package com.colen.tempora.logging.loggers.generic;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -16,6 +18,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
 import com.colen.tempora.config.Config;
@@ -34,6 +37,8 @@ import com.colen.tempora.utils.TimeUtils;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 
+import static com.colen.tempora.utils.GenericUtils.parseSizeStringToBytes;
+
 public abstract class GenericPositionalLogger<EventToLog extends GenericQueueElement> {
 
     private static final String OLDEST_DATA_DEFAULT = "4months";
@@ -49,6 +54,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
     private boolean isEnabled;
     private String oldestDataCutoff;
+    private long largestDatabaseSizeInBytes;
 
     public GenericPositionalLogger() {
         loggerList.add(this);
@@ -78,77 +84,70 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
             new ColumnDef("dimensionID", "INTEGER", "NOT NULL"));
     }
 
-    private void enableHighRiskFastMode() {
+    private void enableHighRiskFastMode() throws SQLException {
         Connection conn = getDBConn();
 
-        try (Statement st = conn.createStatement()) {
-            st.execute("PRAGMA synchronous=OFF;");
-            st.execute("PRAGMA wal_autocheckpoint=10000;");
-        } catch (Exception e) {
-            // Rethrow as unchecked to crash without compiler complaining.
-            throw new RuntimeException(e);
-        }
+        Statement st = conn.createStatement();
+        st.execute("PRAGMA synchronous=OFF;");
+        st.execute("PRAGMA wal_autocheckpoint=10000;");
     }
 
-    private void initTable() {
+    private void initDbConnection() throws SQLException {
+        String dbUrl = TemporaUtils.jdbcUrl(getSQLTableName() + ".db");
+        positionalLoggerDBConnection = DriverManager.getConnection(dbUrl);
+    }
+
+    private void initTable() throws SQLException {
         String tableName = getSQLTableName();
         List<ColumnDef> columns = new ArrayList<>(getTableColumns());
         columns.addAll(getDefaultColumns());
 
-        try {
-            // Step 1: CREATE TABLE IF NOT EXISTS
-            StringBuilder createSQL = new StringBuilder("CREATE TABLE IF NOT EXISTS ").append(tableName)
-                .append(" (id INTEGER PRIMARY KEY AUTOINCREMENT");
+        // Step 1: CREATE TABLE IF NOT EXISTS
+        StringBuilder createSQL = new StringBuilder("CREATE TABLE IF NOT EXISTS ").append(tableName)
+            .append(" (id INTEGER PRIMARY KEY AUTOINCREMENT");
 
-            for (ColumnDef col : columns) {
-                createSQL.append(", ")
+        for (ColumnDef col : columns) {
+            createSQL.append(", ")
+                .append(col.name)
+                .append(" ")
+                .append(col.type);
+            if (col.extraCondition != null && !col.extraCondition.isEmpty()) {
+                createSQL.append(" ")
+                    .append(col.extraCondition);
+            }
+        }
+
+        createSQL.append(");");
+
+        getDBConn().prepareStatement(createSQL.toString())
+            .execute();
+
+        // Step 2: Check existing columns
+        Set<String> existingColumns = new HashSet<>();
+        PreparedStatement stmt = getDBConn().prepareStatement("PRAGMA table_info(" + tableName + ");");
+        ResultSet rs = stmt.executeQuery();
+        while (rs.next()) {
+            existingColumns.add(rs.getString("name"));
+        }
+
+        // Step 3: ALTER TABLE to add missing columns
+        for (ColumnDef col : columns) {
+            if (!existingColumns.contains(col.name)) {
+                StringBuilder alterSQL = new StringBuilder("ALTER TABLE ").append(tableName)
+                    .append(" ADD COLUMN ")
                     .append(col.name)
                     .append(" ")
                     .append(col.type);
+
                 if (col.extraCondition != null && !col.extraCondition.isEmpty()) {
-                    createSQL.append(" ")
+                    alterSQL.append(" ")
                         .append(col.extraCondition);
                 }
+
+                alterSQL.append(";");
+                getDBConn().prepareStatement(alterSQL.toString())
+                    .execute();
             }
-
-            createSQL.append(");");
-
-            getDBConn().prepareStatement(createSQL.toString())
-                .execute();
-
-            // Step 2: Check existing columns
-            Set<String> existingColumns = new HashSet<>();
-            try (
-                PreparedStatement stmt = getDBConn()
-                    .prepareStatement("PRAGMA table_info(" + tableName + ");");
-                ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    existingColumns.add(rs.getString("name"));
-                }
-            }
-
-            // Step 3: ALTER TABLE to add missing columns
-            for (ColumnDef col : columns) {
-                if (!existingColumns.contains(col.name)) {
-                    StringBuilder alterSQL = new StringBuilder("ALTER TABLE ").append(tableName)
-                        .append(" ADD COLUMN ")
-                        .append(col.name)
-                        .append(" ")
-                        .append(col.type);
-
-                    if (col.extraCondition != null && !col.extraCondition.isEmpty()) {
-                        alterSQL.append(" ")
-                            .append(col.extraCondition);
-                    }
-
-                    alterSQL.append(";");
-                    getDBConn().prepareStatement(alterSQL.toString())
-                        .execute();
-                }
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
     }
 
@@ -199,47 +198,61 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
     }
 
     private void startQueueWorker(String sqlTableName) {
-        executor = Executors.newSingleThreadExecutor(r -> new Thread(r, "Tempora-" + sqlTableName));
 
+        // 1. Build a ThreadFactory that kills the JVM on any uncaught Throwable
+        ThreadFactory factory = r -> {
+            Thread t = new Thread(r, "Tempora-" + sqlTableName);
+            t.setDaemon(false);           // keep JVM alive while the worker is alive
+            t.setUncaughtExceptionHandler((thr, ex) -> {
+                FMLLog.severe("Tempora queue‑worker '%s' crashed – halting JVM!", t.getName());
+                ex.printStackTrace();
+                Runtime.getRuntime().halt(1);   // bypasses SecurityManager
+            });
+            return t;
+        };
+
+        executor = Executors.newSingleThreadExecutor(factory);
+
+        // 2. Submit the actual worker Runnable
         executor.submit(() -> {
-            List<EventToLog> buffer = new ArrayList<>();
-            final int LARGE_QUEUE_THRESHOLD = 5000;
+            final List<EventToLog> buffer = new ArrayList<>();
+            final int LARGE_QUEUE_THRESHOLD = 5_000;
 
             try {
                 while (running || !eventQueue.isEmpty()) {
-                    // Wait up to FLUSH_INTERVAL_MS for an event
+
                     EventToLog event = eventQueue.poll(100, TimeUnit.MILLISECONDS);
+                    if (event == null) continue;
 
-                    if (event == null) {
-                        continue;
-                    }
-
-                    // If the queue is busy, warn the user.
                     if (eventQueue.size() > LARGE_QUEUE_THRESHOLD) {
-                        FMLLog.warning("%s has %d elements waiting to store in Tempora's Database. This may indicate the server is struggling to keep up with logging.", sqlTableName, eventQueue.size());
+                        FMLLog.warning(
+                            "%s has %,d elements waiting to store in Tempora's DB – server may be lagging!",
+                            sqlTableName, eventQueue.size());
                     }
 
                     buffer.add(event);
                     eventQueue.drainTo(buffer);
 
-                    // Flush if enough time has passed
-                    if (!buffer.isEmpty()) {
-                        try {
-                            threadedSaveEvents(buffer);
-                            getDBConn().commit();
-                        } catch (Exception e) {
-                            System.err.println("Batch write failed: " + e.getMessage());
-                            e.printStackTrace();
-                        }
-                        buffer.clear();
-                    }
+                    threadedSaveEvents(buffer);
+                    getDBConn().commit();
+                    buffer.clear();
                 }
 
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();  // Restore interrupt status
+                if (running) {
+                    throw new IllegalStateException(
+                        "Queue worker terminated unexpectedly while 'running' flag is true");
+                }
+
+            } catch (InterruptedException ie) {
+                Thread.currentThread().interrupt();
+                throw new RuntimeException("Queue worker interrupted", ie);
+
+            } catch (Exception e) {
+                throw new RuntimeException("Queue worker failed " + getSQLTableName(), e);
             }
         });
     }
+
 
     public final void genericConfig(@NotNull Configuration config) {
         isEnabled = config.getBoolean("isEnabled", getSQLTableName(), loggerEnabledByDefault(), "Enables this logger.");
@@ -278,6 +291,17 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
                 "Invalid DurabilityMode \"" + raw + "\" in " + getSQLTableName()
                     + ". Valid values are " + LogWriteSafety.NORMAL + " or " + LogWriteSafety.HIGH_RISK + ".", ex);
         }
+
+        // Database too big handling.
+        final String maxDbSizeString = config.getString(
+            "MaxDatabaseSize",
+            getSQLTableName(),
+            "100TB",
+            "Approximate maximum database file size (e.g. '500KB', '1MB', '5GB'). By default this is set high, so essentially no erasure happens." +
+                "The actual file size and deletion process is approximate and may not be 100% exact.");
+
+        largestDatabaseSizeInBytes = parseSizeStringToBytes(maxDbSizeString);
+
     }
 
     // --------------------------------------
@@ -325,7 +349,11 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
                     // Try send the result to the player.
                     try (ResultSet rs = pstmt.executeQuery()) {
+
+                        // Get each result as a QueueElement, so it can be localised.
                         List<ISerializable> packets = logger.generateQueryResults(rs);
+                        // Invert the list so we get the newest first.
+                        Collections.reverse(packets);
 
                         if (packets.isEmpty()) {
                             sender.addChatMessage(new ChatComponentText(
@@ -359,26 +387,108 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
             System.out.println("Opening Tempora DBs...");
 
             for (GenericPositionalLogger<?> logger : loggerList) {
-                String dbUrl = TemporaUtils.jdbcUrl(logger.getSQLTableName() + ".db");
-                logger.positionalLoggerDBConnection = DriverManager.getConnection(dbUrl);
+                logger.initDbConnection();
 
                 if (logger.isHighRiskModeEnabled()) {
                     logger.enableHighRiskFastMode();
                 }
 
                 // Enable batching, to reduce overhead on db writes.
+
                 logger.getDBConn().setAutoCommit(false);
 
                 logger.initTable();
                 logger.createAllIndexes();
                 logger.removeOldDatabaseData();
+                logger.trimOversizedDatabase();
 
                 logger.startQueueWorker(logger.getSQLTableName());
             }
 
         } catch (SQLException sqlException) {
-            System.err.println("Could not open Tempora databases.");
             sqlException.printStackTrace();
+            throw new RuntimeException("Tempora database initial stages failure.");
+        }
+    }
+
+    private void trimOversizedDatabase() throws SQLException {
+        Path dbPath = TemporaUtils.databaseDir().resolve(getSQLTableName() + ".db");
+        if (!Files.exists(dbPath)) {
+            throw new IllegalStateException("Database file not found: " + dbPath);
+        }
+
+        // Do this first, to prevent fragmentation.
+        checkpointAndVacuum();
+
+        try (Connection conn = getDBConn()) {
+
+            long usedBytes = physicalDbBytes(conn);
+            if (usedBytes <= largestDatabaseSizeInBytes) {
+                conn.commit();
+                return;
+            }
+
+            long totalRows = countRows(conn);
+            if (totalRows == 0) {
+                conn.commit();
+                return;
+            }
+
+            // Calculate how many rows to delete to get under limit
+            double overshoot = (double) usedBytes / largestDatabaseSizeInBytes;
+            long rowsToDelete = Math.max(1,
+                (long) Math.ceil(totalRows * (overshoot - 1) / overshoot));
+
+            String sql = "DELETE FROM " + getSQLTableName() +
+                " WHERE rowid IN (SELECT rowid FROM " + getSQLTableName() +
+                " ORDER BY timestamp ASC LIMIT ?)";
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setLong(1, rowsToDelete);
+                int deleted = ps.executeUpdate();
+                System.out.printf("[Tempora] Deleted %,d rows from %s%n", deleted, getSQLTableName());
+            }
+
+            conn.commit();
+
+            checkpointAndVacuum();
+
+            System.out.printf("[Tempora] %s DB is now %.2f MB (limit %.2f MB)%n",
+                getSQLTableName(),
+                physicalDbBytes(conn) / 1_048_576.0,
+                largestDatabaseSizeInBytes / 1_048_576.0);
+        }
+    }
+
+    /* ---------- helpers ---------- */
+
+    private static long physicalDbBytes(Connection c) throws SQLException {
+        long pageSize  = pragmaLong(c, "page_size");
+        long pageCount = pragmaLong(c, "page_count");
+        return pageSize * pageCount;
+    }
+
+    private long countRows(Connection c) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM " + getSQLTableName();
+        try (PreparedStatement ps = c.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            return rs.next() ? rs.getLong(1) : 0L;
+        }
+    }
+
+    private static long pragmaLong(Connection c, String pragma) throws SQLException {
+        try (Statement st = c.createStatement();
+             ResultSet rs = st.executeQuery("PRAGMA " + pragma)) {
+            return rs.next() ? rs.getLong(1) : 0L;
+        }
+    }
+
+    private void checkpointAndVacuum() throws SQLException {
+        try (Statement st = getDBConn().createStatement()) {
+            getDBConn().commit();
+            getDBConn().setAutoCommit(true);
+            st.execute("PRAGMA wal_checkpoint(TRUNCATE)");
+            st.execute("VACUUM");
+            getDBConn().setAutoCommit(false);
         }
     }
 
@@ -421,32 +531,29 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
     }
 
 
-    private void createAllIndexes() {
+    private void createAllIndexes() throws SQLException {
 
-        try (Statement stmt = getDBConn().createStatement()) {
+        Statement stmt = getDBConn().createStatement();
 
-            String tableName = getSQLTableName();
+        String tableName = getSQLTableName();
 
-            // Creating a composite index for x, y, z, dimensionID and timestamp
-            String createCompositeIndex = String.format(
-                "CREATE INDEX IF NOT EXISTS idx_%s_xyz_dimension_time ON %s (x, y, z, dimensionID, timestamp DESC);",
-                tableName,
-                tableName);
-            stmt.execute(createCompositeIndex);
+        // Creating a composite index for x, y, z, dimensionID and timestamp
+        String createCompositeIndex = String.format(
+            "CREATE INDEX IF NOT EXISTS idx_%s_xyz_dimension_time ON %s (x, y, z, dimensionID, timestamp DESC);",
+            tableName,
+            tableName);
+        stmt.execute(createCompositeIndex);
 
-            // Creating an index for timestamp alone to optimize for queries primarily sorting or filtering on
-            // timestamp
-            String createTimestampIndex = String.format(
-                "CREATE INDEX IF NOT EXISTS idx_%s_timestamp ON %s (timestamp DESC);",
-                tableName,
-                tableName);
-            stmt.execute(createTimestampIndex);
+        // Creating an index for timestamp alone to optimize for queries primarily sorting or filtering on
+        // timestamp
+        String createTimestampIndex = String.format(
+            "CREATE INDEX IF NOT EXISTS idx_%s_timestamp ON %s (timestamp DESC);",
+            tableName,
+            tableName);
+        stmt.execute(createTimestampIndex);
 
-            System.out.println("Indexes created for table: " + tableName);
-        } catch (SQLException e) {
-            System.err.println("Error creating indexes: " + e.getMessage());
-            e.printStackTrace();
-        }
+        System.out.println("Indexes created for table: " + tableName);
+
     }
 
     // Use the fastest durability mode: may lose or corrupt the DB on sudden power loss.
