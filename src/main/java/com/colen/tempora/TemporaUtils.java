@@ -21,7 +21,7 @@ public class TemporaUtils {
 
     public static final String UNKNOWN_PLAYER_NAME = "[UNKNOWN]";
 
-    private static Path databaseDir() {
+    public static Path databaseDir() {
         // Works for both dedicated and integrated servers.
         Path worldDir = DimensionManager.getCurrentSaveRootDirectory().toPath();
         Path dir      = worldDir.resolve("TemporaDatabases");

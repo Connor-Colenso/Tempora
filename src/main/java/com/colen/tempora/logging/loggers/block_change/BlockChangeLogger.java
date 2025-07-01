@@ -31,7 +31,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
 
     @Override
     protected LogWriteSafety defaultLogWriteSafetyMode() {
-        return LogWriteSafety.HIGH_RISK;
+        return LogWriteSafety.NORMAL;
     }
 
     @Override
