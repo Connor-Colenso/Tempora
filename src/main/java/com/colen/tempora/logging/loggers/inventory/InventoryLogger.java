@@ -42,13 +42,8 @@ public class InventoryLogger
                     : (delta > 0 ? Direction.IN_TO_CONTAINER
                     : Direction.OUT_OF_CONTAINER);
 
-                TileEntity te = null;
-                if (s.inventory instanceof TileEntity) {
-                    te = (TileEntity) s.inventory;
-                }
-
                 Tempora.inventoryLogger.playerInteractedWithInventory(player,
-                    delta, after == null ? before : after, dir, te, container);
+                    delta, after == null ? before : after, dir, s.inventory, container);
             }
         }
     }
@@ -123,29 +118,11 @@ public class InventoryLogger
         }
     }
 
-    public void playerInteractedWithInventory(EntityPlayer playerMP, int delta, ItemStack itemStack, Direction dir, TileEntity tileEntity, Container container) {
+    public void playerInteractedWithInventory(EntityPlayer playerMP, int delta, ItemStack itemStack, Direction dir, IInventory inventory, Container container) {
         ItemStack copyStack = itemStack.copy();
         copyStack.stackSize = Math.abs(delta);
 
         PlayerInteractWithInventoryQueueElement queueElement = new PlayerInteractWithInventoryQueueElement();
-        if (tileEntity != null) {
-            queueElement.x = tileEntity.xCoord;
-            queueElement.y = tileEntity.yCoord;
-            queueElement.z = tileEntity.zCoord;
-            if (tileEntity instanceof IInventory inventory) {
-                queueElement.containerName = inventory.getInventoryName();
-            } else {
-                queueElement.containerName = tileEntity.getClass()
-                    .getSimpleName();
-            }
-        } else {
-            // Backup
-            queueElement.x = playerMP.posX;
-            queueElement.y = playerMP.posY;
-            queueElement.z = playerMP.posZ;
-            queueElement.containerName = container.getClass()
-                .getSimpleName();
-        }
 
         queueElement.dimensionId = playerMP.dimension;
         queueElement.timestamp = System.currentTimeMillis();

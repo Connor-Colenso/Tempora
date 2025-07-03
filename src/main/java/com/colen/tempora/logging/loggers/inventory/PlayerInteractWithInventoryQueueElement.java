@@ -47,7 +47,7 @@ public class PlayerInteractWithInventoryQueueElement extends GenericQueueElement
             itemDetails,     // %3$s - item name/details (IChatComponent)
             itemId,          // %4$d - item ID
             itemMetadata,    // %5$d - item metadata
-            containerName,   // %6$s - container name
+            new ChatComponentTranslation(containerName),   // %6$s - container name
             coords,          // %7$s - clickable coordinates (IChatComponent)
             formattedTime    // %8$s - localized relative time (IChatComponent)
         );
