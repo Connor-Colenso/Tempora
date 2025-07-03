@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.colen.tempora.Tempora;
+import com.gtnewhorizons.modularui.common.internal.wrapper.ModularUIContainer;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.Container;
@@ -42,8 +43,14 @@ public class InventoryLogger
                     : (delta > 0 ? Direction.IN_TO_CONTAINER
                     : Direction.OUT_OF_CONTAINER);
 
-                Tempora.inventoryLogger.playerInteractedWithInventory(player,
-                    delta, after == null ? before : after, dir, s.inventory, container);
+                if (s.inventory instanceof TileEntity tileEntity) {
+                    Tempora.inventoryLogger.playerInteractedWithInventory(player,
+                            delta, after == null ? before : after, dir, tileEntity, s.inventory, container);
+                } else {
+                    Tempora.inventoryLogger.playerInteractedWithInventory(player,
+                            delta, after == null ? before : after, dir, null, s.inventory, container);
+                }
+
             }
         }
     }
@@ -118,11 +125,29 @@ public class InventoryLogger
         }
     }
 
-    public void playerInteractedWithInventory(EntityPlayer playerMP, int delta, ItemStack itemStack, Direction dir, IInventory inventory, Container container) {
+    public void playerInteractedWithInventory(EntityPlayer playerMP, int delta, ItemStack itemStack, Direction dir, TileEntity tileEntity, IInventory inventory, Container container) {
+        if (itemStack == null || delta == 0) return; // Nothing to log
+
         ItemStack copyStack = itemStack.copy();
         copyStack.stackSize = Math.abs(delta);
 
         PlayerInteractWithInventoryQueueElement queueElement = new PlayerInteractWithInventoryQueueElement();
+        if (inventory != null) {
+            queueElement.containerName = inventory.getInventoryName();
+            queueElement.x = playerMP.posX;
+            queueElement.y = playerMP.posY;
+            queueElement.z = playerMP.posZ;
+        } else if (tileEntity != null) {
+            queueElement.containerName = tileEntity.getClass().getSimpleName();
+            queueElement.x = tileEntity.xCoord;
+            queueElement.y = tileEntity.yCoord;
+            queueElement.z = tileEntity.zCoord;
+        } else {
+            queueElement.containerName = container.getClass().getSimpleName();
+            queueElement.x = playerMP.posX;
+            queueElement.y = playerMP.posY;
+            queueElement.z = playerMP.posZ;
+        }
 
         queueElement.dimensionId = playerMP.dimension;
         queueElement.timestamp = System.currentTimeMillis();
