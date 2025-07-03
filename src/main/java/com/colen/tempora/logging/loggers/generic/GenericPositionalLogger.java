@@ -420,43 +420,42 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
         // Do this first, to prevent fragmentation.
         checkpointAndVacuum();
 
-        try (Connection conn = getDBConn()) {
+        Connection conn = getDBConn();
 
-            long usedBytes = physicalDbBytes(conn);
-            if (usedBytes <= largestDatabaseSizeInBytes) {
-                conn.commit();
-                return;
-            }
-
-            long totalRows = countRows(conn);
-            if (totalRows == 0) {
-                conn.commit();
-                return;
-            }
-
-            // Calculate how many rows to delete to get under limit
-            double overshoot = (double) usedBytes / largestDatabaseSizeInBytes;
-            long rowsToDelete = Math.max(1,
-                (long) Math.ceil(totalRows * (overshoot - 1) / overshoot));
-
-            String sql = "DELETE FROM " + getSQLTableName() +
-                " WHERE rowid IN (SELECT rowid FROM " + getSQLTableName() +
-                " ORDER BY timestamp ASC LIMIT ?)";
-            try (PreparedStatement ps = conn.prepareStatement(sql)) {
-                ps.setLong(1, rowsToDelete);
-                int deleted = ps.executeUpdate();
-                System.out.printf("[Tempora] Deleted %,d rows from %s%n", deleted, getSQLTableName());
-            }
-
+        long usedBytes = physicalDbBytes(conn);
+        if (usedBytes <= largestDatabaseSizeInBytes) {
             conn.commit();
-
-            checkpointAndVacuum();
-
-            System.out.printf("[Tempora] %s DB is now %.2f MB (limit %.2f MB)%n",
-                getSQLTableName(),
-                physicalDbBytes(conn) / 1_048_576.0,
-                largestDatabaseSizeInBytes / 1_048_576.0);
+            return;
         }
+
+        long totalRows = countRows(conn);
+        if (totalRows == 0) {
+            conn.commit();
+            return;
+        }
+
+        // Calculate how many rows to delete to get under limit
+        double overshoot = (double) usedBytes / largestDatabaseSizeInBytes;
+        long rowsToDelete = Math.max(1,
+            (long) Math.ceil(totalRows * (overshoot - 1) / overshoot));
+
+        String sql = "DELETE FROM " + getSQLTableName() +
+            " WHERE rowid IN (SELECT rowid FROM " + getSQLTableName() +
+            " ORDER BY timestamp ASC LIMIT ?)";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, rowsToDelete);
+            int deleted = ps.executeUpdate();
+            System.out.printf("[Tempora] Deleted %,d rows from %s%n", deleted, getSQLTableName());
+        }
+
+        conn.commit();
+
+        checkpointAndVacuum();
+
+        System.out.printf("[Tempora] %s DB is now %.2f MB (limit %.2f MB)%n",
+            getSQLTableName(),
+            physicalDbBytes(conn) / 1_048_576.0,
+            largestDatabaseSizeInBytes / 1_048_576.0);
     }
 
     /* ---------- helpers ---------- */
