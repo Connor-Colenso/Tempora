@@ -10,7 +10,9 @@ import java.util.List;
 import java.util.Map;
 
 import com.colen.tempora.Tempora;
+import com.colen.tempora.utils.LastInvPos;
 import com.gtnewhorizons.modularui.common.internal.wrapper.ModularUIContainer;
+import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.Container;
@@ -18,11 +20,13 @@ import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.tileentity.TileEntity;
 
 import com.colen.tempora.logging.loggers.generic.ISerializable;
 import com.colen.tempora.logging.loggers.generic.ColumnDef;
 import com.colen.tempora.logging.loggers.generic.GenericPositionalLogger;
+import net.minecraft.world.World;
 
 public class InventoryLogger
     extends GenericPositionalLogger<PlayerInteractWithInventoryQueueElement> {
@@ -132,22 +136,42 @@ public class InventoryLogger
         copyStack.stackSize = Math.abs(delta);
 
         PlayerInteractWithInventoryQueueElement queueElement = new PlayerInteractWithInventoryQueueElement();
-        if (inventory != null) {
+
+        if (inventory instanceof InventoryPlayer) {
             queueElement.containerName = inventory.getInventoryName();
             queueElement.x = playerMP.posX;
             queueElement.y = playerMP.posY;
             queueElement.z = playerMP.posZ;
-        } else if (tileEntity != null) {
-            queueElement.containerName = tileEntity.getClass().getSimpleName();
-            queueElement.x = tileEntity.xCoord;
-            queueElement.y = tileEntity.yCoord;
-            queueElement.z = tileEntity.zCoord;
         } else {
-            queueElement.containerName = container.getClass().getSimpleName();
-            queueElement.x = playerMP.posX;
-            queueElement.y = playerMP.posY;
-            queueElement.z = playerMP.posZ;
+            if (container instanceof ModularUIContainer) {
+                LastInvPos lastInvPos = LastInvPos.LAST_OPENED.get(playerMP.getUniqueID());
+                World world = MinecraftServer.getServer().worldServerForDimension(lastInvPos.dimId);
+                tileEntity = world.getTileEntity(lastInvPos.x, lastInvPos.y, lastInvPos.z);
+            }
+
+            if (tileEntity != null) {
+                World world = tileEntity.getWorldObj();
+                Block block = world.getBlock(tileEntity.xCoord, tileEntity.yCoord, tileEntity.zCoord);
+                ItemStack pickStack = block.getPickBlock(null, world, tileEntity.xCoord, tileEntity.yCoord, tileEntity.zCoord);
+
+                queueElement.containerName = pickStack.getDisplayName();
+                queueElement.x = tileEntity.xCoord;
+                queueElement.y = tileEntity.yCoord;
+                queueElement.z = tileEntity.zCoord;
+            } else if (inventory != null) {
+                queueElement.containerName = inventory.getInventoryName();
+                queueElement.x = playerMP.posX;
+                queueElement.y = playerMP.posY;
+                queueElement.z = playerMP.posZ;
+            } else {
+                queueElement.containerName = container.getClass().getSimpleName();
+                queueElement.x = playerMP.posX;
+                queueElement.y = playerMP.posY;
+                queueElement.z = playerMP.posZ;
+            }
         }
+
+
 
         queueElement.dimensionId = playerMP.dimension;
         queueElement.timestamp = System.currentTimeMillis();

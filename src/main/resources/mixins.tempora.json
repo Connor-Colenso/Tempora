@@ -6,8 +6,9 @@
   "target": "@env(DEFAULT)",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
-    "MixinWorld",
-    "MixinContainer"
+    "MixinContainer",
+    "MixinFMLNetworkHandler",
+    "MixinWorld"
   ],
   "client": [],
   "server": [
