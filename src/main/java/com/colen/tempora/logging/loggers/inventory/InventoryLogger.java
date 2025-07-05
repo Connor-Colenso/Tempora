@@ -28,6 +28,8 @@ import com.colen.tempora.logging.loggers.generic.ISerializable;
 import com.colen.tempora.utils.LastInvPos;
 import com.gtnewhorizons.modularui.common.internal.wrapper.ModularUIContainer;
 
+import static com.colen.tempora.utils.BlockUtils.getPickBlockSafe;
+
 public class InventoryLogger extends GenericPositionalLogger<PlayerInteractWithInventoryQueueElement> {
 
     public static void preLogLogic(EntityPlayer player, Container container, List<Slot> inventorySlots,
@@ -167,8 +169,7 @@ public class InventoryLogger extends GenericPositionalLogger<PlayerInteractWithI
             if (tileEntity != null) {
                 World world = tileEntity.getWorldObj();
                 Block block = world.getBlock(tileEntity.xCoord, tileEntity.yCoord, tileEntity.zCoord);
-                ItemStack pickStack = block
-                    .getPickBlock(null, world, tileEntity.xCoord, tileEntity.yCoord, tileEntity.zCoord);
+                ItemStack pickStack = getPickBlockSafe(block, world, tileEntity.xCoord, tileEntity.yCoord, tileEntity.zCoord);
 
                 queueElement.containerName = pickStack.getDisplayName();
                 queueElement.x = tileEntity.xCoord;

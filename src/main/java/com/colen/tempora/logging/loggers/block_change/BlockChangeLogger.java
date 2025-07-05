@@ -25,6 +25,8 @@ import com.colen.tempora.logging.loggers.generic.LogWriteSafety;
 import com.colen.tempora.utils.GenericUtils;
 import com.colen.tempora.utils.PlayerUtils;
 
+import static com.colen.tempora.utils.BlockUtils.getPickBlockSafe;
+
 public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueElement> {
 
     private boolean globalBlockChangeLogging;
@@ -137,7 +139,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
         queueElement.blockID = Block.getIdFromBlock(blockIn);
         queueElement.metadata = metadataIn;
 
-        ItemStack pickStack = blockIn.getPickBlock(null, world, x, y, z);
+        ItemStack pickStack = getPickBlockSafe(blockIn, world, x, y, z);
         if (pickStack != null && pickStack.getItem() != null) {
             queueElement.pickBlockID = Item.getIdFromItem(pickStack.getItem());
             queueElement.pickBlockMeta = pickStack.getItemDamage();
