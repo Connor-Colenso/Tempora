@@ -2,6 +2,7 @@ package com.colen.tempora;
 
 import static com.colen.tempora.config.Config.synchronizeConfiguration;
 
+import com.colen.tempora.logging.commands.QuerySQLCommand;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
 
@@ -129,6 +130,7 @@ public class Tempora {
 
     private void registerNewCommands(FMLServerStartingEvent event) {
         event.registerServerCommand(new QueryEventsCommand());
+        event.registerServerCommand(new QuerySQLCommand());
         event.registerServerCommand(new CreateRegion());
         event.registerServerCommand(new RemoveRegion());
     }

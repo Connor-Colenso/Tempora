@@ -41,7 +41,7 @@ public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovement
     // to load, which we want to keep track of.
 
     @Override
-    protected List<ColumnDef> getTableColumns() {
+    public List<ColumnDef> getTableColumns() {
         return Arrays.asList(new ColumnDef("playerUUID", "TEXT", "NOT NULL"));
     }
 
@@ -59,7 +59,7 @@ public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovement
     }
 
     @Override
-    protected ArrayList<ISerializable> generateQueryResults(ResultSet resultSet) throws SQLException {
+    public ArrayList<ISerializable> generateQueryResults(ResultSet resultSet) throws SQLException {
         ArrayList<ISerializable> eventList = new ArrayList<>();
 
         while (resultSet.next()) {

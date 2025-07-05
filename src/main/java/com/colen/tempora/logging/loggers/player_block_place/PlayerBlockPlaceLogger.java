@@ -36,7 +36,7 @@ public class PlayerBlockPlaceLogger extends GenericPositionalLogger<PlayerBlockP
     }
 
     @Override
-    protected List<ColumnDef> getTableColumns() {
+    public List<ColumnDef> getTableColumns() {
         return Arrays.asList(
             new ColumnDef("playerUUID", "TEXT", "NOT NULL"),
             new ColumnDef("metadata", "INTEGER", "NOT NULL"),
@@ -46,7 +46,7 @@ public class PlayerBlockPlaceLogger extends GenericPositionalLogger<PlayerBlockP
     }
 
     @Override
-    protected ArrayList<ISerializable> generateQueryResults(ResultSet resultSet) throws SQLException {
+    public ArrayList<ISerializable> generateQueryResults(ResultSet resultSet) throws SQLException {
         ArrayList<ISerializable> eventList = new ArrayList<>();
 
         while (resultSet.next()) {

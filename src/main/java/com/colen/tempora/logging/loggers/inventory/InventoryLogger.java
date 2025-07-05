@@ -77,7 +77,7 @@ public class InventoryLogger extends GenericPositionalLogger<PlayerInteractWithI
     }
 
     @Override
-    protected List<ColumnDef> getTableColumns() {
+    public List<ColumnDef> getTableColumns() {
         return Arrays.asList(
             new ColumnDef("containerName", "TEXT", "NOT NULL"),
             new ColumnDef("interactionType", "TEXT", "NOT NULL"),
@@ -93,7 +93,7 @@ public class InventoryLogger extends GenericPositionalLogger<PlayerInteractWithI
     }
 
     @Override
-    protected ArrayList<ISerializable> generateQueryResults(ResultSet rs) throws SQLException {
+    public ArrayList<ISerializable> generateQueryResults(ResultSet rs) throws SQLException {
         ArrayList<ISerializable> eventList = new ArrayList<>();
         while (rs.next()) {
             PlayerInteractWithInventoryQueueElement queueElement = new PlayerInteractWithInventoryQueueElement();

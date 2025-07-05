@@ -38,6 +38,7 @@ import com.colen.tempora.utils.TimeUtils;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.FMLLog;
+import org.sqlite.SQLiteConfig;
 
 public abstract class GenericPositionalLogger<EventToLog extends GenericQueueElement> {
 
@@ -66,11 +67,11 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
     public abstract void threadedSaveEvents(List<EventToLog> event) throws SQLException;
 
-    protected abstract ArrayList<ISerializable> generateQueryResults(ResultSet rs) throws SQLException;
+    public abstract ArrayList<ISerializable> generateQueryResults(ResultSet rs) throws SQLException;
 
     public abstract String getSQLTableName();
 
-    protected abstract List<ColumnDef> getTableColumns();
+    public abstract List<ColumnDef> getTableColumns();
 
     public void handleCustomLoggerConfig(Configuration config) {}
 
@@ -78,7 +79,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
         return positionalLoggerDBConnection;
     }
 
-    private List<ColumnDef> getDefaultColumns() {
+    public static List<ColumnDef> getDefaultColumns() {
         return Arrays.asList(
             new ColumnDef("x", "INTEGER", "NOT NULL"),
             new ColumnDef("y", "INTEGER", "NOT NULL"),
@@ -601,6 +602,22 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
     private boolean loggerEnabledByDefault() {
         return true;
+    }
+
+    public Connection getReadOnlyConnection() {
+        try {
+            String dbUrl = TemporaUtils.jdbcUrl( getSQLTableName() + ".db");
+
+            SQLiteConfig config = new SQLiteConfig();
+            config.setReadOnly(true);
+
+            Connection conn = DriverManager.getConnection(dbUrl, config.toProperties());
+            conn.setReadOnly(true);
+
+            return conn;
+        } catch (Exception e){
+            return null;
+        }
     }
 
 }

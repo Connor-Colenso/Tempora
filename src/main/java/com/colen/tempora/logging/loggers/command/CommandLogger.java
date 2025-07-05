@@ -30,7 +30,7 @@ public class CommandLogger extends GenericPositionalLogger<CommandQueueElement> 
     }
 
     @Override
-    protected List<ColumnDef> getTableColumns() {
+    public List<ColumnDef> getTableColumns() {
         return Arrays.asList(
             new ColumnDef("playerUUID", "TEXT", "NOT NULL"),
             new ColumnDef("command", "TEXT", "NOT NULL"),
@@ -38,7 +38,7 @@ public class CommandLogger extends GenericPositionalLogger<CommandQueueElement> 
     }
 
     @Override
-    protected ArrayList<ISerializable> generateQueryResults(ResultSet resultSet) throws SQLException {
+    public ArrayList<ISerializable> generateQueryResults(ResultSet resultSet) throws SQLException {
         ArrayList<ISerializable> eventList = new ArrayList<>();
 
         while (resultSet.next()) {
