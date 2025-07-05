@@ -1,5 +1,6 @@
 package com.colen.tempora.items;
 
+import com.colen.tempora.utils.PlayerUtils;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
@@ -25,14 +26,18 @@ public class TemporaWand extends Item {
 
     @Override
     public ItemStack onItemRightClick(ItemStack itemStackIn, World world, EntityPlayer player) {
+        if (!PlayerUtils.isPlayerOp(player)) {
+            PlayerUtils.sendMessageToOps("player.tempora.wand.unauthorised", player.getDisplayName());
 
-        if (TemporaUtils.isServerSide()) {
-            for (GenericPositionalLogger<?> logger : GenericPositionalLogger.getLoggerList()) {
-                QueryEventsCommand.queryDatabases(player, 10, 3600, logger.getSQLTableName());
+            return super.onItemRightClick(itemStackIn, world, player);
+        } else {
+            if (TemporaUtils.isServerSide()) {
+                for (GenericPositionalLogger<?> logger : GenericPositionalLogger.getLoggerList()) {
+                    QueryEventsCommand.queryDatabases(player, 10, 3600, logger.getSQLTableName());
+                }
             }
+
+            return super.onItemRightClick(itemStackIn, world, player);
         }
-
-        return super.onItemRightClick(itemStackIn, world, player);
     }
-
 }

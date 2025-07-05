@@ -1,6 +1,7 @@
 package com.colen.tempora.logging.loggers.player_block_place;
 
 import static com.colen.tempora.TemporaUtils.isClientSide;
+import static com.colen.tempora.utils.BlockUtils.getPickBlockSafe;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -113,7 +114,7 @@ public class PlayerBlockPlaceLogger extends GenericPositionalLogger<PlayerBlockP
         queueElement.metadata = event.world.getBlockMetadata(event.x, event.y, event.z);
 
         // Calculate pickBlockID and pickBlockMeta using getPickBlock
-        ItemStack pickStack = event.block.getPickBlock(null, event.world, event.x, event.y, event.z);
+        ItemStack pickStack = getPickBlockSafe(event.block, event.world, event.x, event.y, event.z);
         if (pickStack != null && pickStack.getItem() != null) {
             queueElement.pickBlockID = Item.getIdFromItem(pickStack.getItem());
             queueElement.pickBlockMeta = pickStack.getItemDamage();
