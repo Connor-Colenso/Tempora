@@ -9,9 +9,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import com.colen.tempora.Tempora;
-import com.colen.tempora.utils.LastInvPos;
-import com.gtnewhorizons.modularui.common.internal.wrapper.ModularUIContainer;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
@@ -22,37 +19,50 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.tileentity.TileEntity;
-
-import com.colen.tempora.logging.loggers.generic.ISerializable;
-import com.colen.tempora.logging.loggers.generic.ColumnDef;
-import com.colen.tempora.logging.loggers.generic.GenericPositionalLogger;
 import net.minecraft.world.World;
 
-public class InventoryLogger
-    extends GenericPositionalLogger<PlayerInteractWithInventoryQueueElement> {
+import com.colen.tempora.Tempora;
+import com.colen.tempora.logging.loggers.generic.ColumnDef;
+import com.colen.tempora.logging.loggers.generic.GenericPositionalLogger;
+import com.colen.tempora.logging.loggers.generic.ISerializable;
+import com.colen.tempora.utils.LastInvPos;
+import com.gtnewhorizons.modularui.common.internal.wrapper.ModularUIContainer;
 
-    public static void preLogLogic(EntityPlayer player, Container container, List<Slot> inventorySlots, Map<Integer, ItemStack> snapshot) {
+public class InventoryLogger extends GenericPositionalLogger<PlayerInteractWithInventoryQueueElement> {
+
+    public static void preLogLogic(EntityPlayer player, Container container, List<Slot> inventorySlots,
+        Map<Integer, ItemStack> snapshot) {
         for (Slot s : inventorySlots) {
             ItemStack before = snapshot.get(s.slotNumber);
-            ItemStack after  = s.getStack();
+            ItemStack after = s.getStack();
 
             if (!ItemStack.areItemStacksEqual(before, after)) {
                 int beforeCnt = before == null ? 0 : before.stackSize;
-                int afterCnt  = after  == null ? 0 : after.stackSize;
-                int delta     = afterCnt - beforeCnt;     // + = added, − = removed
+                int afterCnt = after == null ? 0 : after.stackSize;
+                int delta = afterCnt - beforeCnt; // + = added, − = removed
 
                 Direction dir = (s.inventory instanceof InventoryPlayer)
-                    ? (delta > 0 ? Direction.IN_TO_PLAYER
-                    : Direction.OUT_OF_PLAYER)
-                    : (delta > 0 ? Direction.IN_TO_CONTAINER
-                    : Direction.OUT_OF_CONTAINER);
+                    ? (delta > 0 ? Direction.IN_TO_PLAYER : Direction.OUT_OF_PLAYER)
+                    : (delta > 0 ? Direction.IN_TO_CONTAINER : Direction.OUT_OF_CONTAINER);
 
                 if (s.inventory instanceof TileEntity tileEntity) {
-                    Tempora.inventoryLogger.playerInteractedWithInventory(player,
-                            delta, after == null ? before : after, dir, tileEntity, s.inventory, container);
+                    Tempora.inventoryLogger.playerInteractedWithInventory(
+                        player,
+                        delta,
+                        after == null ? before : after,
+                        dir,
+                        tileEntity,
+                        s.inventory,
+                        container);
                 } else {
-                    Tempora.inventoryLogger.playerInteractedWithInventory(player,
-                            delta, after == null ? before : after, dir, null, s.inventory, container);
+                    Tempora.inventoryLogger.playerInteractedWithInventory(
+                        player,
+                        delta,
+                        after == null ? before : after,
+                        dir,
+                        null,
+                        s.inventory,
+                        container);
                 }
 
             }
@@ -129,7 +139,8 @@ public class InventoryLogger
         }
     }
 
-    public void playerInteractedWithInventory(EntityPlayer playerMP, int delta, ItemStack itemStack, Direction dir, TileEntity tileEntity, IInventory inventory, Container container) {
+    public void playerInteractedWithInventory(EntityPlayer playerMP, int delta, ItemStack itemStack, Direction dir,
+        TileEntity tileEntity, IInventory inventory, Container container) {
         if (itemStack == null || delta == 0) return; // Nothing to log
 
         ItemStack copyStack = itemStack.copy();
@@ -146,7 +157,8 @@ public class InventoryLogger
             // Special GT handling.
             if (container instanceof ModularUIContainer) {
                 LastInvPos lastInvPos = LastInvPos.LAST_OPENED.get(playerMP.getUniqueID());
-                World world = MinecraftServer.getServer().worldServerForDimension(lastInvPos.dimId);
+                World world = MinecraftServer.getServer()
+                    .worldServerForDimension(lastInvPos.dimId);
                 tileEntity = world.getTileEntity(lastInvPos.x, lastInvPos.y, lastInvPos.z);
             }
             // Special AE handling
@@ -154,7 +166,8 @@ public class InventoryLogger
             if (tileEntity != null) {
                 World world = tileEntity.getWorldObj();
                 Block block = world.getBlock(tileEntity.xCoord, tileEntity.yCoord, tileEntity.zCoord);
-                ItemStack pickStack = block.getPickBlock(null, world, tileEntity.xCoord, tileEntity.yCoord, tileEntity.zCoord);
+                ItemStack pickStack = block
+                    .getPickBlock(null, world, tileEntity.xCoord, tileEntity.yCoord, tileEntity.zCoord);
 
                 queueElement.containerName = pickStack.getDisplayName();
                 queueElement.x = tileEntity.xCoord;
@@ -166,14 +179,13 @@ public class InventoryLogger
                 queueElement.y = playerMP.posY;
                 queueElement.z = playerMP.posZ;
             } else {
-                queueElement.containerName = container.getClass().getSimpleName();
+                queueElement.containerName = container.getClass()
+                    .getSimpleName();
                 queueElement.x = playerMP.posX;
                 queueElement.y = playerMP.posY;
                 queueElement.z = playerMP.posZ;
             }
         }
-
-
 
         queueElement.dimensionId = playerMP.dimension;
         queueElement.timestamp = System.currentTimeMillis();
@@ -189,10 +201,11 @@ public class InventoryLogger
 
     // Never change the values here.
     public enum Direction {
-        IN_TO_CONTAINER (0,    true),
-        IN_TO_PLAYER    (1,    true),
-        OUT_OF_CONTAINER(2,    false),
-        OUT_OF_PLAYER   (3,    false);
+
+        IN_TO_CONTAINER(0, true),
+        IN_TO_PLAYER(1, true),
+        OUT_OF_CONTAINER(2, false),
+        OUT_OF_PLAYER(3, false);
 
         private final int dbId;
         private final boolean addition;
@@ -202,8 +215,13 @@ public class InventoryLogger
             this.addition = addition;
         }
 
-        public int  getDbId() { return dbId; }
-        public boolean isAddition(){ return addition; }
+        public int getDbId() {
+            return dbId;
+        }
+
+        public boolean isAddition() {
+            return addition;
+        }
 
         public static Direction fromOrdinal(int ordinal) {
             Direction[] values = values();
@@ -214,7 +232,8 @@ public class InventoryLogger
         }
     }
 
-    public void specialAELogInv(Direction dir, EntityPlayer playerMP, ItemStack stack, String containerName, double x, double y, double z, int dim) {
+    public void specialAELogInv(Direction dir, EntityPlayer playerMP, ItemStack stack, String containerName, double x,
+        double y, double z, int dim) {
 
         PlayerInteractWithInventoryQueueElement queueElement = new PlayerInteractWithInventoryQueueElement();
 
@@ -225,7 +244,8 @@ public class InventoryLogger
 
         queueElement.containerName = containerName;
         queueElement.timestamp = System.currentTimeMillis();
-        queueElement.playerUUID = playerMP.getUniqueID().toString();
+        queueElement.playerUUID = playerMP.getUniqueID()
+            .toString();
         queueElement.interactionType = dir.getDbId();
         queueElement.itemId = Item.getIdFromItem(stack.getItem());
         queueElement.itemMetadata = stack.getItemDamage();

@@ -33,23 +33,23 @@ public class PlayerInteractWithInventoryQueueElement extends GenericQueueElement
         InventoryLogger.Direction dir = InventoryLogger.Direction.fromOrdinal(interactionType);
 
         if (dir == null) {
-            return new ChatComponentText("Error: invalid interactionType " + interactionType + " in InventoryLogger DB. Please report this.");
+            return new ChatComponentText(
+                "Error: invalid interactionType " + interactionType + " in InventoryLogger DB. Please report this.");
         }
 
-        String translationKey = dir.isAddition()
-            ? "message.inventory_interaction_added"
+        String translationKey = dir.isAddition() ? "message.inventory_interaction_added"
             : "message.inventory_interaction_removed";
 
         return new ChatComponentTranslation(
             translationKey,
-            playerName,      // %1$s - player name
-            stackSize,       // %2$d - stack size
-            itemDetails,     // %3$s - item name/details (IChatComponent)
-            itemId,          // %4$d - item ID
-            itemMetadata,    // %5$d - item metadata
-            new ChatComponentTranslation(containerName),   // %6$s - container name
-            coords,          // %7$s - clickable coordinates (IChatComponent)
-            formattedTime    // %8$s - localized relative time (IChatComponent)
+            playerName, // %1$s - player name
+            stackSize, // %2$d - stack size
+            itemDetails, // %3$s - item name/details (IChatComponent)
+            itemId, // %4$d - item ID
+            itemMetadata, // %5$d - item metadata
+            new ChatComponentTranslation(containerName), // %6$s - container name
+            coords, // %7$s - clickable coordinates (IChatComponent)
+            formattedTime // %8$s - localized relative time (IChatComponent)
         );
     }
 }

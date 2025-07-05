@@ -14,9 +14,9 @@ import net.minecraft.command.ICommand;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.event.CommandEvent;
 
-import com.colen.tempora.logging.loggers.generic.ISerializable;
 import com.colen.tempora.logging.loggers.generic.ColumnDef;
 import com.colen.tempora.logging.loggers.generic.GenericPositionalLogger;
+import com.colen.tempora.logging.loggers.generic.ISerializable;
 import com.colen.tempora.utils.PlayerUtils;
 
 import cpw.mods.fml.common.eventhandler.EventPriority;

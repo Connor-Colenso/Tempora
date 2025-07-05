@@ -15,17 +15,17 @@ public class ExplosionQueueElement extends GenericQueueElement {
 
     @Override
     public IChatComponent localiseText(String uuid) {
-        IChatComponent coords  = generateTeleportChatComponent(x, y, z, CoordFormat.FLOAT_1DP);
+        IChatComponent coords = generateTeleportChatComponent(x, y, z, CoordFormat.FLOAT_1DP);
         IChatComponent timeAgo = TimeUtils.formatTime(timestamp, uuid);
 
         return new ChatComponentTranslation(
             "message.explosion",
-            exploderUUID,                      // %s - UUID of exploder
-            String.format("%.1f", strength),  // %s - explosion strength
-            closestPlayerUUID,                 // %s - closest player UUID
+            exploderUUID, // %s - UUID of exploder
+            String.format("%.1f", strength), // %s - explosion strength
+            closestPlayerUUID, // %s - closest player UUID
             String.format("%.1f", closestPlayerDistance), // %s - distance
-            coords,                           // %s - clickable coords
-            timeAgo                          // %s - relative time
+            coords, // %s - clickable coords
+            timeAgo // %s - relative time
         );
     }
 }

@@ -19,9 +19,9 @@ import net.minecraftforge.event.world.BlockEvent;
 import org.jetbrains.annotations.NotNull;
 
 import com.colen.tempora.TemporaUtils;
-import com.colen.tempora.logging.loggers.generic.ISerializable;
 import com.colen.tempora.logging.loggers.generic.ColumnDef;
 import com.colen.tempora.logging.loggers.generic.GenericPositionalLogger;
+import com.colen.tempora.logging.loggers.generic.ISerializable;
 
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
@@ -98,7 +98,6 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
             pstmt.executeBatch();
         }
     }
-
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
     @SuppressWarnings("unused")

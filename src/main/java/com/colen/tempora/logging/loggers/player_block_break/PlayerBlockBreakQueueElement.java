@@ -1,11 +1,11 @@
 package com.colen.tempora.logging.loggers.player_block_break;
 
-import com.colen.tempora.utils.PlayerUtils;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 
 import com.colen.tempora.logging.loggers.generic.GenericQueueElement;
 import com.colen.tempora.utils.BlockUtils;
+import com.colen.tempora.utils.PlayerUtils;
 import com.colen.tempora.utils.TimeUtils;
 
 public class PlayerBlockBreakQueueElement extends GenericQueueElement {
@@ -24,12 +24,12 @@ public class PlayerBlockBreakQueueElement extends GenericQueueElement {
 
         return new ChatComponentTranslation(
             "message.block_break",
-            PlayerUtils.UUIDToName(playerUUIDWhoBrokeBlock), //  player name
-            block,                                           // block localized name
-            blockID,                                         // block ID
-            metadata,                                        // metadata
-            coords,                                          // clickable coordinates
-            timeAgo                                          // localized relative time
+            PlayerUtils.UUIDToName(playerUUIDWhoBrokeBlock), // player name
+            block, // block localized name
+            blockID, // block ID
+            metadata, // metadata
+            coords, // clickable coordinates
+            timeAgo // localized relative time
         );
     }
 }

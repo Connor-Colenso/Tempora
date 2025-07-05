@@ -1,13 +1,13 @@
 package com.colen.tempora.utils;
 
+import static com.colen.tempora.TemporaUtils.UNKNOWN_PLAYER_NAME;
+
 import java.util.UUID;
 import java.util.regex.Pattern;
 
 import net.minecraft.server.MinecraftServer;
 
 import com.mojang.authlib.GameProfile;
-
-import static com.colen.tempora.TemporaUtils.UNKNOWN_PLAYER_NAME;
 
 public class PlayerUtils {
 

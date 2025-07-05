@@ -13,15 +13,15 @@ public class EntityDeathQueueElement extends GenericQueueElement {
 
     @Override
     public IChatComponent localiseText(String uuid) {
-        IChatComponent coords   = generateTeleportChatComponent(x, y, z, CoordFormat.INT);
-        IChatComponent timeAgo  = TimeUtils.formatTime(timestamp, uuid);
+        IChatComponent coords = generateTeleportChatComponent(x, y, z, CoordFormat.INT);
+        IChatComponent timeAgo = TimeUtils.formatTime(timestamp, uuid);
 
         return new ChatComponentTranslation(
             "message.entity_death",
-            nameOfDeadMob,  // %s – mob name
-            killedBy,       // %s – killer
-            coords,         // %s – clickable coords
-            timeAgo         // %s – relative time
+            nameOfDeadMob, // %s – mob name
+            killedBy, // %s – killer
+            coords, // %s – clickable coords
+            timeAgo // %s – relative time
         );
     }
 }

@@ -1,14 +1,17 @@
 package com.colen.tempora.networking;
 
+import net.minecraft.entity.player.EntityPlayerMP;
+
 import com.colen.tempora.utils.TimeUtils;
+
 import cpw.mods.fml.common.network.ByteBufUtils;
 import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import cpw.mods.fml.common.network.simpleimpl.IMessageHandler;
 import cpw.mods.fml.common.network.simpleimpl.MessageContext;
 import io.netty.buffer.ByteBuf;
-import net.minecraft.entity.player.EntityPlayerMP;
 
 public class PacketTimeZone implements IMessage {
+
     private String timezoneId;
 
     public PacketTimeZone() {}
@@ -29,10 +32,14 @@ public class PacketTimeZone implements IMessage {
 
     // Get the timezone and add it to our serverside map.
     public static class Handler implements IMessageHandler<PacketTimeZone, IMessage> {
+
         @Override
         public IMessage onMessage(PacketTimeZone message, MessageContext ctx) {
             EntityPlayerMP serverPlayer = ctx.getServerHandler().playerEntity;
-            TimeUtils.setTimeZone(serverPlayer.getUniqueID().toString(), message.timezoneId);
+            TimeUtils.setTimeZone(
+                serverPlayer.getUniqueID()
+                    .toString(),
+                message.timezoneId);
             return null;
         }
     }

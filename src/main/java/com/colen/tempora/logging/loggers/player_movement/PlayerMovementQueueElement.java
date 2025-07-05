@@ -17,8 +17,8 @@ public class PlayerMovementQueueElement extends GenericQueueElement {
 
         return new ChatComponentTranslation(
             "message.player_movement",
-            playerName,   // %1$s - player name
-            coords,       // %2$s - clickable coordinates
+            playerName, // %1$s - player name
+            coords, // %2$s - clickable coordinates
             formattedTime // %3$s - localized formatted time
         );
     }

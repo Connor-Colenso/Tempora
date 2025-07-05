@@ -7,22 +7,16 @@ import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 
-import java.lang.reflect.Method;
-
 public class BlockUtils {
 
-    public static IChatComponent getUnlocalisedChatComponent(int blockId, int meta)
-    {
+    public static IChatComponent getUnlocalisedChatComponent(int blockId, int meta) {
         // 0 is hard‑wired vanilla Air
-        if (blockId == 0)
-            return new ChatComponentTranslation("tile.air.name");
-
+        if (blockId == 0) return new ChatComponentTranslation("tile.air.name");
 
         Item item = Item.getItemById(blockId);
         if (item == null) {
             Block blk = Block.getBlockById(blockId);
-            if (blk != null)
-                item = Item.getItemFromBlock(blk);
+            if (blk != null) item = Item.getItemFromBlock(blk);
         }
 
         if (item == null) {
@@ -33,9 +27,5 @@ public class BlockUtils {
 
         return new ChatComponentTranslation(stack.getDisplayName());
     }
-
-
-
-
 
 }

@@ -15,9 +15,9 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 
-import com.colen.tempora.logging.loggers.generic.ISerializable;
 import com.colen.tempora.logging.loggers.generic.ColumnDef;
 import com.colen.tempora.logging.loggers.generic.GenericPositionalLogger;
+import com.colen.tempora.logging.loggers.generic.ISerializable;
 import com.colen.tempora.utils.PlayerUtils;
 
 import cpw.mods.fml.common.eventhandler.EventPriority;
@@ -95,10 +95,8 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueE
 
     @Override
     protected List<ColumnDef> getTableColumns() {
-        return Arrays.asList(
-            new ColumnDef("entityName", "TEXT", "NOT NULL"),
-            new ColumnDef("killedBy", "TEXT", "NOT NULL")
-        );
+        return Arrays
+            .asList(new ColumnDef("entityName", "TEXT", "NOT NULL"), new ColumnDef("killedBy", "TEXT", "NOT NULL"));
     }
 
     @Override

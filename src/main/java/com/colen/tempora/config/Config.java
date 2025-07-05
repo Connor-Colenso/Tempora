@@ -27,7 +27,6 @@ public class Config {
             false,
             "Prevents the server shutting down if logging has not finished, by default we wait 10 seconds and then shut down.");
 
-
         TimeUtils.handleConfig(configuration);
     }
 }

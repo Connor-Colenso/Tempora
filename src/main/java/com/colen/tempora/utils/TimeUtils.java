@@ -1,18 +1,16 @@
 package com.colen.tempora.utils;
 
-import static com.colen.tempora.config.Config.formatCategory;
-
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Locale;
 
+import javax.annotation.Nullable;
+
 import net.minecraft.command.CommandException;
 import net.minecraft.event.HoverEvent;
 import net.minecraft.util.*;
 import net.minecraftforge.common.config.Configuration;
-
-import javax.annotation.Nullable;
 
 public class TimeUtils {
 
@@ -25,7 +23,6 @@ public class TimeUtils {
     }
 
     public static HashMap<String, String> UUIDtoTimeZone = new HashMap<>();
-
 
     public static void handleConfig(Configuration config) {
 
@@ -114,13 +111,12 @@ public class TimeUtils {
         ChatComponentTranslation translated = new ChatComponentTranslation(key, formattedValue);
 
         // Add hover text showing the exact timestamp
-        translated.setChatStyle(new ChatStyle().setChatHoverEvent(
-            new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText("§7" + formattedTime))
-        ));
+        translated.setChatStyle(
+            new ChatStyle().setChatHoverEvent(
+                new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText("§7" + formattedTime))));
 
         return translated;
     }
-
 
     public static long convertToSeconds(String timeDescription) {
         // Use regular expressions to separate numbers from text
