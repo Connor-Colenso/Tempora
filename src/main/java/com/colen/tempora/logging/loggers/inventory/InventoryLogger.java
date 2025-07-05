@@ -142,6 +142,7 @@ public class InventoryLogger extends GenericPositionalLogger<PlayerInteractWithI
     public void playerInteractedWithInventory(EntityPlayer playerMP, int delta, ItemStack itemStack, Direction dir,
         TileEntity tileEntity, IInventory inventory, Container container) {
         if (itemStack == null || delta == 0) return; // Nothing to log
+        if (dir == Direction.OUT_OF_PLAYER || dir == Direction.IN_TO_PLAYER) return;
 
         ItemStack copyStack = itemStack.copy();
         copyStack.stackSize = Math.abs(delta);
@@ -234,6 +235,7 @@ public class InventoryLogger extends GenericPositionalLogger<PlayerInteractWithI
 
     public void specialAELogInv(Direction dir, EntityPlayer playerMP, ItemStack stack, String containerName, double x,
         double y, double z, int dim) {
+        if (dir == Direction.OUT_OF_PLAYER || dir == Direction.IN_TO_PLAYER) return;
 
         PlayerInteractWithInventoryQueueElement queueElement = new PlayerInteractWithInventoryQueueElement();
 
