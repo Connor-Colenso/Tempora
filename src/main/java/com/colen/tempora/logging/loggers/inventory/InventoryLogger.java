@@ -143,11 +143,13 @@ public class InventoryLogger
             queueElement.y = playerMP.posY;
             queueElement.z = playerMP.posZ;
         } else {
+            // Special GT handling.
             if (container instanceof ModularUIContainer) {
                 LastInvPos lastInvPos = LastInvPos.LAST_OPENED.get(playerMP.getUniqueID());
                 World world = MinecraftServer.getServer().worldServerForDimension(lastInvPos.dimId);
                 tileEntity = world.getTileEntity(lastInvPos.x, lastInvPos.y, lastInvPos.z);
             }
+            // Special AE handling
 
             if (tileEntity != null) {
                 World world = tileEntity.getWorldObj();
@@ -211,4 +213,25 @@ public class InventoryLogger
             return values[ordinal];
         }
     }
+
+    public void specialAELogInv(Direction dir, EntityPlayer playerMP, ItemStack stack, String containerName, double x, double y, double z, int dim) {
+
+        PlayerInteractWithInventoryQueueElement queueElement = new PlayerInteractWithInventoryQueueElement();
+
+        queueElement.x = x;
+        queueElement.y = y;
+        queueElement.z = z;
+        queueElement.dimensionId = dim;
+
+        queueElement.containerName = containerName;
+        queueElement.timestamp = System.currentTimeMillis();
+        queueElement.playerUUID = playerMP.getUniqueID().toString();
+        queueElement.interactionType = dir.getDbId();
+        queueElement.itemId = Item.getIdFromItem(stack.getItem());
+        queueElement.itemMetadata = stack.getItemDamage();
+        queueElement.stackSize = stack.stackSize;
+
+        queueEvent(queueElement);
+    }
+
 }

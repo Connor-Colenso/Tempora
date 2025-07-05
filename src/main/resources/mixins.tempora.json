@@ -8,6 +8,7 @@
   "mixins": [
     "MixinContainer",
     "MixinFMLNetworkHandler",
+    "MixinNetworkMonitor",
     "MixinWorld"
   ],
   "client": [],
