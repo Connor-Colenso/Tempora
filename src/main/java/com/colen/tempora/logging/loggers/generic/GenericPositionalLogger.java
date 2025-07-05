@@ -413,6 +413,9 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
             System.out.println("Opening Tempora DBs...");
 
             for (GenericPositionalLogger<?> logger : loggerList) {
+                // Just to 100% ensure we are not getting events from a prior save.
+                logger.clearEvents();
+
                 logger.initDbConnection();
 
                 if (logger.isHighRiskModeEnabled()) {
@@ -436,6 +439,10 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
             sqlException.printStackTrace();
             throw new RuntimeException("Tempora database initial stages failure.");
         }
+    }
+
+    private void clearEvents() {
+        eventQueue.clear();
     }
 
     private void trimOversizedDatabase() throws SQLException {
@@ -537,6 +544,11 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
         } catch (Exception e) {
             System.err.println("Error closing resources:");
             e.printStackTrace();
+        } finally {
+            // Just to ensure that we are not carrying data over to a new world opening.
+            for (GenericPositionalLogger<?> logger : loggerList) {
+                logger.clearEvents();
+            }
         }
     }
 
