@@ -1,5 +1,7 @@
 package com.colen.tempora.logging.loggers.generic;
 
+import static com.colen.tempora.utils.GenericUtils.parseSizeStringToBytes;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.Connection;
@@ -21,8 +23,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
-import com.colen.tempora.config.Config;
-import cpw.mods.fml.common.FMLLog;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentText;
@@ -33,11 +33,11 @@ import net.minecraftforge.common.config.Configuration;
 import org.jetbrains.annotations.NotNull;
 
 import com.colen.tempora.TemporaUtils;
+import com.colen.tempora.config.Config;
 import com.colen.tempora.utils.TimeUtils;
 
 import cpw.mods.fml.common.FMLCommonHandler;
-
-import static com.colen.tempora.utils.GenericUtils.parseSizeStringToBytes;
+import cpw.mods.fml.common.FMLLog;
 
 public abstract class GenericPositionalLogger<EventToLog extends GenericQueueElement> {
 
@@ -65,11 +65,14 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
     }
 
     public abstract void threadedSaveEvents(List<EventToLog> event) throws SQLException;
+
     protected abstract ArrayList<ISerializable> generateQueryResults(ResultSet rs) throws SQLException;
+
     public abstract String getSQLTableName();
+
     protected abstract List<ColumnDef> getTableColumns();
 
-    public void handleCustomLoggerConfig(Configuration config) { }
+    public void handleCustomLoggerConfig(Configuration config) {}
 
     public Connection getDBConn() {
         return positionalLoggerDBConnection;
@@ -202,11 +205,12 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
         // 1. Build a ThreadFactory that kills the JVM on any uncaught Throwable
         ThreadFactory factory = r -> {
             Thread t = new Thread(r, "Tempora-" + sqlTableName);
-            t.setDaemon(false);           // keep JVM alive while the worker is alive
+            t.setDaemon(false); // keep JVM alive while the worker is alive
             t.setUncaughtExceptionHandler((thr, ex) -> {
                 FMLLog.severe("Tempora queue‑worker '%s' crashed – halting JVM!", t.getName());
                 ex.printStackTrace();
-                Runtime.getRuntime().halt(1);   // bypasses SecurityManager
+                Runtime.getRuntime()
+                    .halt(1); // bypasses SecurityManager
             });
             return t;
         };
@@ -227,7 +231,8 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
                     if (eventQueue.size() > LARGE_QUEUE_THRESHOLD) {
                         FMLLog.warning(
                             "%s has %,d elements waiting to store in Tempora's DB – server may be lagging!",
-                            sqlTableName, eventQueue.size());
+                            sqlTableName,
+                            eventQueue.size());
                     }
 
                     buffer.add(event);
@@ -244,7 +249,8 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
                 }
 
             } catch (InterruptedException ie) {
-                Thread.currentThread().interrupt();
+                Thread.currentThread()
+                    .interrupt();
                 throw new RuntimeException("Queue worker interrupted", ie);
 
             } catch (Exception e) {
@@ -252,7 +258,6 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
             }
         });
     }
-
 
     public final void genericConfig(@NotNull Configuration config) {
         isEnabled = config.getBoolean("isEnabled", getSQLTableName(), loggerEnabledByDefault(), "Enables this logger.");
@@ -262,34 +267,43 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
             OLDEST_DATA_DEFAULT,
             "Any records older than this relative to now, will be erased. This is unrecoverable, be careful!");
 
+        String raw = config
+            .get(
+                getSQLTableName(),
+                "LogWriteSafety",
+                defaultLogWriteSafetyMode().name(),
+                """
+                    NORMAL – Safer, but slower
+                      • Best for long-term stability.
+                      • Every log is saved to disk right away, so even if your server crashes or the power goes out, your logs will be intact.
+                      • Slightly slower performance—may reduce TPS during heavy activity like world edits or explosions.
 
-        String raw = config.get(
-            getSQLTableName(),
-            "LogWriteSafety",
-            defaultLogWriteSafetyMode().name(),
-            """
-            NORMAL – Safer, but slower
-              • Best for long-term stability.
-              • Every log is saved to disk right away, so even if your server crashes or the power goes out, your logs will be intact.
-              • Slightly slower performance—may reduce TPS during heavy activity like world edits or explosions.
+                    HIGH_RISK – Much faster, but riskier
+                      • Boosts performance by delaying how often logs are saved to disk.
+                      • Helps maintain TPS during intense events (e.g., TNT, worldedit, busy modpacks).
+                      • WARNING: if your server crashes or shuts down suddenly, the last few seconds of logs may be lost or corrupted. This does **not** affect your world—only the logs.
+                      • Only recommended if you make regular backups or can afford to lose a few seconds of log data.
 
-            HIGH_RISK – Much faster, but riskier
-              • Boosts performance by delaying how often logs are saved to disk.
-              • Helps maintain TPS during intense events (e.g., TNT, worldedit, busy modpacks).
-              • WARNING: if your server crashes or shuts down suddenly, the last few seconds of logs may be lost or corrupted. This does **not** affect your world—only the logs.
-              • Only recommended if you make regular backups or can afford to lose a few seconds of log data.
-
-            Tip: Start with HIGH_RISK if you're concerned about performance (there will be warnings in the log if Tempora is struggling to keep up).
-                 If you need 100% reliable logging, switch to NORMAL once you're happy with how the server runs.
-            """
-        ).getString().trim().toUpperCase();
+                    Tip: Start with HIGH_RISK if you're concerned about performance (there will be warnings in the log if Tempora is struggling to keep up).
+                         If you need 100% reliable logging, switch to NORMAL once you're happy with how the server runs.
+                    """)
+            .getString()
+            .trim()
+            .toUpperCase();
 
         try {
             durabilityMode = LogWriteSafety.valueOf(raw);
         } catch (IllegalArgumentException ex) {
             throw new RuntimeException(
-                "Invalid DurabilityMode \"" + raw + "\" in " + getSQLTableName()
-                    + ". Valid values are " + LogWriteSafety.NORMAL + " or " + LogWriteSafety.HIGH_RISK + ".", ex);
+                "Invalid DurabilityMode \"" + raw
+                    + "\" in "
+                    + getSQLTableName()
+                    + ". Valid values are "
+                    + LogWriteSafety.NORMAL
+                    + " or "
+                    + LogWriteSafety.HIGH_RISK
+                    + ".",
+                ex);
         }
 
         // Database too big handling.
@@ -297,8 +311,8 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
             "MaxDatabaseSize",
             getSQLTableName(),
             "100TB",
-            "Approximate maximum database file size (e.g. '500KB', '1MB', '5GB'). By default this is set high, so essentially no erasure happens." +
-                "The actual file size and deletion process is approximate and may not be 100% exact.");
+            "Approximate maximum database file size (e.g. '500KB', '1MB', '5GB'). By default this is set high, so essentially no erasure happens."
+                + "The actual file size and deletion process is approximate and may not be 100% exact.");
 
         largestDatabaseSizeInBytes = parseSizeStringToBytes(maxDbSizeString);
 
@@ -331,8 +345,8 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
             for (GenericPositionalLogger<?> logger : loggerList) {
                 if (tableName != null && !logger.getSQLTableName()
                     .equals(tableName)) continue;
-                try (
-                    PreparedStatement pstmt = logger.getDBConn().prepareStatement(
+                try (PreparedStatement pstmt = logger.getDBConn()
+                    .prepareStatement(
                         "SELECT * FROM " + logger.getSQLTableName()
                             + " WHERE ABS(x - ?) <= ? AND ABS(y - ?) <= ? AND ABS(z - ?) <= ?"
                             + " AND dimensionID = ? AND timestamp >= ? ORDER BY timestamp DESC LIMIT ?")) {
@@ -356,20 +370,32 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
                         Collections.reverse(packets);
 
                         if (packets.isEmpty()) {
-                            sender.addChatMessage(new ChatComponentText(
-                                EnumChatFormatting.GRAY + "No results found for " + logger.getSQLTableName() + '.'));
+                            sender.addChatMessage(
+                                new ChatComponentText(
+                                    EnumChatFormatting.GRAY + "No results found for "
+                                        + logger.getSQLTableName()
+                                        + '.'));
                             return;
                         } else {
-                            sender.addChatMessage(new ChatComponentText(
-                                EnumChatFormatting.GRAY + "Showing latest " + packets.size() + " results for " + logger.getSQLTableName() + ':'));
+                            sender.addChatMessage(
+                                new ChatComponentText(
+                                    EnumChatFormatting.GRAY + "Showing latest "
+                                        + packets.size()
+                                        + " results for "
+                                        + logger.getSQLTableName()
+                                        + ':'));
                         }
 
                         if (logger.eventQueue.size() > 100) {
-                            sender.addChatMessage(new ChatComponentText(
-                                EnumChatFormatting.RED + "Warning, due to high volume, there are still " + logger.eventQueue.size() + " events pending, query results may be outdated/inaccurate."));
+                            sender.addChatMessage(
+                                new ChatComponentText(
+                                    EnumChatFormatting.RED + "Warning, due to high volume, there are still "
+                                        + logger.eventQueue.size()
+                                        + " events pending, query results may be outdated/inaccurate."));
                         }
 
-                        String uuid = entityPlayerMP.getUniqueID().toString();
+                        String uuid = entityPlayerMP.getUniqueID()
+                            .toString();
                         packets.forEach(p -> entityPlayerMP.addChatMessage(p.localiseText(uuid)));
                     }
 
@@ -395,7 +421,8 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
                 // Enable batching, to reduce overhead on db writes.
 
-                logger.getDBConn().setAutoCommit(false);
+                logger.getDBConn()
+                    .setAutoCommit(false);
 
                 logger.initTable();
                 logger.createAllIndexes();
@@ -412,7 +439,8 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
     }
 
     private void trimOversizedDatabase() throws SQLException {
-        Path dbPath = TemporaUtils.databaseDir().resolve(getSQLTableName() + ".db");
+        Path dbPath = TemporaUtils.databaseDir()
+            .resolve(getSQLTableName() + ".db");
         if (!Files.exists(dbPath)) {
             throw new IllegalStateException("Database file not found: " + dbPath);
         }
@@ -436,12 +464,12 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
         // Calculate how many rows to delete to get under limit
         double overshoot = (double) usedBytes / largestDatabaseSizeInBytes;
-        long rowsToDelete = Math.max(1,
-            (long) Math.ceil(totalRows * (overshoot - 1) / overshoot));
+        long rowsToDelete = Math.max(1, (long) Math.ceil(totalRows * (overshoot - 1) / overshoot));
 
-        String sql = "DELETE FROM " + getSQLTableName() +
-            " WHERE rowid IN (SELECT rowid FROM " + getSQLTableName() +
-            " ORDER BY timestamp ASC LIMIT ?)";
+        String sql = "DELETE FROM " + getSQLTableName()
+            + " WHERE rowid IN (SELECT rowid FROM "
+            + getSQLTableName()
+            + " ORDER BY timestamp ASC LIMIT ?)";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setLong(1, rowsToDelete);
             int deleted = ps.executeUpdate();
@@ -452,7 +480,8 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
         checkpointAndVacuum();
 
-        System.out.printf("[Tempora] %s DB is now %.2f MB (limit %.2f MB)%n",
+        System.out.printf(
+            "[Tempora] %s DB is now %.2f MB (limit %.2f MB)%n",
             getSQLTableName(),
             physicalDbBytes(conn) / 1_048_576.0,
             largestDatabaseSizeInBytes / 1_048_576.0);
@@ -461,22 +490,20 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
     /* ---------- helpers ---------- */
 
     private static long physicalDbBytes(Connection c) throws SQLException {
-        long pageSize  = pragmaLong(c, "page_size");
+        long pageSize = pragmaLong(c, "page_size");
         long pageCount = pragmaLong(c, "page_count");
         return pageSize * pageCount;
     }
 
     private long countRows(Connection c) throws SQLException {
         String sql = "SELECT COUNT(*) FROM " + getSQLTableName();
-        try (PreparedStatement ps = c.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+        try (PreparedStatement ps = c.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
             return rs.next() ? rs.getLong(1) : 0L;
         }
     }
 
     private static long pragmaLong(Connection c, String pragma) throws SQLException {
-        try (Statement st = c.createStatement();
-             ResultSet rs = st.executeQuery("PRAGMA " + pragma)) {
+        try (Statement st = c.createStatement(); ResultSet rs = st.executeQuery("PRAGMA " + pragma)) {
             return rs.next() ? rs.getLong(1) : 0L;
         }
     }
@@ -500,8 +527,10 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
                 logger.shutdownExecutor();
 
                 // Shut down each db.
-                if (logger.getDBConn() != null && !logger.getDBConn().isClosed()) {
-                    logger.getDBConn().close();
+                if (logger.getDBConn() != null && !logger.getDBConn()
+                    .isClosed()) {
+                    logger.getDBConn()
+                        .close();
                 }
             }
 
@@ -529,7 +558,6 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
         }
     }
 
-
     private void createAllIndexes() throws SQLException {
 
         Statement stmt = getDBConn().createStatement();
@@ -545,10 +573,8 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
         // Creating an index for timestamp alone to optimize for queries primarily sorting or filtering on
         // timestamp
-        String createTimestampIndex = String.format(
-            "CREATE INDEX IF NOT EXISTS idx_%s_timestamp ON %s (timestamp DESC);",
-            tableName,
-            tableName);
+        String createTimestampIndex = String
+            .format("CREATE INDEX IF NOT EXISTS idx_%s_timestamp ON %s (timestamp DESC);", tableName, tableName);
         stmt.execute(createTimestampIndex);
 
         System.out.println("Indexes created for table: " + tableName);

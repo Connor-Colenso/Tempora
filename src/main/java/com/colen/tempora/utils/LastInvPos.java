@@ -1,13 +1,14 @@
 package com.colen.tempora.utils;
 
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.world.World;
-
-import javax.annotation.Nullable;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+
+import javax.annotation.Nullable;
+
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.tileentity.TileEntity;
+import net.minecraft.world.World;
 
 /** Immutable record of where a container GUI was opened. */
 public final class LastInvPos {
@@ -19,9 +20,9 @@ public final class LastInvPos {
 
     public LastInvPos(int dimId, int x, int y, int z) {
         this.dimId = dimId;
-        this.x     = x;
-        this.y     = y;
-        this.z     = z;
+        this.x = x;
+        this.y = y;
+        this.z = z;
     }
 
     @Override
@@ -33,7 +34,8 @@ public final class LastInvPos {
 
     public static @Nullable TileEntity getTileEntity(UUID uuid) {
         LastInvPos pos = LAST_OPENED.get(uuid);
-        World w        = MinecraftServer.getServer().worldServerForDimension(pos.dimId);
+        World w = MinecraftServer.getServer()
+            .worldServerForDimension(pos.dimId);
 
         return w.getTileEntity(pos.x, pos.y, pos.z);
     }

@@ -3,8 +3,6 @@ package com.colen.tempora.logging.commands;
 import java.util.Arrays;
 import java.util.List;
 
-import com.colen.tempora.logging.loggers.block_change.RegionRegistry;
-
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
@@ -13,6 +11,8 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChunkCoordinates;
 import net.minecraft.world.World;
+
+import com.colen.tempora.logging.loggers.block_change.RegionRegistry;
 
 /**
  * /removeregion
@@ -44,24 +44,22 @@ public class RemoveRegion extends CommandBase {
 
     @Override
     public void processCommand(ICommandSender sender, String[] args) throws CommandException {
-        if (args.length != 0)
-            throw new WrongUsageException(getCommandUsage(sender));
+        if (args.length != 0) throw new WrongUsageException(getCommandUsage(sender));
 
         // Only players have a sensible position
-        if (!(sender instanceof EntityPlayer))
-            throw new CommandException("Only a player can run /removeregion.");
+        if (!(sender instanceof EntityPlayer)) throw new CommandException("Only a player can run /removeregion.");
 
         ChunkCoordinates pos = sender.getPlayerCoordinates();
-        World  world = sender.getEntityWorld();
+        World world = sender.getEntityWorld();
         int dim = world.provider.dimensionId;
 
         int removed = RegionRegistry.get(world)
             .removeRegionsContainingBlock(dim, pos.posX, pos.posY, pos.posZ);
 
         if (removed > 0) {
-            sender.addChatMessage(new ChatComponentText(
-                String.format("§aRemoved %d region%s at your position.",
-                    removed, removed == 1 ? "" : "s")));
+            sender.addChatMessage(
+                new ChatComponentText(
+                    String.format("§aRemoved %d region%s at your position.", removed, removed == 1 ? "" : "s")));
         } else {
             sender.addChatMessage(new ChatComponentText("§eNo region found at your position."));
         }

@@ -8,15 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import com.colen.tempora.TemporaUtils;
-import com.colen.tempora.logging.loggers.generic.LogWriteSafety;
-import com.colen.tempora.utils.PlayerUtils;
 import net.minecraft.block.Block;
-
-import com.colen.tempora.logging.loggers.generic.ISerializable;
-import com.colen.tempora.logging.loggers.generic.ColumnDef;
-import com.colen.tempora.logging.loggers.generic.GenericPositionalLogger;
-import com.colen.tempora.utils.GenericUtils;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -24,6 +16,14 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.common.config.Configuration;
+
+import com.colen.tempora.TemporaUtils;
+import com.colen.tempora.logging.loggers.generic.ColumnDef;
+import com.colen.tempora.logging.loggers.generic.GenericPositionalLogger;
+import com.colen.tempora.logging.loggers.generic.ISerializable;
+import com.colen.tempora.logging.loggers.generic.LogWriteSafety;
+import com.colen.tempora.utils.GenericUtils;
+import com.colen.tempora.utils.PlayerUtils;
 
 public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueElement> {
 
@@ -48,21 +48,15 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
             new ColumnDef("pickBlockMeta", "INTEGER", "NOT NULL"),
             new ColumnDef("stackTrace", "TEXT", "NOT NULL"),
             new ColumnDef("closestPlayerUUID", "TEXT", "NOT NULL"),
-            new ColumnDef("closestPlayerDistance", "REAL", "NOT NULL")
-        );
+            new ColumnDef("closestPlayerDistance", "REAL", "NOT NULL"));
     }
 
     @Override
     public void handleCustomLoggerConfig(Configuration config) {
-        globalBlockChangeLogging = config.getBoolean(
-            "globalBlockChangeLogging",
-            getSQLTableName(),
-            false,
-            """
-                 If true, overrides all regions and logs every setBlock call across the entire world.
-                 WARNING: This will generate an enormous number of events and rapidly bloat your database.
-                 """
-        );
+        globalBlockChangeLogging = config.getBoolean("globalBlockChangeLogging", getSQLTableName(), false, """
+            If true, overrides all regions and logs every setBlock call across the entire world.
+            WARNING: This will generate an enormous number of events and rapidly bloat your database.
+            """);
     }
 
     @Override
@@ -119,13 +113,15 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
         World world;
 
         try {
-            world = MinecraftServer.getServer().worldServerForDimension(dimensionId);
+            world = MinecraftServer.getServer()
+                .worldServerForDimension(dimensionId);
         } catch (Exception e) {
             return;
         }
 
         // Only log changes if (x, y, z) is inside a defined region
-        if (!globalBlockChangeLogging && !RegionRegistry.get(world).containsBlock(dimensionId, x, y, z)) {
+        if (!globalBlockChangeLogging && !RegionRegistry.get(world)
+            .containsBlock(dimensionId, x, y, z)) {
             return;
         }
 
@@ -143,11 +139,11 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
 
         ItemStack pickStack = blockIn.getPickBlock(null, world, x, y, z);
         if (pickStack != null && pickStack.getItem() != null) {
-            queueElement.pickBlockID   = Item.getIdFromItem(pickStack.getItem());
+            queueElement.pickBlockID = Item.getIdFromItem(pickStack.getItem());
             queueElement.pickBlockMeta = pickStack.getItemDamage();
         } else {
             // Fallback to the raw place‑block data
-            queueElement.pickBlockID   = queueElement.blockID;
+            queueElement.pickBlockID = queueElement.blockID;
             queueElement.pickBlockMeta = queueElement.metadata;
         }
 

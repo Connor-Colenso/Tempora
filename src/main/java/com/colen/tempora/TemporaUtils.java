@@ -10,12 +10,12 @@ import java.time.format.DateTimeFormatter;
 
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.network.play.client.C0EPacketClickWindow;
+import net.minecraftforge.common.DimensionManager;
 
 import com.colen.tempora.config.Config;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.relauncher.Side;
-import net.minecraftforge.common.DimensionManager;
 
 public class TemporaUtils {
 
@@ -23,8 +23,9 @@ public class TemporaUtils {
 
     public static Path databaseDir() {
         // Works for both dedicated and integrated servers.
-        Path worldDir = DimensionManager.getCurrentSaveRootDirectory().toPath();
-        Path dir      = worldDir.resolve("TemporaDatabases");
+        Path worldDir = DimensionManager.getCurrentSaveRootDirectory()
+            .toPath();
+        Path dir = worldDir.resolve("TemporaDatabases");
 
         try {
             Files.createDirectories(dir);
@@ -36,7 +37,8 @@ public class TemporaUtils {
 
     /** Absolute JDBC URL for the given database file (e.g. "blocks.db"). */
     public static String jdbcUrl(String fileName) {
-        return "jdbc:sqlite:" + databaseDir().resolve(fileName).toAbsolutePath();
+        return "jdbc:sqlite:" + databaseDir().resolve(fileName)
+            .toAbsolutePath();
     }
 
     /**

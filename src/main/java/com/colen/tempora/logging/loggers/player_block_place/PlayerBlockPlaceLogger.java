@@ -19,9 +19,9 @@ import net.minecraftforge.event.world.BlockEvent.PlaceEvent;
 import org.jetbrains.annotations.NotNull;
 
 import com.colen.tempora.TemporaUtils;
-import com.colen.tempora.logging.loggers.generic.ISerializable;
 import com.colen.tempora.logging.loggers.generic.ColumnDef;
 import com.colen.tempora.logging.loggers.generic.GenericPositionalLogger;
+import com.colen.tempora.logging.loggers.generic.ISerializable;
 import com.colen.tempora.utils.PlayerUtils;
 
 import cpw.mods.fml.common.eventhandler.EventPriority;
@@ -95,7 +95,6 @@ public class PlayerBlockPlaceLogger extends GenericPositionalLogger<PlayerBlockP
         }
     }
 
-
     @SubscribeEvent(priority = EventPriority.LOWEST)
     @SuppressWarnings("unused")
     public void onBlockPlace(final @NotNull PlaceEvent event) {
@@ -124,7 +123,8 @@ public class PlayerBlockPlaceLogger extends GenericPositionalLogger<PlayerBlockP
         }
 
         if (event.player instanceof EntityPlayerMP) {
-            queueElement.playerNameWhoPlacedBlock = event.player.getUniqueID().toString();
+            queueElement.playerNameWhoPlacedBlock = event.player.getUniqueID()
+                .toString();
         } else {
             queueElement.playerNameWhoPlacedBlock = TemporaUtils.UNKNOWN_PLAYER_NAME;
         }
