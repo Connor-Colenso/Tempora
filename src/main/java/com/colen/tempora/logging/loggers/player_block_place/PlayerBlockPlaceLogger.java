@@ -99,6 +99,7 @@ public class PlayerBlockPlaceLogger extends GenericPositionalLogger<PlayerBlockP
     @SuppressWarnings("unused")
     public void onBlockPlace(final @NotNull PlaceEvent event) {
         if (isClientSide()) return; // Server side only
+        if (event.isCanceled()) return;
 
         PlayerBlockPlaceQueueElement queueElement = new PlayerBlockPlaceQueueElement();
 
