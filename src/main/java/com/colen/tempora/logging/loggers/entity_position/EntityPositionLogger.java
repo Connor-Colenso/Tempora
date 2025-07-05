@@ -42,7 +42,7 @@ public class EntityPositionLogger extends GenericPositionalLogger<EntityPosition
     }
 
     @Override
-    protected ArrayList<ISerializable> generateQueryResults(ResultSet resultSet) throws SQLException {
+    public ArrayList<ISerializable> generateQueryResults(ResultSet resultSet) throws SQLException {
         ArrayList<ISerializable> eventList = new ArrayList<>();
 
         while (resultSet.next()) {
@@ -63,7 +63,7 @@ public class EntityPositionLogger extends GenericPositionalLogger<EntityPosition
     }
 
     @Override
-    protected List<ColumnDef> getTableColumns() {
+    public List<ColumnDef> getTableColumns() {
         return Arrays.asList(new ColumnDef("entityName", "TEXT", "NOT NULL"));
     }
 

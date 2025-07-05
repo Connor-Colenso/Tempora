@@ -42,7 +42,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
     }
 
     @Override
-    protected List<ColumnDef> getTableColumns() {
+    public List<ColumnDef> getTableColumns() {
         return Arrays.asList(
             new ColumnDef("blockID", "INTEGER", "NOT NULL"),
             new ColumnDef("metadata", "INTEGER", "NOT NULL"),
@@ -91,7 +91,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
     }
 
     @Override
-    protected ArrayList<ISerializable> generateQueryResults(ResultSet resultSet) throws SQLException {
+    public ArrayList<ISerializable> generateQueryResults(ResultSet resultSet) throws SQLException {
         ArrayList<ISerializable> events = new ArrayList<>();
         while (resultSet.next()) {
             BlockChangeQueueElement queueElement = new BlockChangeQueueElement();
