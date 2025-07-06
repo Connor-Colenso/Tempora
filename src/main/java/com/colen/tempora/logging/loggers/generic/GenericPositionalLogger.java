@@ -205,61 +205,44 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
         running = true;
 
-        // 1. Build a ThreadFactory that kills the JVM on any uncaught Throwable
-        ThreadFactory factory = r -> {
-            Thread t = new Thread(r, "Tempora-" + sqlTableName);
-            t.setDaemon(false);
-            t.setUncaughtExceptionHandler((thr, ex) -> {
-                FMLLog.severe("Tempora queue‑worker '%s' crashed – halting JVM!", t.getName());
-                ex.printStackTrace();
-                Runtime.getRuntime()
-                    .halt(1); // bypasses SecurityManager
-            });
-            return t;
-        };
-
-        executor = Executors.newSingleThreadExecutor(factory);
-
-        // 2. Submit the actual worker Runnable
-        executor.submit(() -> {
-            final List<EventToLog> buffer = new ArrayList<>();
-            final int LARGE_QUEUE_THRESHOLD = 5_000;
-
-            try {
-                while (running || !eventQueue.isEmpty()) {
-
-                    EventToLog event = eventQueue.poll(300, TimeUnit.MILLISECONDS);
-                    if (event == null) continue;
-
-                    if (eventQueue.size() > LARGE_QUEUE_THRESHOLD) {
-                        FMLLog.warning(
-                            "%s has %,d elements waiting to store in Tempora's DB – server may be lagging!",
-                            sqlTableName,
-                            eventQueue.size());
-                    }
-
-                    buffer.add(event);
-                    eventQueue.drainTo(buffer);
-
-                    threadedSaveEvents(buffer);
-                    getDBConn().commit();
-                    buffer.clear();
-                }
-
-                if (running) {
-                    throw new IllegalStateException(
-                        "Queue worker terminated unexpectedly while 'running' flag is true");
-                }
-
-            } catch (InterruptedException ie) {
-                Thread.currentThread()
-                    .interrupt();
-                throw new RuntimeException("Queue worker interrupted", ie);
-
-            } catch (Exception e) {
-                throw new RuntimeException("Queue worker failed " + getSQLTableName(), e);
-            }
+        Thread t = new Thread(() -> queueLoop(sqlTableName),
+            "Tempora-" + sqlTableName);
+        t.setDaemon(false);
+        t.setUncaughtExceptionHandler((thr, ex) -> {
+            FMLLog.severe("Tempora queue‑worker '%s' crashed – halting JVM!", thr.getName());
+            ex.printStackTrace();
+            FMLCommonHandler.instance().exitJava(-1, false);
         });
+        t.start();
+    }
+
+    private void queueLoop(String sqlTableName) {
+        final List<EventToLog> buffer = new ArrayList<>();
+        final int LARGE_QUEUE_THRESHOLD = 5_000;
+
+        while (running || !eventQueue.isEmpty()) {
+            try {
+                EventToLog event = eventQueue.poll(300, TimeUnit.MILLISECONDS);
+                if (event == null) continue;
+
+                if (eventQueue.size() > LARGE_QUEUE_THRESHOLD) {
+                    FMLLog.warning("%s has %,d elements waiting…", sqlTableName, eventQueue.size());
+                }
+
+                buffer.add(event);
+                eventQueue.drainTo(buffer);
+
+                threadedSaveEvents(buffer);
+                getDBConn().commit();
+                buffer.clear();
+            } catch (Exception x) {
+                throw new RuntimeException("DB failure in " + sqlTableName, x); // bubbles to handler
+            }
+        }
+
+        if (running) {
+            throw new IllegalStateException("Queue worker terminated unexpectedly");
+        }
     }
 
     public final void genericConfig(@NotNull Configuration config) {
