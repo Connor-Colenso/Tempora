@@ -41,8 +41,9 @@ public class EntitySpawnLogger extends GenericPositionalLogger<EntitySpawnQueueE
     @SuppressWarnings("unused")
     public void onEntitySpawn(EntityJoinWorldEvent event) {
         if (isClientSide()) return;
-        if (event.entity instanceof EntityPlayerMP) return;
         if (event.isCanceled()) return;
+        if (event.entity instanceof EntityPlayerMP) return;
+
         IEntityMixin entityMixin = (IEntityMixin) event.entity;
         if (entityMixin.getTempora$HasBeenLogged()) return;
 

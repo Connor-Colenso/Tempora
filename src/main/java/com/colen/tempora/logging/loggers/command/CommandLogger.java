@@ -93,6 +93,7 @@ public class CommandLogger extends GenericPositionalLogger<CommandQueueElement> 
     public void onCommand(final CommandEvent event) {
         // Server side only.
         if (isClientSide()) return;
+        if (event.isCanceled()) return;
 
         if (event.sender instanceof EntityPlayerMP player) {
             ICommand command = event.command;

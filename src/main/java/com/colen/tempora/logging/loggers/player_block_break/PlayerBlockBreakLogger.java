@@ -105,6 +105,7 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
     public void onBlockBreak(final @NotNull BlockEvent.BreakEvent event) {
         // Server side only.
         if (isClientSide()) return;
+        if (event.isCanceled()) return;
 
         PlayerBlockBreakQueueElement queueElement = new PlayerBlockBreakQueueElement();
         queueElement.x = event.x;
