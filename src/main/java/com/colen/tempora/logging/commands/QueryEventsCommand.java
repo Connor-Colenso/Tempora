@@ -27,6 +27,11 @@ public class QueryEventsCommand extends CommandBase {
     @Override
     public void processCommand(ICommandSender sender, String[] args) {
 
+        if (!(sender instanceof EntityPlayerMP entityPlayerMP)) {
+            sender.addChatMessage(new ChatComponentText("This command can only be run by a user in-game."));
+            return;
+        }
+
         if (args.length < 2) {
             sender.addChatMessage(new ChatComponentText(getCommandUsage(sender)));
             return;
@@ -37,7 +42,11 @@ public class QueryEventsCommand extends CommandBase {
 
         String tableName = args.length == 3 ? validateFilter(args[2]) : null;
 
-        queryDatabases(sender, radius, seconds, tableName);
+        int x = (int) Math.round(entityPlayerMP.posX);
+        int y = (int) Math.round(entityPlayerMP.posY);
+        int z = (int) Math.round(entityPlayerMP.posZ);
+
+        GenericPositionalLogger.queryEventByCoordinate(sender, x, y, z, radius, seconds, tableName, entityPlayerMP.dimension);
     }
 
     private String validateFilter(String input) {
@@ -47,15 +56,6 @@ public class QueryEventsCommand extends CommandBase {
             }
         }
         throw new WrongUsageException("Filter " + input + " is invalid");
-    }
-
-    public static void queryDatabases(ICommandSender sender, int radius, long seconds, String tableName) {
-        if (!(sender instanceof EntityPlayerMP)) {
-            sender.addChatMessage(new ChatComponentText("This command can only be run by a user in-game."));
-            return;
-        }
-
-        GenericPositionalLogger.queryEventsWithinRadiusAndTime(sender, radius, seconds, tableName);
     }
 
     @Override
