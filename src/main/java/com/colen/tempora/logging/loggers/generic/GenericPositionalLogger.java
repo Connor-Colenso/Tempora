@@ -203,10 +203,12 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
     private void startQueueWorker(String sqlTableName) {
 
+        running = true;
+
         // 1. Build a ThreadFactory that kills the JVM on any uncaught Throwable
         ThreadFactory factory = r -> {
             Thread t = new Thread(r, "Tempora-" + sqlTableName);
-            t.setDaemon(false); // keep JVM alive while the worker is alive
+            t.setDaemon(false);
             t.setUncaughtExceptionHandler((thr, ex) -> {
                 FMLLog.severe("Tempora queue‑worker '%s' crashed – halting JVM!", t.getName());
                 ex.printStackTrace();
@@ -226,7 +228,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
             try {
                 while (running || !eventQueue.isEmpty()) {
 
-                    EventToLog event = eventQueue.poll(100, TimeUnit.MILLISECONDS);
+                    EventToLog event = eventQueue.poll(300, TimeUnit.MILLISECONDS);
                     if (event == null) continue;
 
                     if (eventQueue.size() > LARGE_QUEUE_THRESHOLD) {

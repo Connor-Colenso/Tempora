@@ -1,5 +1,6 @@
 package com.colen.tempora.mixin_interfaces;
 
 public interface IEntityMixin {
-    String getTempora$EntityUUID();
+    boolean getTempora$HasBeenLogged();
+    void setTempora$HasBeenLogged(boolean logged);
 }

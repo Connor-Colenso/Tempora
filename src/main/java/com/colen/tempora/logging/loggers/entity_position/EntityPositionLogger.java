@@ -66,8 +66,8 @@ public class EntityPositionLogger extends GenericPositionalLogger<EntityPosition
     @Override
     public List<ColumnDef> getTableColumns() {
         return Arrays.asList(
-            new ColumnDef("entityName", "TEXT", "NOT NULL DEFAULT 'Unknown Entity'"),
-            new ColumnDef("entityUUID", "TEXT", "NOT NULL DEFAULT 'Unknown UUID'")
+            new ColumnDef("entityName", "TEXT", "NOT NULL DEFAULT '[Missing Data]'"),
+            new ColumnDef("entityUUID", "TEXT", "NOT NULL DEFAULT '[Missing Data]'")
         );
     }
 

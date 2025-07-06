@@ -1,5 +1,13 @@
 package com.colen.tempora.utils;
 
+import net.minecraft.event.ClickEvent;
+import net.minecraft.event.HoverEvent;
+import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.ChatStyle;
+import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.IChatComponent;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -8,6 +16,16 @@ import java.util.Set;
 public class GenericUtils {
 
     private static final int STACK_TRACE_DEPTH = 3;
+
+    public static IChatComponent entityUUIDChatComponent(String uuid) {
+        IChatComponent clickToCopy = new ChatComponentTranslation("tempora.click.to.copy.uuid");
+        clickToCopy.getChatStyle().setColor(EnumChatFormatting.GRAY);
+
+        return new ChatComponentText("[UUID]")
+            .setChatStyle(new ChatStyle().setColor(EnumChatFormatting.AQUA)
+                .setChatClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, uuid))
+                .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, clickToCopy)));
+    }
 
     public static String getCallingClassChain() {
         StackTraceElement[] stack = Thread.currentThread()
