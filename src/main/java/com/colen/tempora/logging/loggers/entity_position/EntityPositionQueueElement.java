@@ -1,5 +1,6 @@
 package com.colen.tempora.logging.loggers.entity_position;
 
+import com.colen.tempora.utils.PlayerUtils;
 import net.minecraft.event.ClickEvent;
 import net.minecraft.event.HoverEvent;
 import net.minecraft.util.ChatComponentText;
@@ -18,7 +19,7 @@ public class EntityPositionQueueElement extends GenericQueueElement {
 
     @Override
     public IChatComponent localiseText(String uuid) {
-        IChatComponent coords = generateTeleportChatComponent(x, y, z, CoordFormat.FLOAT_1DP);
+        IChatComponent coords = generateTeleportChatComponent(x, y, z, dimensionId, PlayerUtils.UUIDToName(uuid), CoordFormat.FLOAT_1DP);
         IChatComponent timeAgo = TimeUtils.formatTime(timestamp, uuid);
 
         IChatComponent clickToCopy = new ChatComponentTranslation("tempora.click.to.copy.uuid");

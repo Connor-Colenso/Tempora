@@ -1,5 +1,6 @@
 package com.colen.tempora.logging.loggers.entity_death;
 
+import com.colen.tempora.utils.PlayerUtils;
 import net.minecraft.event.ClickEvent;
 import net.minecraft.event.HoverEvent;
 import net.minecraft.util.ChatComponentText;
@@ -21,7 +22,7 @@ public class EntityDeathQueueElement extends GenericQueueElement {
 
     @Override
     public IChatComponent localiseText(String uuid) {
-        IChatComponent coords = generateTeleportChatComponent(x, y, z, CoordFormat.INT);
+        IChatComponent coords = generateTeleportChatComponent(x, y, z, dimensionId, PlayerUtils.UUIDToName(uuid), CoordFormat.FLOAT_1DP);
         IChatComponent timeAgo = TimeUtils.formatTime(timestamp, uuid);
 
         IChatComponent uuidChatComponent = entityUUIDChatComponent(entityUUID);

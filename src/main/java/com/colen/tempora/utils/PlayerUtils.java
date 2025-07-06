@@ -2,6 +2,9 @@ package com.colen.tempora.utils;
 
 import static com.colen.tempora.TemporaUtils.UNKNOWN_PLAYER_NAME;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
@@ -14,6 +17,9 @@ import net.minecraft.server.management.ServerConfigurationManager;
 import net.minecraft.server.management.UserListOps;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
+import net.minecraftforge.common.UsernameCache;
+
+import javax.annotation.Nullable;
 
 public class PlayerUtils {
 
@@ -81,5 +87,34 @@ public class PlayerUtils {
                 obj.addChatMessage(chat);
             }
         }
+    }
+
+
+    @Nullable
+    public static String uuidForName(String name) {
+        Map<UUID, String> map = UsernameCache.getMap();
+        for (Map.Entry<UUID, String> entry : map.entrySet()) {
+            if (entry.getValue().equalsIgnoreCase(name)) {
+                return entry.getKey().toString();
+            }
+        }
+        return null;
+    }
+
+    // Warning! This is tab completion for every player who has ever been on the server, not just those online!
+    public static List<String> getTabCompletionForPlayerNames(String prefix) {
+        List<String> completions = new ArrayList<>();
+        if (prefix == null) prefix = "";
+
+        Map<UUID, String> map = UsernameCache.getMap();
+        String lowerPrefix = prefix.toLowerCase();
+
+        for (String playerName : map.values()) {
+            if (playerName.toLowerCase().startsWith(lowerPrefix)) {
+                completions.add(playerName);
+            }
+        }
+
+        return completions;
     }
 }

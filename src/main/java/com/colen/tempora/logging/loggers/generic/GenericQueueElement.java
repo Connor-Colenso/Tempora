@@ -3,6 +3,7 @@ package com.colen.tempora.logging.loggers.generic;
 import net.minecraft.event.ClickEvent;
 import net.minecraft.event.HoverEvent;
 import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.ChatStyle;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
@@ -47,24 +48,32 @@ public abstract class GenericQueueElement implements ISerializable {
         }
     }
 
-    protected static IChatComponent generateTeleportChatComponent(double x, double y, double z, CoordFormat fmt) {
+    public static IChatComponent generateTeleportChatComponent(
+        double x, double y, double z,
+        int dimId,
+        String playerName,
+        CoordFormat fmt) {
 
-        /* -------------------------------- display string ------------------------------- */
-        String displayCoords = "[ " + fmt.display(x) + ", " + fmt.display(y) + ", " + fmt.display(z) + " ]";
+        /* --------- translation‑driven display string --------- */
+        IChatComponent display = new ChatComponentTranslation(
+            "tempora.teleport.display",
+            fmt.display(x), fmt.display(y), fmt.display(z));
 
-        /* ------------------------------- command string --------------------------------- */
-        String cmd = "/tp " + fmt.command(x) + " " + fmt.command(y) + " " + fmt.command(z);
+        String cmd = "/cofh tpx " + playerName + " "
+            + fmt.command(x) + " " + fmt.command(y) + " " + fmt.command(z) + " "
+            + dimId;
 
-        /* -------------------------- clickable chat component ---------------------------- */
-        ChatComponentText coords = new ChatComponentText(displayCoords);
+        IChatComponent hoverText = new ChatComponentTranslation(
+            "tempora.teleport.hover",
+            fmt.display(x), fmt.display(y), fmt.display(z), dimId);
 
-        coords.setChatStyle(
+        display.setChatStyle(
             new ChatStyle().setColor(EnumChatFormatting.AQUA)
                 .setChatClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, cmd))
-                .setChatHoverEvent(
-                    new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText("§7Click to teleport"))));
+                .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hoverText))
+        );
 
-        return coords; // ready to append to any parent component
+        return display;
     }
 
 }
