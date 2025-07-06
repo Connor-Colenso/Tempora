@@ -3,6 +3,7 @@ package com.colen.tempora;
 import static com.colen.tempora.config.Config.synchronizeConfiguration;
 
 import com.colen.tempora.logging.commands.AverageHomeCommand;
+import com.colen.tempora.logging.commands.HomeChunkCommand;
 import com.colen.tempora.logging.commands.QuerySQLCommand;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
@@ -134,6 +135,7 @@ public class Tempora {
         event.registerServerCommand(new QuerySQLCommand());
         event.registerServerCommand(new CreateRegion());
         event.registerServerCommand(new AverageHomeCommand());
+        event.registerServerCommand(new HomeChunkCommand());
         event.registerServerCommand(new RemoveRegion());
     }
 
