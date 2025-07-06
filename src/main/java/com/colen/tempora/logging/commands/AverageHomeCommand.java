@@ -3,30 +3,35 @@ package com.colen.tempora.logging.commands;
 import com.colen.tempora.logging.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.logging.loggers.generic.GenericQueueElement;
 import com.colen.tempora.utils.PlayerUtils;
-import com.colen.tempora.utils.TimeUtils;                    // ⬅ NEW
+import com.colen.tempora.utils.TimeUtils;
 import cpw.mods.fml.common.FMLLog;
 import net.minecraft.command.CommandBase;
-import net.minecraft.command.ICommandSender;
 import net.minecraft.command.CommandException;
-import net.minecraft.util.*;
+import net.minecraft.command.ICommandSender;
+import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.IChatComponent;
 
-import java.sql.*;
-import java.util.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Collections;
+import java.util.List;
 
 import static com.colen.tempora.logging.loggers.generic.GenericQueueElement.generateTeleportChatComponent;
 
 public class AverageHomeCommand extends CommandBase {
 
-    @Override public String getCommandName()          { return "averagehome"; }
-    @Override public int    getRequiredPermissionLevel() { return 2; }
+    @Override public String getCommandName() { return "averagehome"; }
+    @Override public int    getRequiredPermissionLevel()    { return 2; }
     @Override public String getCommandUsage(ICommandSender sender) {
-        return "/averagehome <player> [--forcedim=<id>] [--lookback=<time>]";
+        return "/averagehome <player> [<look-back>] [<dim>]";
     }
 
     @Override
-    public List<String> addTabCompletionOptions(ICommandSender sender, String[] args) {
-        return (args.length == 1)
-            ? PlayerUtils.getTabCompletionForPlayerNames(args[0])
+    public List<String> addTabCompletionOptions(ICommandSender s, String[] a) {
+        return (a.length == 1)
+            ? PlayerUtils.getTabCompletionForPlayerNames(a[0])
             : Collections.emptyList();
     }
 
@@ -40,7 +45,7 @@ public class AverageHomeCommand extends CommandBase {
             return;
         }
 
-        // Get UUID
+        // Get player UUID
         final String uuid = PlayerUtils.uuidForName(args[0]);
         if (uuid == null) {
             sender.addChatMessage(new ChatComponentTranslation(
@@ -48,43 +53,33 @@ public class AverageHomeCommand extends CommandBase {
             return;
         }
 
-        // Optional flags
+        // Optional lookback and force dim param handling.
+        Long    lookbackCutoffEpoch = null;
         Integer forcedDim           = null;
-        Long    lookbackCutoffEpoch = null;          // millis UTC
-        for (int i = 1; i < args.length; i++) {
-            String flag = args[i];
 
-            if (flag.startsWith("--forcedim=")) {
-                try {
-                    forcedDim = Integer.parseInt(flag.substring("--forcedim=".length()));
-                } catch (NumberFormatException ex) {
-                    throw new CommandException("Bad --forcedim value; must be an integer.");
-                }
-
-            } else if (flag.startsWith("--lookback=")) {
-                String spec = flag.substring("--lookback=".length());
-                long seconds = TimeUtils.convertToSeconds(spec);  // e.g. “1h”, “3days”
+        if (args.length >= 2) {
+            String p = args[1];
+            if (containsLetter(p)) {
+                long seconds = TimeUtils.convertToSeconds(p);
                 lookbackCutoffEpoch = System.currentTimeMillis() - seconds * 1000L;
-
             } else {
-                throw new CommandException("Unknown flag: " + flag);
+                forcedDim = parseDim(p);
             }
         }
+        if (args.length >= 3) {
+            forcedDim = parseDim(args[2]);
+        }
 
-        // Get DB connection (read only)
+        // Get read only DB connection.
         GenericPositionalLogger<?> movementLogger =
             GenericPositionalLogger.getLogger("PlayerMovementLogger");
-        if (movementLogger == null) {
+        if (movementLogger == null || movementLogger.getReadOnlyConnection() == null) {
             sender.addChatMessage(new ChatComponentTranslation("tempora.command.averagehome.no_db"));
             return;
         }
         Connection conn = movementLogger.getReadOnlyConnection();
-        if (conn == null) {
-            sender.addChatMessage(new ChatComponentTranslation("tempora.command.averagehome.no_db"));
-            return;
-        }
 
-        // Compose SQL
+        // Build SQL query
         final String tbl = movementLogger.getSQLTableName();
         StringBuilder sql = new StringBuilder()
             .append("SELECT AVG(x) AS avg_x, AVG(y) AS avg_y, AVG(z) AS avg_z, dimensionID ")
@@ -103,52 +98,36 @@ public class AverageHomeCommand extends CommandBase {
             sql.append("AND timestamp >= ? ");
         }
 
-        // Execute SQL
+        // Execute query
         try (PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
 
-            int idx = 1;
-            stmt.setString(idx++, uuid);
+            int i = 1;
+            stmt.setString(i++, uuid);
 
-            if (forcedDim != null) {
-                stmt.setInt(idx++, forcedDim);
-            } else {
-                stmt.setString(idx++, uuid);
-            }
+            if (forcedDim != null)         stmt.setInt   (i++, forcedDim);
+            else                           stmt.setString(i++, uuid);
 
-            if (lookbackCutoffEpoch != null) {
-                stmt.setLong(idx, lookbackCutoffEpoch);
-            }
+            if (lookbackCutoffEpoch != null) stmt.setLong(i, lookbackCutoffEpoch);
 
             try (ResultSet rs = stmt.executeQuery()) {
-                if (!rs.next()) {
+                if (!rs.next() || rs.getObject("avg_x") == null) {
                     sender.addChatMessage(new ChatComponentTranslation(
                         "tempora.command.averagehome.no_data"));
                     return;
                 }
 
-                /* 6) ——— Build reply ——— */
                 double avgX = rs.getDouble("avg_x");
-                if (rs.wasNull()) {             // ➋ row exists, but AVG() ⇒ NULL
-                    sender.addChatMessage(new ChatComponentTranslation(
-                        "tempora.command.averagehome.no_data"));
-                    return;
-                }
-
                 double avgY = rs.getDouble("avg_y");
                 double avgZ = rs.getDouble("avg_z");
-                int    dim  = rs.getInt("dimensionID");
+                int    dim  = rs.getInt   ("dimensionID");
 
                 IChatComponent tpLink = generateTeleportChatComponent(
                     avgX, avgY, avgZ, dim, args[0],
                     GenericQueueElement.CoordFormat.FLOAT_1DP);
 
-                IChatComponent msg = new ChatComponentTranslation(
+                sender.addChatMessage(new ChatComponentTranslation(
                     "tempora.command.averagehome.result",
-                    PlayerUtils.UUIDToName(uuid),
-                    dim,
-                    tpLink);
-
-                sender.addChatMessage(msg);
+                    PlayerUtils.UUIDToName(uuid), dim, tpLink));
             }
 
         } catch (SQLException e) {
@@ -156,6 +135,19 @@ public class AverageHomeCommand extends CommandBase {
             e.printStackTrace();
             sender.addChatMessage(new ChatComponentTranslation(
                 "tempora.command.averagehome.sql_error"));
+        }
+    }
+
+    private static boolean containsLetter(String s) {
+        for (int c : s.codePoints().toArray())
+            if (Character.isLetter(c)) return true;
+        return false;
+    }
+
+    private static int parseDim(String s) {
+        try { return Integer.parseInt(s); }
+        catch (NumberFormatException ex) {
+            throw new CommandException("Bad <dim> value; must be an integer.");
         }
     }
 }
