@@ -33,3 +33,4 @@ tempora.command.querysql.error=Error: %s
 
 tempora.click.to.copy.uuid=Click to copy UUID
 
+item.tempora_wand.name=Tempora Wand

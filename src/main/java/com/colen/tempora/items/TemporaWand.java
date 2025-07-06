@@ -21,15 +21,15 @@ public class TemporaWand extends Item {
         this.setCreativeTab(CreativeTabs.tabTools); // Adjust this to whatever tab you want the item to appear in.
 
         // Set the unlocalized and registry name for this item.
-        this.setUnlocalizedName("admin_wand"); // This is used for localization.
+        this.setUnlocalizedName("tempora_wand"); // This is used for localization.
+
+        this.setTextureName("tempora:tempora_wand");
     }
 
     @Override
     public ItemStack onItemRightClick(ItemStack itemStackIn, World world, EntityPlayer player) {
         if (!PlayerUtils.isPlayerOp(player)) {
             PlayerUtils.sendMessageToOps("player.tempora.wand.unauthorised", player.getDisplayName());
-
-            return super.onItemRightClick(itemStackIn, world, player);
         } else {
             if (TemporaUtils.isServerSide()) {
                 for (GenericPositionalLogger<?> logger : GenericPositionalLogger.getLoggerList()) {
@@ -37,7 +37,7 @@ public class TemporaWand extends Item {
                 }
             }
 
-            return super.onItemRightClick(itemStackIn, world, player);
         }
+        return super.onItemRightClick(itemStackIn, world, player);
     }
 }
