@@ -18,9 +18,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
 import net.minecraft.command.ICommandSender;
@@ -316,79 +314,87 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
         return Collections.unmodifiableSet(loggerList);
     }
 
-    public static void queryEventsWithinRadiusAndTime(ICommandSender sender, int radius, long seconds,
-        String tableName) {
+    public static void queryEventsAtPosAndTime(ICommandSender sender,
+                                               int centreX, int centreY, int centreZ,
+                                               long seconds,
+                                               String tableName)
+    {
+        if (!(sender instanceof EntityPlayerMP player)) return;
 
-        if (!(sender instanceof EntityPlayerMP entityPlayerMP)) return;
-        int posX = entityPlayerMP.getPlayerCoordinates().posX;
-        int posY = entityPlayerMP.getPlayerCoordinates().posY;
-        int posZ = entityPlayerMP.getPlayerCoordinates().posZ;
-        int dimensionId = entityPlayerMP.dimension;
+        // radius 0 means an exact match – the SQL below
+        // (ABS(x - ?) <= radius) degenerates to x == ?, y == ?, z == ?
+        queryEventByCoordinate(sender, centreX, centreY, centreZ, 0, seconds, tableName, player.dimension);
+    }
 
-        long pastTime = System.currentTimeMillis() - seconds * 1000; // Convert seconds to milliseconds
+    public static void queryEventByCoordinate(ICommandSender sender,
+                                               int centreX, int centreY, int centreZ,
+                                               int radius,
+                                               long seconds,
+                                               String tableName,
+                                               int dimensionId)
+    {
+        long pastTime = System.currentTimeMillis() - seconds * 1000L;
 
-        synchronized (GenericPositionalLogger.class) {
-            for (GenericPositionalLogger<?> logger : loggerList) {
-                if (tableName != null && !logger.getSQLTableName()
-                    .equals(tableName)) continue;
-                try (PreparedStatement pstmt = logger.getDBConn()
-                    .prepareStatement(
-                        "SELECT * FROM " + logger.getSQLTableName()
-                            + " WHERE ABS(x - ?) <= ? AND ABS(y - ?) <= ? AND ABS(z - ?) <= ?"
-                            + " AND dimensionID = ? AND timestamp >= ? ORDER BY timestamp DESC LIMIT ?")) {
+        synchronized (GenericPositionalLogger.class)
+        {
+            for (GenericPositionalLogger<?> logger : loggerList)
+            {
+                if (tableName != null && !logger.getSQLTableName().equals(tableName)) continue;
 
-                    pstmt.setDouble(1, posX);
-                    pstmt.setInt(2, radius);
-                    pstmt.setDouble(3, posY);
-                    pstmt.setInt(4, radius);
-                    pstmt.setDouble(5, posZ);
-                    pstmt.setInt(6, radius);
-                    pstmt.setInt(7, dimensionId);
-                    pstmt.setTimestamp(8, new Timestamp(pastTime)); // Filter events from pastTime onwards
-                    pstmt.setInt(9, MAX_DATA_ROWS_PER_DB);
+                String sql =
+                    "SELECT * FROM " + logger.getSQLTableName() +
+                        " WHERE ABS(x - ?) <= ?  AND ABS(y - ?) <= ?  AND ABS(z - ?) <= ? " +
+                        "   AND dimensionID = ? AND timestamp >= ? " +
+                        " ORDER BY timestamp DESC LIMIT ?";
 
-                    // Try send the result to the player.
-                    try (ResultSet rs = pstmt.executeQuery()) {
+                try (PreparedStatement ps = logger.getDBConn().prepareStatement(sql))
+                {
+                    /* 1‑3: centre coordinate, 4‑6: radius window                */
+                    ps.setInt(1, centreX); ps.setInt(2, radius);
+                    ps.setInt(3, centreY); ps.setInt(4, radius);
+                    ps.setInt(5, centreZ); ps.setInt(6, radius);
 
-                        // Get each result as a QueueElement, so it can be localised.
+                    /* dimension / time / limit                                  */
+                    ps.setInt     (7, dimensionId);
+                    ps.setTimestamp(8, new Timestamp(pastTime));
+                    ps.setInt     (9, MAX_DATA_ROWS_PER_DB);
+
+                    try (ResultSet rs = ps.executeQuery())
+                    {
                         List<ISerializable> packets = logger.generateQueryResults(rs);
-                        // Invert the list so we get the newest first.
-                        Collections.reverse(packets);
+                        Collections.reverse(packets);          // newest first
 
-                        if (packets.isEmpty()) {
-                            sender.addChatMessage(
-                                new ChatComponentText(
-                                    EnumChatFormatting.GRAY + "No results found for "
-                                        + logger.getSQLTableName()
-                                        + '.'));
-                            return;
-                        } else {
-                            sender.addChatMessage(
-                                new ChatComponentText(
-                                    EnumChatFormatting.GRAY + "Showing latest "
-                                        + packets.size()
-                                        + " results for "
-                                        + logger.getSQLTableName()
-                                        + ':'));
+                        EntityPlayerMP player = (EntityPlayerMP) sender;
+                        if (packets.isEmpty())
+                        {
+                            player.addChatMessage(new ChatComponentText(
+                                EnumChatFormatting.GRAY + "No results found for " +
+                                    logger.getSQLTableName() + '.'));
                         }
-
-                        if (logger.eventQueue.size() > 100) {
-                            sender.addChatMessage(
-                                new ChatComponentText(
-                                    EnumChatFormatting.RED + "Warning, due to high volume, there are still "
-                                        + logger.eventQueue.size()
-                                        + " events pending, query results may be outdated/inaccurate."));
+                        else
+                        {
+                            player.addChatMessage(new ChatComponentText(
+                                EnumChatFormatting.GRAY + "Showing latest " +
+                                    packets.size() + " results for " +
+                                    logger.getSQLTableName() + ':'));
+                            if (logger.eventQueue.size() > 100)
+                            {
+                                player.addChatMessage(new ChatComponentText(
+                                    EnumChatFormatting.RED +
+                                        "Warning, due to high volume, there are still " +
+                                        logger.eventQueue.size() +
+                                        " events pending; query results may be outdated."));
+                            }
+                            String uuid = player.getUniqueID().toString();
+                            packets.forEach(p -> player.addChatMessage(p.localiseText(uuid)));
                         }
-
-                        String uuid = entityPlayerMP.getUniqueID()
-                            .toString();
-                        packets.forEach(p -> entityPlayerMP.addChatMessage(p.localiseText(uuid)));
                     }
-
-                } catch (SQLException e) {
-                    sender.addChatMessage(
-                        new ChatComponentText(
-                            "Database query failed on " + logger.getSQLTableName() + ": " + e.getLocalizedMessage()));
+                }
+                catch (SQLException e)
+                {
+                    sender.addChatMessage(new ChatComponentText(
+                        "Database query failed on " + logger.getSQLTableName() +
+                            ": " + e.getMessage()));
                 }
             }
         }
