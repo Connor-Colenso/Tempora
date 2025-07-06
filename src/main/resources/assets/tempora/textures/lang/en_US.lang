@@ -2,7 +2,7 @@ message.block_break=%s broke %s (%d:%d) at %s (%s).
 message.block_place=%s placed %s (%d:%d) at %s (%s).
 message.command_issued=%s issued command /%s %s at %s (%s).
 message.entity_death=%s was killed by %s at %s (%s).
-message.entity_position=%s was located at %s (%s).
+message.entity_position=%s with %s was located at %s (%s).
 message.entity_spawn=%s spawned at %s (%s).
 message.explosion=Explosion caused by %s with strength %s near player %s (%s meters away) at %s (%s).
 message.item_use=%s used %s (%d:%d) at %s (%s).
@@ -31,5 +31,5 @@ tempora.command.querysql.query_display=Query: %s
 tempora.command.querysql.results=Query results:
 tempora.command.querysql.error=Error: %s
 
-
+tempora.click.to.copy.uuid=Click to copy UUID
 
