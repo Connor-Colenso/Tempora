@@ -42,7 +42,7 @@ public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovement
 
     @Override
     public List<ColumnDef> getTableColumns() {
-        return Arrays.asList(new ColumnDef("playerUUID", "TEXT", "NOT NULL"));
+        return Arrays.asList(new ColumnDef("playerUUID", "TEXT", "NOT NULL DEFAULT '[Missing Data]'"));
     }
 
     private int playerMovementLoggingInterval;

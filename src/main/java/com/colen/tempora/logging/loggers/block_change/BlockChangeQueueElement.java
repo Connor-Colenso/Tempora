@@ -1,5 +1,6 @@
 package com.colen.tempora.logging.loggers.block_change;
 
+import com.colen.tempora.utils.PlayerUtils;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 
@@ -21,7 +22,7 @@ public class BlockChangeQueueElement extends GenericQueueElement {
     public IChatComponent localiseText(String uuid) {
 
         IChatComponent blockName = BlockUtils.getUnlocalisedChatComponent(blockID, metadata);
-        IChatComponent coords = generateTeleportChatComponent(x, y, z, CoordFormat.INT);
+        IChatComponent coords = generateTeleportChatComponent(x, y, z, dimensionId, PlayerUtils.UUIDToName(uuid), CoordFormat.INT);
         // We use UUID to determine timezone, for localising.
         IChatComponent timeAgo = TimeUtils.formatTime(timestamp, uuid);
 

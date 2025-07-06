@@ -59,6 +59,16 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
         loggerList.add(this);
     }
 
+    public static GenericPositionalLogger<?> getLogger(String playerMovementLogger) {
+        for (GenericPositionalLogger<?> logger : loggerList) {
+            if (playerMovementLogger.equals(logger.getSQLTableName())) {
+                return logger;
+            }
+        }
+
+        return null;
+    }
+
     protected LogWriteSafety defaultLogWriteSafetyMode() {
         return LogWriteSafety.NORMAL;
     }

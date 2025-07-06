@@ -1,5 +1,6 @@
 package com.colen.tempora.logging.loggers.explosion;
 
+import com.colen.tempora.utils.PlayerUtils;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 
@@ -15,7 +16,7 @@ public class ExplosionQueueElement extends GenericQueueElement {
 
     @Override
     public IChatComponent localiseText(String uuid) {
-        IChatComponent coords = generateTeleportChatComponent(x, y, z, CoordFormat.FLOAT_1DP);
+        IChatComponent coords = generateTeleportChatComponent(x, y, z, dimensionId, PlayerUtils.UUIDToName(uuid), CoordFormat.FLOAT_1DP);
         IChatComponent timeAgo = TimeUtils.formatTime(timestamp, uuid);
 
         return new ChatComponentTranslation(
