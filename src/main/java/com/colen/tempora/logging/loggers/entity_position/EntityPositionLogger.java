@@ -53,6 +53,7 @@ public class EntityPositionLogger extends GenericPositionalLogger<EntityPosition
             queueElement.z = resultSet.getDouble("z");
             queueElement.dimensionId = resultSet.getInt("dimensionID");
             queueElement.entityName = resultSet.getString("entityName");
+            queueElement.entityUUID = resultSet.getString("entityUUID");
             queueElement.timestamp = resultSet.getLong("timestamp");
 
             eventList.add(queueElement);
@@ -64,7 +65,10 @@ public class EntityPositionLogger extends GenericPositionalLogger<EntityPosition
 
     @Override
     public List<ColumnDef> getTableColumns() {
-        return Arrays.asList(new ColumnDef("entityName", "TEXT", "NOT NULL"));
+        return Arrays.asList(
+            new ColumnDef("entityName", "TEXT", "NOT NULL DEFAULT 'Unknown Entity'"),
+            new ColumnDef("entityUUID", "TEXT", "NOT NULL DEFAULT 'Unknown UUID'")
+        );
     }
 
     @Override
@@ -72,16 +76,17 @@ public class EntityPositionLogger extends GenericPositionalLogger<EntityPosition
         if (queueElements == null || queueElements.isEmpty()) return;
 
         final String sql = "INSERT INTO " + getSQLTableName()
-            + " (entityName, x, y, z, dimensionID, timestamp) VALUES (?, ?, ?, ?, ?, ?)";
+            + " (entityName, entityUUID, x, y, z, dimensionID, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?)";
 
         try (PreparedStatement pstmt = getDBConn().prepareStatement(sql)) {
             for (EntityPositionQueueElement element : queueElements) {
                 pstmt.setString(1, element.entityName);
-                pstmt.setDouble(2, element.x);
-                pstmt.setDouble(3, element.y);
-                pstmt.setDouble(4, element.z);
-                pstmt.setInt(5, element.dimensionId);
-                pstmt.setTimestamp(6, new Timestamp(element.timestamp));
+                pstmt.setString(2, element.entityUUID);
+                pstmt.setDouble(3, element.x);
+                pstmt.setDouble(4, element.y);
+                pstmt.setDouble(5, element.z);
+                pstmt.setInt(6, element.dimensionId);
+                pstmt.setTimestamp(7, new Timestamp(element.timestamp));
                 pstmt.addBatch();
             }
 
@@ -106,6 +111,7 @@ public class EntityPositionLogger extends GenericPositionalLogger<EntityPosition
         queueElement.timestamp = System.currentTimeMillis();
 
         queueElement.entityName = event.entityLiving.getCommandSenderName();
+        queueElement.entityUUID = event.entityLiving.getUniqueID().toString();
 
         queueEvent(queueElement);
     }
