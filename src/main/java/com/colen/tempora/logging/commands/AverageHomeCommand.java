@@ -101,7 +101,7 @@ public class AverageHomeCommand extends CommandBase {
                     // Player X is most active in dim Y, click [coords] to visit location.
                     IChatComponent msg = new ChatComponentTranslation(
                         "tempora.command.averagehome.result",
-                        args[0],
+                        PlayerUtils.UUIDToName(uuid),
                         dimId,
                         tpLink);
 
