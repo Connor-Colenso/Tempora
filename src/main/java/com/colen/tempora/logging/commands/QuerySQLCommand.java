@@ -17,6 +17,7 @@ import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 
 import com.colen.tempora.logging.loggers.generic.GenericPositionalLogger;
@@ -42,12 +43,15 @@ public class QuerySQLCommand extends CommandBase {
     public void processCommand(ICommandSender sender, String[] args) {
 
         if (!(sender instanceof EntityPlayerMP entityPlayerMP)) {
+            // This is likely executed by a terminal, so translation is meaningless.
             sender.addChatMessage(new ChatComponentText("This command can only be run by a player."));
             return;
         }
 
         if (args.length < 2) {
-            sender.addChatMessage(new ChatComponentText(EnumChatFormatting.RED + "Usage: " + getCommandUsage(sender)));
+            ChatComponentTranslation msg = new ChatComponentTranslation("tempora.command.querysql.usage", getCommandUsage(sender));
+            msg.getChatStyle().setColor(EnumChatFormatting.RED);
+            sender.addChatMessage(msg);
             return;
         }
 
@@ -56,7 +60,9 @@ public class QuerySQLCommand extends CommandBase {
 
         // Must be wrapped in quotes, e.g. "SELECT * FROM ..."
         if (!rawQuery.startsWith("\"") || !rawQuery.endsWith("\"")) {
-            sender.addChatMessage(new ChatComponentText(EnumChatFormatting.RED + "SQL query must be wrapped in quotes."));
+            ChatComponentTranslation msg = new ChatComponentTranslation("tempora.command.querysql.query_quotes");
+            msg.getChatStyle().setColor(EnumChatFormatting.RED);
+            sender.addChatMessage(msg);
             return;
         }
 
@@ -70,7 +76,9 @@ public class QuerySQLCommand extends CommandBase {
         }
 
         if (targetLogger == null) {
-            sender.addChatMessage(new ChatComponentText(EnumChatFormatting.RED + "Logger '" + loggerName + "' not found."));
+            ChatComponentTranslation msg = new ChatComponentTranslation("tempora.command.querysql.logger_not_found", loggerName);
+            msg.getChatStyle().setColor(EnumChatFormatting.RED);
+            sender.addChatMessage(msg);
             return;
         }
 
@@ -78,7 +86,10 @@ public class QuerySQLCommand extends CommandBase {
         String sql = rawQuery.substring(1, rawQuery.length() - 1).trim();
 
         if (!isSelectQuery(sql)) {
-            sender.addChatMessage(new ChatComponentText(EnumChatFormatting.RED + "Only SELECT queries are allowed."));
+            ChatComponentTranslation msg = new ChatComponentTranslation("tempora.command.querysql.select_only");
+            msg.getChatStyle().setColor(EnumChatFormatting.RED);
+            sender.addChatMessage(msg);
+
             return;
         }
 
@@ -90,26 +101,43 @@ public class QuerySQLCommand extends CommandBase {
 
             List<String> missing = findMissingColumns(sql, columns);
             if (!missing.isEmpty()) {
-                String msg = EnumChatFormatting.RED + "Query missing required columns: "
-                    + String.join(", ", missing);
-                sender.addChatMessage(new ChatComponentText(msg));
-                sender.addChatMessage(new ChatComponentText(EnumChatFormatting.RED + "It is highly recommended to use SELECT * instead of specifying columns. "));
+                ChatComponentTranslation missingColsMsg = new ChatComponentTranslation(
+                    "tempora.command.querysql.missing_columns",
+                    String.join(", ", missing)
+                );
+                missingColsMsg.getChatStyle().setColor(EnumChatFormatting.RED);
+                sender.addChatMessage(missingColsMsg);
+
+                ChatComponentTranslation adviceMsg = new ChatComponentTranslation("tempora.command.querysql.missing_columns.advice");
+                adviceMsg.getChatStyle().setColor(EnumChatFormatting.RED);
+                sender.addChatMessage(adviceMsg);
+
                 return;
             }
 
             List<String> output = executeReadOnlyQuery(targetLogger, sql, entityPlayerMP);
 
             if (output.isEmpty()) {
-                sender.addChatMessage(new ChatComponentText(EnumChatFormatting.GRAY + "No results."));
+                ChatComponentTranslation noResultsMsg = new ChatComponentTranslation(
+                    "tempora.command.querysql.no_results_in",
+                    targetLogger.getSQLTableName()
+                );
+                noResultsMsg.getChatStyle().setColor(EnumChatFormatting.GRAY);
+                sender.addChatMessage(noResultsMsg);
+
             } else {
-                sender.addChatMessage(new ChatComponentText(EnumChatFormatting.GREEN + "Query results:"));
+                ChatComponentTranslation resultsMsg = new ChatComponentTranslation("tempora.command.querysql.results");
+                sender.addChatMessage(resultsMsg);
+
                 for (String line : output) {
                     sender.addChatMessage(new ChatComponentText(line));
                 }
             }
 
         } catch (Exception e) {
-            sender.addChatMessage(new ChatComponentText(EnumChatFormatting.RED + "Error: " + e.getMessage()));
+            ChatComponentTranslation errorMsg = new ChatComponentTranslation("tempora.command.querysql.error", e.getMessage());
+            errorMsg.getChatStyle().setColor(EnumChatFormatting.RED);
+            sender.addChatMessage(errorMsg);
         }
     }
 
@@ -154,12 +182,19 @@ public class QuerySQLCommand extends CommandBase {
             List<ISerializable> packets = logger.generateQueryResults(rs);
 
             if (packets.isEmpty()) {
-                entityPlayer.addChatMessage(new ChatComponentText(
-                    EnumChatFormatting.GRAY + "No results found in "
-                        + logger.getSQLTableName()
-                        + '.'));
+                ChatComponentTranslation noResultsMsg = new ChatComponentTranslation(
+                    "tempora.command.querysql.no_results_in",
+                    logger.getSQLTableName()
+                );
+                noResultsMsg.getChatStyle().setColor(EnumChatFormatting.GRAY);
+                entityPlayer.addChatMessage(noResultsMsg);
 
-                entityPlayer.addChatMessage(new ChatComponentText(EnumChatFormatting.GRAY + "Query: " + sql));
+                ChatComponentTranslation queryMsg = new ChatComponentTranslation(
+                    "tempora.command.querysql.query_display",
+                    sql
+                );
+                queryMsg.getChatStyle().setColor(EnumChatFormatting.GRAY);
+                entityPlayer.addChatMessage(queryMsg);
             }
 
             for (ISerializable p : packets) {
