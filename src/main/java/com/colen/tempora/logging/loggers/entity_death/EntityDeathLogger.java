@@ -45,6 +45,7 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueE
         queueElement.timestamp = System.currentTimeMillis();
 
         queueElement.nameOfDeadMob = event.entityLiving.getCommandSenderName(); // Gets the mob name, weirdly.
+        queueElement.entityUUID = event.entityLiving.getUniqueID().toString();
 
         // Get what killed it.
         Entity trueSource = event.source.getEntity();
@@ -76,6 +77,7 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueE
             queueElement.z = resultSet.getDouble("z");
             queueElement.dimensionId = resultSet.getInt("dimensionID");
             queueElement.nameOfDeadMob = resultSet.getString("entityName");
+            queueElement.entityUUID = resultSet.getString("entityUUID");
 
             String killedBy = resultSet.getString("killedBy");
             if (isUUID(killedBy)) {
@@ -95,8 +97,11 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueE
 
     @Override
     public List<ColumnDef> getTableColumns() {
-        return Arrays
-            .asList(new ColumnDef("entityName", "TEXT", "NOT NULL"), new ColumnDef("killedBy", "TEXT", "NOT NULL"));
+        return Arrays.asList(
+            new ColumnDef("entityName", "TEXT", "NOT NULL DEFAULT '[Missing Data]'"),
+            new ColumnDef("entityUUID", "TEXT", "NOT NULL DEFAULT '[Missing Data]'"),
+            new ColumnDef("killedBy", "TEXT", "NOT NULL DEFAULT '[Missing Data]'")
+        );
     }
 
     @Override
@@ -104,17 +109,18 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueE
         if (queueElements == null || queueElements.isEmpty()) return;
 
         final String sql = "INSERT INTO " + getSQLTableName()
-            + " (entityName, killedBy, x, y, z, dimensionID, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?)";
+            + " (entityName, entityUUID, killedBy, x, y, z, dimensionID, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (PreparedStatement pstmt = getDBConn().prepareStatement(sql)) {
             for (EntityDeathQueueElement entity : queueElements) {
                 pstmt.setString(1, entity.nameOfDeadMob);
-                pstmt.setString(2, entity.killedBy);
-                pstmt.setDouble(3, entity.x);
-                pstmt.setDouble(4, entity.y);
-                pstmt.setDouble(5, entity.z);
-                pstmt.setInt(6, entity.dimensionId);
-                pstmt.setTimestamp(7, new Timestamp(entity.timestamp));
+                pstmt.setString(2, entity.entityUUID);
+                pstmt.setString(3, entity.killedBy);
+                pstmt.setDouble(4, entity.x);
+                pstmt.setDouble(5, entity.y);
+                pstmt.setDouble(6, entity.z);
+                pstmt.setInt(7, entity.dimensionId);
+                pstmt.setTimestamp(8, new Timestamp(entity.timestamp));
                 pstmt.addBatch();
             }
 

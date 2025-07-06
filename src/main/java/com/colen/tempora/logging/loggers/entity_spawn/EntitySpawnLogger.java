@@ -10,7 +10,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.colen.tempora.mixin_interfaces.IEntityMixin;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.event.entity.living.LivingSpawnEvent;
 
 import com.colen.tempora.logging.loggers.generic.ColumnDef;
@@ -29,24 +31,33 @@ public class EntitySpawnLogger extends GenericPositionalLogger<EntitySpawnQueueE
 
     @Override
     public List<ColumnDef> getTableColumns() {
-        return Arrays.asList(new ColumnDef("entityName", "TEXT", "NOT NULL"));
+        return Arrays.asList(
+            new ColumnDef("entityName", "TEXT", "NOT NULL DEFAULT '[Missing Data]'"),
+            new ColumnDef("entityUUID", "TEXT", "NOT NULL DEFAULT '[Missing Data]'")
+        );
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
     @SuppressWarnings("unused")
-    public void onEntitySpawn(LivingSpawnEvent.SpecialSpawn event) {
+    public void onEntitySpawn(EntityJoinWorldEvent event) {
         if (isClientSide()) return;
-        if (event.entityLiving instanceof EntityPlayerMP) return;
+        if (event.entity instanceof EntityPlayerMP) return;
         if (event.isCanceled()) return;
+        IEntityMixin entityMixin = (IEntityMixin) event.entity;
+        if (entityMixin.getTempora$HasBeenLogged()) return;
+
+        // Mark as logged, this is persistent with nbt.
+        entityMixin.setTempora$HasBeenLogged(true);
 
         EntitySpawnQueueElement queueElement = new EntitySpawnQueueElement();
-        queueElement.x = event.entityLiving.posX;
-        queueElement.y = event.entityLiving.posY;
-        queueElement.z = event.entityLiving.posZ;
-        queueElement.dimensionId = event.entityLiving.dimension;
+        queueElement.x = event.entity.posX;
+        queueElement.y = event.entity.posY;
+        queueElement.z = event.entity.posZ;
+        queueElement.dimensionId = event.entity.dimension;
         queueElement.timestamp = System.currentTimeMillis();
 
-        queueElement.entityName = event.entityLiving.getCommandSenderName();
+        queueElement.entityName = event.entity.getCommandSenderName();
+        queueElement.entityUUID = event.entity.getUniqueID().toString();
 
         queueEvent(queueElement);
     }
@@ -58,11 +69,12 @@ public class EntitySpawnLogger extends GenericPositionalLogger<EntitySpawnQueueE
         while (resultSet.next()) {
 
             EntitySpawnQueueElement queueElement = new EntitySpawnQueueElement();
+            queueElement.entityName = resultSet.getString("entityName");
+            queueElement.entityUUID = resultSet.getString("entityUUID");
             queueElement.x = resultSet.getDouble("x");
             queueElement.y = resultSet.getDouble("y");
             queueElement.z = resultSet.getDouble("z");
             queueElement.dimensionId = resultSet.getInt("dimensionID");
-            queueElement.entityName = resultSet.getString("entityName");
             queueElement.timestamp = resultSet.getLong("timestamp");
 
             eventList.add(queueElement);
@@ -81,11 +93,12 @@ public class EntitySpawnLogger extends GenericPositionalLogger<EntitySpawnQueueE
         try (PreparedStatement pstmt = getDBConn().prepareStatement(sql)) {
             for (EntitySpawnQueueElement element : entitySpawnQueueElements) {
                 pstmt.setString(1, element.entityName);
-                pstmt.setDouble(2, element.x);
-                pstmt.setDouble(3, element.y);
-                pstmt.setDouble(4, element.z);
-                pstmt.setInt(5, element.dimensionId);
-                pstmt.setTimestamp(6, new Timestamp(element.timestamp));
+                pstmt.setString(2, element.entityUUID);
+                pstmt.setDouble(3, element.x);
+                pstmt.setDouble(4, element.y);
+                pstmt.setDouble(5, element.z);
+                pstmt.setInt(6, element.dimensionId);
+                pstmt.setTimestamp(7, new Timestamp(element.timestamp));
                 pstmt.addBatch();
             }
 
