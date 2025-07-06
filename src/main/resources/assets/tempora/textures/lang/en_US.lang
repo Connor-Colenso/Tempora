@@ -18,3 +18,18 @@ time.ago.days=%s days ago
 time.ago.hours=%s hours ago
 time.ago.minutes=%s minutes ago
 time.ago.seconds=%s seconds ago
+
+# Usage / help
+tempora.command.querysql.usage=Usage: %s
+tempora.command.querysql.query_quotes=SQL query must be wrapped in quotes.
+tempora.command.querysql.logger_not_found=Logger '%s' not found.
+tempora.command.querysql.select_only=Only SELECT queries are allowed.
+tempora.command.querysql.missing_columns=Query missing required columns: %s
+tempora.command.querysql.missing_columns.advice=It is highly recommended to use SELECT * instead of specifying columns.
+tempora.command.querysql.no_results_in=No results found in %s.
+tempora.command.querysql.query_display=Query: %s
+tempora.command.querysql.results=Query results:
+tempora.command.querysql.error=Error: %s
+
+
+
