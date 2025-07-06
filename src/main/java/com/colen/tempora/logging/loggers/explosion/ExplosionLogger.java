@@ -108,6 +108,7 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionQueueEleme
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public void onExplosion(final @NotNull ExplosionEvent.Detonate event) {
         if (isClientSide()) return;
+        if (event.isCanceled()) return;
 
         final World world = event.world;
         final float strength = event.explosion.explosionSize;

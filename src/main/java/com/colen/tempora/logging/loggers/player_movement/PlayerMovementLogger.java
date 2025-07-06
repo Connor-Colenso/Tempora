@@ -109,6 +109,7 @@ public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovement
     @SuppressWarnings("unused")
     public void onPlayerTick(final @NotNull PlayerTickEvent event) {
         if (isClientSide()) return;
+        if (event.isCanceled()) return;
         if (event.phase != TickEvent.Phase.START) return;
         if (!(event.player instanceof EntityPlayerMP player)) return;
         if (FMLCommonHandler.instance()

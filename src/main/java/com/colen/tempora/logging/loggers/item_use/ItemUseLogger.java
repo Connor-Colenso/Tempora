@@ -93,6 +93,7 @@ public class ItemUseLogger extends GenericPositionalLogger<ItemUseQueueElement> 
     public void onItemInteract(final @NotNull PlayerInteractEvent event) {
         // Server side only.
         if (isClientSide()) return;
+        if (event.isCanceled()) return;
 
         if (event.action == PlayerInteractEvent.Action.RIGHT_CLICK_AIR
             || event.action == PlayerInteractEvent.Action.RIGHT_CLICK_BLOCK) {
@@ -103,6 +104,8 @@ public class ItemUseLogger extends GenericPositionalLogger<ItemUseQueueElement> 
     @SubscribeEvent(priority = EventPriority.LOWEST)
     @SuppressWarnings("unused")
     public void onItemUseStart(final @NotNull PlayerUseItemEvent.Start event) {
+        if (event.isCanceled()) return;
+
         logItemUse(event.entityPlayer);
     }
 
