@@ -1,6 +1,7 @@
 package com.colen.tempora.logging.loggers.explosion;
 
 import static com.colen.tempora.TemporaUtils.isClientSide;
+import static com.colen.tempora.utils.DatabaseUtils.MISSING_STRING_DATA;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -70,12 +71,12 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionQueueEleme
     }
 
     @Override
-    public List<ColumnDef> getTableColumns() {
+    public List<ColumnDef> getCustomTableColumns() {
         return Arrays.asList(
-            new ColumnDef("strength", "REAL", "NOT NULL"),
-            new ColumnDef("exploderUUID", "TEXT", "NOT NULL"),
-            new ColumnDef("closestPlayerUUID", "TEXT", "NOT NULL"),
-            new ColumnDef("closestPlayerDistance", "REAL", "NOT NULL"));
+            new ColumnDef("strength", "REAL", "NOT NULL DEFAULT -1"),
+            new ColumnDef("exploderUUID", "TEXT", "NOT NULL DEFAULT " + MISSING_STRING_DATA),
+            new ColumnDef("closestPlayerUUID", "TEXT", "NOT NULL DEFAULT " + MISSING_STRING_DATA),
+            new ColumnDef("closestPlayerDistance", "REAL", "NOT NULL DEFAULT -1"));
     }
 
     @Override

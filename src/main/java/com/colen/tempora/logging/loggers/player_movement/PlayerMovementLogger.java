@@ -1,6 +1,7 @@
 package com.colen.tempora.logging.loggers.player_movement;
 
 import static com.colen.tempora.TemporaUtils.isClientSide;
+import static com.colen.tempora.utils.DatabaseUtils.MISSING_STRING_DATA;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -41,8 +42,8 @@ public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovement
     // to load, which we want to keep track of.
 
     @Override
-    public List<ColumnDef> getTableColumns() {
-        return Arrays.asList(new ColumnDef("playerUUID", "TEXT", "NOT NULL DEFAULT '[Missing Data]'"));
+    public List<ColumnDef> getCustomTableColumns() {
+        return Arrays.asList(new ColumnDef("playerUUID", "TEXT", "NOT NULL DEFAULT " + MISSING_STRING_DATA));
     }
 
     private int playerMovementLoggingInterval;

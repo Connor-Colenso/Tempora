@@ -9,7 +9,7 @@ import com.colen.tempora.utils.TimeUtils;
 
 public class CommandQueueElement extends GenericQueueElement {
 
-    public String playerNameWhoIssuedCommand;
+    public String playerUUID;
     public String commandName;
     public String arguments;
 
@@ -23,11 +23,11 @@ public class CommandQueueElement extends GenericQueueElement {
 
         return new ChatComponentTranslation(
             "message.command_issued",
-            playerNameWhoIssuedCommand, // %s – player name
-            commandName, // %s – command (e.g. tp)
-            arguments, // %s – arguments
-            coords, // %s – clickable location
-            timeAgo // %s – relative time
+            PlayerUtils.UUIDToName(playerUUID),
+            commandName,
+            arguments,
+            coords,
+            timeAgo
         );
     }
 }

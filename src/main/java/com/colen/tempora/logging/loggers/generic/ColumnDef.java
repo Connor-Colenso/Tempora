@@ -10,11 +10,10 @@ public class ColumnDef {
         this.name = name;
         this.type = type;
         this.extraCondition = extraCondition;
-    }
 
-    public ColumnDef(String name, String type) {
-        this.name = name;
-        this.type = type;
-        this.extraCondition = null;
+        if (this.extraCondition.toUpperCase().contains("DEFAULT")) {
+            throw new IllegalArgumentException("A column def must have a default condition.");
+        }
+
     }
 }

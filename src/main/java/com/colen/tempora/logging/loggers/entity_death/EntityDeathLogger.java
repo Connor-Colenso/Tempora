@@ -1,6 +1,7 @@
 package com.colen.tempora.logging.loggers.entity_death;
 
 import static com.colen.tempora.TemporaUtils.isClientSide;
+import static com.colen.tempora.utils.DatabaseUtils.MISSING_STRING_DATA;
 import static com.colen.tempora.utils.PlayerUtils.isUUID;
 
 import java.sql.PreparedStatement;
@@ -86,8 +87,7 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueE
                 queueElement.killedBy = killedBy;
             }
 
-            queueElement.timestamp = resultSet.getTimestamp("timestamp")
-                .getTime();
+            queueElement.timestamp = resultSet.getLong("timestamp");
 
             eventList.add(queueElement);
         }
@@ -96,11 +96,11 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueE
     }
 
     @Override
-    public List<ColumnDef> getTableColumns() {
+    public List<ColumnDef> getCustomTableColumns() {
         return Arrays.asList(
-            new ColumnDef("entityName", "TEXT", "NOT NULL DEFAULT '[Missing Data]'"),
-            new ColumnDef("entityUUID", "TEXT", "NOT NULL DEFAULT '[Missing Data]'"),
-            new ColumnDef("killedBy", "TEXT", "NOT NULL DEFAULT '[Missing Data]'")
+            new ColumnDef("entityName", "TEXT", "NOT NULL DEFAULT " + MISSING_STRING_DATA),
+            new ColumnDef("entityUUID", "TEXT", "NOT NULL DEFAULT " + MISSING_STRING_DATA),
+            new ColumnDef("killedBy", "TEXT", "NOT NULL DEFAULT " + MISSING_STRING_DATA)
         );
     }
 

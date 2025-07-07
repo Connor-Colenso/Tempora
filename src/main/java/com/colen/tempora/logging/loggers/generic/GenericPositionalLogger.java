@@ -80,7 +80,14 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
     public abstract String getSQLTableName();
 
-    public abstract List<ColumnDef> getTableColumns();
+    // Add your own custom columns for each logger with this, we append the default x y z etc with getAllTableColumns
+    public abstract List<ColumnDef> getCustomTableColumns();
+
+    public final List<ColumnDef> getAllTableColumns() {
+        List<ColumnDef> columns = new ArrayList<>(getCustomTableColumns());
+        columns.addAll(getDefaultColumns());
+        return columns;
+    }
 
     public void handleCustomLoggerConfig(Configuration config) {}
 
@@ -88,13 +95,14 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
         return positionalLoggerDBConnection;
     }
 
+    // These should really, never be missing, so even though the defaults are a bit clunky, it's alright.
     public static List<ColumnDef> getDefaultColumns() {
         return Arrays.asList(
-            new ColumnDef("x", "INTEGER", "NOT NULL"),
-            new ColumnDef("y", "INTEGER", "NOT NULL"),
-            new ColumnDef("z", "INTEGER", "NOT NULL"),
-            new ColumnDef("timestamp", "DATETIME", "NOT NULL"),
-            new ColumnDef("dimensionID", "INTEGER", "NOT NULL"));
+            new ColumnDef("x", "INTEGER", "NOT NULL DEFAULT " + Integer.MIN_VALUE),
+            new ColumnDef("y", "INTEGER", "NOT NULL DEFAULT " + Integer.MIN_VALUE),
+            new ColumnDef("z", "INTEGER", "NOT NULL DEFAULT " + Integer.MIN_VALUE),
+            new ColumnDef("timestamp", "DATETIME", "NOT NULL DEFAULT 0"),
+            new ColumnDef("dimensionID", "INTEGER", "NOT NULL DEFAULT " + Integer.MIN_VALUE));
     }
 
     private void enableHighRiskFastMode() throws SQLException {
@@ -112,8 +120,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
     private void initTable() throws SQLException {
         String tableName = getSQLTableName();
-        List<ColumnDef> columns = new ArrayList<>(getTableColumns());
-        columns.addAll(getDefaultColumns());
+        List<ColumnDef> columns = getAllTableColumns();
 
         // Step 1: CREATE TABLE IF NOT EXISTS
         StringBuilder createSQL = new StringBuilder("CREATE TABLE IF NOT EXISTS ").append(tableName)

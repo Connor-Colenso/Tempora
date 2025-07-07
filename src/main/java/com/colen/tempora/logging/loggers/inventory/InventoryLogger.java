@@ -29,6 +29,7 @@ import com.colen.tempora.utils.LastInvPos;
 import com.gtnewhorizons.modularui.common.internal.wrapper.ModularUIContainer;
 
 import static com.colen.tempora.utils.BlockUtils.getPickBlockSafe;
+import static com.colen.tempora.utils.DatabaseUtils.MISSING_STRING_DATA;
 
 public class InventoryLogger extends GenericPositionalLogger<PlayerInteractWithInventoryQueueElement> {
 
@@ -77,14 +78,14 @@ public class InventoryLogger extends GenericPositionalLogger<PlayerInteractWithI
     }
 
     @Override
-    public List<ColumnDef> getTableColumns() {
+    public List<ColumnDef> getCustomTableColumns() {
         return Arrays.asList(
-            new ColumnDef("containerName", "TEXT", "NOT NULL"),
-            new ColumnDef("interactionType", "TEXT", "NOT NULL"),
-            new ColumnDef("playerUUID", "TEXT", "NOT NULL"),
-            new ColumnDef("itemId", "INTEGER", "NOT NULL"),
-            new ColumnDef("itemMetadata", "INTEGER", "NOT NULL"),
-            new ColumnDef("stacksize", "INTEGER", "NOT NULL"));
+            new ColumnDef("containerName", "TEXT", "NOT NULL DEFAULT " + MISSING_STRING_DATA),
+            new ColumnDef("interactionType", "TEXT", "NOT NULL DEFAULT " + MISSING_STRING_DATA),
+            new ColumnDef("playerUUID", "TEXT", "NOT NULL DEFAULT " + MISSING_STRING_DATA),
+            new ColumnDef("itemId", "INTEGER", "NOT NULL DEFAULT -1"),
+            new ColumnDef("itemMetadata", "INTEGER", "NOT NULL DEFAULT -1"),
+            new ColumnDef("stacksize", "INTEGER", "NOT NULL DEFAULT -1"));
     }
 
     public InventoryLogger() {

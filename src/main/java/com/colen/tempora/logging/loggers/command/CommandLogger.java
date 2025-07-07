@@ -1,6 +1,7 @@
 package com.colen.tempora.logging.loggers.command;
 
 import static com.colen.tempora.TemporaUtils.isClientSide;
+import static com.colen.tempora.utils.DatabaseUtils.MISSING_STRING_DATA;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -30,11 +31,11 @@ public class CommandLogger extends GenericPositionalLogger<CommandQueueElement> 
     }
 
     @Override
-    public List<ColumnDef> getTableColumns() {
+    public List<ColumnDef> getCustomTableColumns() {
         return Arrays.asList(
-            new ColumnDef("playerUUID", "TEXT", "NOT NULL"),
-            new ColumnDef("command", "TEXT", "NOT NULL"),
-            new ColumnDef("arguments", "TEXT", "NOT NULL"));
+            new ColumnDef("playerUUID", "TEXT", "NOT NULL DEFAULT " + MISSING_STRING_DATA),
+            new ColumnDef("command", "TEXT", "NOT NULL DEFAULT " + MISSING_STRING_DATA),
+            new ColumnDef("arguments", "TEXT", "NOT NULL DEFAULT " + MISSING_STRING_DATA));
     }
 
     @Override
@@ -53,7 +54,7 @@ public class CommandLogger extends GenericPositionalLogger<CommandQueueElement> 
             queueElement.dimensionId = resultSet.getInt("dimensionID");
             queueElement.timestamp = resultSet.getLong("timestamp");
 
-            queueElement.playerNameWhoIssuedCommand = PlayerUtils.UUIDToName(resultSet.getString("playerUUID"));
+            queueElement.playerUUID = PlayerUtils.UUIDToName(resultSet.getString("playerUUID"));
             queueElement.commandName = resultSet.getString("command");
             queueElement.arguments = resultSet.getString("arguments");
 
@@ -73,7 +74,7 @@ public class CommandLogger extends GenericPositionalLogger<CommandQueueElement> 
 
         try (PreparedStatement pstmt = getDBConn().prepareStatement(sql)) {
             for (CommandQueueElement commandQueueElement : commandQueueElements) {
-                pstmt.setString(1, commandQueueElement.playerNameWhoIssuedCommand);
+                pstmt.setString(1, commandQueueElement.playerUUID);
                 pstmt.setString(2, commandQueueElement.commandName);
                 pstmt.setString(3, commandQueueElement.arguments);
                 pstmt.setDouble(4, commandQueueElement.x);
@@ -106,8 +107,7 @@ public class CommandLogger extends GenericPositionalLogger<CommandQueueElement> 
             queueElement.dimensionId = player.dimension;
             queueElement.timestamp = System.currentTimeMillis();
 
-            queueElement.playerNameWhoIssuedCommand = player.getUniqueID()
-                .toString();
+            queueElement.playerUUID = player.getUniqueID().toString();
             queueElement.commandName = command.getCommandName();
             queueElement.arguments = String.join(" ", args);
 
