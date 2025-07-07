@@ -3,11 +3,13 @@ package com.colen.tempora.commands;
 import java.util.List;
 
 import com.colen.tempora.logging.loggers.generic.GenericQueueElement.CoordFormat;
+import com.colen.tempora.networking.PacketRegionSync;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.world.World;
@@ -46,7 +48,7 @@ public class ListRegionsCommand extends CommandBase {
             dimFilter = null;
         }
 
-        if (!(sender instanceof EntityPlayer player))
+        if (!(sender instanceof EntityPlayerMP player))
             throw new CommandException(ONLY_IN_GAME);
 
         String playerName = player.getCommandSenderName();
@@ -90,5 +92,7 @@ public class ListRegionsCommand extends CommandBase {
             line.getChatStyle().setColor(EnumChatFormatting.YELLOW);
             sender.addChatMessage(line);
         }
+
+        PacketRegionSync.send(player, regions);
     }
 }
