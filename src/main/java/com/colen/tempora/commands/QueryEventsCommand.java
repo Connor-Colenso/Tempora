@@ -1,4 +1,4 @@
-package com.colen.tempora.logging.commands;
+package com.colen.tempora.commands;
 
 import java.util.ArrayList;
 import java.util.List;

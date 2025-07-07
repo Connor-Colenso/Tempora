@@ -2,8 +2,8 @@ package com.colen.tempora;
 
 import static com.colen.tempora.config.Config.synchronizeConfiguration;
 
-import com.colen.tempora.logging.commands.HomeChunkCommand;
-import com.colen.tempora.logging.commands.QuerySQLCommand;
+import com.colen.tempora.commands.HomeChunkCommand;
+import com.colen.tempora.commands.QuerySQLCommand;
 import com.colen.tempora.networking.PacketDetectedInfo;
 import com.colen.tempora.rendering.RenderEventsInWorld;
 import net.minecraftforge.common.MinecraftForge;
@@ -14,9 +14,9 @@ import org.apache.logging.log4j.Logger;
 
 import com.colen.tempora.events.PlayerLogin;
 import com.colen.tempora.items.TemporaWand;
-import com.colen.tempora.logging.commands.CreateRegion;
-import com.colen.tempora.logging.commands.QueryEventsCommand;
-import com.colen.tempora.logging.commands.RemoveRegion;
+import com.colen.tempora.commands.CreateRegion;
+import com.colen.tempora.commands.QueryEventsCommand;
+import com.colen.tempora.commands.RemoveRegion;
 import com.colen.tempora.logging.loggers.block_change.BlockChangeLogger;
 import com.colen.tempora.logging.loggers.command.CommandLogger;
 import com.colen.tempora.logging.loggers.entity_death.EntityDeathLogger;

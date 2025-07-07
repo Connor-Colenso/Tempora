@@ -1,4 +1,4 @@
-package com.colen.tempora.logging.commands;
+package com.colen.tempora.commands;
 
 import java.util.Arrays;
 import java.util.List;
@@ -25,11 +25,6 @@ public class RemoveRegion extends CommandBase {
     @Override
     public String getCommandName() {
         return "removeregion";
-    }
-
-    @Override
-    public List<String> getCommandAliases() {
-        return Arrays.asList("delregion", "rmregion");
     }
 
     @Override

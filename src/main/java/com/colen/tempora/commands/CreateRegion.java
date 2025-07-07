@@ -1,4 +1,4 @@
-package com.colen.tempora.logging.commands;
+package com.colen.tempora.commands;
 
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;

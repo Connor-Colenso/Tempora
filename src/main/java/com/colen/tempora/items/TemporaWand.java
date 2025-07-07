@@ -1,7 +1,6 @@
 package com.colen.tempora.items;
 
 import com.colen.tempora.utils.PlayerUtils;
-import net.minecraft.command.ICommandSender;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
@@ -9,7 +8,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
 
 import com.colen.tempora.TemporaUtils;
-import com.colen.tempora.logging.commands.QueryEventsCommand;
 import com.colen.tempora.logging.loggers.generic.GenericPositionalLogger;
 
 public class TemporaWand extends Item {
