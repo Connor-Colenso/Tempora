@@ -175,7 +175,7 @@ public class HomeChunkCommand extends CommandBase {
     private static int parseDim(String s) {
         try { return Integer.parseInt(s); }
         catch (NumberFormatException ex) {
-            throw new CommandException("Bad <dim> value; must be an integer.");
+            throw new CommandException("tempora.command.homechunk.bad_dim");
         }
     }
 }
