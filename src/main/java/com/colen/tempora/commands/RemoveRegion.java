@@ -54,7 +54,7 @@ public class RemoveRegion extends CommandBase {
         World              world = sender.getEntityWorld();
         int                dim = world.provider.dimensionId;
 
-        int removed = RegionRegistry.get(world)
+        int removed = RegionRegistry
             .removeRegionsContainingBlock(dim, pos.posX, pos.posY, pos.posZ);
 
         ChatComponentTranslation msg;

@@ -3,6 +3,7 @@ package com.colen.tempora;
 import static com.colen.tempora.config.Config.synchronizeConfiguration;
 
 import com.colen.tempora.commands.HomeChunkCommand;
+import com.colen.tempora.commands.ListRegionsCommand;
 import com.colen.tempora.commands.QuerySQLCommand;
 import com.colen.tempora.networking.PacketDetectedInfo;
 import com.colen.tempora.rendering.RenderEventsInWorld;
@@ -141,8 +142,10 @@ public class Tempora {
     private void registerNewCommands(FMLServerStartingEvent event) {
         event.registerServerCommand(new QueryEventsCommand());
         event.registerServerCommand(new QuerySQLCommand());
-        event.registerServerCommand(new CreateRegion());
         event.registerServerCommand(new HomeChunkCommand());
+
+        event.registerServerCommand(new CreateRegion());
+        event.registerServerCommand(new ListRegionsCommand());
         event.registerServerCommand(new RemoveRegion());
     }
 

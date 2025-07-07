@@ -50,8 +50,7 @@ public class CreateRegion extends CommandBase {
         int dim = world.provider.dimensionId;
 
         IntRegion region = new IntRegion(dim, x1, y1, z1, x2, y2, z2);
-        RegionRegistry.get(world)
-            .add(region);
+        RegionRegistry.add(region);
 
         ChatComponentTranslation msg =
             new ChatComponentTranslation(

@@ -37,7 +37,7 @@ item.tempora_wand.name=Tempora Wand
 
 tempora.command.averagehome.no_db=Unable to query movement data – database unavailable.
 tempora.command.averagehome.usage=Usage: %s
-tempora.teleport.display=[ %s, %s, %s ]
+tempora.teleport.display=[%s, %s, %s]
 tempora.teleport.hover=Teleport to (%s, %s, %s) [dim %s]
 tempora.command.averagehome.result=Player %s is most active in dim %s, click %s to visit location.
 tempora.command.averagehome.unknown_player=No location data for player %s available.
@@ -52,3 +52,6 @@ command.tempora.removeregion.no_region=No region found at your position.
 command.tempora.region.created=Region created: (%d,%d,%d) to (%d,%d,%d) in dimension %d.
 
 tempora.command.queryevents.bad_filter=Filter "%s" is invalid.
+
+tempora.command.listregions.none=No regions defined.
+tempora.command.listregions.entry=Region %d: %s to %s in dim %s. Midpoint: %s.
