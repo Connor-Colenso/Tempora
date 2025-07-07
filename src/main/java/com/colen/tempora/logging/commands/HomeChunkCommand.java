@@ -84,7 +84,25 @@ public class HomeChunkCommand extends CommandBase {
         }
         Connection conn = movementLogger.getReadOnlyConnection();
 
-        // ── 4. SQL: most‑visited chunk, then avg‑Y inside it ───────────────
+        // This query finds the player's most visited chunk (home chunk)
+        // First, we group all movement logs by chunk (x >> 4, z >> 4) and dimension
+        // We count how many times the player was in each chunk
+        // Then we sort by the number of visits and pick the top one (LIMIT 1)
+        //
+        // After that, we join this "hot chunk" back with the movement table
+        // This gives us all the rows that were inside the most visited chunk
+        //
+        // From those rows, we calculate:
+        // - home_x: center of the chunk in x (cx * 16 + 8)
+        // - home_y: average y value in that chunk
+        // - home_z: center of the chunk in z (cz * 16 + 8)
+        // - dimensionID: which dimension this chunk was in
+        //
+        // Optional filters are used to:
+        // - restrict to a single dimension (forcedDim)
+        // - only include recent data (lookbackCutoffEpoch)
+        //
+        // The player's UUID is passed in twice, once for each part of the query
         final String tbl = movementLogger.getSQLTableName();
         StringBuilder sql = new StringBuilder()
             .append("WITH hot AS (")
@@ -107,7 +125,7 @@ public class HomeChunkCommand extends CommandBase {
             .append("WHERE  m.playerUUID = ? ");
         if (lookbackCutoffEpoch != null) sql.append("AND m.timestamp >= ? ");
 
-        // ── 5. run ─────────────────────────────────────────────────────────
+        // Run query
         try (PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
 
             int i = 1;
@@ -150,7 +168,6 @@ public class HomeChunkCommand extends CommandBase {
         }
     }
 
-    // ───────────────────────────────────────────────────────────────────────
     private static boolean containsLetter(String s) {
         for (int c : s.codePoints().toArray()) if (Character.isLetter(c)) return true;
         return false;
