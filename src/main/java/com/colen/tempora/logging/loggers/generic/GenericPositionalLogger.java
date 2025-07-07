@@ -21,6 +21,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import com.colen.tempora.networking.PacketDetectedInfo;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentText;
@@ -75,7 +76,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
     public abstract void threadedSaveEvents(List<EventToLog> event) throws SQLException;
 
-    public abstract ArrayList<ISerializable> generateQueryResults(ResultSet rs) throws SQLException;
+    public abstract List<GenericQueueElement> generateQueryResults(ResultSet rs) throws SQLException;
 
     public abstract String getSQLTableName();
 
@@ -371,32 +372,42 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
                     try (ResultSet rs = ps.executeQuery())
                     {
-                        List<ISerializable> packets = logger.generateQueryResults(rs);
+                        List<GenericQueueElement> packets = logger.generateQueryResults(rs);
                         Collections.reverse(packets);          // newest first
 
-                        EntityPlayerMP player = (EntityPlayerMP) sender;
                         if (packets.isEmpty())
                         {
-                            player.addChatMessage(new ChatComponentText(
+                            sender.addChatMessage(new ChatComponentText(
                                 EnumChatFormatting.GRAY + "No results found for " +
                                     logger.getSQLTableName() + '.'));
                         }
                         else
                         {
-                            player.addChatMessage(new ChatComponentText(
+                            sender.addChatMessage(new ChatComponentText(
                                 EnumChatFormatting.GRAY + "Showing latest " +
                                     packets.size() + " results for " +
                                     logger.getSQLTableName() + ':'));
                             if (logger.eventQueue.size() > 100)
                             {
-                                player.addChatMessage(new ChatComponentText(
+                                sender.addChatMessage(new ChatComponentText(
                                     EnumChatFormatting.RED +
                                         "Warning, due to high volume, there are still " +
                                         logger.eventQueue.size() +
                                         " events pending; query results may be outdated."));
                             }
+
+
+                            // EntityPlayerMP specific stuff, like sending animation positions to user and the text itself.
+                            EntityPlayerMP player = (EntityPlayerMP) sender;
+
                             String uuid = player.getUniqueID().toString();
-                            packets.forEach(p -> player.addChatMessage(p.localiseText(uuid)));
+                            packets.forEach(p -> sender.addChatMessage(p.localiseText(uuid)));
+
+                            List<PacketDetectedInfo.Pos> posList = new ArrayList<>();
+                            for (GenericQueueElement packet : packets) {
+                                posList.add(new PacketDetectedInfo.Pos(packet.x, packet.y, packet.z, packet.dimensionId));
+                            }
+                            PacketDetectedInfo.send(player, posList);
                         }
                     }
                 }

@@ -28,11 +28,11 @@ public class BlockChangeQueueElement extends GenericQueueElement {
 
         return new ChatComponentTranslation(
             "message.block_change",
-            blockName, // %s (block name, localised client-side)
-            coords, // %s (clickable coordinates)
-            stackTrace, // %s (who/what set the block)
-            timeAgo, // %s (relative time component)
-            closestPlayerUUID, // %s (nearest player)
+            blockName,
+            coords,
+            stackTrace,
+            timeAgo,
+            closestPlayerUUID,
             String.format("%.1f", closestPlayerDistance) // %s (distance)
         );
     }

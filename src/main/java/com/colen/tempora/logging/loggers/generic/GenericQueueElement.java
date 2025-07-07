@@ -2,19 +2,20 @@ package com.colen.tempora.logging.loggers.generic;
 
 import net.minecraft.event.ClickEvent;
 import net.minecraft.event.HoverEvent;
-import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.ChatStyle;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
-public abstract class GenericQueueElement implements ISerializable {
+public abstract class GenericQueueElement {
 
     public double x;
     public double y;
     public double z;
     public int dimensionId;
     public long timestamp;
+
+    public abstract IChatComponent localiseText(String uuid);
 
     // How the x y z should be shown in chat and in the /tp command.
     public enum CoordFormat {
