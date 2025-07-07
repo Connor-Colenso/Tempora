@@ -5,7 +5,7 @@ import static com.colen.tempora.config.Config.synchronizeConfiguration;
 import com.colen.tempora.logging.commands.HomeChunkCommand;
 import com.colen.tempora.logging.commands.QuerySQLCommand;
 import com.colen.tempora.networking.PacketDetectedInfo;
-import com.colen.tempora.rendering.LastWorldEventRenderer;
+import com.colen.tempora.rendering.RenderEventsInWorld;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
 
@@ -82,7 +82,7 @@ public class Tempora {
             MinecraftForge.EVENT_BUS.register(new PlayerLogin());
 
             if (TemporaUtils.shouldTemporaRun()) {
-                MinecraftForge.EVENT_BUS.register(new LastWorldEventRenderer());
+                MinecraftForge.EVENT_BUS.register(new RenderEventsInWorld());
             }
         }
 

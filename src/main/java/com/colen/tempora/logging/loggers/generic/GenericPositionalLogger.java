@@ -412,7 +412,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
                             List<PacketDetectedInfo.Pos> posList = new ArrayList<>();
                             for (GenericQueueElement packet : packets) {
-                                posList.add(new PacketDetectedInfo.Pos(packet.x, packet.y, packet.z, packet.dimensionId));
+                                posList.add(new PacketDetectedInfo.Pos(packet.x, packet.y, packet.z, packet.dimensionId, System.currentTimeMillis()));
                             }
                             PacketDetectedInfo.send(player, posList);
                         }

@@ -11,9 +11,10 @@ import net.minecraftforge.client.event.RenderWorldLastEvent;
 import org.lwjgl.opengl.GL11;
 
 @SideOnly(Side.CLIENT)
-public final class LastWorldEventRenderer {
+public final class RenderEventsInWorld {
 
-    private static final double SCALE_FACTOR = 0.9;   // 90 %
+    private static final double SCALE_FACTOR = 0.9;
+    private static final double SECONDS_RENDERING_DURATION = 10;
 
     @SubscribeEvent
     public void onRender(RenderWorldLastEvent e) {
@@ -53,5 +54,10 @@ public final class LastWorldEventRenderer {
         GL11.glDisable(GL11.GL_BLEND);
         GL11.glEnable(GL11.GL_DEPTH_TEST);
         GL11.glPopMatrix();
+
+
+        double expiryCutoff = System.currentTimeMillis() - SECONDS_RENDERING_DURATION * 1000L;
+        PacketDetectedInfo.CLIENT_POS.removeIf(pos -> pos.posPrintTime < expiryCutoff);
+
     }
 }
