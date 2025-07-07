@@ -40,13 +40,12 @@ tempora.command.averagehome.usage=Usage: %s
 tempora.teleport.display=[ %s, %s, %s ]
 tempora.teleport.hover=Teleport to (%s, %s, %s) [dim %s]
 tempora.command.averagehome.result=Player %s is most active in dim %s, click %s to visit location.
-
 tempora.command.averagehome.unknown_player=No location data for player %s available.
 tempora.command.averagehome.no_data=No movement data found for that query.
 tempora.command.averagehome.sql_error=Database error while querying movement data, see console for details.
 
-# feedback (separate keys for singular vs. plural)
 command.tempora.removeregion.removed.single=Removed %d region at your position.
 command.tempora.removeregion.removed.plural=Removed %d regions at your position.
-
 command.tempora.removeregion.no_region=No region found at your position.
+
+command.tempora.region.created=Region created: (%d,%d,%d) to (%d,%d,%d) in dimension %d.
