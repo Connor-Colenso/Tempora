@@ -54,7 +54,7 @@ public class CommandLogger extends GenericPositionalLogger<CommandQueueElement> 
             queueElement.dimensionId = resultSet.getInt("dimensionID");
             queueElement.timestamp = resultSet.getLong("timestamp");
 
-            queueElement.playerUUID = PlayerUtils.UUIDToName(resultSet.getString("playerUUID"));
+            queueElement.playerUUID = resultSet.getString("playerUUID");
             queueElement.commandName = resultSet.getString("command");
             queueElement.arguments = resultSet.getString("arguments");
 

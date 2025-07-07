@@ -27,12 +27,14 @@ public final class PacketDetectedInfo {
     public static final class Pos {
         public final double x, y, z;
         public final int dim;
+        public final long posPrintTime;
 
-        public Pos(double x, double y, double z, int dim) {
+        public Pos(double x, double y, double z, int dim, long posPrintTime) {
             this.x = x;
             this.y = y;
             this.z = z;
             this.dim = dim;
+            this.posPrintTime = posPrintTime;
         }
 
         public void write(ByteBuf buf) {
@@ -40,10 +42,11 @@ public final class PacketDetectedInfo {
             buf.writeDouble(y);
             buf.writeDouble(z);
             buf.writeInt(dim);
+            buf.writeLong(posPrintTime);
         }
 
         public static Pos read(ByteBuf buf) {
-            return new Pos(buf.readDouble(), buf.readDouble(), buf.readDouble(), buf.readInt());
+            return new Pos(buf.readDouble(), buf.readDouble(), buf.readDouble(), buf.readInt(), buf.readLong());
         }
     }
 

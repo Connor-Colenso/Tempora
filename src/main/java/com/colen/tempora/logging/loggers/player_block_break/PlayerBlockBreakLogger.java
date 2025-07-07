@@ -40,7 +40,7 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
         return Arrays.asList(
             new ColumnDef("playerUUID", "TEXT", "NOT NULL DEFAULT " + MISSING_STRING_DATA),
             new ColumnDef("metadata", "INTEGER", "NOT NULL DEFAULT -1"),
-            new ColumnDef("blockId", "INTEGER", "NOT NULL DEFEAULT -1"),
+            new ColumnDef("blockId", "INTEGER", "NOT NULL DEFAULT -1"),
             new ColumnDef("pickBlockID", "INTEGER", "NOT NULL DEFAULT -1"),
             new ColumnDef("pickBlockMeta", "INTEGER", "NOT NULL DEFAULT -1"));
     }
