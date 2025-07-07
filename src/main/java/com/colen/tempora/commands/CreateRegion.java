@@ -4,6 +4,8 @@ import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
 import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.world.World;
 
 import com.colen.tempora.logging.loggers.block_change.IntRegion;
@@ -51,17 +53,15 @@ public class CreateRegion extends CommandBase {
         RegionRegistry.get(world)
             .add(region);
 
-        sender.addChatMessage(
-            new ChatComponentText(
-                String.format(
-                    "§aRegion created: (%d,%d,%d) → (%d,%d,%d) in dimension %d.",
-                    x1,
-                    y1,
-                    z1,
-                    x2,
-                    y2,
-                    z2,
-                    dim)));
+        ChatComponentTranslation msg =
+            new ChatComponentTranslation(
+                "command.tempora.region.created",
+                x1, y1, z1,                   // first corner
+                x2, y2, z2,                   // second corner
+                dim);                         // dimension ID
+
+        msg.getChatStyle().setColor(EnumChatFormatting.GREEN);
+        sender.addChatMessage(msg);
     }
 
 }
