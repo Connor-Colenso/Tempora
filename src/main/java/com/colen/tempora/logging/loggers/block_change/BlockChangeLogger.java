@@ -123,8 +123,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
         }
 
         // Only log changes if (x, y, z) is inside a defined region
-        if (!globalBlockChangeLogging && !RegionRegistry.get(world)
-            .containsBlock(dimensionId, x, y, z)) {
+        if (!globalBlockChangeLogging && !RegionRegistry.containsBlock(dimensionId, x, y, z)) {
             return;
         }
 
