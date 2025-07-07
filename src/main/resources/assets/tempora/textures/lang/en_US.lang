@@ -44,3 +44,9 @@ tempora.command.averagehome.result=Player %s is most active in dim %s, click %s 
 tempora.command.averagehome.unknown_player=No location data for player %s available.
 tempora.command.averagehome.no_data=No movement data found for that query.
 tempora.command.averagehome.sql_error=Database error while querying movement data, see console for details.
+
+# feedback (separate keys for singular vs. plural)
+command.tempora.removeregion.removed.single=Removed %d region at your position.
+command.tempora.removeregion.removed.plural=Removed %d regions at your position.
+
+command.tempora.removeregion.no_region=No region found at your position.
