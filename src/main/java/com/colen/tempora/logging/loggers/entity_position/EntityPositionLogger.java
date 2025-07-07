@@ -1,6 +1,7 @@
 package com.colen.tempora.logging.loggers.entity_position;
 
 import static com.colen.tempora.TemporaUtils.isClientSide;
+import static com.colen.tempora.utils.DatabaseUtils.MISSING_STRING_DATA;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -64,10 +65,10 @@ public class EntityPositionLogger extends GenericPositionalLogger<EntityPosition
     }
 
     @Override
-    public List<ColumnDef> getTableColumns() {
+    public List<ColumnDef> getCustomTableColumns() {
         return Arrays.asList(
-            new ColumnDef("entityName", "TEXT", "NOT NULL DEFAULT '[Missing Data]'"),
-            new ColumnDef("entityUUID", "TEXT", "NOT NULL DEFAULT '[Missing Data]'")
+            new ColumnDef("entityName", "TEXT", "NOT NULL DEFAULT " + MISSING_STRING_DATA),
+            new ColumnDef("entityUUID", "TEXT", "NOT NULL DEFAULT " + MISSING_STRING_DATA)
         );
     }
 

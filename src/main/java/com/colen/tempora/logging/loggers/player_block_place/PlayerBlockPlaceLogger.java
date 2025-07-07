@@ -2,6 +2,7 @@ package com.colen.tempora.logging.loggers.player_block_place;
 
 import static com.colen.tempora.TemporaUtils.isClientSide;
 import static com.colen.tempora.utils.BlockUtils.getPickBlockSafe;
+import static com.colen.tempora.utils.DatabaseUtils.MISSING_STRING_DATA;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -36,13 +37,13 @@ public class PlayerBlockPlaceLogger extends GenericPositionalLogger<PlayerBlockP
     }
 
     @Override
-    public List<ColumnDef> getTableColumns() {
+    public List<ColumnDef> getCustomTableColumns() {
         return Arrays.asList(
-            new ColumnDef("playerUUID", "TEXT", "NOT NULL"),
-            new ColumnDef("metadata", "INTEGER", "NOT NULL"),
-            new ColumnDef("blockId", "INTEGER", "NOT NULL"),
-            new ColumnDef("pickBlockMeta", "INTEGER", "NOT NULL"),
-            new ColumnDef("pickBlockID", "INTEGER", "NOT NULL"));
+            new ColumnDef("playerUUID", "TEXT", "NOT NULL DEFAULT " + MISSING_STRING_DATA),
+            new ColumnDef("metadata", "INTEGER", "NOT NULL DEFAULT -1"),
+            new ColumnDef("blockId", "INTEGER", "NOT NULL DEFAULT -1"),
+            new ColumnDef("pickBlockMeta", "INTEGER", "NOT NULL DEFAULT -1"),
+            new ColumnDef("pickBlockID", "INTEGER", "NOT NULL DEFAULT -1"));
     }
 
     @Override
