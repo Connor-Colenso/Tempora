@@ -51,3 +51,4 @@ command.tempora.removeregion.no_region=No region found at your position.
 
 command.tempora.region.created=Region created: (%d,%d,%d) to (%d,%d,%d) in dimension %d.
 
+tempora.command.queryevents.bad_filter=Filter "%s" is invalid.
