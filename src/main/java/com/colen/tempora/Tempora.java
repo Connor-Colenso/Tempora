@@ -2,9 +2,9 @@ package com.colen.tempora;
 
 import static com.colen.tempora.config.Config.synchronizeConfiguration;
 
-import com.colen.tempora.logging.commands.AverageHomeCommand;
 import com.colen.tempora.logging.commands.HomeChunkCommand;
 import com.colen.tempora.logging.commands.QuerySQLCommand;
+import com.colen.tempora.networking.PacketDetectedInfo;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
 
@@ -72,6 +72,8 @@ public class Tempora {
     public void init(FMLInitializationEvent event) {
 
         NETWORK.registerMessage(PacketTimeZone.Handler.class, PacketTimeZone.class, 0, Side.SERVER);
+        NETWORK.registerMessage(PacketDetectedInfo.PosMessage.Handler.class, PacketDetectedInfo.PosMessage.class, 1, Side.CLIENT);
+
         // This must happen before we start registering events.
         synchronizeConfiguration(config);
 
@@ -134,7 +136,6 @@ public class Tempora {
         event.registerServerCommand(new QueryEventsCommand());
         event.registerServerCommand(new QuerySQLCommand());
         event.registerServerCommand(new CreateRegion());
-        event.registerServerCommand(new AverageHomeCommand());
         event.registerServerCommand(new HomeChunkCommand());
         event.registerServerCommand(new RemoveRegion());
     }
