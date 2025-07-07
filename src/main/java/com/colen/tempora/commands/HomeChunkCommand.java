@@ -1,4 +1,4 @@
-package com.colen.tempora.logging.commands;
+package com.colen.tempora.commands;
 
 import com.colen.tempora.logging.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.logging.loggers.generic.GenericQueueElement;
