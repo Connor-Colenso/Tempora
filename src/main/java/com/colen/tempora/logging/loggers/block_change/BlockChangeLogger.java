@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.colen.tempora.logging.loggers.generic.GenericQueueElement;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
@@ -20,7 +21,6 @@ import net.minecraftforge.common.config.Configuration;
 import com.colen.tempora.TemporaUtils;
 import com.colen.tempora.logging.loggers.generic.ColumnDef;
 import com.colen.tempora.logging.loggers.generic.GenericPositionalLogger;
-import com.colen.tempora.logging.loggers.generic.ISerializable;
 import com.colen.tempora.logging.loggers.generic.LogWriteSafety;
 import com.colen.tempora.utils.GenericUtils;
 import com.colen.tempora.utils.PlayerUtils;
@@ -91,8 +91,8 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
     }
 
     @Override
-    public ArrayList<ISerializable> generateQueryResults(ResultSet resultSet) throws SQLException {
-        ArrayList<ISerializable> events = new ArrayList<>();
+    public List<GenericQueueElement> generateQueryResults(ResultSet resultSet) throws SQLException {
+        ArrayList<GenericQueueElement> events = new ArrayList<>();
         while (resultSet.next()) {
             BlockChangeQueueElement queueElement = new BlockChangeQueueElement();
             queueElement.blockID = resultSet.getInt("blockId");

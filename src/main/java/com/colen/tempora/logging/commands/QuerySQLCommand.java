@@ -11,7 +11,7 @@ import java.util.Locale;
 import java.util.regex.Pattern;
 
 import com.colen.tempora.logging.loggers.generic.ColumnDef;
-import com.colen.tempora.logging.loggers.generic.ISerializable;
+import com.colen.tempora.logging.loggers.generic.GenericQueueElement;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayer;
@@ -179,7 +179,7 @@ public class QuerySQLCommand extends CommandBase {
              PreparedStatement stmt = roConn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
 
-            List<ISerializable> packets = logger.generateQueryResults(rs);
+            List<GenericQueueElement> packets = logger.generateQueryResults(rs);
 
             if (packets.isEmpty()) {
                 ChatComponentTranslation noResultsMsg = new ChatComponentTranslation(
@@ -197,7 +197,7 @@ public class QuerySQLCommand extends CommandBase {
                 entityPlayer.addChatMessage(queryMsg);
             }
 
-            for (ISerializable p : packets) {
+            for (GenericQueueElement p : packets) {
                 entityPlayer.addChatMessage(p.localiseText(entityPlayer.getPersistentID().toString()));
             }
         }

@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.colen.tempora.logging.loggers.generic.GenericQueueElement;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
@@ -22,7 +23,6 @@ import org.jetbrains.annotations.NotNull;
 import com.colen.tempora.TemporaUtils;
 import com.colen.tempora.logging.loggers.generic.ColumnDef;
 import com.colen.tempora.logging.loggers.generic.GenericPositionalLogger;
-import com.colen.tempora.logging.loggers.generic.ISerializable;
 
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
@@ -45,10 +45,10 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
     }
 
     @Override
-    public ArrayList<ISerializable> generateQueryResults(ResultSet resultSet) throws SQLException {
+    public List<GenericQueueElement> generateQueryResults(ResultSet resultSet) throws SQLException {
 
         try {
-            ArrayList<ISerializable> eventList = new ArrayList<>();
+            ArrayList<GenericQueueElement> eventList = new ArrayList<>();
 
             while (resultSet.next()) {
 

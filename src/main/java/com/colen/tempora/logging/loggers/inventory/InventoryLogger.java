@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import com.colen.tempora.logging.loggers.generic.GenericQueueElement;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
@@ -24,7 +25,6 @@ import net.minecraft.world.World;
 import com.colen.tempora.Tempora;
 import com.colen.tempora.logging.loggers.generic.ColumnDef;
 import com.colen.tempora.logging.loggers.generic.GenericPositionalLogger;
-import com.colen.tempora.logging.loggers.generic.ISerializable;
 import com.colen.tempora.utils.LastInvPos;
 import com.gtnewhorizons.modularui.common.internal.wrapper.ModularUIContainer;
 
@@ -93,8 +93,8 @@ public class InventoryLogger extends GenericPositionalLogger<PlayerInteractWithI
     }
 
     @Override
-    public ArrayList<ISerializable> generateQueryResults(ResultSet rs) throws SQLException {
-        ArrayList<ISerializable> eventList = new ArrayList<>();
+    public List<GenericQueueElement> generateQueryResults(ResultSet rs) throws SQLException {
+        ArrayList<GenericQueueElement> eventList = new ArrayList<>();
         while (rs.next()) {
             PlayerInteractWithInventoryQueueElement queueElement = new PlayerInteractWithInventoryQueueElement();
             queueElement.x = rs.getDouble("x");

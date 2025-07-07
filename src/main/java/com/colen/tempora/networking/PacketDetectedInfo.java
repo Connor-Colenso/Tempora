@@ -1,11 +1,10 @@
 package com.colen.tempora.networking;
 
-import cpw.mods.fml.common.network.NetworkRegistry;
+import com.colen.tempora.Tempora;
 import cpw.mods.fml.common.network.simpleimpl.*;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
-import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayerMP;
 
 import java.util.ArrayList;
@@ -13,9 +12,6 @@ import java.util.Collections;
 import java.util.List;
 
 public final class PacketDetectedInfo {
-    // channel
-    private static final SimpleNetworkWrapper CH =
-        NetworkRegistry.INSTANCE.newSimpleChannel("detect_info");
 
     // client cache
     @SideOnly(Side.CLIENT)
@@ -24,7 +20,7 @@ public final class PacketDetectedInfo {
 
     // send to one player
     public static void send(EntityPlayerMP target, List<Pos> list) {
-        CH.sendTo(new PosMessage(list), target);
+        Tempora.NETWORK.sendTo(new PosMessage(list), target);
     }
 
     // single record

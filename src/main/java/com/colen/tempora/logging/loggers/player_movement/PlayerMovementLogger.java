@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.colen.tempora.logging.loggers.generic.GenericQueueElement;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.common.config.Configuration;
 
@@ -17,7 +18,6 @@ import org.jetbrains.annotations.NotNull;
 
 import com.colen.tempora.logging.loggers.generic.ColumnDef;
 import com.colen.tempora.logging.loggers.generic.GenericPositionalLogger;
-import com.colen.tempora.logging.loggers.generic.ISerializable;
 import com.colen.tempora.utils.PlayerUtils;
 
 import cpw.mods.fml.common.FMLCommonHandler;
@@ -59,8 +59,8 @@ public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovement
     }
 
     @Override
-    public ArrayList<ISerializable> generateQueryResults(ResultSet resultSet) throws SQLException {
-        ArrayList<ISerializable> eventList = new ArrayList<>();
+    public List<GenericQueueElement> generateQueryResults(ResultSet resultSet) throws SQLException {
+        ArrayList<GenericQueueElement> eventList = new ArrayList<>();
 
         while (resultSet.next()) {
 
