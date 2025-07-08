@@ -30,7 +30,7 @@ tempora.command.querysql.query_display=Query: %s.
 tempora.command.querysql.error=SQL Error: %s.
 tempora.command.querysql.generic_unknown_error=Generic unkown error (Please report).
 tempora.command.querysql.query_quantity=Found %s matching results.
-tempora.command.querysql.query_quantity_truncated=Showing the first %s results (server limit: %s). Additional matches may be hidden.
+tempora.command.querysql.query_quantity_if_max=Showing the first %s results (server limit: %s). Additional matches may be hidden.
 tempora.command.querysql.invalid_table=Couldn't find table. Choices are, %s.
 
 
