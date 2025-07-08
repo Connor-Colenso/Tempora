@@ -34,6 +34,11 @@ import static com.colen.tempora.utils.DatabaseUtils.MISSING_STRING_DATA;
 
 public class InventoryLogger extends GenericPositionalLogger<PlayerInteractWithInventoryQueueElement> {
 
+    @Override
+    public LoggerEnum getLoggerType() {
+        return LoggerEnum.InventoryLogger;
+    }
+
     public static void preLogLogic(EntityPlayer player, Container container, List<Slot> inventorySlots,
         Map<Integer, ItemStack> snapshot) {
         for (Slot s : inventorySlots) {
@@ -71,11 +76,6 @@ public class InventoryLogger extends GenericPositionalLogger<PlayerInteractWithI
 
             }
         }
-    }
-
-    @Override
-    public LoggerEnum getLoggerType() {
-        return LoggerEnum.InventoryLogger;
     }
 
     @Override

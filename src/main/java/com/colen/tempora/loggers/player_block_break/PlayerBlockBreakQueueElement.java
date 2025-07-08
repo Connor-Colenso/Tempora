@@ -1,5 +1,6 @@
 package com.colen.tempora.loggers.player_block_break;
 
+import com.colen.tempora.enums.LoggerEnum;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 
@@ -15,6 +16,11 @@ public class PlayerBlockBreakQueueElement extends GenericQueueElement {
     public int pickBlockID;
     public int pickBlockMeta;
     public String playerUUIDWhoBrokeBlock;
+
+    @Override
+    public LoggerEnum getLoggerType() {
+        return LoggerEnum.PlayerBlockBreakLogger;
+    }
 
     @Override
     public IChatComponent localiseText(String uuid) {

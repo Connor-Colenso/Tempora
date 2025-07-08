@@ -73,7 +73,7 @@ public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovement
             queueElement.dimensionId = resultSet.getInt("dimensionID");
             queueElement.timestamp = resultSet.getLong("timestamp");
 
-            queueElement.playerName = PlayerUtils.UUIDToName(resultSet.getString("playerUUID"));
+            queueElement.playerUUID = PlayerUtils.UUIDToName(resultSet.getString("playerUUID"));
 
             eventList.add(queueElement);
         }
@@ -94,7 +94,7 @@ public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovement
 
         try (PreparedStatement pstmt = getDBConn().prepareStatement(sql)) {
             for (PlayerMovementQueueElement elem : playerMovementQueueElements) {
-                pstmt.setString(1, elem.playerName);
+                pstmt.setString(1, elem.playerUUID);
                 pstmt.setDouble(2, elem.x);
                 pstmt.setDouble(3, elem.y);
                 pstmt.setDouble(4, elem.z);
@@ -125,7 +125,7 @@ public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovement
         queueElement.dimensionId = player.worldObj.provider.dimensionId;
         queueElement.timestamp = System.currentTimeMillis();
 
-        queueElement.playerName = player.getUniqueID()
+        queueElement.playerUUID = player.getUniqueID()
             .toString();
 
         queueEvent(queueElement);

@@ -1,5 +1,6 @@
 package com.colen.tempora.loggers.command;
 
+import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.utils.PlayerUtils;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
@@ -12,6 +13,10 @@ public class CommandQueueElement extends GenericQueueElement {
     public String playerUUID;
     public String commandName;
     public String arguments;
+
+    public LoggerEnum getLoggerType() {
+        return LoggerEnum.CommandLogger;
+    }
 
     @Override
     public IChatComponent localiseText(String uuid) {

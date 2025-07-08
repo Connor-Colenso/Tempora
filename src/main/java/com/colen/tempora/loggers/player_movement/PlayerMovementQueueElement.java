@@ -1,5 +1,6 @@
 package com.colen.tempora.loggers.player_movement;
 
+import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.utils.PlayerUtils;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
@@ -9,7 +10,13 @@ import com.colen.tempora.utils.TimeUtils;
 
 public class PlayerMovementQueueElement extends GenericQueueElement {
 
-    public String playerName;
+    public String playerUUID;
+
+    @Override
+    public LoggerEnum getLoggerType() {
+        return LoggerEnum.PlayerMovementLogger;
+    }
+
 
     @Override
     public IChatComponent localiseText(String uuid) {
@@ -18,9 +25,9 @@ public class PlayerMovementQueueElement extends GenericQueueElement {
 
         return new ChatComponentTranslation(
             "message.player_movement",
-            playerName, // %1$s - player name
-            coords, // %2$s - clickable coordinates
-            formattedTime // %3$s - localized formatted time
+            playerUUID,
+            coords,
+            formattedTime
         );
     }
 }

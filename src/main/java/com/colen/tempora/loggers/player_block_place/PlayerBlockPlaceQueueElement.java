@@ -1,5 +1,6 @@
 package com.colen.tempora.loggers.player_block_place;
 
+import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.utils.PlayerUtils;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
@@ -17,6 +18,11 @@ public class PlayerBlockPlaceQueueElement extends GenericQueueElement {
     public String playerNameWhoPlacedBlock;
 
     @Override
+    public LoggerEnum getLoggerType() {
+        return LoggerEnum.PlayerBlockPlaceLogger;
+    }
+
+    @Override
     public IChatComponent localiseText(String uuid) {
         // Use normalized pickBlockID and pickBlockMeta for translation key
         IChatComponent block = BlockUtils.getUnlocalisedChatComponent(pickBlockID, pickBlockMeta);
@@ -31,11 +37,11 @@ public class PlayerBlockPlaceQueueElement extends GenericQueueElement {
         return new ChatComponentTranslation(
             "message.block_place",
             playerNameWhoPlacedBlock, // %0 – player name
-            block, // %1 – block name (localized client-side)
-            blockID, // %2 – raw block ID
-            metadata, // %3 – raw metadata
-            coords, // %4 – clickable coords
-            timeAgo // %5 – relative time
+            block,
+            blockID,
+            metadata,
+            coords,
+            timeAgo
         );
     }
 }
