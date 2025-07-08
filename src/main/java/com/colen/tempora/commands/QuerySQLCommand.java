@@ -27,6 +27,8 @@ import static com.colen.tempora.commands.CommandConstants.ONLY_IN_GAME;
 
 public class QuerySQLCommand extends CommandBase {
 
+    public static int MAX_RESULTS_TO_SHOW = 100;
+
     @Override
     public String getCommandName() {
         return "querysql";
@@ -51,44 +53,26 @@ public class QuerySQLCommand extends CommandBase {
             return;
         }
 
-        if (args.length < 2) {
-            ChatComponentTranslation msg = new ChatComponentTranslation("tempora.command.querysql.usage", getCommandUsage(sender));
-            msg.getChatStyle().setColor(EnumChatFormatting.RED);
-            sender.addChatMessage(msg);
-            return;
-        }
+        String rawQuery = String.join(" ", args);
 
-        String loggerName = args[0];
-        String rawQuery = joinArgsFromIndex(args, 1);
-
-        // Must be wrapped in quotes, e.g. "SELECT * FROM ..."
-        if (!rawQuery.startsWith("\"") || !rawQuery.endsWith("\"")) {
-            ChatComponentTranslation msg = new ChatComponentTranslation("tempora.command.querysql.query_quotes");
-            msg.getChatStyle().setColor(EnumChatFormatting.RED);
-            sender.addChatMessage(msg);
-            return;
-        }
-
-        // Find logger by name
+        // Find logger by name.
         GenericPositionalLogger<?> targetLogger = null;
         for (GenericPositionalLogger<?> logger : GenericPositionalLogger.getLoggerList()) {
-            if (logger.getSQLTableName().equalsIgnoreCase(loggerName)) {
+            if (rawQuery.contains(logger.getSQLTableName())) {
                 targetLogger = logger;
                 break;
             }
         }
 
         if (targetLogger == null) {
-            ChatComponentTranslation msg = new ChatComponentTranslation("tempora.command.querysql.logger_not_found", loggerName);
+            ChatComponentTranslation msg = new ChatComponentTranslation("tempora.command.querysql.invalid_table", GenericPositionalLogger.getAllLoggerNames());
             msg.getChatStyle().setColor(EnumChatFormatting.RED);
             sender.addChatMessage(msg);
             return;
         }
 
-        // Strip quotes and get SQL query.
-        String sql = rawQuery.substring(1, rawQuery.length() - 1).trim();
 
-        if (!isSelectQuery(sql)) {
+        if (!isSelectQuery(rawQuery)) {
             ChatComponentTranslation msg = new ChatComponentTranslation("tempora.command.querysql.select_only");
             msg.getChatStyle().setColor(EnumChatFormatting.RED);
             sender.addChatMessage(msg);
@@ -101,7 +85,7 @@ public class QuerySQLCommand extends CommandBase {
             // Ensure the user has all the columns needed
             List<ColumnDef> columns = targetLogger.getAllTableColumns();
 
-            List<String> missing = findMissingColumns(sql, columns);
+            List<String> missing = findMissingColumns(rawQuery, columns);
             if (!missing.isEmpty()) {
                 ChatComponentTranslation missingColsMsg = new ChatComponentTranslation(
                     "tempora.command.querysql.missing_columns",
@@ -117,7 +101,7 @@ public class QuerySQLCommand extends CommandBase {
                 return;
             }
 
-            List<IChatComponent> output = executeReadOnlyQuery(targetLogger, sql, entityPlayerMP);
+            List<IChatComponent> output = executeReadOnlyQuery(targetLogger, rawQuery, entityPlayerMP);
 
             // We do this first, to not bury the info below, in case of a long response.
             for (IChatComponent message : output) {
@@ -126,7 +110,7 @@ public class QuerySQLCommand extends CommandBase {
 
             ChatComponentTranslation queryFeedbackMsg = new ChatComponentTranslation(
                 "tempora.command.querysql.query_display",
-                sql
+                rawQuery
             );
             queryFeedbackMsg.getChatStyle().setColor(EnumChatFormatting.GRAY);
 
@@ -137,6 +121,14 @@ public class QuerySQLCommand extends CommandBase {
                 );
                 noResultsMsg.getChatStyle().setColor(EnumChatFormatting.GRAY);
                 sender.addChatMessage(noResultsMsg);
+            } else if (output.size() == MAX_RESULTS_TO_SHOW) {
+                ChatComponentTranslation queryMsg = new ChatComponentTranslation(
+                    "tempora.command.querysql.query_quantity_if_max",
+                    output.size(),
+                    MAX_RESULTS_TO_SHOW
+                );
+                queryMsg.getChatStyle().setColor(EnumChatFormatting.GRAY);
+                sender.addChatMessage(queryMsg);
             } else {
                 ChatComponentTranslation queryMsg = new ChatComponentTranslation(
                     "tempora.command.querysql.query_quantity",
@@ -174,18 +166,9 @@ public class QuerySQLCommand extends CommandBase {
         return missing;
     }
 
-    private static boolean isSelectQuery(String sql) {
+    private static boolean isSelectQuery(String sqlQuery) {
         // Simple check that it starts with SELECT ignoring whitespace & case
-        return sql.trim().toLowerCase().startsWith("select");
-    }
-
-    private static String joinArgsFromIndex(String[] args, int startIndex) {
-        StringBuilder sb = new StringBuilder();
-        for (int i = startIndex; i < args.length; i++) {
-            if (i > startIndex) sb.append(" ");
-            sb.append(args[i]);
-        }
-        return sb.toString();
+        return sqlQuery.trim().toLowerCase().startsWith("select");
     }
 
     private List<IChatComponent> executeReadOnlyQuery(GenericPositionalLogger<?> logger, String sql, EntityPlayer queryIssuerEntityPlayer) throws SQLException {
@@ -194,6 +177,8 @@ public class QuerySQLCommand extends CommandBase {
         try (Connection roConn = logger.getReadOnlyConnection();
              PreparedStatement stmt = roConn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
+
+            stmt.setMaxRows(MAX_RESULTS_TO_SHOW);
 
             List<GenericQueueElement> queryResults = logger.generateQueryResults(rs);
 
@@ -207,20 +192,11 @@ public class QuerySQLCommand extends CommandBase {
 
     @Override
     public List<String> addTabCompletionOptions(ICommandSender sender, String[] args) {
+        List<String> names = GenericPositionalLogger.getAllLoggerNames();
 
-        if (args.length == 1) {
-            String partial = args[0].toLowerCase();
-            List<String> matches = new ArrayList<>();
-            for (GenericPositionalLogger<?> logger : GenericPositionalLogger.getLoggerList()) {
-                String name = logger.getSQLTableName();
-                if (name.toLowerCase().startsWith(partial)) {
-                    matches.add(name);
-                }
-            }
-            return matches;
-        }
-
-        // No tab complete for query string (args.length >= 2)
-        return null;
+        return CommandBase.getListOfStringsMatchingLastWord(
+            args,
+            names.toArray(new String[0])
+        );
     }
 }

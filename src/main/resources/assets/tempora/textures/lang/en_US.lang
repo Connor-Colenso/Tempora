@@ -6,7 +6,7 @@ message.entity_position=%s with %s was located at %s (%s).
 message.entity_spawn=%s with %s spawned at %s (%s).
 message.explosion=Explosion caused by %s with strength %s near player %s (%s meters away) at %s (%s).
 message.item_use=%s used %s (%d:%d) at %s (%s).
-message.player_movement=%s moved to %s (%s).
+message.player_movement=%s was at %s (%s).
 message.inventory_interaction_added=%s added %dx%s (%d:%d) to %s at %s (%s).
 message.inventory_interaction_removed=%s removed %dx%s (%d:%d) from %s at %s (%s).
 message.block_change=%s was set at %s by %s (%s). The closest player was %s (%s blocks away).
@@ -22,7 +22,6 @@ time.ago.seconds=%s seconds ago
 # Usage / help
 tempora.command.querysql.usage=Usage: %s.
 tempora.command.querysql.query_quotes=SQL query must be wrapped in quotes.
-tempora.command.querysql.logger_not_found=Logger '%s' not found.
 tempora.command.querysql.select_only=Only SELECT queries are allowed.
 tempora.command.querysql.missing_columns=Query missing required columns: %s
 tempora.command.querysql.missing_columns.advice=It is highly recommended to use SELECT * instead of specifying columns.
@@ -31,6 +30,9 @@ tempora.command.querysql.query_display=Query: %s.
 tempora.command.querysql.error=SQL Error: %s.
 tempora.command.querysql.generic_unknown_error=Generic unkown error (Please report).
 tempora.command.querysql.query_quantity=Found %s matching results.
+tempora.command.querysql.query_quantity_truncated=Showing the first %s results (server limit: %s). Additional matches may be hidden.
+tempora.command.querysql.invalid_table=Couldn't find table. Choices are, %s.
+
 
 tempora.click.to.copy.uuid=Click to copy UUID.
 
