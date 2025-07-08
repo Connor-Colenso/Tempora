@@ -1,5 +1,6 @@
 package com.colen.tempora.loggers.explosion;
 
+import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.utils.PlayerUtils;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
@@ -15,18 +16,23 @@ public class ExplosionQueueElement extends GenericQueueElement {
     public double closestPlayerDistance;
 
     @Override
+    public LoggerEnum getLoggerType() {
+        return LoggerEnum.ExplosionLogger;
+    }
+
+    @Override
     public IChatComponent localiseText(String uuid) {
         IChatComponent coords = generateTeleportChatComponent(x, y, z, dimensionId, PlayerUtils.UUIDToName(uuid), CoordFormat.FLOAT_1DP);
         IChatComponent timeAgo = TimeUtils.formatTime(timestamp, uuid);
 
         return new ChatComponentTranslation(
             "message.explosion",
-            exploderUUID, // %s - UUID of exploder
-            String.format("%.1f", strength), // %s - explosion strength
-            closestPlayerUUID, // %s - closest player UUID
-            String.format("%.1f", closestPlayerDistance), // %s - distance
-            coords, // %s - clickable coords
-            timeAgo // %s - relative time
+            exploderUUID,
+            String.format("%.1f", strength),
+            closestPlayerUUID,
+            String.format("%.1f", closestPlayerDistance),
+            coords,
+            timeAgo
         );
     }
 }

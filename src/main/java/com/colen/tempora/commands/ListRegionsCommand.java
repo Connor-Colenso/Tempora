@@ -3,7 +3,7 @@ package com.colen.tempora.commands;
 import java.util.List;
 
 import com.colen.tempora.loggers.generic.GenericQueueElement.CoordFormat;
-import com.colen.tempora.networking.PacketRegionSync;
+import com.colen.tempora.networking.PacketShowRegionInWorld;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
@@ -91,6 +91,6 @@ public class ListRegionsCommand extends CommandBase {
             sender.addChatMessage(line);
         }
 
-        PacketRegionSync.send(player, regions);
+        PacketShowRegionInWorld.send(player, regions);
     }
 }

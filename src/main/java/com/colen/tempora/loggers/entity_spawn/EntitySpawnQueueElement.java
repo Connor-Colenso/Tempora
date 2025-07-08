@@ -1,5 +1,6 @@
 package com.colen.tempora.loggers.entity_spawn;
 
+import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.utils.PlayerUtils;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
@@ -13,6 +14,11 @@ public class EntitySpawnQueueElement extends GenericQueueElement {
 
     public String entityName;
     public String entityUUID;
+
+    @Override
+    public LoggerEnum getLoggerType() {
+        return LoggerEnum.EntitySpawnLogger;
+    }
 
     @Override
     public IChatComponent localiseText(String uuid) {

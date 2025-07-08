@@ -13,7 +13,7 @@ import java.util.Collections;
 import java.util.List;
 
 /** Region list sync → client */
-public final class PacketRegionSync {
+public final class PacketShowRegionInWorld {
 
     @SideOnly(Side.CLIENT)
     public static final List<IntRegion> CLIENT_REGIONS =
@@ -64,5 +64,5 @@ public final class PacketRegionSync {
         }
     }
 
-    private PacketRegionSync() {}
+    private PacketShowRegionInWorld() {}
 }

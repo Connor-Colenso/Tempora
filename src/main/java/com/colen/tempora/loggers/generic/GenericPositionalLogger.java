@@ -22,7 +22,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 import com.colen.tempora.enums.LoggerEnum;
-import com.colen.tempora.networking.PacketDetectedInfo;
+import com.colen.tempora.networking.PacketShowEventInWorld;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentTranslation;
@@ -432,11 +432,11 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
                             String uuid = player.getUniqueID().toString();
                             packets.forEach(p -> sender.addChatMessage(p.localiseText(uuid)));
 
-                            List<PacketDetectedInfo.Pos> posList = new ArrayList<>();
+                            List<PacketShowEventInWorld.EventPosition> eventPositionList = new ArrayList<>();
                             for (GenericQueueElement packet : packets) {
-                                posList.add(new PacketDetectedInfo.Pos(packet.x, packet.y, packet.z, packet.dimensionId, System.currentTimeMillis()));
+                                eventPositionList.add(new PacketShowEventInWorld.EventPosition(packet.x, packet.y, packet.z, packet.dimensionId, System.currentTimeMillis(), packet.getLoggerType()));
                             }
-                            PacketDetectedInfo.send(player, posList);
+                            PacketShowEventInWorld.send(player, eventPositionList);
                         }
                     }
                 }

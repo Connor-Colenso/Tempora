@@ -1,6 +1,6 @@
 package com.colen.tempora.rendering;
 
-import com.colen.tempora.networking.PacketDetectedInfo;
+import com.colen.tempora.networking.PacketShowEventInWorld;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -18,7 +18,7 @@ public final class RenderEventsInWorld {
 
     @SubscribeEvent
     public void onRender(RenderWorldLastEvent e) {
-        if (PacketDetectedInfo.CLIENT_POS.isEmpty()) return;
+        if (PacketShowEventInWorld.CLIENT_POS.isEmpty()) return;
 
         Tessellator tes = Tessellator.instance;
         Minecraft mc = Minecraft.getMinecraft();
@@ -37,11 +37,11 @@ public final class RenderEventsInWorld {
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
         GL11.glColor4f(1f, 1f, 1f, 0.5f);
 
-        for (PacketDetectedInfo.Pos pos : PacketDetectedInfo.CLIENT_POS) {
-            if (pos.dim != curDim) continue;
+        for (PacketShowEventInWorld.EventPosition eventPosition : PacketShowEventInWorld.CLIENT_POS) {
+            if (eventPosition.dim != curDim) continue;
 
             GL11.glPushMatrix();
-            GL11.glTranslated(pos.x + 0.5, pos.y + 0.5, pos.z + 0.5);
+            GL11.glTranslated(eventPosition.x + 0.5, eventPosition.y + 0.5, eventPosition.z + 0.5);
             GL11.glScaled(SCALE_FACTOR, SCALE_FACTOR, SCALE_FACTOR);
 
             tes.startDrawingQuads();
@@ -57,7 +57,7 @@ public final class RenderEventsInWorld {
 
 
         double expiryCutoff = System.currentTimeMillis() - SECONDS_RENDERING_DURATION * 1000L;
-        PacketDetectedInfo.CLIENT_POS.removeIf(pos -> pos.posPrintTime < expiryCutoff);
+        PacketShowEventInWorld.CLIENT_POS.removeIf(eventPosition -> eventPosition.posPrintTime < expiryCutoff);
 
     }
 }

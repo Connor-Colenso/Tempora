@@ -1,5 +1,6 @@
 package com.colen.tempora.loggers.inventory;
 
+import com.colen.tempora.enums.LoggerEnum;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ChatComponentTranslation;
@@ -17,6 +18,11 @@ public class PlayerInteractWithInventoryQueueElement extends GenericQueueElement
     public int itemMetadata;
     public String playerUUID;
     public int stackSize;
+
+    @Override
+    public LoggerEnum getLoggerType() {
+        return LoggerEnum.InventoryLogger;
+    }
 
     @Override
     public IChatComponent localiseText(String uuid) {
@@ -41,14 +47,14 @@ public class PlayerInteractWithInventoryQueueElement extends GenericQueueElement
 
         return new ChatComponentTranslation(
             translationKey,
-            playerName, // %1$s - player name
-            stackSize, // %2$d - stack size
-            itemDetails, // %3$s - item name/details (IChatComponent)
-            itemId, // %4$d - item ID
-            itemMetadata, // %5$d - item metadata
-            new ChatComponentTranslation(containerName), // %6$s - container name
-            coords, // %7$s - clickable coordinates (IChatComponent)
-            formattedTime // %8$s - localized relative time (IChatComponent)
+            playerName,
+            stackSize,
+            itemDetails,
+            itemId,
+            itemMetadata,
+            new ChatComponentTranslation(containerName),
+            coords,
+            formattedTime
         );
     }
 }

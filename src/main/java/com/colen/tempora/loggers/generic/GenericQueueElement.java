@@ -1,5 +1,6 @@
 package com.colen.tempora.loggers.generic;
 
+import com.colen.tempora.enums.LoggerEnum;
 import net.minecraft.event.ClickEvent;
 import net.minecraft.event.HoverEvent;
 import net.minecraft.util.ChatComponentTranslation;
@@ -16,6 +17,8 @@ public abstract class GenericQueueElement {
     public long timestamp;
 
     public abstract IChatComponent localiseText(String uuid);
+
+    public abstract LoggerEnum getLoggerType();
 
     // How the x y z should be shown in chat and in the /tp command.
     public enum CoordFormat {

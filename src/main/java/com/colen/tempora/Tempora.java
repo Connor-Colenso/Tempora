@@ -5,8 +5,8 @@ import static com.colen.tempora.config.Config.synchronizeConfiguration;
 import com.colen.tempora.commands.HomeChunkCommand;
 import com.colen.tempora.commands.ListRegionsCommand;
 import com.colen.tempora.commands.QuerySQLCommand;
-import com.colen.tempora.networking.PacketDetectedInfo;
-import com.colen.tempora.networking.PacketRegionSync;
+import com.colen.tempora.networking.PacketShowEventInWorld;
+import com.colen.tempora.networking.PacketShowRegionInWorld;
 import com.colen.tempora.rendering.RenderEventsInWorld;
 import com.colen.tempora.rendering.RenderRegionsInWorld;
 import net.minecraftforge.common.MinecraftForge;
@@ -76,8 +76,8 @@ public class Tempora {
     public void init(FMLInitializationEvent event) {
 
         NETWORK.registerMessage(PacketTimeZone.Handler.class, PacketTimeZone.class, 0, Side.SERVER);
-        NETWORK.registerMessage(PacketDetectedInfo.PosMessage.Handler.class, PacketDetectedInfo.PosMessage.class, 1, Side.CLIENT);
-        NETWORK.registerMessage(PacketRegionSync.RegionMsg.Handler.class, PacketRegionSync.RegionMsg.class, 2, Side.CLIENT);
+        NETWORK.registerMessage(PacketShowEventInWorld.PosMessage.Handler.class, PacketShowEventInWorld.PosMessage.class, 1, Side.CLIENT);
+        NETWORK.registerMessage(PacketShowRegionInWorld.RegionMsg.Handler.class, PacketShowRegionInWorld.RegionMsg.class, 2, Side.CLIENT);
 
         // This must happen before we start registering events.
         synchronizeConfiguration(config);

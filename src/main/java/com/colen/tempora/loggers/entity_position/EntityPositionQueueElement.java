@@ -1,5 +1,6 @@
 package com.colen.tempora.loggers.entity_position;
 
+import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.utils.PlayerUtils;
 import net.minecraft.event.ClickEvent;
 import net.minecraft.event.HoverEvent;
@@ -16,6 +17,11 @@ public class EntityPositionQueueElement extends GenericQueueElement {
 
     public String entityName;
     public String entityUUID;
+
+    @Override
+    public LoggerEnum getLoggerType() {
+        return LoggerEnum.EntityPositionLogger;
+    }
 
     @Override
     public IChatComponent localiseText(String uuid) {

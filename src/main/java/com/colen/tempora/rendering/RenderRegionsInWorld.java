@@ -1,7 +1,7 @@
 package com.colen.tempora.rendering;
 
 import com.colen.tempora.loggers.block_change.IntRegion;
-import com.colen.tempora.networking.PacketRegionSync;
+import com.colen.tempora.networking.PacketShowRegionInWorld;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -19,7 +19,7 @@ public final class RenderRegionsInWorld {
 
     @SubscribeEvent
     public void onRender(RenderWorldLastEvent e) {
-        if (PacketRegionSync.CLIENT_REGIONS.isEmpty()) return;
+        if (PacketShowRegionInWorld.CLIENT_REGIONS.isEmpty()) return;
 
         Minecraft mc = Minecraft.getMinecraft();
         double px = mc.thePlayer.lastTickPosX + (mc.thePlayer.posX - mc.thePlayer.lastTickPosX) * e.partialTicks;
@@ -38,7 +38,7 @@ public final class RenderRegionsInWorld {
         GL11.glLineWidth(2F);
         GL11.glColor4f(1F, 0F, 0F, 0.7F);
 
-        for (IntRegion r : PacketRegionSync.CLIENT_REGIONS) {
+        for (IntRegion r : PacketShowRegionInWorld.CLIENT_REGIONS) {
             if (r.dim != curDim) continue;
 
             AxisAlignedBB bb = AxisAlignedBB.getBoundingBox(
@@ -54,6 +54,6 @@ public final class RenderRegionsInWorld {
         GL11.glPopMatrix();
 
         double expiryCutoff = System.currentTimeMillis() - SECONDS_RENDERING_DURATION * 1000L;
-        PacketRegionSync.CLIENT_REGIONS.removeIf(intRegion -> intRegion.posPrintTime < expiryCutoff);
+        PacketShowRegionInWorld.CLIENT_REGIONS.removeIf(intRegion -> intRegion.posPrintTime < expiryCutoff);
     }
 }
