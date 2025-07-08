@@ -25,7 +25,9 @@ import com.colen.tempora.networking.PacketDetectedInfo;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.IChatComponent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
 
@@ -384,23 +386,28 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
                         if (packets.isEmpty())
                         {
-                            sender.addChatMessage(new ChatComponentText(
-                                EnumChatFormatting.GRAY + "No results found for " +
-                                    logger.getSQLTableName() + '.'));
+                            IChatComponent noResults = new ChatComponentTranslation(
+                                "message.queryevents.no_results",
+                                logger.getSQLTableName());
+                            noResults.getChatStyle().setColor(EnumChatFormatting.GRAY);
+                            sender.addChatMessage(noResults);
+
                         }
                         else
                         {
-                            sender.addChatMessage(new ChatComponentText(
-                                EnumChatFormatting.GRAY + "Showing latest " +
-                                    packets.size() + " results for " +
-                                    logger.getSQLTableName() + ':'));
+                            IChatComponent showingResults = new ChatComponentTranslation(
+                                "message.queryevents.showing_results",
+                                packets.size(),
+                                logger.getSQLTableName());
+                            showingResults.getChatStyle().setColor(EnumChatFormatting.GRAY);
+                            sender.addChatMessage(showingResults);
                             if (logger.eventQueue.size() > 100)
                             {
-                                sender.addChatMessage(new ChatComponentText(
-                                    EnumChatFormatting.RED +
-                                        "Warning, due to high volume, there are still " +
-                                        logger.eventQueue.size() +
-                                        " events pending; query results may be outdated."));
+                                IChatComponent tooMany = new ChatComponentTranslation(
+                                    "message.queryevents.too_many_pending",
+                                    logger.eventQueue.size());
+                                tooMany.getChatStyle().setColor(EnumChatFormatting.RED);
+                                sender.addChatMessage(tooMany);
                             }
 
 
@@ -420,9 +427,11 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
                 }
                 catch (SQLException e)
                 {
-                    sender.addChatMessage(new ChatComponentText(
-                        "Database query failed on " + logger.getSQLTableName() +
-                            ": " + e.getMessage()));
+                    sender.addChatMessage(new ChatComponentTranslation(
+                        "message.queryevents.query_failed",
+                        logger.getSQLTableName(),
+                        e.getMessage()));
+
                 }
             }
         }

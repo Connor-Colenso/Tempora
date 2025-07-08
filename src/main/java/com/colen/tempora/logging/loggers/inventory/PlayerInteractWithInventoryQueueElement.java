@@ -33,8 +33,8 @@ public class PlayerInteractWithInventoryQueueElement extends GenericQueueElement
         InventoryLogger.Direction dir = InventoryLogger.Direction.fromOrdinal(interactionType);
 
         if (dir == null) {
-            return new ChatComponentText(
-                "Error: invalid interactionType " + interactionType + " in InventoryLogger DB. Please report this.");
+            return new ChatComponentTranslation(
+                "message.inventorylogger.invalid_interaction", interactionType);
         }
 
         String translationKey = dir.isAddition() ? "message.inventory_interaction_added"
