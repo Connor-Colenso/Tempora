@@ -334,6 +334,17 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
         return Collections.unmodifiableSet(loggerList);
     }
 
+    public static List<String> getAllLoggerNames() {
+        List<String> loggerNames = new ArrayList<>();
+
+        for (GenericPositionalLogger<?> logger : loggerList) {
+            loggerNames.add(logger.getSQLTableName());
+        }
+
+        return loggerNames;
+    }
+
+
     public static void queryEventsAtPosAndTime(ICommandSender sender,
                                                int centreX, int centreY, int centreZ,
                                                long seconds,
@@ -382,7 +393,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
                     try (ResultSet rs = ps.executeQuery())
                     {
                         List<GenericQueueElement> packets = logger.generateQueryResults(rs);
-                        Collections.reverse(packets);          // newest first
+                        Collections.reverse(packets);
 
                         if (packets.isEmpty())
                         {

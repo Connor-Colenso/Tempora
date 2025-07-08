@@ -55,7 +55,7 @@ public abstract class GenericQueueElement {
         String playerName,
         CoordFormat fmt) {
 
-        /* --------- translation‑driven display string --------- */
+        // Translation‑driven teleport options.
         IChatComponent display = new ChatComponentTranslation(
             "tempora.teleport.display",
             fmt.display(x), fmt.display(y), fmt.display(z));
@@ -67,12 +67,11 @@ public abstract class GenericQueueElement {
         IChatComponent hoverText = new ChatComponentTranslation(
             "tempora.teleport.hover",
             fmt.display(x), fmt.display(y), fmt.display(z), dimId);
+        hoverText.getChatStyle().setColor(EnumChatFormatting.GRAY);
 
-        display.setChatStyle(
-            new ChatStyle().setColor(EnumChatFormatting.AQUA)
-                .setChatClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, cmd))
-                .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hoverText))
-        );
+        display.getChatStyle().setColor(EnumChatFormatting.AQUA)
+            .setChatClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, cmd))
+            .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hoverText));
 
         return display;
     }
