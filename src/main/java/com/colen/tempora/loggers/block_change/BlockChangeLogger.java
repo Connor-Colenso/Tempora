@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
@@ -33,13 +34,8 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
     private boolean globalBlockChangeLogging;
 
     @Override
-    protected LogWriteSafety defaultLogWriteSafetyMode() {
-        return LogWriteSafety.NORMAL;
-    }
-
-    @Override
-    public String getSQLTableName() {
-        return "BlockChangeLogger";
+    public LoggerEnum getLoggerType() {
+        return LoggerEnum.BlockChangeLogger;
     }
 
     @Override

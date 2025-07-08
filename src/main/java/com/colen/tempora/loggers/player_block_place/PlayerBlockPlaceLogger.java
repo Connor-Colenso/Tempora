@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -32,8 +33,8 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 public class PlayerBlockPlaceLogger extends GenericPositionalLogger<PlayerBlockPlaceQueueElement> {
 
     @Override
-    public String getSQLTableName() {
-        return "PlayerBlockPlaceLogger";
+    public LoggerEnum getLoggerType() {
+        return LoggerEnum.PlayerBlockPlaceLogger;
     }
 
     @Override

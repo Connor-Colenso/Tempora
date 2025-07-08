@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -27,8 +28,8 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueElement> {
 
     @Override
-    public String getSQLTableName() {
-        return "EntityDeathLogger";
+    public LoggerEnum getLoggerType() {
+        return LoggerEnum.EntityDeathLogger;
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)

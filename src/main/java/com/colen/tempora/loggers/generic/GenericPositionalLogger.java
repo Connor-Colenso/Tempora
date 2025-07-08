@@ -21,6 +21,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.networking.PacketDetectedInfo;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -79,7 +80,11 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
     public abstract List<GenericQueueElement> generateQueryResults(ResultSet rs) throws SQLException;
 
-    public abstract String getSQLTableName();
+    public abstract LoggerEnum getLoggerType();
+
+    public final String getSQLTableName() {
+        return getLoggerType().toString();
+    }
 
     // Add your own custom columns for each logger with this, we append the default x y z etc with getAllTableColumns
     public abstract List<ColumnDef> getCustomTableColumns();
