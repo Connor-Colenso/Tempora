@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.mixin_interfaces.IEntityMixin;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -25,8 +26,8 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 public class EntitySpawnLogger extends GenericPositionalLogger<EntitySpawnQueueElement> {
 
     @Override
-    public String getSQLTableName() {
-        return "EntitySpawnLogger";
+    public LoggerEnum getLoggerType() {
+        return LoggerEnum.EntitySpawnLogger;
     }
 
     @Override

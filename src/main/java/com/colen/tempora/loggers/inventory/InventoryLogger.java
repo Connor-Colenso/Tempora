@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
@@ -73,8 +74,8 @@ public class InventoryLogger extends GenericPositionalLogger<PlayerInteractWithI
     }
 
     @Override
-    public String getSQLTableName() {
-        return "InventoryLogger";
+    public LoggerEnum getLoggerType() {
+        return LoggerEnum.InventoryLogger;
     }
 
     @Override

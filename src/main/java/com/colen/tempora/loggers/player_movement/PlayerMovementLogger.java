@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.common.config.Configuration;
@@ -29,8 +30,8 @@ import cpw.mods.fml.common.gameevent.TickEvent.PlayerTickEvent;
 public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovementQueueElement> {
 
     @Override
-    public String getSQLTableName() {
-        return "PlayerMovementLogger";
+    public LoggerEnum getLoggerType() {
+        return LoggerEnum.PlayerMovementLogger;
     }
 
     // This class logs three items to the same database.
