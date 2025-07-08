@@ -1,7 +1,7 @@
 package com.colen.tempora.networking;
 
 import com.colen.tempora.Tempora;
-import com.colen.tempora.logging.loggers.block_change.IntRegion;
+import com.colen.tempora.loggers.block_change.IntRegion;
 import cpw.mods.fml.common.network.simpleimpl.*;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;

@@ -3,13 +3,12 @@ package com.colen.tempora.commands;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
-import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.world.World;
 
-import com.colen.tempora.logging.loggers.block_change.IntRegion;
-import com.colen.tempora.logging.loggers.block_change.RegionRegistry;
+import com.colen.tempora.loggers.block_change.IntRegion;
+import com.colen.tempora.loggers.block_change.RegionRegistry;
 
 /**
  * /createregion <x1> <y1> <z1> <x2> <y2> <z2>

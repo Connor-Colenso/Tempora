@@ -1,7 +1,7 @@
 package com.colen.tempora.commands;
 
-import com.colen.tempora.logging.loggers.generic.GenericPositionalLogger;
-import com.colen.tempora.logging.loggers.generic.GenericQueueElement;
+import com.colen.tempora.loggers.generic.GenericPositionalLogger;
+import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.utils.PlayerUtils;
 import com.colen.tempora.utils.TimeUtils;
 import cpw.mods.fml.common.FMLLog;
@@ -18,7 +18,7 @@ import java.sql.SQLException;
 import java.util.Collections;
 import java.util.List;
 
-import static com.colen.tempora.logging.loggers.generic.GenericQueueElement.generateTeleportChatComponent;
+import static com.colen.tempora.loggers.generic.GenericQueueElement.generateTeleportChatComponent;
 
 /**
  * /homechunk <player> [<look‑back>] [<dim>]
