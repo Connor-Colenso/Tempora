@@ -12,6 +12,8 @@ import net.minecraft.util.ChatComponentText;
 import com.colen.tempora.logging.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.utils.TimeUtils;
 
+import static com.colen.tempora.commands.CommandConstants.ONLY_IN_GAME;
+
 public class QueryEventsCommand extends CommandBase {
 
     @Override
@@ -28,7 +30,7 @@ public class QueryEventsCommand extends CommandBase {
     public void processCommand(ICommandSender sender, String[] args) {
 
         if (!(sender instanceof EntityPlayerMP entityPlayerMP)) {
-            sender.addChatMessage(new ChatComponentText("This command can only be run by a user in-game."));
+            sender.addChatMessage(new ChatComponentText(ONLY_IN_GAME));
             return;
         }
 

@@ -22,6 +22,8 @@ import net.minecraft.util.EnumChatFormatting;
 
 import com.colen.tempora.logging.loggers.generic.GenericPositionalLogger;
 
+import static com.colen.tempora.commands.CommandConstants.ONLY_IN_GAME;
+
 public class QuerySQLCommand extends CommandBase {
 
     @Override
@@ -44,7 +46,7 @@ public class QuerySQLCommand extends CommandBase {
 
         if (!(sender instanceof EntityPlayerMP entityPlayerMP)) {
             // This is likely executed by a terminal, so translation is meaningless.
-            sender.addChatMessage(new ChatComponentText("This command can only be run by a player."));
+            sender.addChatMessage(new ChatComponentText(ONLY_IN_GAME));
             return;
         }
 

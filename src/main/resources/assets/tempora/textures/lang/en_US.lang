@@ -55,3 +55,9 @@ tempora.command.queryevents.bad_filter=Filter "%s" is invalid.
 
 tempora.command.listregions.none=No regions defined.
 tempora.command.listregions.entry=Region %d: %s to %s in dim %s. Midpoint: %s.
+message.inventorylogger.invalid_interaction=Error: invalid interactionType %s in InventoryLogger DB. Please report this.
+
+message.queryevents.query_failed=Database query failed on %s: %s
+message.queryevents.no_results=No results found for %s.
+message.queryevents.showing_results=Showing latest %s results for %s:
+message.queryevents.too_many_pending=Warning, due to high volume, there are still %s events pending; query results may be outdated.
