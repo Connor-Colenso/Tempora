@@ -15,7 +15,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import com.colen.tempora.logging.loggers.inventory.InventoryLogger;
+import com.colen.tempora.loggers.inventory.InventoryLogger;
 
 @Mixin(Container.class)
 public abstract class MixinContainer {

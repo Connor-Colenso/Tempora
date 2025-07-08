@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import com.colen.tempora.Tempora;
-import com.colen.tempora.logging.loggers.inventory.InventoryLogger;
+import com.colen.tempora.loggers.inventory.InventoryLogger;
 
 import appeng.api.config.Actionable;
 import appeng.api.networking.security.BaseActionSource;

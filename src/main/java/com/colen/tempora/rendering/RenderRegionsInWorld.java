@@ -1,7 +1,6 @@
 package com.colen.tempora.rendering;
 
-import com.colen.tempora.logging.loggers.block_change.IntRegion;
-import com.colen.tempora.networking.PacketDetectedInfo;
+import com.colen.tempora.loggers.block_change.IntRegion;
 import com.colen.tempora.networking.PacketRegionSync;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.relauncher.Side;

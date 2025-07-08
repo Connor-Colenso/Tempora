@@ -2,23 +2,21 @@ package com.colen.tempora.commands;
 
 import java.util.List;
 
-import com.colen.tempora.logging.loggers.generic.GenericQueueElement.CoordFormat;
+import com.colen.tempora.loggers.generic.GenericQueueElement.CoordFormat;
 import com.colen.tempora.networking.PacketRegionSync;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
-import net.minecraft.world.World;
 
-import com.colen.tempora.logging.loggers.block_change.IntRegion;
-import com.colen.tempora.logging.loggers.block_change.RegionRegistry;
+import com.colen.tempora.loggers.block_change.IntRegion;
+import com.colen.tempora.loggers.block_change.RegionRegistry;
 
 import static com.colen.tempora.commands.CommandConstants.ONLY_IN_GAME;
-import static com.colen.tempora.logging.loggers.generic.GenericQueueElement.generateTeleportChatComponent;
+import static com.colen.tempora.loggers.generic.GenericQueueElement.generateTeleportChatComponent;
 
 /**
  * /listregions

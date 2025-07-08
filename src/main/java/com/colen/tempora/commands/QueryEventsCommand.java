@@ -9,7 +9,7 @@ import net.minecraft.command.WrongUsageException;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentText;
 
-import com.colen.tempora.logging.loggers.generic.GenericPositionalLogger;
+import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.utils.TimeUtils;
 
 import static com.colen.tempora.commands.CommandConstants.ONLY_IN_GAME;

@@ -8,7 +8,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
 
 import com.colen.tempora.TemporaUtils;
-import com.colen.tempora.logging.loggers.generic.GenericPositionalLogger;
+import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 
 public class TemporaWand extends Item {
 
