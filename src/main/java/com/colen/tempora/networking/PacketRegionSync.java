@@ -48,7 +48,7 @@ public final class PacketRegionSync {
                 int dim = buf.readInt();
                 int x1 = buf.readInt(), y1 = buf.readInt(), z1 = buf.readInt();
                 int x2 = buf.readInt(), y2 = buf.readInt(), z2 = buf.readInt();
-                list.add(new IntRegion(dim, x1, y1, z1, x2, y2, z2));
+                list.add(new IntRegion(dim, x1, y1, z1, x2, y2, z2, System.currentTimeMillis()));
             }
         }
 

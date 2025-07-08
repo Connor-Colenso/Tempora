@@ -1,6 +1,7 @@
 package com.colen.tempora.rendering;
 
 import com.colen.tempora.logging.loggers.block_change.IntRegion;
+import com.colen.tempora.networking.PacketDetectedInfo;
 import com.colen.tempora.networking.PacketRegionSync;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.relauncher.Side;
@@ -14,6 +15,8 @@ import org.lwjgl.opengl.GL11;
 /** Thin white outline for every synced region (no filled faces). */
 @SideOnly(Side.CLIENT)
 public final class RenderRegionsInWorld {
+
+    public static final long SECONDS_RENDERING_DURATION = 10;
 
     @SubscribeEvent
     public void onRender(RenderWorldLastEvent e) {
@@ -34,7 +37,7 @@ public final class RenderRegionsInWorld {
         GL11.glEnable(GL11.GL_BLEND);
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
         GL11.glLineWidth(2F);
-        GL11.glColor4f(1F, 1F, 1F, 0.7F);
+        GL11.glColor4f(1F, 0F, 0F, 0.7F);
 
         for (IntRegion r : PacketRegionSync.CLIENT_REGIONS) {
             if (r.dim != curDim) continue;
@@ -50,5 +53,8 @@ public final class RenderRegionsInWorld {
         GL11.glEnable(GL11.GL_TEXTURE_2D);
         GL11.glEnable(GL11.GL_DEPTH_TEST);
         GL11.glPopMatrix();
+
+        double expiryCutoff = System.currentTimeMillis() - SECONDS_RENDERING_DURATION * 1000L;
+        PacketRegionSync.CLIENT_REGIONS.removeIf(intRegion -> intRegion.posPrintTime < expiryCutoff);
     }
 }
