@@ -20,18 +20,19 @@ time.ago.minutes=%s minutes ago
 time.ago.seconds=%s seconds ago
 
 # Usage / help
-tempora.command.querysql.usage=Usage: %s
+tempora.command.querysql.usage=Usage: %s.
 tempora.command.querysql.query_quotes=SQL query must be wrapped in quotes.
 tempora.command.querysql.logger_not_found=Logger '%s' not found.
 tempora.command.querysql.select_only=Only SELECT queries are allowed.
 tempora.command.querysql.missing_columns=Query missing required columns: %s
 tempora.command.querysql.missing_columns.advice=It is highly recommended to use SELECT * instead of specifying columns.
 tempora.command.querysql.no_results_in=No results found in %s.
-tempora.command.querysql.query_display=Query: %s
-tempora.command.querysql.results=Query results:
-tempora.command.querysql.error=Error: %s
+tempora.command.querysql.query_display=Query: %s.
+tempora.command.querysql.error=SQL Error: %s.
+tempora.command.querysql.generic_unknown_error=Generic unkown error (Please report).
+tempora.command.querysql.query_quantity=Found %s matching results.
 
-tempora.click.to.copy.uuid=Click to copy UUID
+tempora.click.to.copy.uuid=Click to copy UUID.
 
 item.tempora_wand.name=Tempora Wand
 
@@ -43,7 +44,7 @@ tempora.command.averagehome.result=Player %s is most active in dim %s, click %s 
 tempora.command.averagehome.unknown_player=No location data for player %s available.
 tempora.command.averagehome.no_data=No movement data found for that query.
 tempora.command.averagehome.sql_error=Database error while querying movement data, see console for details.
-tempora.command.homechunk.bad_dim=Bad <dim> value; must be an integer.
+tempora.command.homechunk.bad_dim=Bad <dim> value, must be an integer.
 
 command.tempora.removeregion.removed.single=Removed %d region at your position.
 command.tempora.removeregion.removed.plural=Removed %d regions at your position.
@@ -60,4 +61,4 @@ message.inventorylogger.invalid_interaction=Error: invalid interactionType %s in
 message.queryevents.query_failed=Database query failed on %s: %s
 message.queryevents.no_results=No results found for %s.
 message.queryevents.showing_results=Showing latest %s results for %s:
-message.queryevents.too_many_pending=Warning, due to high volume, there are still %s events pending; query results may be outdated.
+message.queryevents.too_many_pending=Warning, due to high volume, there are still %s events pending. Query results may be outdated.
