@@ -378,7 +378,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
                         "   AND dimensionID = ? AND timestamp >= ? " +
                         " ORDER BY timestamp DESC LIMIT ?";
 
-                try (PreparedStatement ps = logger.getDBConn().prepareStatement(sql))
+                try (PreparedStatement ps = logger.getReadOnlyConnection().prepareStatement(sql))
                 {
                     /* 1‑3: centre coordinate, 4‑6: radius window                */
                     ps.setInt(1, centreX); ps.setInt(2, radius);
