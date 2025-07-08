@@ -45,17 +45,16 @@ public class RemoveRegion extends CommandBase {
         }
 
         // removeregion only makes sense for a player, because it users a players coords
-        if (!(sender instanceof EntityPlayer)) {
+        if (!(sender instanceof EntityPlayer player)) {
             // This could go to an unlocalised client, like a terminal, so don't localise.
             throw new CommandException("Only players in world may use this command.");
         }
 
         ChunkCoordinates pos = sender.getPlayerCoordinates();
-        World              world = sender.getEntityWorld();
-        int                dim = world.provider.dimensionId;
+        World world = sender.getEntityWorld();
+        int dim = world.provider.dimensionId;
 
-        int removed = RegionRegistry
-            .removeRegionsContainingBlock(dim, pos.posX, pos.posY, pos.posZ);
+        int removed = RegionRegistry.removeRegionsContainingBlock(dim, player.posX, player.posY, player.posZ);
 
         ChatComponentTranslation msg;
         if (removed > 0) {
