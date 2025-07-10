@@ -2,6 +2,8 @@ package com.colen.tempora.loggers.command;
 
 import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.utils.PlayerUtils;
+import cpw.mods.fml.common.network.ByteBufUtils;
+import io.netty.buffer.ByteBuf;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 
@@ -16,6 +18,22 @@ public class CommandQueueElement extends GenericQueueElement {
 
     public LoggerEnum getLoggerType() {
         return LoggerEnum.CommandLogger;
+    }
+
+    @Override
+    public void fromBytes(ByteBuf buf) {
+        super.fromBytes(buf);
+        playerUUID = ByteBufUtils.readUTF8String(buf);
+        commandName = ByteBufUtils.readUTF8String(buf);
+        arguments = ByteBufUtils.readUTF8String(buf);
+    }
+
+    @Override
+    public void toBytes(ByteBuf buf) {
+        super.toBytes(buf);
+        ByteBufUtils.writeUTF8String(buf, playerUUID);
+        ByteBufUtils.writeUTF8String(buf, commandName);
+        ByteBufUtils.writeUTF8String(buf, arguments);
     }
 
     @Override
