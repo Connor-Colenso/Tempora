@@ -14,6 +14,7 @@ import java.util.List;
 import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
 
@@ -28,6 +29,11 @@ public class EntityPositionLogger extends GenericPositionalLogger<EntityPosition
     @Override
     public LoggerEnum getLoggerType() {
         return LoggerEnum.EntityPositionLogger;
+    }
+
+    @Override
+    public void renderEventInWorld(RenderWorldLastEvent e) {
+
     }
 
     private static int entityMovementLoggingInterval;

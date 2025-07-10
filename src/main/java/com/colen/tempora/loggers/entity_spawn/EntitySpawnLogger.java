@@ -15,6 +15,7 @@ import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.mixin_interfaces.IEntityMixin;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 
 import com.colen.tempora.loggers.generic.ColumnDef;
@@ -28,6 +29,11 @@ public class EntitySpawnLogger extends GenericPositionalLogger<EntitySpawnQueueE
     @Override
     public LoggerEnum getLoggerType() {
         return LoggerEnum.EntitySpawnLogger;
+    }
+
+    @Override
+    public void renderEventInWorld(RenderWorldLastEvent e) {
+
     }
 
     @Override

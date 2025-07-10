@@ -19,6 +19,9 @@ public abstract class GenericQueueElement implements IMessage {
     public int dimensionId;
     public long timestamp;
 
+    // This field purely dictates when an event was made, so we know when to stop rendering it in world. It is only relevant on the client.
+    public long eventRenderCreationTime;
+
     public abstract IChatComponent localiseText(String uuid);
 
     public void sendTo(EntityPlayerMP player) {

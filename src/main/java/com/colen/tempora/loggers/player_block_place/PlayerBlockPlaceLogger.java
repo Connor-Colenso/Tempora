@@ -18,6 +18,7 @@ import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.event.world.BlockEvent.PlaceEvent;
 
 import org.jetbrains.annotations.NotNull;
@@ -35,6 +36,11 @@ public class PlayerBlockPlaceLogger extends GenericPositionalLogger<PlayerBlockP
     @Override
     public LoggerEnum getLoggerType() {
         return LoggerEnum.PlayerBlockPlaceLogger;
+    }
+
+    @Override
+    public void renderEventInWorld(RenderWorldLastEvent e) {
+
     }
 
     @Override

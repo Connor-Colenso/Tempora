@@ -15,6 +15,7 @@ import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
 import net.minecraft.command.ICommand;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.event.CommandEvent;
 
 import com.colen.tempora.loggers.generic.ColumnDef;
@@ -28,6 +29,11 @@ public class CommandLogger extends GenericPositionalLogger<CommandQueueElement> 
     @Override
     public LoggerEnum getLoggerType() {
         return LoggerEnum.CommandLogger;
+    }
+
+    @Override
+    public void renderEventInWorld(RenderWorldLastEvent e) {
+
     }
 
     @Override

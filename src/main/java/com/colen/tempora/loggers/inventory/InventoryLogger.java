@@ -28,6 +28,7 @@ import com.colen.tempora.loggers.generic.ColumnDef;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.utils.LastInvPos;
 import com.gtnewhorizons.modularui.common.internal.wrapper.ModularUIContainer;
+import net.minecraftforge.client.event.RenderWorldLastEvent;
 
 import static com.colen.tempora.utils.BlockUtils.getPickBlockSafe;
 import static com.colen.tempora.utils.DatabaseUtils.MISSING_STRING_DATA;
@@ -37,6 +38,11 @@ public class InventoryLogger extends GenericPositionalLogger<InventoryQueueEleme
     @Override
     public LoggerEnum getLoggerType() {
         return LoggerEnum.InventoryLogger;
+    }
+
+    @Override
+    public void renderEventInWorld(RenderWorldLastEvent e) {
+
     }
 
     public static void preLogLogic(EntityPlayer player, Container container, List<Slot> inventorySlots,

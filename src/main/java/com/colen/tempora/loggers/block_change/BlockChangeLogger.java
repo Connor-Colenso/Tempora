@@ -17,12 +17,12 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
+import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.config.Configuration;
 
 import com.colen.tempora.TemporaUtils;
 import com.colen.tempora.loggers.generic.ColumnDef;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
-import com.colen.tempora.loggers.generic.LogWriteSafety;
 import com.colen.tempora.utils.GenericUtils;
 import com.colen.tempora.utils.PlayerUtils;
 
@@ -36,6 +36,11 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
     @Override
     public LoggerEnum getLoggerType() {
         return LoggerEnum.BlockChangeLogger;
+    }
+
+    @Override
+    public void renderEventInWorld(RenderWorldLastEvent e) {
+
     }
 
     @Override
