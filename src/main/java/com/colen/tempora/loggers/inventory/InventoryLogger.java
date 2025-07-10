@@ -32,7 +32,7 @@ import com.gtnewhorizons.modularui.common.internal.wrapper.ModularUIContainer;
 import static com.colen.tempora.utils.BlockUtils.getPickBlockSafe;
 import static com.colen.tempora.utils.DatabaseUtils.MISSING_STRING_DATA;
 
-public class InventoryLogger extends GenericPositionalLogger<PlayerInteractWithInventoryQueueElement> {
+public class InventoryLogger extends GenericPositionalLogger<InventoryQueueElement> {
 
     @Override
     public LoggerEnum getLoggerType() {
@@ -98,7 +98,7 @@ public class InventoryLogger extends GenericPositionalLogger<PlayerInteractWithI
     public List<GenericQueueElement> generateQueryResults(ResultSet rs) throws SQLException {
         ArrayList<GenericQueueElement> eventList = new ArrayList<>();
         while (rs.next()) {
-            PlayerInteractWithInventoryQueueElement queueElement = new PlayerInteractWithInventoryQueueElement();
+            InventoryQueueElement queueElement = new InventoryQueueElement();
             queueElement.x = rs.getDouble("x");
             queueElement.y = rs.getDouble("y");
             queueElement.z = rs.getDouble("z");
@@ -116,7 +116,7 @@ public class InventoryLogger extends GenericPositionalLogger<PlayerInteractWithI
     }
 
     @Override
-    public void threadedSaveEvents(List<PlayerInteractWithInventoryQueueElement> elements) throws SQLException {
+    public void threadedSaveEvents(List<InventoryQueueElement> elements) throws SQLException {
         if (elements == null || elements.isEmpty()) return;
 
         final String sql = "INSERT INTO " + getSQLTableName()
@@ -124,7 +124,7 @@ public class InventoryLogger extends GenericPositionalLogger<PlayerInteractWithI
             + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (PreparedStatement pstmt = getDBConn().prepareStatement(sql)) {
-            for (PlayerInteractWithInventoryQueueElement element : elements) {
+            for (InventoryQueueElement element : elements) {
                 pstmt.setDouble(1, element.x);
                 pstmt.setDouble(2, element.y);
                 pstmt.setDouble(3, element.z);
@@ -151,7 +151,7 @@ public class InventoryLogger extends GenericPositionalLogger<PlayerInteractWithI
         ItemStack copyStack = itemStack.copy();
         copyStack.stackSize = Math.abs(delta);
 
-        PlayerInteractWithInventoryQueueElement queueElement = new PlayerInteractWithInventoryQueueElement();
+        InventoryQueueElement queueElement = new InventoryQueueElement();
 
         if (inventory instanceof InventoryPlayer) {
             queueElement.containerName = inventory.getInventoryName();
@@ -240,7 +240,7 @@ public class InventoryLogger extends GenericPositionalLogger<PlayerInteractWithI
         double y, double z, int dim) {
         if (dir == Direction.OUT_OF_PLAYER || dir == Direction.IN_TO_PLAYER) return;
 
-        PlayerInteractWithInventoryQueueElement queueElement = new PlayerInteractWithInventoryQueueElement();
+        InventoryQueueElement queueElement = new InventoryQueueElement();
 
         queueElement.x = x;
         queueElement.y = y;

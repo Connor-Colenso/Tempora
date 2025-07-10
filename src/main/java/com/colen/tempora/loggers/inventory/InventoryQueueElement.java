@@ -10,7 +10,7 @@ import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.utils.PlayerUtils;
 import com.colen.tempora.utils.TimeUtils;
 
-public class PlayerInteractWithInventoryQueueElement extends GenericQueueElement {
+public class InventoryQueueElement extends GenericQueueElement {
 
     public String containerName;
     public int interactionType;
