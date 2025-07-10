@@ -1,7 +1,8 @@
 package com.colen.tempora.loggers.entity_death;
 
-import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.utils.PlayerUtils;
+import cpw.mods.fml.common.network.ByteBufUtils;
+import io.netty.buffer.ByteBuf;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 
@@ -17,8 +18,19 @@ public class EntityDeathQueueElement extends GenericQueueElement {
     public String entityUUID;
 
     @Override
-    public LoggerEnum getLoggerType() {
-        return LoggerEnum.EntityDeathLogger;
+    public void fromBytes(ByteBuf buf) {
+        super.fromBytes(buf);
+        nameOfDeadMob = ByteBufUtils.readUTF8String(buf);
+        killedBy = ByteBufUtils.readUTF8String(buf);
+        entityUUID = ByteBufUtils.readUTF8String(buf);
+    }
+
+    @Override
+    public void toBytes(ByteBuf buf) {
+        super.toBytes(buf);
+        ByteBufUtils.writeUTF8String(buf, nameOfDeadMob);
+        ByteBufUtils.writeUTF8String(buf, killedBy);
+        ByteBufUtils.writeUTF8String(buf, entityUUID);
     }
 
     @Override

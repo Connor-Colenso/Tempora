@@ -1,7 +1,8 @@
 package com.colen.tempora.loggers.explosion;
 
-import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.utils.PlayerUtils;
+import cpw.mods.fml.common.network.ByteBufUtils;
+import io.netty.buffer.ByteBuf;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 
@@ -16,8 +17,21 @@ public class ExplosionQueueElement extends GenericQueueElement {
     public double closestPlayerDistance;
 
     @Override
-    public LoggerEnum getLoggerType() {
-        return LoggerEnum.ExplosionLogger;
+    public void fromBytes(ByteBuf buf) {
+        super.fromBytes(buf);
+        strength = buf.readFloat();
+        exploderUUID = ByteBufUtils.readUTF8String(buf);
+        closestPlayerUUID = ByteBufUtils.readUTF8String(buf);
+        closestPlayerDistance = buf.readDouble();
+    }
+
+    @Override
+    public void toBytes(ByteBuf buf) {
+        super.toBytes(buf);
+        buf.writeFloat(strength);
+        ByteBufUtils.writeUTF8String(buf, exploderUUID);
+        ByteBufUtils.writeUTF8String(buf, closestPlayerUUID);
+        buf.writeDouble(closestPlayerDistance);
     }
 
     @Override

@@ -1,6 +1,7 @@
 package com.colen.tempora.loggers.player_block_break;
 
-import com.colen.tempora.enums.LoggerEnum;
+import cpw.mods.fml.common.network.ByteBufUtils;
+import io.netty.buffer.ByteBuf;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 
@@ -18,8 +19,23 @@ public class PlayerBlockBreakQueueElement extends GenericQueueElement {
     public String playerUUIDWhoBrokeBlock;
 
     @Override
-    public LoggerEnum getLoggerType() {
-        return LoggerEnum.PlayerBlockBreakLogger;
+    public void fromBytes(ByteBuf buf) {
+        super.fromBytes(buf);
+        blockID = buf.readInt();
+        metadata = buf.readInt();
+        pickBlockID = buf.readInt();
+        pickBlockMeta = buf.readInt();
+        playerUUIDWhoBrokeBlock = ByteBufUtils.readUTF8String(buf);
+    }
+
+    @Override
+    public void toBytes(ByteBuf buf) {
+        super.toBytes(buf);
+        buf.writeInt(blockID);
+        buf.writeInt(metadata);
+        buf.writeInt(pickBlockID);
+        buf.writeInt(pickBlockMeta);
+        ByteBufUtils.writeUTF8String(buf, playerUUIDWhoBrokeBlock);
     }
 
     @Override

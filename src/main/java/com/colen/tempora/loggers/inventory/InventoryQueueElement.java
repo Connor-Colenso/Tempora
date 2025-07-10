@@ -1,6 +1,7 @@
 package com.colen.tempora.loggers.inventory;
 
-import com.colen.tempora.enums.LoggerEnum;
+import cpw.mods.fml.common.network.ByteBufUtils;
+import io.netty.buffer.ByteBuf;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ChatComponentTranslation;
@@ -20,8 +21,25 @@ public class InventoryQueueElement extends GenericQueueElement {
     public int stackSize;
 
     @Override
-    public LoggerEnum getLoggerType() {
-        return LoggerEnum.InventoryLogger;
+    public void fromBytes(ByteBuf buf) {
+        super.fromBytes(buf);
+        containerName = ByteBufUtils.readUTF8String(buf);
+        interactionType = buf.readInt();
+        itemId = buf.readInt();
+        itemMetadata = buf.readInt();
+        playerUUID = ByteBufUtils.readUTF8String(buf);
+        stackSize = buf.readInt();
+    }
+
+    @Override
+    public void toBytes(ByteBuf buf) {
+        super.toBytes(buf);
+        ByteBufUtils.writeUTF8String(buf, containerName);
+        buf.writeInt(interactionType);
+        buf.writeInt(itemId);
+        buf.writeInt(itemMetadata);
+        ByteBufUtils.writeUTF8String(buf, playerUUID);
+        buf.writeInt(stackSize);
     }
 
     @Override
