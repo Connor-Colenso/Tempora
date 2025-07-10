@@ -16,6 +16,7 @@ import com.colen.tempora.loggers.generic.GenericQueueElement;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.world.World;
+import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.event.world.ExplosionEvent;
 
 import org.jetbrains.annotations.NotNull;
@@ -33,6 +34,11 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionQueueEleme
     @Override
     public LoggerEnum getLoggerType() {
         return LoggerEnum.ExplosionLogger;
+    }
+
+    @Override
+    public void renderEventInWorld(RenderWorldLastEvent e) {
+
     }
 
     @Override

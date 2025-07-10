@@ -16,6 +16,7 @@ import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 
 import com.colen.tempora.loggers.generic.ColumnDef;
@@ -30,6 +31,11 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueE
     @Override
     public LoggerEnum getLoggerType() {
         return LoggerEnum.EntityDeathLogger;
+    }
+
+    @Override
+    public void renderEventInWorld(RenderWorldLastEvent e) {
+
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)

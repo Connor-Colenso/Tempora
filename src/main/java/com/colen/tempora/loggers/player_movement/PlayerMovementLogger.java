@@ -14,6 +14,7 @@ import java.util.List;
 import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.config.Configuration;
 
 import org.jetbrains.annotations.NotNull;
@@ -32,6 +33,11 @@ public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovement
     @Override
     public LoggerEnum getLoggerType() {
         return LoggerEnum.PlayerMovementLogger;
+    }
+
+    @Override
+    public void renderEventInWorld(RenderWorldLastEvent e) {
+
     }
 
     // This class logs three items to the same database.

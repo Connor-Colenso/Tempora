@@ -22,17 +22,12 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 import com.colen.tempora.enums.LoggerEnum;
-import com.colen.tempora.loggers.block_change.BlockChangePacketHandler;
-import com.colen.tempora.loggers.block_change.BlockChangeQueueElement;
-import com.colen.tempora.loggers.command.CommandPacketHandler;
-import com.colen.tempora.loggers.command.CommandQueueElement;
-import com.colen.tempora.networking.PacketShowEventInWorld;
-import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
+import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
 
@@ -50,6 +45,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
     private static final String OLDEST_DATA_DEFAULT = "4months";
     private static final int MAX_DATA_ROWS_PER_DB = 5;
+    private static final long SECONDS_RENDERING_DURATION = 10;
 
     private ExecutorService executor;
     private static volatile boolean running = true;
@@ -69,6 +65,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
     }
 
     public void addEventToRender(EventToLog event) {
+        event.eventRenderCreationTime = System.currentTimeMillis();
         eventsToRenderInWorld.add(event);
     }
 
@@ -91,6 +88,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
     public abstract List<GenericQueueElement> generateQueryResults(ResultSet rs) throws SQLException;
 
     public abstract LoggerEnum getLoggerType();
+    public abstract void renderEventInWorld(RenderWorldLastEvent e);
 
     public final String getSQLTableName() {
         return getLoggerType().toString();
@@ -673,4 +671,8 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
         }
     }
 
+    public void clearOldEventsToRender() {
+        double expiryCutoff = System.currentTimeMillis() - SECONDS_RENDERING_DURATION * 1000L;
+        eventsToRenderInWorld.removeIf(eventPosition -> eventPosition.eventRenderCreationTime < expiryCutoff);
+    }
 }

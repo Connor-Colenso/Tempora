@@ -14,11 +14,8 @@ import com.colen.tempora.loggers.explosion.ExplosionPacketHandler;
 import com.colen.tempora.loggers.inventory.InventoryPacketHandler;
 import com.colen.tempora.loggers.item_use.ItemUsePacketHandler;
 import com.colen.tempora.loggers.player_block_break.PlayerBlockBreakPacketHandler;
-import com.colen.tempora.loggers.player_block_break.PlayerBlockBreakQueueElement;
 import com.colen.tempora.loggers.player_block_place.PlayerBlockPlacePacketHandler;
-import com.colen.tempora.loggers.player_block_place.PlayerBlockPlaceQueueElement;
 import com.colen.tempora.loggers.player_movement.PlayerMovementPacketHandler;
-import com.colen.tempora.networking.PacketShowEventInWorld;
 import com.colen.tempora.networking.PacketShowRegionInWorld;
 import com.colen.tempora.rendering.RenderEventsInWorld;
 import com.colen.tempora.rendering.RenderRegionsInWorld;
@@ -98,8 +95,8 @@ public class Tempora {
     public void init(FMLInitializationEvent event) {
 
         NETWORK.registerMessage(PacketTimeZone.Handler.class, PacketTimeZone.class, 0, Side.SERVER);
-        NETWORK.registerMessage(PacketShowEventInWorld.PosMessage.Handler.class, PacketShowEventInWorld.PosMessage.class, 1, Side.CLIENT);
-        NETWORK.registerMessage(PacketShowRegionInWorld.RegionMsg.Handler.class, PacketShowRegionInWorld.RegionMsg.class, 2, Side.CLIENT);
+        NETWORK.registerMessage(PacketShowRegionInWorld.RegionMsg.Handler.class, PacketShowRegionInWorld.RegionMsg.class, 1, Side.CLIENT);
+
         BlockChangePacketHandler.initPackets();
         CommandPacketHandler.initPackets();
         EntityDeathPacketHandler.initPackets();
