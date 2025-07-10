@@ -15,6 +15,8 @@ import com.colen.tempora.loggers.inventory.InventoryPacketHandler;
 import com.colen.tempora.loggers.item_use.ItemUsePacketHandler;
 import com.colen.tempora.loggers.player_block_break.PlayerBlockBreakPacketHandler;
 import com.colen.tempora.loggers.player_block_break.PlayerBlockBreakQueueElement;
+import com.colen.tempora.loggers.player_block_place.PlayerBlockPlacePacketHandler;
+import com.colen.tempora.loggers.player_block_place.PlayerBlockPlaceQueueElement;
 import com.colen.tempora.networking.PacketShowEventInWorld;
 import com.colen.tempora.networking.PacketShowRegionInWorld;
 import com.colen.tempora.rendering.RenderEventsInWorld;
@@ -106,6 +108,7 @@ public class Tempora {
         InventoryPacketHandler.initPackets();
         ItemUsePacketHandler.initPackets();
         PlayerBlockBreakPacketHandler.initPackets();
+        PlayerBlockPlacePacketHandler.initPackets();
 
         // This must happen before we start registering events.
         synchronizeConfiguration(config);
