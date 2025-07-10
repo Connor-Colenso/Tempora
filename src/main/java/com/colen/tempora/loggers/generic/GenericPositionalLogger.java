@@ -22,7 +22,10 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 import com.colen.tempora.enums.LoggerEnum;
+import com.colen.tempora.loggers.block_change.BlockChangePacketHandler;
+import com.colen.tempora.loggers.block_change.BlockChangeQueueElement;
 import com.colen.tempora.networking.PacketShowEventInWorld;
+import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentTranslation;
@@ -52,6 +55,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
     private final LinkedBlockingQueue<EventToLog> eventQueue = new LinkedBlockingQueue<>();
     private static final Set<GenericPositionalLogger<?>> loggerList = new HashSet<>();
+    protected List<GenericQueueElement> eventsToRenderInWorld = new ArrayList<>();
     private LogWriteSafety durabilityMode;
 
     private boolean isEnabled;
@@ -60,6 +64,10 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
     public GenericPositionalLogger() {
         loggerList.add(this);
+    }
+
+    public void addEventToRender(EventToLog event) {
+        eventsToRenderInWorld.add(event);
     }
 
     public static GenericPositionalLogger<?> getLogger(String playerMovementLogger) {
@@ -435,8 +443,13 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
                             List<PacketShowEventInWorld.EventPosition> eventPositionList = new ArrayList<>();
                             for (GenericQueueElement packet : packets) {
                                 eventPositionList.add(new PacketShowEventInWorld.EventPosition(packet.x, packet.y, packet.z, packet.dimensionId, System.currentTimeMillis(), packet.getLoggerType()));
+
+                                if (packet instanceof BlockChangeQueueElement blockChangeQueueElement) {
+                                    BlockChangePacketHandler.sendMessage(blockChangeQueueElement, player);
+                                }
                             }
-                            PacketShowEventInWorld.send(player, eventPositionList);
+                            // PacketShowEventInWorld.send(player, eventPositionList);
+
                         }
                     }
                 }

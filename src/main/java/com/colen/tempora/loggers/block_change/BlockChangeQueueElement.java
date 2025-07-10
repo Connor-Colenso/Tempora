@@ -2,6 +2,8 @@ package com.colen.tempora.loggers.block_change;
 
 import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.utils.PlayerUtils;
+import cpw.mods.fml.common.network.ByteBufUtils;
+import io.netty.buffer.ByteBuf;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 
@@ -40,5 +42,30 @@ public class BlockChangeQueueElement extends GenericQueueElement {
             closestPlayerUUID,
             String.format("%.1f", closestPlayerDistance) // %s (distance)
         );
+    }
+
+
+    @Override
+    public void fromBytes(ByteBuf buf) {
+        super.fromBytes(buf);
+        blockID = buf.readInt();
+        metadata = buf.readInt();
+        pickBlockID = buf.readInt();
+        pickBlockMeta = buf.readInt();
+        stackTrace = ByteBufUtils.readUTF8String(buf);
+        closestPlayerUUID = ByteBufUtils.readUTF8String(buf);
+        closestPlayerDistance = buf.readDouble();
+    }
+
+    @Override
+    public void toBytes(ByteBuf buf) {
+        super.toBytes(buf);
+        buf.writeInt(blockID);
+        buf.writeInt(metadata);
+        buf.writeInt(pickBlockID);
+        buf.writeInt(pickBlockMeta);
+        ByteBufUtils.writeUTF8String(buf, stackTrace);
+        ByteBufUtils.writeUTF8String(buf, closestPlayerUUID);
+        buf.writeDouble(closestPlayerDistance);
     }
 }
