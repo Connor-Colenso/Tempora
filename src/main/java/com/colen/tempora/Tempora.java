@@ -12,6 +12,7 @@ import com.colen.tempora.loggers.entity_position.EntityPositionPacketHandler;
 import com.colen.tempora.loggers.entity_spawn.EntitySpawnPacketHandler;
 import com.colen.tempora.loggers.explosion.ExplosionPacketHandler;
 import com.colen.tempora.loggers.inventory.InventoryPacketHandler;
+import com.colen.tempora.loggers.item_use.ItemUsePacketHandler;
 import com.colen.tempora.networking.PacketShowEventInWorld;
 import com.colen.tempora.networking.PacketShowRegionInWorld;
 import com.colen.tempora.rendering.RenderEventsInWorld;
@@ -101,6 +102,7 @@ public class Tempora {
         EntitySpawnPacketHandler.initPackets();
         ExplosionPacketHandler.initPackets();
         InventoryPacketHandler.initPackets();
+        ItemUsePacketHandler.initPackets();
 
         // This must happen before we start registering events.
         synchronizeConfiguration(config);

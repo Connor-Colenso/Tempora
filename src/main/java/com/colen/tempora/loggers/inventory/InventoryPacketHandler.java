@@ -17,6 +17,6 @@ public class InventoryPacketHandler implements IMessageHandler<InventoryQueueEle
     }
 
     public static void initPackets() {
-        NETWORK.registerMessage(InventoryPacketHandler.class, InventoryQueueElement.class, 15, Side.CLIENT);
+        NETWORK.registerMessage(InventoryPacketHandler.class, InventoryQueueElement.class, 16, Side.CLIENT);
     }
 }
