@@ -1,9 +1,7 @@
 package com.colen.tempora.loggers.generic;
 
-import com.colen.tempora.enums.LoggerEnum;
 import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import io.netty.buffer.ByteBuf;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.event.ClickEvent;
 import net.minecraft.event.HoverEvent;
@@ -22,8 +20,6 @@ public abstract class GenericQueueElement implements IMessage {
     public long timestamp;
 
     public abstract IChatComponent localiseText(String uuid);
-
-    public abstract LoggerEnum getLoggerType();
 
     public void sendTo(EntityPlayerMP player) {
         NETWORK.sendTo(this, player);
@@ -105,9 +101,4 @@ public abstract class GenericQueueElement implements IMessage {
 
         return display;
     }
-
-    public void sendToClient(IMessage msg) {
-        NETWORK.
-    }
-
 }

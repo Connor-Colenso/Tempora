@@ -1,7 +1,8 @@
 package com.colen.tempora.loggers.player_movement;
 
-import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.utils.PlayerUtils;
+import cpw.mods.fml.common.network.ByteBufUtils;
+import io.netty.buffer.ByteBuf;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 
@@ -13,10 +14,16 @@ public class PlayerMovementQueueElement extends GenericQueueElement {
     public String playerUUID;
 
     @Override
-    public LoggerEnum getLoggerType() {
-        return LoggerEnum.PlayerMovementLogger;
+    public void fromBytes(ByteBuf buf) {
+        super.fromBytes(buf);
+        playerUUID = ByteBufUtils.readUTF8String(buf);
     }
 
+    @Override
+    public void toBytes(ByteBuf buf) {
+        super.toBytes(buf);
+        ByteBufUtils.writeUTF8String(buf, playerUUID);
+    }
 
     @Override
     public IChatComponent localiseText(String uuid) {

@@ -1,7 +1,8 @@
 package com.colen.tempora.loggers.entity_spawn;
 
-import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.utils.PlayerUtils;
+import cpw.mods.fml.common.network.ByteBufUtils;
+import io.netty.buffer.ByteBuf;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 
@@ -16,8 +17,17 @@ public class EntitySpawnQueueElement extends GenericQueueElement {
     public String entityUUID;
 
     @Override
-    public LoggerEnum getLoggerType() {
-        return LoggerEnum.EntitySpawnLogger;
+    public void fromBytes(ByteBuf buf) {
+        super.fromBytes(buf);
+        entityName = ByteBufUtils.readUTF8String(buf);
+        entityUUID = ByteBufUtils.readUTF8String(buf);
+    }
+
+    @Override
+    public void toBytes(ByteBuf buf) {
+        super.toBytes(buf);
+        ByteBufUtils.writeUTF8String(buf, entityName);
+        ByteBufUtils.writeUTF8String(buf, entityUUID);
     }
 
     @Override

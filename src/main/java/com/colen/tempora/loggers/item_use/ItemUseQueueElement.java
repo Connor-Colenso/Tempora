@@ -2,8 +2,9 @@ package com.colen.tempora.loggers.item_use;
 
 import static com.colen.tempora.utils.ItemUtils.getNameOfItemStack;
 
-import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.utils.PlayerUtils;
+import cpw.mods.fml.common.network.ByteBufUtils;
+import io.netty.buffer.ByteBuf;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 
@@ -17,8 +18,19 @@ public class ItemUseQueueElement extends GenericQueueElement {
     public int itemMetadata;
 
     @Override
-    public LoggerEnum getLoggerType() {
-        return LoggerEnum.ItemUseLogger;
+    public void fromBytes(ByteBuf buf) {
+        super.fromBytes(buf);
+        playerName = ByteBufUtils.readUTF8String(buf);
+        itemID = buf.readInt();
+        itemMetadata = buf.readInt();
+    }
+
+    @Override
+    public void toBytes(ByteBuf buf) {
+        super.toBytes(buf);
+        ByteBufUtils.writeUTF8String(buf, playerName);
+        buf.writeInt(itemID);
+        buf.writeInt(itemMetadata);
     }
 
     @Override
