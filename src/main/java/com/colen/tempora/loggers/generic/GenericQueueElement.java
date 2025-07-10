@@ -1,14 +1,15 @@
 package com.colen.tempora.loggers.generic;
 
 import com.colen.tempora.enums.LoggerEnum;
+import cpw.mods.fml.common.network.simpleimpl.IMessage;
+import io.netty.buffer.ByteBuf;
 import net.minecraft.event.ClickEvent;
 import net.minecraft.event.HoverEvent;
 import net.minecraft.util.ChatComponentTranslation;
-import net.minecraft.util.ChatStyle;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
-public abstract class GenericQueueElement {
+public abstract class GenericQueueElement implements IMessage {
 
     public double x;
     public double y;
@@ -19,6 +20,24 @@ public abstract class GenericQueueElement {
     public abstract IChatComponent localiseText(String uuid);
 
     public abstract LoggerEnum getLoggerType();
+
+    @Override
+    public void fromBytes(ByteBuf buf) {
+        x = buf.readDouble();
+        y = buf.readDouble();
+        z = buf.readDouble();
+        dimensionId = buf.readInt();
+        timestamp = buf.readLong();
+    }
+
+    @Override
+    public void toBytes(ByteBuf buf) {
+        buf.writeDouble(x);
+        buf.writeDouble(y);
+        buf.writeDouble(z);
+        buf.writeInt(dimensionId);
+        buf.writeLong(timestamp);
+    }
 
     // How the x y z should be shown in chat and in the /tp command.
     public enum CoordFormat {

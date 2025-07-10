@@ -5,6 +5,7 @@ import static com.colen.tempora.config.Config.synchronizeConfiguration;
 import com.colen.tempora.commands.HomeChunkCommand;
 import com.colen.tempora.commands.ListRegionsCommand;
 import com.colen.tempora.commands.QuerySQLCommand;
+import com.colen.tempora.loggers.block_change.BlockChangePacketHandler;
 import com.colen.tempora.networking.PacketShowEventInWorld;
 import com.colen.tempora.networking.PacketShowRegionInWorld;
 import com.colen.tempora.rendering.RenderEventsInWorld;
@@ -64,6 +65,15 @@ public class Tempora {
 
     public static InventoryLogger inventoryLogger;
     public static BlockChangeLogger blockChangeLogger;
+    public static PlayerBlockBreakLogger playerBlockBreakLogger;
+    public static PlayerBlockPlaceLogger playerBlockPlaceLogger;
+    public static ExplosionLogger explosionLogger;
+    public static ItemUseLogger itemUseLogger;
+    public static PlayerMovementLogger playerMovementLogger;
+    public static CommandLogger commandLogger;
+    public static EntityPositionLogger entityPositionLogger;
+    public static EntityDeathLogger entityDeathLogger;
+    public static EntitySpawnLogger entitySpawnLogger;
 
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {
@@ -78,6 +88,7 @@ public class Tempora {
         NETWORK.registerMessage(PacketTimeZone.Handler.class, PacketTimeZone.class, 0, Side.SERVER);
         NETWORK.registerMessage(PacketShowEventInWorld.PosMessage.Handler.class, PacketShowEventInWorld.PosMessage.class, 1, Side.CLIENT);
         NETWORK.registerMessage(PacketShowRegionInWorld.RegionMsg.Handler.class, PacketShowRegionInWorld.RegionMsg.class, 2, Side.CLIENT);
+        BlockChangePacketHandler.initPackets();
 
         // This must happen before we start registering events.
         synchronizeConfiguration(config);
@@ -92,18 +103,17 @@ public class Tempora {
         }
 
         if (TemporaUtils.shouldTemporaRun()) {
-
-            new PlayerBlockBreakLogger();
-            new PlayerBlockPlaceLogger();
-            new ExplosionLogger();
-            new ItemUseLogger();
-            new PlayerMovementLogger();
+            playerBlockBreakLogger = new PlayerBlockBreakLogger();
+            playerBlockPlaceLogger = new PlayerBlockPlaceLogger();
+            explosionLogger = new ExplosionLogger();
+            itemUseLogger = new ItemUseLogger();
+            playerMovementLogger = new PlayerMovementLogger();
             inventoryLogger = new InventoryLogger();
             blockChangeLogger = new BlockChangeLogger();
-            new CommandLogger();
-            new EntityPositionLogger();
-            new EntityDeathLogger();
-            new EntitySpawnLogger();
+            commandLogger = new CommandLogger();
+            entityPositionLogger = new EntityPositionLogger();
+            entityDeathLogger = new EntityDeathLogger();
+            entitySpawnLogger = new EntitySpawnLogger();
         }
 
         // Each logger handles their own config settings.
