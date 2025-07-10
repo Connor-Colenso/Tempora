@@ -6,6 +6,7 @@ import com.colen.tempora.commands.HomeChunkCommand;
 import com.colen.tempora.commands.ListRegionsCommand;
 import com.colen.tempora.commands.QuerySQLCommand;
 import com.colen.tempora.loggers.block_change.BlockChangePacketHandler;
+import com.colen.tempora.loggers.command.CommandPacketHandler;
 import com.colen.tempora.networking.PacketShowEventInWorld;
 import com.colen.tempora.networking.PacketShowRegionInWorld;
 import com.colen.tempora.rendering.RenderEventsInWorld;
@@ -89,6 +90,7 @@ public class Tempora {
         NETWORK.registerMessage(PacketShowEventInWorld.PosMessage.Handler.class, PacketShowEventInWorld.PosMessage.class, 1, Side.CLIENT);
         NETWORK.registerMessage(PacketShowRegionInWorld.RegionMsg.Handler.class, PacketShowRegionInWorld.RegionMsg.class, 2, Side.CLIENT);
         BlockChangePacketHandler.initPackets();
+        CommandPacketHandler.initPackets();
 
         // This must happen before we start registering events.
         synchronizeConfiguration(config);

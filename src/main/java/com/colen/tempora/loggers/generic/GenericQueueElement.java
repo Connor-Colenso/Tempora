@@ -3,11 +3,15 @@ package com.colen.tempora.loggers.generic;
 import com.colen.tempora.enums.LoggerEnum;
 import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import io.netty.buffer.ByteBuf;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.event.ClickEvent;
 import net.minecraft.event.HoverEvent;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
+
+import static com.colen.tempora.Tempora.NETWORK;
 
 public abstract class GenericQueueElement implements IMessage {
 
@@ -20,6 +24,10 @@ public abstract class GenericQueueElement implements IMessage {
     public abstract IChatComponent localiseText(String uuid);
 
     public abstract LoggerEnum getLoggerType();
+
+    public void sendTo(EntityPlayerMP player) {
+        NETWORK.sendTo(this, player);
+    }
 
     @Override
     public void fromBytes(ByteBuf buf) {
@@ -96,6 +104,10 @@ public abstract class GenericQueueElement implements IMessage {
             .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hoverText));
 
         return display;
+    }
+
+    public void sendToClient(IMessage msg) {
+        NETWORK.
     }
 
 }

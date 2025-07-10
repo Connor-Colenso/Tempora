@@ -5,7 +5,6 @@ import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import cpw.mods.fml.common.network.simpleimpl.IMessageHandler;
 import cpw.mods.fml.common.network.simpleimpl.MessageContext;
 import cpw.mods.fml.relauncher.Side;
-import net.minecraft.entity.player.EntityPlayerMP;
 
 import static com.colen.tempora.Tempora.NETWORK;
 
@@ -21,7 +20,4 @@ public class BlockChangePacketHandler implements IMessageHandler<BlockChangeQueu
         NETWORK.registerMessage(BlockChangePacketHandler.class, BlockChangeQueueElement.class, 10, Side.CLIENT);
     }
 
-    public static void sendMessage(final BlockChangeQueueElement message, EntityPlayerMP player) {
-        NETWORK.sendTo(message, player);
-    }
 }

@@ -24,6 +24,8 @@ import java.util.concurrent.TimeUnit;
 import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.loggers.block_change.BlockChangePacketHandler;
 import com.colen.tempora.loggers.block_change.BlockChangeQueueElement;
+import com.colen.tempora.loggers.command.CommandPacketHandler;
+import com.colen.tempora.loggers.command.CommandQueueElement;
 import com.colen.tempora.networking.PacketShowEventInWorld;
 import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import net.minecraft.command.ICommandSender;
@@ -444,11 +446,9 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
                             for (GenericQueueElement packet : packets) {
                                 eventPositionList.add(new PacketShowEventInWorld.EventPosition(packet.x, packet.y, packet.z, packet.dimensionId, System.currentTimeMillis(), packet.getLoggerType()));
 
-                                if (packet instanceof BlockChangeQueueElement blockChangeQueueElement) {
-                                    BlockChangePacketHandler.sendMessage(blockChangeQueueElement, player);
-                                }
+                                // This tells the client what to render in world, as it needs this info.
+                                packet.sendTo(player);
                             }
-                            // PacketShowEventInWorld.send(player, eventPositionList);
 
                         }
                     }
