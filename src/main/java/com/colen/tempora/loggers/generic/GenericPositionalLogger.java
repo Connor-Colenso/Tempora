@@ -442,11 +442,8 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
                             String uuid = player.getUniqueID().toString();
                             packets.forEach(p -> sender.addChatMessage(p.localiseText(uuid)));
 
-                            List<PacketShowEventInWorld.EventPosition> eventPositionList = new ArrayList<>();
+                            // This tells the client what to render in world, as it needs this info.
                             for (GenericQueueElement packet : packets) {
-                                eventPositionList.add(new PacketShowEventInWorld.EventPosition(packet.x, packet.y, packet.z, packet.dimensionId, System.currentTimeMillis(), packet.getLoggerType()));
-
-                                // This tells the client what to render in world, as it needs this info.
                                 packet.sendTo(player);
                             }
 
