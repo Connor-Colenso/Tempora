@@ -9,6 +9,7 @@ import com.colen.tempora.loggers.block_change.BlockChangePacketHandler;
 import com.colen.tempora.loggers.command.CommandPacketHandler;
 import com.colen.tempora.loggers.entity_death.EntityDeathPacketHandler;
 import com.colen.tempora.loggers.entity_position.EntityPositionPacketHandler;
+import com.colen.tempora.loggers.entity_spawn.EntitySpawnPacketHandler;
 import com.colen.tempora.networking.PacketShowEventInWorld;
 import com.colen.tempora.networking.PacketShowRegionInWorld;
 import com.colen.tempora.rendering.RenderEventsInWorld;
@@ -95,6 +96,7 @@ public class Tempora {
         CommandPacketHandler.initPackets();
         EntityDeathPacketHandler.initPackets();
         EntityPositionPacketHandler.initPackets();
+        EntitySpawnPacketHandler.initPackets();
 
 
         // This must happen before we start registering events.
