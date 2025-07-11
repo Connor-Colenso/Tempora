@@ -1,5 +1,8 @@
 package com.colen.tempora.loggers.block_change;
 
+import static com.colen.tempora.utils.BlockUtils.getPickBlockSafe;
+import static com.colen.tempora.utils.DatabaseUtils.MISSING_STRING_DATA;
+
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -8,8 +11,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import com.colen.tempora.enums.LoggerEnum;
-import com.colen.tempora.loggers.generic.GenericQueueElement;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
@@ -21,13 +22,12 @@ import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.config.Configuration;
 
 import com.colen.tempora.TemporaUtils;
+import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.loggers.generic.ColumnDef;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
+import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.utils.GenericUtils;
 import com.colen.tempora.utils.PlayerUtils;
-
-import static com.colen.tempora.utils.BlockUtils.getPickBlockSafe;
-import static com.colen.tempora.utils.DatabaseUtils.MISSING_STRING_DATA;
 
 public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueElement> {
 

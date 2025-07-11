@@ -1,5 +1,8 @@
 package com.colen.tempora.loggers.inventory;
 
+import static com.colen.tempora.utils.BlockUtils.getPickBlockSafe;
+import static com.colen.tempora.utils.DatabaseUtils.MISSING_STRING_DATA;
+
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -9,8 +12,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import com.colen.tempora.enums.LoggerEnum;
-import com.colen.tempora.loggers.generic.GenericQueueElement;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
@@ -22,16 +23,15 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
-
-import com.colen.tempora.Tempora;
-import com.colen.tempora.loggers.generic.ColumnDef;
-import com.colen.tempora.loggers.generic.GenericPositionalLogger;
-import com.colen.tempora.utils.LastInvPos;
-import com.gtnewhorizons.modularui.common.internal.wrapper.ModularUIContainer;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 
-import static com.colen.tempora.utils.BlockUtils.getPickBlockSafe;
-import static com.colen.tempora.utils.DatabaseUtils.MISSING_STRING_DATA;
+import com.colen.tempora.Tempora;
+import com.colen.tempora.enums.LoggerEnum;
+import com.colen.tempora.loggers.generic.ColumnDef;
+import com.colen.tempora.loggers.generic.GenericPositionalLogger;
+import com.colen.tempora.loggers.generic.GenericQueueElement;
+import com.colen.tempora.utils.LastInvPos;
+import com.gtnewhorizons.modularui.common.internal.wrapper.ModularUIContainer;
 
 public class InventoryLogger extends GenericPositionalLogger<InventoryQueueElement> {
 
@@ -177,7 +177,12 @@ public class InventoryLogger extends GenericPositionalLogger<InventoryQueueEleme
             if (tileEntity != null) {
                 World world = tileEntity.getWorldObj();
                 Block block = world.getBlock(tileEntity.xCoord, tileEntity.yCoord, tileEntity.zCoord);
-                ItemStack pickStack = getPickBlockSafe(block, world, tileEntity.xCoord, tileEntity.yCoord, tileEntity.zCoord);
+                ItemStack pickStack = getPickBlockSafe(
+                    block,
+                    world,
+                    tileEntity.xCoord,
+                    tileEntity.yCoord,
+                    tileEntity.zCoord);
 
                 queueElement.containerName = pickStack.getDisplayName();
                 queueElement.x = tileEntity.xCoord;

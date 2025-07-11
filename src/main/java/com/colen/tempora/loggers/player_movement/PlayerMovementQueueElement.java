@@ -1,13 +1,14 @@
 package com.colen.tempora.loggers.player_movement;
 
-import com.colen.tempora.utils.PlayerUtils;
-import cpw.mods.fml.common.network.ByteBufUtils;
-import io.netty.buffer.ByteBuf;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 
 import com.colen.tempora.loggers.generic.GenericQueueElement;
+import com.colen.tempora.utils.PlayerUtils;
 import com.colen.tempora.utils.TimeUtils;
+
+import cpw.mods.fml.common.network.ByteBufUtils;
+import io.netty.buffer.ByteBuf;
 
 public class PlayerMovementQueueElement extends GenericQueueElement {
 
@@ -28,13 +29,14 @@ public class PlayerMovementQueueElement extends GenericQueueElement {
     @Override
     public IChatComponent localiseText(String uuid) {
         IChatComponent formattedTime = TimeUtils.formatTime(timestamp, uuid);
-        IChatComponent coords = generateTeleportChatComponent(x, y, z, dimensionId, PlayerUtils.UUIDToName(uuid), CoordFormat.FLOAT_1DP);
+        IChatComponent coords = generateTeleportChatComponent(
+            x,
+            y,
+            z,
+            dimensionId,
+            PlayerUtils.UUIDToName(uuid),
+            CoordFormat.FLOAT_1DP);
 
-        return new ChatComponentTranslation(
-            "message.player_movement",
-            playerUUID,
-            coords,
-            formattedTime
-        );
+        return new ChatComponentTranslation("message.player_movement", playerUUID, coords, formattedTime);
     }
 }

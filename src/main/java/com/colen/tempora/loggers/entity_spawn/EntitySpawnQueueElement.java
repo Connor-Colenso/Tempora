@@ -1,15 +1,16 @@
 package com.colen.tempora.loggers.entity_spawn;
 
-import com.colen.tempora.utils.PlayerUtils;
-import cpw.mods.fml.common.network.ByteBufUtils;
-import io.netty.buffer.ByteBuf;
+import static com.colen.tempora.utils.GenericUtils.entityUUIDChatComponent;
+
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 
 import com.colen.tempora.loggers.generic.GenericQueueElement;
+import com.colen.tempora.utils.PlayerUtils;
 import com.colen.tempora.utils.TimeUtils;
 
-import static com.colen.tempora.utils.GenericUtils.entityUUIDChatComponent;
+import cpw.mods.fml.common.network.ByteBufUtils;
+import io.netty.buffer.ByteBuf;
 
 public class EntitySpawnQueueElement extends GenericQueueElement {
 
@@ -32,16 +33,16 @@ public class EntitySpawnQueueElement extends GenericQueueElement {
 
     @Override
     public IChatComponent localiseText(String uuid) {
-        IChatComponent coords = generateTeleportChatComponent(x, y, z, dimensionId, PlayerUtils.UUIDToName(uuid), CoordFormat.FLOAT_1DP);
+        IChatComponent coords = generateTeleportChatComponent(
+            x,
+            y,
+            z,
+            dimensionId,
+            PlayerUtils.UUIDToName(uuid),
+            CoordFormat.FLOAT_1DP);
         IChatComponent timeAgo = TimeUtils.formatTime(timestamp, uuid);
         IChatComponent uuidChatComponent = entityUUIDChatComponent(entityUUID);
 
-        return new ChatComponentTranslation(
-            "message.entity_spawn",
-            entityName,
-            uuidChatComponent,
-            coords,
-            timeAgo
-        );
+        return new ChatComponentTranslation("message.entity_spawn", entityName, uuidChatComponent, coords, timeAgo);
     }
 }

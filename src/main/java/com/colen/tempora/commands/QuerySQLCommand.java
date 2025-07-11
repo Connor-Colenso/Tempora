@@ -1,5 +1,7 @@
 package com.colen.tempora.commands;
 
+import static com.colen.tempora.commands.CommandConstants.ONLY_IN_GAME;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -10,8 +12,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.regex.Pattern;
 
-import com.colen.tempora.loggers.generic.ColumnDef;
-import com.colen.tempora.loggers.generic.GenericQueueElement;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayer;
@@ -19,11 +19,11 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
-
-import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import net.minecraft.util.IChatComponent;
 
-import static com.colen.tempora.commands.CommandConstants.ONLY_IN_GAME;
+import com.colen.tempora.loggers.generic.ColumnDef;
+import com.colen.tempora.loggers.generic.GenericPositionalLogger;
+import com.colen.tempora.loggers.generic.GenericQueueElement;
 
 public class QuerySQLCommand extends CommandBase {
 
@@ -65,16 +65,19 @@ public class QuerySQLCommand extends CommandBase {
         }
 
         if (targetLogger == null) {
-            ChatComponentTranslation msg = new ChatComponentTranslation("tempora.command.querysql.invalid_table", GenericPositionalLogger.getAllLoggerNames());
-            msg.getChatStyle().setColor(EnumChatFormatting.RED);
+            ChatComponentTranslation msg = new ChatComponentTranslation(
+                "tempora.command.querysql.invalid_table",
+                GenericPositionalLogger.getAllLoggerNames());
+            msg.getChatStyle()
+                .setColor(EnumChatFormatting.RED);
             sender.addChatMessage(msg);
             return;
         }
 
-
         if (!isSelectQuery(rawQuery)) {
             ChatComponentTranslation msg = new ChatComponentTranslation("tempora.command.querysql.select_only");
-            msg.getChatStyle().setColor(EnumChatFormatting.RED);
+            msg.getChatStyle()
+                .setColor(EnumChatFormatting.RED);
             sender.addChatMessage(msg);
 
             return;
@@ -89,13 +92,15 @@ public class QuerySQLCommand extends CommandBase {
             if (!missing.isEmpty()) {
                 ChatComponentTranslation missingColsMsg = new ChatComponentTranslation(
                     "tempora.command.querysql.missing_columns",
-                    String.join(", ", missing)
-                );
-                missingColsMsg.getChatStyle().setColor(EnumChatFormatting.RED);
+                    String.join(", ", missing));
+                missingColsMsg.getChatStyle()
+                    .setColor(EnumChatFormatting.RED);
                 sender.addChatMessage(missingColsMsg);
 
-                ChatComponentTranslation adviceMsg = new ChatComponentTranslation("tempora.command.querysql.missing_columns.advice");
-                adviceMsg.getChatStyle().setColor(EnumChatFormatting.RED);
+                ChatComponentTranslation adviceMsg = new ChatComponentTranslation(
+                    "tempora.command.querysql.missing_columns.advice");
+                adviceMsg.getChatStyle()
+                    .setColor(EnumChatFormatting.RED);
                 sender.addChatMessage(adviceMsg);
 
                 return;
@@ -110,41 +115,47 @@ public class QuerySQLCommand extends CommandBase {
 
             ChatComponentTranslation queryFeedbackMsg = new ChatComponentTranslation(
                 "tempora.command.querysql.query_display",
-                rawQuery
-            );
-            queryFeedbackMsg.getChatStyle().setColor(EnumChatFormatting.GRAY);
+                rawQuery);
+            queryFeedbackMsg.getChatStyle()
+                .setColor(EnumChatFormatting.GRAY);
 
             if (output.isEmpty()) {
                 ChatComponentTranslation noResultsMsg = new ChatComponentTranslation(
                     "tempora.command.querysql.no_results_in",
-                    targetLogger.getSQLTableName()
-                );
-                noResultsMsg.getChatStyle().setColor(EnumChatFormatting.GRAY);
+                    targetLogger.getSQLTableName());
+                noResultsMsg.getChatStyle()
+                    .setColor(EnumChatFormatting.GRAY);
                 sender.addChatMessage(noResultsMsg);
             } else if (output.size() == MAX_RESULTS_TO_SHOW) {
                 ChatComponentTranslation queryMsg = new ChatComponentTranslation(
                     "tempora.command.querysql.query_quantity_if_max",
                     output.size(),
-                    MAX_RESULTS_TO_SHOW
-                );
-                queryMsg.getChatStyle().setColor(EnumChatFormatting.GRAY);
+                    MAX_RESULTS_TO_SHOW);
+                queryMsg.getChatStyle()
+                    .setColor(EnumChatFormatting.GRAY);
                 sender.addChatMessage(queryMsg);
             } else {
                 ChatComponentTranslation queryMsg = new ChatComponentTranslation(
                     "tempora.command.querysql.query_quantity",
-                    output.size()
-                );
-                queryMsg.getChatStyle().setColor(EnumChatFormatting.GRAY);
+                    output.size());
+                queryMsg.getChatStyle()
+                    .setColor(EnumChatFormatting.GRAY);
                 sender.addChatMessage(queryMsg);
             }
 
         } catch (SQLException e) {
-            ChatComponentTranslation errorMsg = new ChatComponentTranslation("tempora.command.querysql.error", e.getMessage());
-            errorMsg.getChatStyle().setColor(EnumChatFormatting.RED);
+            ChatComponentTranslation errorMsg = new ChatComponentTranslation(
+                "tempora.command.querysql.error",
+                e.getMessage());
+            errorMsg.getChatStyle()
+                .setColor(EnumChatFormatting.RED);
             sender.addChatMessage(errorMsg);
         } catch (Exception e) {
-            ChatComponentTranslation errorMsg = new ChatComponentTranslation("tempora.command.querysql.generic_unknown_error", e.getMessage());
-            errorMsg.getChatStyle().setColor(EnumChatFormatting.RED);
+            ChatComponentTranslation errorMsg = new ChatComponentTranslation(
+                "tempora.command.querysql.generic_unknown_error",
+                e.getMessage());
+            errorMsg.getChatStyle()
+                .setColor(EnumChatFormatting.RED);
             sender.addChatMessage(errorMsg);
         }
     }
@@ -159,7 +170,8 @@ public class QuerySQLCommand extends CommandBase {
         // Check each required column name appears as its own word
         for (ColumnDef col : required) {
             Pattern p = Pattern.compile("\\b" + Pattern.quote(col.name.toLowerCase(Locale.ROOT)) + "\\b");
-            if (!p.matcher(lowered).find()) {
+            if (!p.matcher(lowered)
+                .find()) {
                 missing.add(col.name);
             }
         }
@@ -168,22 +180,28 @@ public class QuerySQLCommand extends CommandBase {
 
     private static boolean isSelectQuery(String sqlQuery) {
         // Simple check that it starts with SELECT ignoring whitespace & case
-        return sqlQuery.trim().toLowerCase().startsWith("select");
+        return sqlQuery.trim()
+            .toLowerCase()
+            .startsWith("select");
     }
 
-    private List<IChatComponent> executeReadOnlyQuery(GenericPositionalLogger<?> logger, String sql, EntityPlayer queryIssuerEntityPlayer) throws SQLException {
+    private List<IChatComponent> executeReadOnlyQuery(GenericPositionalLogger<?> logger, String sql,
+        EntityPlayer queryIssuerEntityPlayer) throws SQLException {
         List<IChatComponent> rows = new ArrayList<>();
 
         try (Connection roConn = logger.getReadOnlyConnection();
-             PreparedStatement stmt = roConn.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
+            PreparedStatement stmt = roConn.prepareStatement(sql);
+            ResultSet rs = stmt.executeQuery()) {
 
             stmt.setMaxRows(MAX_RESULTS_TO_SHOW);
 
             List<GenericQueueElement> queryResults = logger.generateQueryResults(rs);
 
             for (GenericQueueElement queueElement : queryResults) {
-                rows.add(queueElement.localiseText(queryIssuerEntityPlayer.getPersistentID().toString()));
+                rows.add(
+                    queueElement.localiseText(
+                        queryIssuerEntityPlayer.getPersistentID()
+                            .toString()));
             }
         }
 
@@ -194,9 +212,6 @@ public class QuerySQLCommand extends CommandBase {
     public List<String> addTabCompletionOptions(ICommandSender sender, String[] args) {
         List<String> names = GenericPositionalLogger.getAllLoggerNames();
 
-        return CommandBase.getListOfStringsMatchingLastWord(
-            args,
-            names.toArray(new String[0])
-        );
+        return CommandBase.getListOfStringsMatchingLastWord(args, names.toArray(new String[0]));
     }
 }

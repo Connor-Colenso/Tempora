@@ -1,5 +1,7 @@
 package com.colen.tempora.commands;
 
+import static com.colen.tempora.commands.CommandConstants.ONLY_IN_GAME;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,8 +13,6 @@ import net.minecraft.util.ChatComponentText;
 
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.utils.TimeUtils;
-
-import static com.colen.tempora.commands.CommandConstants.ONLY_IN_GAME;
 
 public class QueryEventsCommand extends CommandBase {
 
@@ -48,7 +48,8 @@ public class QueryEventsCommand extends CommandBase {
         int y = (int) Math.round(entityPlayerMP.posY);
         int z = (int) Math.round(entityPlayerMP.posZ);
 
-        GenericPositionalLogger.queryEventByCoordinate(sender, x, y, z, radius, seconds, tableName, entityPlayerMP.dimension);
+        GenericPositionalLogger
+            .queryEventByCoordinate(sender, x, y, z, radius, seconds, tableName, entityPlayerMP.dimension);
     }
 
     private String validateFilter(String input) {

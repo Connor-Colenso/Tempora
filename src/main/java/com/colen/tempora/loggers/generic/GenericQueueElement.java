@@ -1,7 +1,7 @@
 package com.colen.tempora.loggers.generic;
 
-import cpw.mods.fml.common.network.simpleimpl.IMessage;
-import io.netty.buffer.ByteBuf;
+import static com.colen.tempora.Tempora.NETWORK;
+
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.event.ClickEvent;
 import net.minecraft.event.HoverEvent;
@@ -9,7 +9,8 @@ import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
-import static com.colen.tempora.Tempora.NETWORK;
+import cpw.mods.fml.common.network.simpleimpl.IMessage;
+import io.netty.buffer.ByteBuf;
 
 public abstract class GenericQueueElement implements IMessage {
 
@@ -19,7 +20,8 @@ public abstract class GenericQueueElement implements IMessage {
     public int dimensionId;
     public long timestamp;
 
-    // This field purely dictates when an event was made, so we know when to stop rendering it in world. It is only relevant on the client.
+    // This field purely dictates when an event was made, so we know when to stop rendering it in world. It is only
+    // relevant on the client.
     public long eventRenderCreationTime;
 
     public abstract IChatComponent localiseText(String uuid);
@@ -78,27 +80,37 @@ public abstract class GenericQueueElement implements IMessage {
         }
     }
 
-    public static IChatComponent generateTeleportChatComponent(
-        double x, double y, double z,
-        int dimId,
-        String playerName,
-        CoordFormat fmt) {
+    public static IChatComponent generateTeleportChatComponent(double x, double y, double z, int dimId,
+        String playerName, CoordFormat fmt) {
 
         // Translation‑driven teleport options.
         IChatComponent display = new ChatComponentTranslation(
             "tempora.teleport.display",
-            fmt.display(x), fmt.display(y), fmt.display(z));
+            fmt.display(x),
+            fmt.display(y),
+            fmt.display(z));
 
-        String cmd = "/cofh tpx " + playerName + " "
-            + fmt.command(x) + " " + fmt.command(y) + " " + fmt.command(z) + " "
+        String cmd = "/cofh tpx " + playerName
+            + " "
+            + fmt.command(x)
+            + " "
+            + fmt.command(y)
+            + " "
+            + fmt.command(z)
+            + " "
             + dimId;
 
         IChatComponent hoverText = new ChatComponentTranslation(
             "tempora.teleport.hover",
-            fmt.display(x), fmt.display(y), fmt.display(z), dimId);
-        hoverText.getChatStyle().setColor(EnumChatFormatting.GRAY);
+            fmt.display(x),
+            fmt.display(y),
+            fmt.display(z),
+            dimId);
+        hoverText.getChatStyle()
+            .setColor(EnumChatFormatting.GRAY);
 
-        display.getChatStyle().setColor(EnumChatFormatting.AQUA)
+        display.getChatStyle()
+            .setColor(EnumChatFormatting.AQUA)
             .setChatClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, cmd))
             .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hoverText));
 

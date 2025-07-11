@@ -1,15 +1,6 @@
 package com.colen.tempora.commands;
 
-import com.colen.tempora.loggers.generic.GenericPositionalLogger;
-import com.colen.tempora.loggers.generic.GenericQueueElement;
-import com.colen.tempora.utils.PlayerUtils;
-import com.colen.tempora.utils.TimeUtils;
-import cpw.mods.fml.common.FMLLog;
-import net.minecraft.command.CommandBase;
-import net.minecraft.command.CommandException;
-import net.minecraft.command.ICommandSender;
-import net.minecraft.util.ChatComponentTranslation;
-import net.minecraft.util.IChatComponent;
+import static com.colen.tempora.loggers.generic.GenericQueueElement.generateTeleportChatComponent;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -18,7 +9,18 @@ import java.sql.SQLException;
 import java.util.Collections;
 import java.util.List;
 
-import static com.colen.tempora.loggers.generic.GenericQueueElement.generateTeleportChatComponent;
+import net.minecraft.command.CommandBase;
+import net.minecraft.command.CommandException;
+import net.minecraft.command.ICommandSender;
+import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.IChatComponent;
+
+import com.colen.tempora.loggers.generic.GenericPositionalLogger;
+import com.colen.tempora.loggers.generic.GenericQueueElement;
+import com.colen.tempora.utils.PlayerUtils;
+import com.colen.tempora.utils.TimeUtils;
+
+import cpw.mods.fml.common.FMLLog;
 
 /**
  * /homechunk <player> [<look‑back>] [<dim>]
@@ -29,15 +31,24 @@ import static com.colen.tempora.loggers.generic.GenericQueueElement.generateTele
  */
 public class HomeChunkCommand extends CommandBase {
 
-    @Override public String getCommandName()                  { return "homechunk"; }
-    @Override public int    getRequiredPermissionLevel()      { return 2; }
-    @Override public String getCommandUsage(ICommandSender s) { return "/homechunk <player> [<look-back>] [<dim>]"; }
+    @Override
+    public String getCommandName() {
+        return "homechunk";
+    }
+
+    @Override
+    public int getRequiredPermissionLevel() {
+        return 2;
+    }
+
+    @Override
+    public String getCommandUsage(ICommandSender s) {
+        return "/homechunk <player> [<look-back>] [<dim>]";
+    }
 
     @Override
     public List<String> addTabCompletionOptions(ICommandSender s, String[] a) {
-        return (a.length == 1)
-            ? PlayerUtils.getTabCompletionForPlayerNames(a[0])
-            : Collections.emptyList();
+        return (a.length == 1) ? PlayerUtils.getTabCompletionForPlayerNames(a[0]) : Collections.emptyList();
     }
 
     @Override
@@ -45,22 +56,21 @@ public class HomeChunkCommand extends CommandBase {
 
         // Validate
         if (args.length < 1) {
-            sender.addChatMessage(new ChatComponentTranslation(
-                "tempora.command.averagehome.usage", getCommandUsage(sender)));
+            sender.addChatMessage(
+                new ChatComponentTranslation("tempora.command.averagehome.usage", getCommandUsage(sender)));
             return;
         }
 
         // Player to UUID.
         final String uuid = PlayerUtils.uuidForName(args[0]);
         if (uuid == null) {
-            sender.addChatMessage(new ChatComponentTranslation(
-                "tempora.command.averagehome.unknown_player", args[0]));
+            sender.addChatMessage(new ChatComponentTranslation("tempora.command.averagehome.unknown_player", args[0]));
             return;
         }
 
         // Optional params
-        Long    lookbackCutoffEpoch = null;
-        Integer forcedDim           = null;
+        Long lookbackCutoffEpoch = null;
+        Integer forcedDim = null;
 
         if (args.length >= 2) {
             String p = args[1];
@@ -76,8 +86,7 @@ public class HomeChunkCommand extends CommandBase {
         }
 
         // Get read only db conn
-        GenericPositionalLogger<?> movementLogger =
-            GenericPositionalLogger.getLogger("PlayerMovementLogger");
+        GenericPositionalLogger<?> movementLogger = GenericPositionalLogger.getLogger("PlayerMovementLogger");
         if (movementLogger == null || movementLogger.getReadOnlyConnection() == null) {
             sender.addChatMessage(new ChatComponentTranslation("tempora.command.averagehome.no_db"));
             return;
@@ -104,10 +113,11 @@ public class HomeChunkCommand extends CommandBase {
         //
         // The player's UUID is passed in twice, once for each part of the query
         final String tbl = movementLogger.getSQLTableName();
-        StringBuilder sql = new StringBuilder()
-            .append("WITH hot AS (")
+        StringBuilder sql = new StringBuilder().append("WITH hot AS (")
             .append("  SELECT (x>>4) AS cx, (z>>4) AS cz, dimensionID, COUNT(*) AS hits ")
-            .append("  FROM ").append(tbl).append(" ")
+            .append("  FROM ")
+            .append(tbl)
+            .append(" ")
             .append("  WHERE playerUUID = ? ");
 
         if (forcedDim != null) sql.append("AND dimensionID = ? ");
@@ -120,7 +130,9 @@ public class HomeChunkCommand extends CommandBase {
             .append("       (hot.cz*16 + 8)  AS home_z, ")
             .append("       hot.dimensionID  AS dimensionID ")
             .append("FROM   hot ")
-            .append("JOIN   ").append(tbl).append(" m ")
+            .append("JOIN   ")
+            .append(tbl)
+            .append(" m ")
             .append("  ON   (m.x>>4)=hot.cx AND (m.z>>4)=hot.cz AND m.dimensionID=hot.dimensionID ")
             .append("WHERE  m.playerUUID = ? ");
         if (lookbackCutoffEpoch != null) sql.append("AND m.timestamp >= ? ");
@@ -132,7 +144,7 @@ public class HomeChunkCommand extends CommandBase {
 
             // params for hot CTE
             stmt.setString(i++, uuid);
-            if (forcedDim != null)         stmt.setInt (i++, forcedDim);
+            if (forcedDim != null) stmt.setInt(i++, forcedDim);
             if (lookbackCutoffEpoch != null) stmt.setLong(i++, lookbackCutoffEpoch);
 
             // params for outer WHERE
@@ -141,40 +153,48 @@ public class HomeChunkCommand extends CommandBase {
 
             try (ResultSet rs = stmt.executeQuery()) {
                 if (!rs.next() || rs.getObject("home_x") == null) {
-                    sender.addChatMessage(new ChatComponentTranslation(
-                        "tempora.command.averagehome.no_data"));
+                    sender.addChatMessage(new ChatComponentTranslation("tempora.command.averagehome.no_data"));
                     return;
                 }
 
                 double homeX = rs.getDouble("home_x");
                 double homeY = rs.getDouble("home_y");
                 double homeZ = rs.getDouble("home_z");
-                int    dim   = rs.getInt   ("dimensionID");
+                int dim = rs.getInt("dimensionID");
 
                 IChatComponent tpLink = generateTeleportChatComponent(
-                    homeX, homeY, homeZ, dim, args[0],
+                    homeX,
+                    homeY,
+                    homeZ,
+                    dim,
+                    args[0],
                     GenericQueueElement.CoordFormat.FLOAT_1DP);
 
-                sender.addChatMessage(new ChatComponentTranslation(
-                    "tempora.command.averagehome.result",
-                    PlayerUtils.UUIDToName(uuid), dim, tpLink));
+                sender.addChatMessage(
+                    new ChatComponentTranslation(
+                        "tempora.command.averagehome.result",
+                        PlayerUtils.UUIDToName(uuid),
+                        dim,
+                        tpLink));
             }
 
         } catch (SQLException e) {
             FMLLog.severe("HomeChunkCommand SQL failed: %s", e.getMessage());
             e.printStackTrace();
-            sender.addChatMessage(new ChatComponentTranslation(
-                "tempora.command.averagehome.sql_error"));
+            sender.addChatMessage(new ChatComponentTranslation("tempora.command.averagehome.sql_error"));
         }
     }
 
     private static boolean containsLetter(String s) {
-        for (int c : s.codePoints().toArray()) if (Character.isLetter(c)) return true;
+        for (int c : s.codePoints()
+            .toArray()) if (Character.isLetter(c)) return true;
         return false;
     }
+
     private static int parseDim(String s) {
-        try { return Integer.parseInt(s); }
-        catch (NumberFormatException ex) {
+        try {
+            return Integer.parseInt(s);
+        } catch (NumberFormatException ex) {
             throw new CommandException("tempora.command.homechunk.bad_dim");
         }
     }

@@ -120,71 +120,70 @@ public class TimeUtils {
     }
 
     // --------------------------------------------------------------------
-    // Alias → canonical   (all lower‑case, no trailing whitespace)
+    // Alias → canonical (all lower‑case, no trailing whitespace)
     // --------------------------------------------------------------------
     private static final Map<String, String> UNIT_ALIASES = new HashMap<>();
     static {
         // seconds
-        UNIT_ALIASES.put("s",         "second");
-        UNIT_ALIASES.put("sec",       "second");
-        UNIT_ALIASES.put("secs",      "second");
-        UNIT_ALIASES.put("second",    "second");
-        UNIT_ALIASES.put("seconds",   "second");
+        UNIT_ALIASES.put("s", "second");
+        UNIT_ALIASES.put("sec", "second");
+        UNIT_ALIASES.put("secs", "second");
+        UNIT_ALIASES.put("second", "second");
+        UNIT_ALIASES.put("seconds", "second");
 
         // minutes
-        UNIT_ALIASES.put("m",         "minute");
-        UNIT_ALIASES.put("min",       "minute");
-        UNIT_ALIASES.put("mins",      "minute");
-        UNIT_ALIASES.put("minute",    "minute");
-        UNIT_ALIASES.put("minutes",   "minute");
+        UNIT_ALIASES.put("m", "minute");
+        UNIT_ALIASES.put("min", "minute");
+        UNIT_ALIASES.put("mins", "minute");
+        UNIT_ALIASES.put("minute", "minute");
+        UNIT_ALIASES.put("minutes", "minute");
 
         // hours
-        UNIT_ALIASES.put("h",         "hour");
-        UNIT_ALIASES.put("hr",        "hour");
-        UNIT_ALIASES.put("hrs",       "hour");
-        UNIT_ALIASES.put("hour",      "hour");
-        UNIT_ALIASES.put("hours",     "hour");
+        UNIT_ALIASES.put("h", "hour");
+        UNIT_ALIASES.put("hr", "hour");
+        UNIT_ALIASES.put("hrs", "hour");
+        UNIT_ALIASES.put("hour", "hour");
+        UNIT_ALIASES.put("hours", "hour");
 
         // days
-        UNIT_ALIASES.put("d",         "day");
-        UNIT_ALIASES.put("day",       "day");
-        UNIT_ALIASES.put("days",      "day");
+        UNIT_ALIASES.put("d", "day");
+        UNIT_ALIASES.put("day", "day");
+        UNIT_ALIASES.put("days", "day");
 
         // weeks
-        UNIT_ALIASES.put("w",         "week");
-        UNIT_ALIASES.put("wk",        "week");
-        UNIT_ALIASES.put("wks",       "week");
-        UNIT_ALIASES.put("week",      "week");
-        UNIT_ALIASES.put("weeks",     "week");
+        UNIT_ALIASES.put("w", "week");
+        UNIT_ALIASES.put("wk", "week");
+        UNIT_ALIASES.put("wks", "week");
+        UNIT_ALIASES.put("week", "week");
+        UNIT_ALIASES.put("weeks", "week");
 
         // months
-        UNIT_ALIASES.put("mo",        "month");
-        UNIT_ALIASES.put("month",     "month");
-        UNIT_ALIASES.put("months",    "month");
+        UNIT_ALIASES.put("mo", "month");
+        UNIT_ALIASES.put("month", "month");
+        UNIT_ALIASES.put("months", "month");
 
         // years
-        UNIT_ALIASES.put("y",         "year");
-        UNIT_ALIASES.put("yr",        "year");
-        UNIT_ALIASES.put("yrs",       "year");
-        UNIT_ALIASES.put("year",      "year");
-        UNIT_ALIASES.put("years",     "year");
+        UNIT_ALIASES.put("y", "year");
+        UNIT_ALIASES.put("yr", "year");
+        UNIT_ALIASES.put("yrs", "year");
+        UNIT_ALIASES.put("year", "year");
+        UNIT_ALIASES.put("years", "year");
 
         // decades
-        UNIT_ALIASES.put("decade",    "decade");
-        UNIT_ALIASES.put("decades",   "decade");
+        UNIT_ALIASES.put("decade", "decade");
+        UNIT_ALIASES.put("decades", "decade");
     }
 
     public static long convertToSeconds(String timeDescription) {
-        java.util.regex.Matcher matcher =
-            java.util.regex.Pattern.compile("(\\d+)\\s*([a-zA-Z]+)")
-                .matcher(timeDescription);
+        java.util.regex.Matcher matcher = java.util.regex.Pattern.compile("(\\d+)\\s*([a-zA-Z]+)")
+            .matcher(timeDescription);
         if (!matcher.matches()) {
-            throw new CommandException(
-                "Invalid time description. Expected e.g. '1week' or '5months' etc.");
+            throw new CommandException("Invalid time description. Expected e.g. '1week' or '5months' etc.");
         }
 
-        long   number = Long.parseLong(matcher.group(1));
-        String raw    = matcher.group(2).toLowerCase(Locale.ROOT);
+        long number = Long.parseLong(matcher.group(1));
+        String raw = matcher.group(2)
+            .toLowerCase(Locale.ROOT);
 
         // Map abbreviation/plural to canonical singular (or fall back to raw)
         String unit = UNIT_ALIASES.getOrDefault(raw, raw);
@@ -192,16 +191,14 @@ public class TimeUtils {
         return switch (unit) {
             case "second" -> number;
             case "minute" -> number * 60L;
-            case "hour"   -> number * 3_600L;
-            case "day"    -> number * 86_400L;
-            case "week"   -> number * 604_800L;
-            case "month"  -> number * 2_592_000L;
-            case "year"   -> number * 31_557_600L;
+            case "hour" -> number * 3_600L;
+            case "day" -> number * 86_400L;
+            case "week" -> number * 604_800L;
+            case "month" -> number * 2_592_000L;
+            case "year" -> number * 31_557_600L;
             case "decade" -> number * 315_576_000L;
-            default -> throw new CommandException(
-                "Unsupported time unit. Allowed: s, m, h, d, w, mo, y, decade.");
+            default -> throw new CommandException("Unsupported time unit. Allowed: s, m, h, d, w, mo, y, decade.");
         };
     }
-
 
 }

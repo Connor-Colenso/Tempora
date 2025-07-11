@@ -1,14 +1,15 @@
 package com.colen.tempora.loggers.player_block_place;
 
-import com.colen.tempora.utils.PlayerUtils;
-import cpw.mods.fml.common.network.ByteBufUtils;
-import io.netty.buffer.ByteBuf;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 
 import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.utils.BlockUtils;
+import com.colen.tempora.utils.PlayerUtils;
 import com.colen.tempora.utils.TimeUtils;
+
+import cpw.mods.fml.common.network.ByteBufUtils;
+import io.netty.buffer.ByteBuf;
 
 public class PlayerBlockPlaceQueueElement extends GenericQueueElement {
 
@@ -44,7 +45,13 @@ public class PlayerBlockPlaceQueueElement extends GenericQueueElement {
         IChatComponent block = BlockUtils.getUnlocalisedChatComponent(pickBlockID, pickBlockMeta);
 
         // Clickable coords component
-        IChatComponent coords = generateTeleportChatComponent(x, y, z, dimensionId, PlayerUtils.UUIDToName(uuid), CoordFormat.INT);
+        IChatComponent coords = generateTeleportChatComponent(
+            x,
+            y,
+            z,
+            dimensionId,
+            PlayerUtils.UUIDToName(uuid),
+            CoordFormat.INT);
 
         // Relative time component
         IChatComponent timeAgo = TimeUtils.formatTime(timestamp, uuid);
@@ -57,7 +64,6 @@ public class PlayerBlockPlaceQueueElement extends GenericQueueElement {
             blockID,
             metadata,
             coords,
-            timeAgo
-        );
+            timeAgo);
     }
 }

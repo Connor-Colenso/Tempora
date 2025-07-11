@@ -1,14 +1,15 @@
 package com.colen.tempora.loggers.block_change;
 
-import com.colen.tempora.utils.PlayerUtils;
-import cpw.mods.fml.common.network.ByteBufUtils;
-import io.netty.buffer.ByteBuf;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 
 import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.utils.BlockUtils;
+import com.colen.tempora.utils.PlayerUtils;
 import com.colen.tempora.utils.TimeUtils;
+
+import cpw.mods.fml.common.network.ByteBufUtils;
+import io.netty.buffer.ByteBuf;
 
 public class BlockChangeQueueElement extends GenericQueueElement {
 
@@ -24,7 +25,13 @@ public class BlockChangeQueueElement extends GenericQueueElement {
     public IChatComponent localiseText(String uuid) {
 
         IChatComponent blockName = BlockUtils.getUnlocalisedChatComponent(blockID, metadata);
-        IChatComponent coords = generateTeleportChatComponent(x, y, z, dimensionId, PlayerUtils.UUIDToName(uuid), CoordFormat.INT);
+        IChatComponent coords = generateTeleportChatComponent(
+            x,
+            y,
+            z,
+            dimensionId,
+            PlayerUtils.UUIDToName(uuid),
+            CoordFormat.INT);
         // We use UUID to determine timezone, for localising.
         IChatComponent timeAgo = TimeUtils.formatTime(timestamp, uuid);
 
@@ -38,7 +45,6 @@ public class BlockChangeQueueElement extends GenericQueueElement {
             String.format("%.1f", closestPlayerDistance) // %s (distance)
         );
     }
-
 
     @Override
     public void fromBytes(ByteBuf buf) {

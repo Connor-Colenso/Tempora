@@ -25,7 +25,6 @@ public class RemoveRegion extends CommandBase {
         return "removeregion";
     }
 
-
     @Override
     public String getCommandUsage(ICommandSender sender) {
         return "/removeregion";
@@ -58,16 +57,17 @@ public class RemoveRegion extends CommandBase {
         ChatComponentTranslation msg;
         if (removed > 0) {
             // Plural, or not.
-            String key = removed == 1
-                ? "command.tempora.removeregion.removed.single"
+            String key = removed == 1 ? "command.tempora.removeregion.removed.single"
                 : "command.tempora.removeregion.removed.plural";
 
             msg = new ChatComponentTranslation(key, removed);
-            msg.getChatStyle().setColor(EnumChatFormatting.GREEN);
+            msg.getChatStyle()
+                .setColor(EnumChatFormatting.GREEN);
             sender.addChatMessage(msg);
         } else {
             msg = new ChatComponentTranslation("command.tempora.removeregion.no_region");
-            msg.getChatStyle().setColor(EnumChatFormatting.RED);
+            msg.getChatStyle()
+                .setColor(EnumChatFormatting.RED);
         }
         sender.addChatMessage(msg);
     }

@@ -1,15 +1,18 @@
 package com.colen.tempora.rendering;
 
-import com.colen.tempora.loggers.block_change.IntRegion;
-import com.colen.tempora.networking.PacketShowRegionInWorld;
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderGlobal;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
+
 import org.lwjgl.opengl.GL11;
+
+import com.colen.tempora.loggers.block_change.IntRegion;
+import com.colen.tempora.networking.PacketShowRegionInWorld;
+
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 
 /** Thin white outline for every synced region (no filled faces). */
 @SideOnly(Side.CLIENT)
@@ -41,9 +44,7 @@ public final class RenderRegionsInWorld {
         for (IntRegion r : PacketShowRegionInWorld.CLIENT_REGIONS) {
             if (r.dim != curDim) continue;
 
-            AxisAlignedBB bb = AxisAlignedBB.getBoundingBox(
-                r.minX, r.minY, r.minZ,
-                r.maxX + 1, r.maxY + 1, r.maxZ + 1);
+            AxisAlignedBB bb = AxisAlignedBB.getBoundingBox(r.minX, r.minY, r.minZ, r.maxX + 1, r.maxY + 1, r.maxZ + 1);
 
             RenderGlobal.drawOutlinedBoundingBox(bb, 0xFFFFFFFF); // just lines
         }
