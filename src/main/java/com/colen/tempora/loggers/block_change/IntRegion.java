@@ -22,10 +22,7 @@ public final class IntRegion {
 
     /** True if the block (x,y,z) in <em>this.dim</em> is inside the box. */
     public boolean contains(int dim, double x, double y, double z) {
-        return this.dim == dim
-            && x >= minX && x <  maxX + 1
-            && y >= minY && y <  maxY + 1
-            && z >= minZ && z <  maxZ + 1;
+        return this.dim == dim && x >= minX && x < maxX + 1 && y >= minY && y < maxY + 1 && z >= minZ && z < maxZ + 1;
     }
 
     /* ---------- NBT helpers ---------- */

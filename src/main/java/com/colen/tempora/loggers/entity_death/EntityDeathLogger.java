@@ -12,15 +12,15 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import com.colen.tempora.enums.LoggerEnum;
-import com.colen.tempora.loggers.generic.GenericQueueElement;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 
+import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.loggers.generic.ColumnDef;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
+import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.utils.PlayerUtils;
 
 import cpw.mods.fml.common.eventhandler.EventPriority;
@@ -53,7 +53,8 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueE
         queueElement.timestamp = System.currentTimeMillis();
 
         queueElement.nameOfDeadMob = event.entityLiving.getCommandSenderName(); // Gets the mob name, weirdly.
-        queueElement.entityUUID = event.entityLiving.getUniqueID().toString();
+        queueElement.entityUUID = event.entityLiving.getUniqueID()
+            .toString();
 
         // Get what killed it.
         Entity trueSource = event.source.getEntity();
@@ -107,8 +108,7 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueE
         return Arrays.asList(
             new ColumnDef("entityName", "TEXT", "NOT NULL DEFAULT " + MISSING_STRING_DATA),
             new ColumnDef("entityUUID", "TEXT", "NOT NULL DEFAULT " + MISSING_STRING_DATA),
-            new ColumnDef("killedBy", "TEXT", "NOT NULL DEFAULT " + MISSING_STRING_DATA)
-        );
+            new ColumnDef("killedBy", "TEXT", "NOT NULL DEFAULT " + MISSING_STRING_DATA));
     }
 
     @Override

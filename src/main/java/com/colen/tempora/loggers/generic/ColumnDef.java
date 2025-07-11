@@ -11,7 +11,8 @@ public class ColumnDef {
         this.type = type;
         this.extraCondition = extraCondition;
 
-        if (!this.extraCondition.toUpperCase().contains("DEFAULT")) {
+        if (!this.extraCondition.toUpperCase()
+            .contains("DEFAULT")) {
             throw new IllegalArgumentException("A column def must have a default condition.");
         }
 

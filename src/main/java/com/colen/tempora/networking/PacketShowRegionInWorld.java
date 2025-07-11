@@ -1,23 +1,24 @@
 package com.colen.tempora.networking;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import net.minecraft.entity.player.EntityPlayerMP;
+
 import com.colen.tempora.Tempora;
 import com.colen.tempora.loggers.block_change.IntRegion;
+
 import cpw.mods.fml.common.network.simpleimpl.*;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
-import net.minecraft.entity.player.EntityPlayerMP;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 /** Region list sync → client */
 public final class PacketShowRegionInWorld {
 
     @SideOnly(Side.CLIENT)
-    public static final List<IntRegion> CLIENT_REGIONS =
-        Collections.synchronizedList(new ArrayList<>());
+    public static final List<IntRegion> CLIENT_REGIONS = Collections.synchronizedList(new ArrayList<>());
 
     /** send to one player */
     public static void send(EntityPlayerMP target, List<IntRegion> regions) {
@@ -25,18 +26,26 @@ public final class PacketShowRegionInWorld {
     }
 
     public static final class RegionMsg implements IMessage {
+
         private List<IntRegion> list = new ArrayList<>();
 
         public RegionMsg() {}
-        public RegionMsg(List<IntRegion> list) { this.list = list; }
+
+        public RegionMsg(List<IntRegion> list) {
+            this.list = list;
+        }
 
         @Override
         public void toBytes(ByteBuf buf) {
             buf.writeInt(list.size());
             for (IntRegion r : list) {
                 buf.writeInt(r.dim);
-                buf.writeInt(r.minX); buf.writeInt(r.minY); buf.writeInt(r.minZ);
-                buf.writeInt(r.maxX); buf.writeInt(r.maxY); buf.writeInt(r.maxZ);
+                buf.writeInt(r.minX);
+                buf.writeInt(r.minY);
+                buf.writeInt(r.minZ);
+                buf.writeInt(r.maxX);
+                buf.writeInt(r.maxY);
+                buf.writeInt(r.maxZ);
             }
         }
 
@@ -54,6 +63,7 @@ public final class PacketShowRegionInWorld {
 
         /* client handler */
         public static final class Handler implements IMessageHandler<RegionMsg, IMessage> {
+
             @Override
             @SideOnly(Side.CLIENT)
             public IMessage onMessage(RegionMsg msg, MessageContext ctx) {

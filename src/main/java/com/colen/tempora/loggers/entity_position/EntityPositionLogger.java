@@ -11,15 +11,15 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import com.colen.tempora.enums.LoggerEnum;
-import com.colen.tempora.loggers.generic.GenericQueueElement;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
 
+import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.loggers.generic.ColumnDef;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
+import com.colen.tempora.loggers.generic.GenericQueueElement;
 
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
@@ -75,8 +75,7 @@ public class EntityPositionLogger extends GenericPositionalLogger<EntityPosition
     public List<ColumnDef> getCustomTableColumns() {
         return Arrays.asList(
             new ColumnDef("entityName", "TEXT", "NOT NULL DEFAULT " + MISSING_STRING_DATA),
-            new ColumnDef("entityUUID", "TEXT", "NOT NULL DEFAULT " + MISSING_STRING_DATA)
-        );
+            new ColumnDef("entityUUID", "TEXT", "NOT NULL DEFAULT " + MISSING_STRING_DATA));
     }
 
     @Override
@@ -119,7 +118,8 @@ public class EntityPositionLogger extends GenericPositionalLogger<EntityPosition
         queueElement.timestamp = System.currentTimeMillis();
 
         queueElement.entityName = event.entityLiving.getCommandSenderName();
-        queueElement.entityUUID = event.entityLiving.getUniqueID().toString();
+        queueElement.entityUUID = event.entityLiving.getUniqueID()
+            .toString();
 
         queueEvent(queueElement);
     }

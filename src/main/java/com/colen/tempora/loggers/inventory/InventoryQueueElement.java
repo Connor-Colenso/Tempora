@@ -1,7 +1,5 @@
 package com.colen.tempora.loggers.inventory;
 
-import cpw.mods.fml.common.network.ByteBufUtils;
-import io.netty.buffer.ByteBuf;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ChatComponentTranslation;
@@ -10,6 +8,9 @@ import net.minecraft.util.IChatComponent;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.utils.PlayerUtils;
 import com.colen.tempora.utils.TimeUtils;
+
+import cpw.mods.fml.common.network.ByteBufUtils;
+import io.netty.buffer.ByteBuf;
 
 public class InventoryQueueElement extends GenericQueueElement {
 
@@ -51,13 +52,18 @@ public class InventoryQueueElement extends GenericQueueElement {
         ItemStack itemStack = new ItemStack(Item.getItemById(itemId), stackSize, itemMetadata);
         IChatComponent itemDetails = new ChatComponentTranslation(itemStack.getDisplayName());
 
-        IChatComponent coords = generateTeleportChatComponent(x, y, z, dimensionId, PlayerUtils.UUIDToName(uuid), CoordFormat.INT);
+        IChatComponent coords = generateTeleportChatComponent(
+            x,
+            y,
+            z,
+            dimensionId,
+            PlayerUtils.UUIDToName(uuid),
+            CoordFormat.INT);
 
         InventoryLogger.Direction dir = InventoryLogger.Direction.fromOrdinal(interactionType);
 
         if (dir == null) {
-            return new ChatComponentTranslation(
-                "message.inventorylogger.invalid_interaction", interactionType);
+            return new ChatComponentTranslation("message.inventorylogger.invalid_interaction", interactionType);
         }
 
         String translationKey = dir.isAddition() ? "message.inventory_interaction_added"
@@ -72,7 +78,6 @@ public class InventoryQueueElement extends GenericQueueElement {
             itemMetadata,
             new ChatComponentTranslation(containerName),
             coords,
-            formattedTime
-        );
+            formattedTime);
     }
 }

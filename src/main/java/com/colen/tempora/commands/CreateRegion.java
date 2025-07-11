@@ -51,14 +51,18 @@ public class CreateRegion extends CommandBase {
         IntRegion region = new IntRegion(dim, x1, y1, z1, x2, y2, z2, System.currentTimeMillis());
         RegionRegistry.add(region);
 
-        ChatComponentTranslation msg =
-            new ChatComponentTranslation(
-                "command.tempora.region.created",
-                x1, y1, z1,                   // first corner
-                x2, y2, z2,                   // second corner
-                dim);                         // dimension ID
+        ChatComponentTranslation msg = new ChatComponentTranslation(
+            "command.tempora.region.created",
+            x1,
+            y1,
+            z1, // first corner
+            x2,
+            y2,
+            z2, // second corner
+            dim); // dimension ID
 
-        msg.getChatStyle().setColor(EnumChatFormatting.GREEN);
+        msg.getChatStyle()
+            .setColor(EnumChatFormatting.GREEN);
         sender.addChatMessage(msg);
     }
 

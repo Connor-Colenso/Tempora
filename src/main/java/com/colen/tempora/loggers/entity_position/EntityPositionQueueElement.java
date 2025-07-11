@@ -1,8 +1,5 @@
 package com.colen.tempora.loggers.entity_position;
 
-import com.colen.tempora.utils.PlayerUtils;
-import cpw.mods.fml.common.network.ByteBufUtils;
-import io.netty.buffer.ByteBuf;
 import net.minecraft.event.ClickEvent;
 import net.minecraft.event.HoverEvent;
 import net.minecraft.util.ChatComponentText;
@@ -12,7 +9,11 @@ import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
 import com.colen.tempora.loggers.generic.GenericQueueElement;
+import com.colen.tempora.utils.PlayerUtils;
 import com.colen.tempora.utils.TimeUtils;
+
+import cpw.mods.fml.common.network.ByteBufUtils;
+import io.netty.buffer.ByteBuf;
 
 public class EntityPositionQueueElement extends GenericQueueElement {
 
@@ -35,23 +36,24 @@ public class EntityPositionQueueElement extends GenericQueueElement {
 
     @Override
     public IChatComponent localiseText(String uuid) {
-        IChatComponent coords = generateTeleportChatComponent(x, y, z, dimensionId, PlayerUtils.UUIDToName(uuid), CoordFormat.FLOAT_1DP);
+        IChatComponent coords = generateTeleportChatComponent(
+            x,
+            y,
+            z,
+            dimensionId,
+            PlayerUtils.UUIDToName(uuid),
+            CoordFormat.FLOAT_1DP);
         IChatComponent timeAgo = TimeUtils.formatTime(timestamp, uuid);
 
         IChatComponent clickToCopy = new ChatComponentTranslation("tempora.click.to.copy.uuid");
-        clickToCopy.getChatStyle().setColor(EnumChatFormatting.GRAY);
+        clickToCopy.getChatStyle()
+            .setColor(EnumChatFormatting.GRAY);
 
-        IChatComponent uuidChatComponent = new ChatComponentText("[UUID]")
-            .setChatStyle(new ChatStyle().setColor(EnumChatFormatting.AQUA)
+        IChatComponent uuidChatComponent = new ChatComponentText("[UUID]").setChatStyle(
+            new ChatStyle().setColor(EnumChatFormatting.AQUA)
                 .setChatClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, entityUUID))
                 .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, clickToCopy)));
 
-        return new ChatComponentTranslation(
-            "message.entity_position",
-            entityName,
-            uuidChatComponent,
-            coords,
-            timeAgo
-        );
+        return new ChatComponentTranslation("message.entity_position", entityName, uuidChatComponent, coords, timeAgo);
     }
 }

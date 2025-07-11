@@ -1,13 +1,14 @@
 package com.colen.tempora.loggers.command;
 
-import com.colen.tempora.utils.PlayerUtils;
-import cpw.mods.fml.common.network.ByteBufUtils;
-import io.netty.buffer.ByteBuf;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 
 import com.colen.tempora.loggers.generic.GenericQueueElement;
+import com.colen.tempora.utils.PlayerUtils;
 import com.colen.tempora.utils.TimeUtils;
+
+import cpw.mods.fml.common.network.ByteBufUtils;
+import io.netty.buffer.ByteBuf;
 
 public class CommandQueueElement extends GenericQueueElement {
 
@@ -37,7 +38,13 @@ public class CommandQueueElement extends GenericQueueElement {
         IChatComponent timeAgo = TimeUtils.formatTime(timestamp, uuid);
 
         // Clickable coordinates with limited float precision
-        IChatComponent coords = generateTeleportChatComponent(x, y, z, dimensionId, PlayerUtils.UUIDToName(uuid), CoordFormat.FLOAT_1DP);
+        IChatComponent coords = generateTeleportChatComponent(
+            x,
+            y,
+            z,
+            dimensionId,
+            PlayerUtils.UUIDToName(uuid),
+            CoordFormat.FLOAT_1DP);
 
         return new ChatComponentTranslation(
             "message.command_issued",
@@ -45,7 +52,6 @@ public class CommandQueueElement extends GenericQueueElement {
             commandName,
             arguments,
             coords,
-            timeAgo
-        );
+            timeAgo);
     }
 }

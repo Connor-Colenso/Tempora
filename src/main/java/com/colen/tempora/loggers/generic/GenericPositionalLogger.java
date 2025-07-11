@@ -21,7 +21,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-import com.colen.tempora.enums.LoggerEnum;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentTranslation;
@@ -32,14 +31,15 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
 
 import org.jetbrains.annotations.NotNull;
+import org.sqlite.SQLiteConfig;
 
 import com.colen.tempora.TemporaUtils;
 import com.colen.tempora.config.Config;
+import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.utils.TimeUtils;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.FMLLog;
-import org.sqlite.SQLiteConfig;
 
 public abstract class GenericPositionalLogger<EventToLog extends GenericQueueElement> {
 
@@ -88,6 +88,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
     public abstract List<GenericQueueElement> generateQueryResults(ResultSet rs) throws SQLException;
 
     public abstract LoggerEnum getLoggerType();
+
     public abstract void renderEventInWorld(RenderWorldLastEvent e);
 
     public final String getSQLTableName() {
@@ -235,13 +236,13 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
         running = true;
 
-        Thread t = new Thread(() -> queueLoop(sqlTableName),
-            "Tempora-" + sqlTableName);
+        Thread t = new Thread(() -> queueLoop(sqlTableName), "Tempora-" + sqlTableName);
         t.setDaemon(false);
         t.setUncaughtExceptionHandler((thr, ex) -> {
             FMLLog.severe("Tempora queue‑worker '%s' crashed – halting JVM!", thr.getName());
             ex.printStackTrace();
-            FMLCommonHandler.instance().exitJava(-1, false);
+            FMLCommonHandler.instance()
+                .exitJava(-1, false);
         });
         t.start();
     }
@@ -356,12 +357,8 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
         return loggerNames;
     }
 
-
-    public static void queryEventsAtPosAndTime(ICommandSender sender,
-                                               int centreX, int centreY, int centreZ,
-                                               long seconds,
-                                               String tableName)
-    {
+    public static void queryEventsAtPosAndTime(ICommandSender sender, int centreX, int centreY, int centreZ,
+        long seconds, String tableName) {
         if (!(sender instanceof EntityPlayerMP player)) return;
 
         // radius 0 means an exact match – the SQL below
@@ -369,75 +366,70 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
         queryEventByCoordinate(sender, centreX, centreY, centreZ, 0, seconds, tableName, player.dimension);
     }
 
-    public static void queryEventByCoordinate(ICommandSender sender,
-                                               int centreX, int centreY, int centreZ,
-                                               int radius,
-                                               long seconds,
-                                               String tableName,
-                                               int dimensionId)
-    {
+    public static void queryEventByCoordinate(ICommandSender sender, int centreX, int centreY, int centreZ, int radius,
+        long seconds, String tableName, int dimensionId) {
         long pastTime = System.currentTimeMillis() - seconds * 1000L;
 
-        synchronized (GenericPositionalLogger.class)
-        {
-            for (GenericPositionalLogger<?> logger : loggerList)
-            {
-                if (tableName != null && !logger.getSQLTableName().equals(tableName)) continue;
+        synchronized (GenericPositionalLogger.class) {
+            for (GenericPositionalLogger<?> logger : loggerList) {
+                if (tableName != null && !logger.getSQLTableName()
+                    .equals(tableName)) continue;
 
-                String sql =
-                    "SELECT * FROM " + logger.getSQLTableName() +
-                        " WHERE ABS(x - ?) <= ?  AND ABS(y - ?) <= ?  AND ABS(z - ?) <= ? " +
-                        "   AND dimensionID = ? AND timestamp >= ? " +
-                        " ORDER BY timestamp DESC LIMIT ?";
+                String sql = "SELECT * FROM " + logger.getSQLTableName()
+                    + " WHERE ABS(x - ?) <= ?  AND ABS(y - ?) <= ?  AND ABS(z - ?) <= ? "
+                    + "   AND dimensionID = ? AND timestamp >= ? "
+                    + " ORDER BY timestamp DESC LIMIT ?";
 
-                try (PreparedStatement ps = logger.getReadOnlyConnection().prepareStatement(sql))
-                {
-                    /* 1‑3: centre coordinate, 4‑6: radius window                */
-                    ps.setInt(1, centreX); ps.setInt(2, radius);
-                    ps.setInt(3, centreY); ps.setInt(4, radius);
-                    ps.setInt(5, centreZ); ps.setInt(6, radius);
+                try (PreparedStatement ps = logger.getReadOnlyConnection()
+                    .prepareStatement(sql)) {
+                    /* 1‑3: centre coordinate, 4‑6: radius window */
+                    ps.setInt(1, centreX);
+                    ps.setInt(2, radius);
+                    ps.setInt(3, centreY);
+                    ps.setInt(4, radius);
+                    ps.setInt(5, centreZ);
+                    ps.setInt(6, radius);
 
-                    /* dimension / time / limit                                  */
-                    ps.setInt     (7, dimensionId);
+                    /* dimension / time / limit */
+                    ps.setInt(7, dimensionId);
                     ps.setTimestamp(8, new Timestamp(pastTime));
-                    ps.setInt     (9, MAX_DATA_ROWS_PER_DB);
+                    ps.setInt(9, MAX_DATA_ROWS_PER_DB);
 
-                    try (ResultSet rs = ps.executeQuery())
-                    {
+                    try (ResultSet rs = ps.executeQuery()) {
                         List<GenericQueueElement> packets = logger.generateQueryResults(rs);
                         Collections.reverse(packets);
 
-                        if (packets.isEmpty())
-                        {
+                        if (packets.isEmpty()) {
                             IChatComponent noResults = new ChatComponentTranslation(
                                 "message.queryevents.no_results",
                                 logger.getSQLTableName());
-                            noResults.getChatStyle().setColor(EnumChatFormatting.GRAY);
+                            noResults.getChatStyle()
+                                .setColor(EnumChatFormatting.GRAY);
                             sender.addChatMessage(noResults);
 
-                        }
-                        else
-                        {
+                        } else {
                             IChatComponent showingResults = new ChatComponentTranslation(
                                 "message.queryevents.showing_results",
                                 packets.size(),
                                 logger.getSQLTableName());
-                            showingResults.getChatStyle().setColor(EnumChatFormatting.GRAY);
+                            showingResults.getChatStyle()
+                                .setColor(EnumChatFormatting.GRAY);
                             sender.addChatMessage(showingResults);
-                            if (logger.eventQueue.size() > 100)
-                            {
+                            if (logger.eventQueue.size() > 100) {
                                 IChatComponent tooMany = new ChatComponentTranslation(
                                     "message.queryevents.too_many_pending",
                                     logger.eventQueue.size());
-                                tooMany.getChatStyle().setColor(EnumChatFormatting.RED);
+                                tooMany.getChatStyle()
+                                    .setColor(EnumChatFormatting.RED);
                                 sender.addChatMessage(tooMany);
                             }
 
-
-                            // EntityPlayerMP specific stuff, like sending animation positions to user and the text itself.
+                            // EntityPlayerMP specific stuff, like sending animation positions to user and the text
+                            // itself.
                             EntityPlayerMP player = (EntityPlayerMP) sender;
 
-                            String uuid = player.getUniqueID().toString();
+                            String uuid = player.getUniqueID()
+                                .toString();
                             packets.forEach(p -> sender.addChatMessage(p.localiseText(uuid)));
 
                             // This tells the client what to render in world, as it needs this info.
@@ -447,13 +439,12 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
                         }
                     }
-                }
-                catch (SQLException e)
-                {
-                    sender.addChatMessage(new ChatComponentTranslation(
-                        "message.queryevents.query_failed",
-                        logger.getSQLTableName(),
-                        e.getMessage()));
+                } catch (SQLException e) {
+                    sender.addChatMessage(
+                        new ChatComponentTranslation(
+                            "message.queryevents.query_failed",
+                            logger.getSQLTableName(),
+                            e.getMessage()));
 
                 }
             }
@@ -657,7 +648,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
     public Connection getReadOnlyConnection() {
         try {
-            String dbUrl = TemporaUtils.jdbcUrl( getSQLTableName() + ".db");
+            String dbUrl = TemporaUtils.jdbcUrl(getSQLTableName() + ".db");
 
             SQLiteConfig config = new SQLiteConfig();
             config.setReadOnly(true);
@@ -666,7 +657,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
             conn.setReadOnly(true);
 
             return conn;
-        } catch (Exception e){
+        } catch (Exception e) {
             return null;
         }
     }

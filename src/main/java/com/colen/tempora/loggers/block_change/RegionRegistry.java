@@ -15,8 +15,13 @@ public class RegionRegistry extends WorldSavedData {
 
     private final Map<Integer, List<IntRegion>> byDim = new HashMap<>();
 
-    public RegionRegistry() { super(KEY); }
-    public RegionRegistry(String name) { super(name); }
+    public RegionRegistry() {
+        super(KEY);
+    }
+
+    public RegionRegistry(String name) {
+        super(name);
+    }
 
     // static API
     public static void add(IntRegion r) {
@@ -27,16 +32,18 @@ public class RegionRegistry extends WorldSavedData {
         return get().contains(dim, x, y, z);
     }
 
-
     public static int removeRegionsContainingBlock(int dim, double x, double y, double z) {
         return get().removeContaining(dim, x, y, z);
     }
 
-    public static List<IntRegion> getAll() { return get().allRegions(); }
+    public static List<IntRegion> getAll() {
+        return get().allRegions();
+    }
 
     // instance logic
     private void addRegion(IntRegion r) {
-        byDim.computeIfAbsent(r.dim, d -> new ArrayList<>()).add(r);
+        byDim.computeIfAbsent(r.dim, d -> new ArrayList<>())
+            .add(r);
         markDirty();
     }
 
@@ -51,8 +58,12 @@ public class RegionRegistry extends WorldSavedData {
         List<IntRegion> list = byDim.get(dim);
         if (list == null) return 0;
         int removed = 0;
-        for (Iterator<IntRegion> it = list.iterator(); it.hasNext(); ) {
-            if (it.next().contains(dim, x, y, z)) { it.remove(); removed++; }
+        for (Iterator<IntRegion> it = list.iterator(); it.hasNext();) {
+            if (it.next()
+                .contains(dim, x, y, z)) {
+                it.remove();
+                removed++;
+            }
         }
         if (removed > 0) markDirty();
         return removed;
@@ -72,22 +83,23 @@ public class RegionRegistry extends WorldSavedData {
         NBTTagList list = tag.getTagList("regions", 10);
         for (int i = 0; i < list.tagCount(); i++) {
             IntRegion r = IntRegion.readNBT(list.getCompoundTagAt(i));
-            byDim.computeIfAbsent(r.dim, d -> new ArrayList<>()).add(r);
+            byDim.computeIfAbsent(r.dim, d -> new ArrayList<>())
+                .add(r);
         }
     }
 
     @Override
     public void writeToNBT(NBTTagCompound tag) {
         NBTTagList list = new NBTTagList();
-        for (List<IntRegion> l : byDim.values())
-            for (IntRegion r : l) list.appendTag(r.writeNBT());
+        for (List<IntRegion> l : byDim.values()) for (IntRegion r : l) list.appendTag(r.writeNBT());
         tag.setTag("regions", list);
     }
 
     // singleton access
     private static RegionRegistry get() {
         if (instance == null) {
-            World overworld = MinecraftServer.getServer().worldServerForDimension(0);
+            World overworld = MinecraftServer.getServer()
+                .worldServerForDimension(0);
             instance = (RegionRegistry) overworld.perWorldStorage.loadData(RegionRegistry.class, KEY);
             if (instance == null) {
                 instance = new RegionRegistry();

@@ -11,16 +11,16 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import com.colen.tempora.enums.LoggerEnum;
-import com.colen.tempora.loggers.generic.GenericQueueElement;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.config.Configuration;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.loggers.generic.ColumnDef;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
+import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.utils.PlayerUtils;
 
 import cpw.mods.fml.common.FMLCommonHandler;

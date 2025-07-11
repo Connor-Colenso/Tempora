@@ -31,18 +31,17 @@ public class BlockUtils {
         return new ChatComponentTranslation(stack.getDisplayName());
     }
 
-    public static ItemStack getPickBlockSafe(Block block, World world, int x, int y, int z)
-    {
+    public static ItemStack getPickBlockSafe(Block block, World world, int x, int y, int z) {
         // Use Item.getItemFromBlock(this) directly to get the item (safe server-side)
         Item item = Item.getItemFromBlock(block);
 
-        if (item == null)
-        {
+        if (item == null) {
             return null;
         }
 
         // Determine block for metadata, same as original logic
-        Block theBlock = item instanceof ItemBlock && !(block instanceof BlockFlowerPot) ? Block.getBlockFromItem(item) : block;
+        Block theBlock = item instanceof ItemBlock && !(block instanceof BlockFlowerPot) ? Block.getBlockFromItem(item)
+            : block;
 
         // Return ItemStack with correct damage value
         return new ItemStack(item, 1, theBlock.getDamageValue(world, x, y, z));

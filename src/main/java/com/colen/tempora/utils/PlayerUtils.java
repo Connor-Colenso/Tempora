@@ -8,18 +8,17 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
+import javax.annotation.Nullable;
+
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.server.MinecraftServer;
-
-import com.mojang.authlib.GameProfile;
 import net.minecraft.server.management.ServerConfigurationManager;
-import net.minecraft.server.management.UserListOps;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 import net.minecraftforge.common.UsernameCache;
 
-import javax.annotation.Nullable;
+import com.mojang.authlib.GameProfile;
 
 public class PlayerUtils {
 
@@ -89,13 +88,14 @@ public class PlayerUtils {
         }
     }
 
-
     @Nullable
     public static String uuidForName(String name) {
         Map<UUID, String> map = UsernameCache.getMap();
         for (Map.Entry<UUID, String> entry : map.entrySet()) {
-            if (entry.getValue().equalsIgnoreCase(name)) {
-                return entry.getKey().toString();
+            if (entry.getValue()
+                .equalsIgnoreCase(name)) {
+                return entry.getKey()
+                    .toString();
             }
         }
         return null;
@@ -110,7 +110,8 @@ public class PlayerUtils {
         String lowerPrefix = prefix.toLowerCase();
 
         for (String playerName : map.values()) {
-            if (playerName.toLowerCase().startsWith(lowerPrefix)) {
+            if (playerName.toLowerCase()
+                .startsWith(lowerPrefix)) {
                 completions.add(playerName);
             }
         }

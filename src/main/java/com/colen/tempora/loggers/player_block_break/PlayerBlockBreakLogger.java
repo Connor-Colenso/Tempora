@@ -12,9 +12,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import com.colen.tempora.enums.LoggerEnum;
-import com.colen.tempora.loggers.generic.GenericQueueElement;
-import com.colen.tempora.rendering.RenderUtils;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Tessellator;
@@ -25,14 +22,17 @@ import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.event.world.BlockEvent;
 
 import org.jetbrains.annotations.NotNull;
+import org.lwjgl.opengl.GL11;
 
 import com.colen.tempora.TemporaUtils;
+import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.loggers.generic.ColumnDef;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
+import com.colen.tempora.loggers.generic.GenericQueueElement;
+import com.colen.tempora.rendering.RenderUtils;
 
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import org.lwjgl.opengl.GL11;
 
 public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockBreakQueueElement> {
 
@@ -49,9 +49,12 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
                 Tessellator tes = Tessellator.instance;
                 Minecraft mc = Minecraft.getMinecraft();
 
-                double px = mc.thePlayer.lastTickPosX + (mc.thePlayer.posX - mc.thePlayer.lastTickPosX) * e.partialTicks;
-                double py = mc.thePlayer.lastTickPosY + (mc.thePlayer.posY - mc.thePlayer.lastTickPosY) * e.partialTicks;
-                double pz = mc.thePlayer.lastTickPosZ + (mc.thePlayer.posZ - mc.thePlayer.lastTickPosZ) * e.partialTicks;
+                double px = mc.thePlayer.lastTickPosX
+                    + (mc.thePlayer.posX - mc.thePlayer.lastTickPosX) * e.partialTicks;
+                double py = mc.thePlayer.lastTickPosY
+                    + (mc.thePlayer.posY - mc.thePlayer.lastTickPosY) * e.partialTicks;
+                double pz = mc.thePlayer.lastTickPosZ
+                    + (mc.thePlayer.posZ - mc.thePlayer.lastTickPosZ) * e.partialTicks;
 
                 int curDim = mc.thePlayer.dimension;
 
@@ -66,12 +69,20 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
                 if (playerBlockBreakQueueElement.dimensionId != curDim) continue;
 
                 GL11.glPushMatrix();
-                GL11.glTranslated(playerBlockBreakQueueElement.x + 0.5, playerBlockBreakQueueElement.y + 0.5, playerBlockBreakQueueElement.z + 0.5);
+                GL11.glTranslated(
+                    playerBlockBreakQueueElement.x + 0.5,
+                    playerBlockBreakQueueElement.y + 0.5,
+                    playerBlockBreakQueueElement.z + 0.5);
                 double SCALE_FACTOR = 0.8;
                 GL11.glScaled(SCALE_FACTOR, SCALE_FACTOR, SCALE_FACTOR);
 
                 tes.startDrawingQuads();
-                RenderUtils.addRenderedBlockInWorld(Block.getBlockById(playerBlockBreakQueueElement.blockID), playerBlockBreakQueueElement.metadata, 0, 0, 0);
+                RenderUtils.addRenderedBlockInWorld(
+                    Block.getBlockById(playerBlockBreakQueueElement.blockID),
+                    playerBlockBreakQueueElement.metadata,
+                    0,
+                    0,
+                    0);
                 tes.draw();
 
                 GL11.glPopMatrix();

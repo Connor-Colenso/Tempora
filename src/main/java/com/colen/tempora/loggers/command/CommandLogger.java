@@ -11,15 +11,15 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import com.colen.tempora.enums.LoggerEnum;
-import com.colen.tempora.loggers.generic.GenericQueueElement;
 import net.minecraft.command.ICommand;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.event.CommandEvent;
 
+import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.loggers.generic.ColumnDef;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
+import com.colen.tempora.loggers.generic.GenericQueueElement;
 
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
@@ -113,7 +113,8 @@ public class CommandLogger extends GenericPositionalLogger<CommandQueueElement> 
             queueElement.dimensionId = player.dimension;
             queueElement.timestamp = System.currentTimeMillis();
 
-            queueElement.playerUUID = player.getUniqueID().toString();
+            queueElement.playerUUID = player.getUniqueID()
+                .toString();
             queueElement.commandName = command.getCommandName();
             queueElement.arguments = String.join(" ", args);
 
