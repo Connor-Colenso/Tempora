@@ -434,7 +434,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
                             // This tells the client what to render in world, as it needs this info.
                             for (GenericQueueElement packet : packets) {
-                                packet.sendTo(player);
+                                packet.sendEventToClientForRendering(player);
                             }
 
                         }
