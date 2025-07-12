@@ -1,6 +1,5 @@
 package com.colen.tempora.rendering;
 
-import com.colen.tempora.loggers.generic.GenericQueueElement;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Tessellator;
@@ -14,7 +13,7 @@ public abstract class RenderUtils {
     static final double[] BLOCK_Y = { +0.5, -0.5, -0.5, +0.5, +0.5, -0.5, -0.5, +0.5 };
     static final double[] BLOCK_Z = { +0.5, +0.5, +0.5, +0.5, -0.5, -0.5, -0.5, -0.5 };
 
-    public static void drawBlock(RenderWorldLastEvent e, GenericQueueElement element, int blockID, int metadata) {
+    public static void renderBlockInWorld(RenderWorldLastEvent e, double x, double y, double z, int blockID, int metadata) {
 
         Tessellator tes = Tessellator.instance;
         Minecraft mc = Minecraft.getMinecraft();
@@ -36,18 +35,16 @@ public abstract class RenderUtils {
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
         GL11.glColor4f(1f, 1f, 1f, 0.5f);
 
-        if (element.dimensionId != curDim) return;
-
         GL11.glPushMatrix();
         GL11.glTranslated(
-            element.x + 0.5,
-            element.y + 0.5,
-            element.z + 0.5);
+            x + 0.5,
+            y + 0.5,
+            z + 0.5);
         double SCALE_FACTOR = 0.8;
         GL11.glScaled(SCALE_FACTOR, SCALE_FACTOR, SCALE_FACTOR);
 
         tes.startDrawingQuads();
-        RenderUtils.addRenderedBlockInWorld(
+        RenderUtils.drawBlock(
             Block.getBlockById(blockID),
             metadata,
             0,
@@ -62,8 +59,8 @@ public abstract class RenderUtils {
         GL11.glPopMatrix();
     }
 
-    public static void addRenderedBlockInWorld(final Block block, final int meta, final double x, final double y,
-        final double z) {
+    private static void drawBlock(final Block block, final int meta, final double x, final double y,
+                                  final double z) {
         final Tessellator tes = Tessellator.instance;
         IIcon texture;
         double minU;
