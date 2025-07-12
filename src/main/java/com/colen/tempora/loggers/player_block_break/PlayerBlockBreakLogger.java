@@ -15,6 +15,7 @@ import java.util.List;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.entity.Render;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -45,51 +46,7 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
     public void renderEventInWorld(RenderWorldLastEvent e) {
         for (GenericQueueElement element : eventsToRenderInWorld) {
             if (element instanceof PlayerBlockBreakQueueElement playerBlockBreakQueueElement) {
-
-                Tessellator tes = Tessellator.instance;
-                Minecraft mc = Minecraft.getMinecraft();
-
-                double px = mc.thePlayer.lastTickPosX
-                    + (mc.thePlayer.posX - mc.thePlayer.lastTickPosX) * e.partialTicks;
-                double py = mc.thePlayer.lastTickPosY
-                    + (mc.thePlayer.posY - mc.thePlayer.lastTickPosY) * e.partialTicks;
-                double pz = mc.thePlayer.lastTickPosZ
-                    + (mc.thePlayer.posZ - mc.thePlayer.lastTickPosZ) * e.partialTicks;
-
-                int curDim = mc.thePlayer.dimension;
-
-                GL11.glPushMatrix();
-                GL11.glTranslated(-px, -py, -pz);
-
-                GL11.glDisable(GL11.GL_DEPTH_TEST);
-                GL11.glEnable(GL11.GL_BLEND);
-                GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-                GL11.glColor4f(1f, 1f, 1f, 0.5f);
-
-                if (playerBlockBreakQueueElement.dimensionId != curDim) continue;
-
-                GL11.glPushMatrix();
-                GL11.glTranslated(
-                    playerBlockBreakQueueElement.x + 0.5,
-                    playerBlockBreakQueueElement.y + 0.5,
-                    playerBlockBreakQueueElement.z + 0.5);
-                double SCALE_FACTOR = 0.8;
-                GL11.glScaled(SCALE_FACTOR, SCALE_FACTOR, SCALE_FACTOR);
-
-                tes.startDrawingQuads();
-                RenderUtils.addRenderedBlockInWorld(
-                    Block.getBlockById(playerBlockBreakQueueElement.blockID),
-                    playerBlockBreakQueueElement.metadata,
-                    0,
-                    0,
-                    0);
-                tes.draw();
-
-                GL11.glPopMatrix();
-
-                GL11.glDisable(GL11.GL_BLEND);
-                GL11.glEnable(GL11.GL_DEPTH_TEST);
-                GL11.glPopMatrix();
+                RenderUtils.drawBlock(e, element, playerBlockBreakQueueElement.blockID, playerBlockBreakQueueElement.metadata);
             }
         }
     }
