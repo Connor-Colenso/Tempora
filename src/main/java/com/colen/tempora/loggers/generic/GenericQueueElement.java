@@ -26,7 +26,7 @@ public abstract class GenericQueueElement implements IMessage {
 
     public abstract IChatComponent localiseText(String uuid);
 
-    public void sendTo(EntityPlayerMP player) {
+    public void sendEventToClientForRendering(EntityPlayerMP player) {
         NETWORK.sendTo(this, player);
     }
 

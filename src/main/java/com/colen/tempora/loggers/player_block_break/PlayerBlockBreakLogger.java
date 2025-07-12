@@ -49,7 +49,7 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
             if (element.dimensionId != mc.thePlayer.dimension) continue;
 
             if (element instanceof PlayerBlockBreakQueueElement playerBlockBreakQueueElement) {
-                RenderUtils.renderBlockInWorld(e, playerBlockBreakQueueElement.x, playerBlockBreakQueueElement.y, playerBlockBreakQueueElement.z, playerBlockBreakQueueElement.blockID, playerBlockBreakQueueElement.metadata);
+                RenderUtils.renderBlockInWorld(e, element.x, element.y, element.z, playerBlockBreakQueueElement.blockID, playerBlockBreakQueueElement.metadata);
             }
 
         }

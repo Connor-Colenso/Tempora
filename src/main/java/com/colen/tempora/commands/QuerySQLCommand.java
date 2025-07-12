@@ -14,12 +14,10 @@ import java.util.regex.Pattern;
 
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
-import net.minecraft.util.IChatComponent;
 
 import com.colen.tempora.loggers.generic.ColumnDef;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
@@ -106,11 +104,14 @@ public class QuerySQLCommand extends CommandBase {
                 return;
             }
 
-            List<IChatComponent> output = executeReadOnlyQuery(targetLogger, rawQuery, entityPlayerMP);
+            List<GenericQueueElement> output = executeReadOnlyQuery(targetLogger, rawQuery);
 
             // We do this first, to not bury the info below, in case of a long response.
-            for (IChatComponent message : output) {
-                sender.addChatMessage(message);
+            for (GenericQueueElement queueElement : output) {
+                sender.addChatMessage(queueElement.localiseText(entityPlayerMP.getPersistentID().toString()));
+
+                // Render info.
+                queueElement.sendEventToClientForRendering(entityPlayerMP);
             }
 
             ChatComponentTranslation queryFeedbackMsg = new ChatComponentTranslation(
@@ -185,9 +186,7 @@ public class QuerySQLCommand extends CommandBase {
             .startsWith("select");
     }
 
-    private List<IChatComponent> executeReadOnlyQuery(GenericPositionalLogger<?> logger, String sql,
-        EntityPlayer queryIssuerEntityPlayer) throws SQLException {
-        List<IChatComponent> rows = new ArrayList<>();
+    private List<GenericQueueElement> executeReadOnlyQuery(GenericPositionalLogger<?> logger, String sql) throws SQLException {
 
         try (Connection roConn = logger.getReadOnlyConnection();
             PreparedStatement stmt = roConn.prepareStatement(sql);
@@ -195,17 +194,8 @@ public class QuerySQLCommand extends CommandBase {
 
             stmt.setMaxRows(MAX_RESULTS_TO_SHOW);
 
-            List<GenericQueueElement> queryResults = logger.generateQueryResults(rs);
-
-            for (GenericQueueElement queueElement : queryResults) {
-                rows.add(
-                    queueElement.localiseText(
-                        queryIssuerEntityPlayer.getPersistentID()
-                            .toString()));
-            }
+            return logger.generateQueryResults(rs);
         }
-
-        return rows;
     }
 
     @Override
