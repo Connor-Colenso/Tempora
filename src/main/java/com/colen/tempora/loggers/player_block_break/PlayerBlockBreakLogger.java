@@ -14,8 +14,6 @@ import java.util.List;
 
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.entity.Render;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -23,7 +21,6 @@ import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.event.world.BlockEvent;
 
 import org.jetbrains.annotations.NotNull;
-import org.lwjgl.opengl.GL11;
 
 import com.colen.tempora.TemporaUtils;
 import com.colen.tempora.enums.LoggerEnum;
@@ -44,10 +41,17 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
 
     @Override
     public void renderEventInWorld(RenderWorldLastEvent e) {
+
+        Minecraft mc = Minecraft.getMinecraft();
+
         for (GenericQueueElement element : eventsToRenderInWorld) {
+            // Render relevant stuff.
+            if (element.dimensionId != mc.thePlayer.dimension) continue;
+
             if (element instanceof PlayerBlockBreakQueueElement playerBlockBreakQueueElement) {
-                RenderUtils.drawBlock(e, element, playerBlockBreakQueueElement.blockID, playerBlockBreakQueueElement.metadata);
+                RenderUtils.renderBlockInWorld(e, playerBlockBreakQueueElement.x, playerBlockBreakQueueElement.y, playerBlockBreakQueueElement.z, playerBlockBreakQueueElement.blockID, playerBlockBreakQueueElement.metadata);
             }
+
         }
     }
 
