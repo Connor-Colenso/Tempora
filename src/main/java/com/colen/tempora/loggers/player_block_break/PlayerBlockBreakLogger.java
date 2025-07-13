@@ -1,6 +1,7 @@
 package com.colen.tempora.loggers.player_block_break;
 
 import static com.colen.tempora.TemporaUtils.isClientSide;
+import static com.colen.tempora.rendering.RenderUtils.getRenderAlpha;
 import static com.colen.tempora.utils.BlockUtils.getPickBlockSafe;
 import static com.colen.tempora.utils.DatabaseUtils.MISSING_STRING_DATA;
 
@@ -10,7 +11,9 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
@@ -38,22 +41,35 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
     public LoggerEnum getLoggerType() {
         return LoggerEnum.PlayerBlockBreakLogger;
     }
-
     @Override
     public void renderEventInWorld(RenderWorldLastEvent e) {
-
         Minecraft mc = Minecraft.getMinecraft();
+        int playerDim = mc.thePlayer.dimension;
+
+        // Map to store the latest event at each position
+        Map<String, GenericQueueElement> latestEventsByPos = new HashMap<>();
 
         for (GenericQueueElement element : eventsToRenderInWorld) {
-            // Render relevant stuff.
-            if (element.dimensionId != mc.thePlayer.dimension) continue;
+            if (element.dimensionId != playerDim) continue;
 
-            if (element instanceof PlayerBlockBreakQueueElement playerBlockBreakQueueElement) {
-                RenderUtils.renderBlockInWorld(e, element.x, element.y, element.z, playerBlockBreakQueueElement.blockID, playerBlockBreakQueueElement.metadata);
+            // Unique key per block position and dimension
+            String key = (int) element.x + "," + (int) element.y + "," + (int) element.z;
+
+            // Only keep the most recent event for that position
+            GenericQueueElement existing = latestEventsByPos.get(key);
+            if (existing == null || element.timestamp > existing.timestamp) {
+                latestEventsByPos.put(key, element);
             }
+        }
 
+        // Now render only the latest event at each block position
+        for (GenericQueueElement element : latestEventsByPos.values()) {
+            if (element instanceof PlayerBlockBreakQueueElement pbbe) {
+                RenderUtils.renderBlockInWorld(e, element.x, element.y, element.z, pbbe.blockID, pbbe.metadata, getRenderAlpha(element));
+            }
         }
     }
+
 
     @Override
     public List<ColumnDef> getCustomTableColumns() {
