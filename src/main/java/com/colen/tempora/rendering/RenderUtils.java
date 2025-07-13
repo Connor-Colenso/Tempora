@@ -42,12 +42,8 @@ public abstract class RenderUtils {
         GL11.glColor4f(1f, 1f, 1f, alpha);
 
         GL11.glPushMatrix();
-        GL11.glTranslated(
-            x + 0.5,
-            y + 0.5,
-            z + 0.5);
         double SCALE_FACTOR = 0.8;
-        GL11.glScaled(SCALE_FACTOR, SCALE_FACTOR, SCALE_FACTOR);
+//        GL11.glScaled(SCALE_FACTOR, SCALE_FACTOR, SCALE_FACTOR);
 
         RenderBlocks rb = new RenderBlocks();
         rb.useInventoryTint = false;
