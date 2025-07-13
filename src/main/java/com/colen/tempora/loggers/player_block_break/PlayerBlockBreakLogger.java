@@ -15,8 +15,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import gregtech.api.enums.ItemList;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.RenderBlocks;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -34,6 +36,7 @@ import com.colen.tempora.rendering.RenderUtils;
 
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import org.lwjgl.opengl.GL11;
 
 public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockBreakQueueElement> {
 
@@ -65,7 +68,8 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
         // Now render only the latest event at each block position
         for (GenericQueueElement element : latestEventsByPos.values()) {
             if (element instanceof PlayerBlockBreakQueueElement pbbe) {
-                RenderUtils.renderBlockInWorld(e, element.x, element.y, element.z, pbbe.blockID, pbbe.metadata, getRenderAlpha(element));
+
+                RenderUtils.renderBlockInWorld(e, element.x, element.y, element.z, pbbe.pickBlockID, pbbe.pickBlockMeta, getRenderAlpha(element));
             }
         }
     }

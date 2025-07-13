@@ -1,8 +1,10 @@
 package com.colen.tempora.rendering;
 
 import com.colen.tempora.loggers.generic.GenericQueueElement;
+import com.colen.tempora.rendering.FakeWorld.FakeWorld;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.RenderBlocks;
 import net.minecraft.client.renderer.RenderGlobal;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.entity.Render;
@@ -47,14 +49,21 @@ public abstract class RenderUtils {
         double SCALE_FACTOR = 0.8;
         GL11.glScaled(SCALE_FACTOR, SCALE_FACTOR, SCALE_FACTOR);
 
-        tes.startDrawingQuads();
-        RenderUtils.drawBlock(
-            Block.getBlockById(blockID),
-            metadata,
-            0,
-            0,
-            0);
-        tes.draw();
+        RenderBlocks rb = new RenderBlocks();
+        rb.useInventoryTint = false;
+        FakeWorld fakeWorld = new FakeWorld();
+        fakeWorld.block = Block.getBlockById(blockID);
+        fakeWorld.metadata = metadata;
+        rb.blockAccess = fakeWorld;
+        rb.renderAllFaces = true;
+
+        GL11.glPushMatrix();
+        Tessellator tessellator = Tessellator.instance;
+        tessellator.startDrawingQuads();
+        rb.renderBlockByRenderType(Block.getBlockById(blockID), (int) x, (int) y, (int) z);
+        tessellator.draw();
+        GL11.glPopMatrix();
+
         GL11.glDisable(GL11.GL_BLEND);
         GL11.glEnable(GL11.GL_DEPTH_TEST);
 
