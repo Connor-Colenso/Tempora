@@ -3,8 +3,10 @@ package com.colen.tempora.rendering;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.RenderGlobal;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.entity.Render;
+import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.IIcon;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import org.lwjgl.opengl.GL11;
@@ -53,11 +55,14 @@ public abstract class RenderUtils {
             0,
             0);
         tes.draw();
-
-        GL11.glPopMatrix();
-
         GL11.glDisable(GL11.GL_BLEND);
         GL11.glEnable(GL11.GL_DEPTH_TEST);
+
+        if (System.currentTimeMillis() / 500 % 2 == 0) {
+            RenderUtils.renderRegion(-0.5,-0.5,-0.5, 0.5,0.5,0.5);
+        }
+
+        GL11.glPopMatrix();
         GL11.glPopMatrix();
     }
 
@@ -131,6 +136,27 @@ public abstract class RenderUtils {
         float fadeProgress = (elapsed - halfDuration) / (float) fadeDuration;
 
         return Math.max(0f, 0.5f * (1f - Math.min(fadeProgress, 1f)));
+    }
+
+
+    public static void renderRegion(double startX, double startY, double startZ,
+                                    double endX, double endY, double endZ) {
+        GL11.glPushAttrib(GL11.GL_ENABLE_BIT | GL11.GL_LINE_BIT | GL11.GL_COLOR_BUFFER_BIT); // Save lighting, texture, blend, depth, etc.
+        GL11.glPushMatrix();
+
+        GL11.glDisable(GL11.GL_TEXTURE_2D);
+        GL11.glDisable(GL11.GL_DEPTH_TEST);
+        GL11.glDisable(GL11.GL_LIGHTING);
+        GL11.glEnable(GL11.GL_BLEND);
+        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+        GL11.glLineWidth(2F);
+        GL11.glColor4f(1F, 0F, 0F, 0.7F);
+
+        AxisAlignedBB bb = AxisAlignedBB.getBoundingBox(startX, startY, startZ, endX, endY, endZ);
+        RenderGlobal.drawOutlinedBoundingBox(bb, 0xFFFFFFFF);
+
+        GL11.glPopMatrix();
+        GL11.glPopAttrib(); // Restore everything
     }
 
 
