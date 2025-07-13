@@ -45,7 +45,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
     private static final String OLDEST_DATA_DEFAULT = "4months";
     private static final int MAX_DATA_ROWS_PER_DB = 5;
-    private static final long SECONDS_RENDERING_DURATION = 10;
+    public static final long SECONDS_RENDERING_DURATION = 10;
 
     private ExecutorService executor;
     private static volatile boolean running = true;

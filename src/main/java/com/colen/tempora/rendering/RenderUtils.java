@@ -1,11 +1,15 @@
 package com.colen.tempora.rendering;
 
+import com.colen.tempora.loggers.generic.GenericQueueElement;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.entity.Render;
 import net.minecraft.util.IIcon;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import org.lwjgl.opengl.GL11;
+
+import static com.colen.tempora.rendering.RenderRegionsInWorld.SECONDS_RENDERING_DURATION;
 
 public abstract class RenderUtils {
 
@@ -13,7 +17,7 @@ public abstract class RenderUtils {
     static final double[] BLOCK_Y = { +0.5, -0.5, -0.5, +0.5, +0.5, -0.5, -0.5, +0.5 };
     static final double[] BLOCK_Z = { +0.5, +0.5, +0.5, +0.5, -0.5, -0.5, -0.5, -0.5 };
 
-    public static void renderBlockInWorld(RenderWorldLastEvent e, double x, double y, double z, int blockID, int metadata) {
+    public static void renderBlockInWorld(RenderWorldLastEvent e, double x, double y, double z, int blockID, int metadata, float alpha) {
 
         Tessellator tes = Tessellator.instance;
         Minecraft mc = Minecraft.getMinecraft();
@@ -25,15 +29,13 @@ public abstract class RenderUtils {
         double pz = mc.thePlayer.lastTickPosZ
             + (mc.thePlayer.posZ - mc.thePlayer.lastTickPosZ) * e.partialTicks;
 
-        int curDim = mc.thePlayer.dimension;
-
         GL11.glPushMatrix();
         GL11.glTranslated(-px, -py, -pz);
 
         GL11.glDisable(GL11.GL_DEPTH_TEST);
         GL11.glEnable(GL11.GL_BLEND);
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-        GL11.glColor4f(1f, 1f, 1f, 0.5f);
+        GL11.glColor4f(1f, 1f, 1f, alpha);
 
         GL11.glPushMatrix();
         GL11.glTranslated(
@@ -115,4 +117,21 @@ public abstract class RenderUtils {
             }
         }
     }
+
+    public static float getRenderAlpha(GenericQueueElement element) {
+        final long fullDuration = SECONDS_RENDERING_DURATION * 1000L;
+        final long halfDuration = fullDuration / 2L;
+        final long elapsed = System.currentTimeMillis() - element.eventRenderCreationTime;
+
+        if (elapsed <= halfDuration) {
+            return 0.5f;
+        }
+
+        final long fadeDuration = fullDuration - halfDuration; // second half is fade
+        float fadeProgress = (elapsed - halfDuration) / (float) fadeDuration;
+
+        return Math.max(0f, 0.5f * (1f - Math.min(fadeProgress, 1f)));
+    }
+
+
 }
