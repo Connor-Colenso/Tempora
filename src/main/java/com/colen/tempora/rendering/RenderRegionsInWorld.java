@@ -33,32 +33,13 @@ public final class RenderRegionsInWorld {
             GL11.glPushMatrix();
             GL11.glTranslated(-px, -py, -pz);
 
-            renderRegion(r.minX, r.minY, r.minZ, r.maxX + 1, r.maxY + 1, r.maxZ + 1);
+            RenderUtils.renderRegion(r.minX, r.minY, r.minZ, r.maxX + 1, r.maxY + 1, r.maxZ + 1);
 
             GL11.glPopMatrix();
         }
 
         double expiryCutoff = System.currentTimeMillis() - SECONDS_RENDERING_DURATION * 1000L;
         PacketShowRegionInWorld.CLIENT_REGIONS.removeIf(intRegion -> intRegion.posPrintTime < expiryCutoff);
-    }
-
-    private void renderRegion(double startX, double startY, double startZ,
-                              double endX, double endY, double endZ) {
-
-        GL11.glDisable(GL11.GL_TEXTURE_2D);
-        GL11.glDisable(GL11.GL_DEPTH_TEST);
-        GL11.glDisable(GL11.GL_LIGHTING);
-        GL11.glEnable(GL11.GL_BLEND);
-        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-        GL11.glLineWidth(2F);
-        GL11.glColor4f(1F, 0F, 0F, 0.7F);
-
-        AxisAlignedBB bb = AxisAlignedBB.getBoundingBox(startX, startY, startZ, endX, endY, endZ);
-        RenderGlobal.drawOutlinedBoundingBox(bb, 0xFFFFFFFF);
-
-        GL11.glEnable(GL11.GL_LIGHTING);
-        GL11.glEnable(GL11.GL_TEXTURE_2D);
-        GL11.glEnable(GL11.GL_DEPTH_TEST);
     }
 
 }
