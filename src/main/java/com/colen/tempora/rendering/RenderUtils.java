@@ -7,6 +7,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderBlocks;
 import net.minecraft.client.renderer.RenderGlobal;
 import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.IIcon;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
@@ -25,7 +27,7 @@ public abstract class RenderUtils {
     static final double[] BLOCK_Y = { +0.5, -0.5, -0.5, +0.5, +0.5, -0.5, -0.5, +0.5 };
     static final double[] BLOCK_Z = { +0.5, +0.5, +0.5, +0.5, -0.5, -0.5, -0.5, -0.5 };
 
-    public static void renderBlockInWorld(RenderWorldLastEvent e, double x, double y, double z, int blockID, int metadata, float alpha) {
+    public static void renderBlockInWorld(RenderWorldLastEvent e, double x, double y, double z, int blockID, int metadata, float alpha, NBTTagCompound nbt) {
         Tessellator tes = Tessellator.instance;
         Minecraft mc = Minecraft.getMinecraft();
 
@@ -50,8 +52,18 @@ public abstract class RenderUtils {
         rb.useInventoryTint = false;
         rb.renderAllFaces = true;
 
+        TileEntity tileEntity = null;
+        if (nbt != null) {
+            tileEntity = TileEntity.createAndLoadEntity(nbt);
+            tileEntity.blockMetadata = metadata;
+            tileEntity.blockType = Block.getBlockById(blockID);
+            tileEntity.setWorldObj(mc.theWorld);
+            tileEntity.validate();
+        }
+
         FakeWorld fakeWorld = new FakeWorld();
         fakeWorld.block = Block.getBlockById(blockID);
+        fakeWorld.tileEntity = tileEntity;
         fakeWorld.metadata = metadata;
         rb.blockAccess = fakeWorld;
 
@@ -74,15 +86,6 @@ public abstract class RenderUtils {
         }
 
         GL11.glPopMatrix();
-
-//        // Optional debug cube
-//        if (System.currentTimeMillis() / 500 % 2 == 0) {
-//            GL11.glPushMatrix();
-////            GL11.glTranslated(x, y, z);
-////            GL11.glScaled(SCALE_FACTOR, SCALE_FACTOR, SCALE_FACTOR);
-//            RenderUtils.rnderRegion(-0.5, -0.5, -0.5, 0.5, 0.5, 0.5);
-//            GL11.glPopMatrix();
-//        }
 
         // Restore render state
         GL11.glDisable(GL11.GL_BLEND);

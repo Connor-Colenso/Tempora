@@ -14,6 +14,8 @@ import net.minecraft.nbt.NBTTagCompound;
 
 public class NBTConverter {
 
+    public static final String NO_NBT = "[NO NBT]";
+
     // Encode NBTTagCompound to Base64 String
     public static String encodeToString(NBTTagCompound tagCompound) {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
