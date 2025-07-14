@@ -65,11 +65,13 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
             }
         }
 
+        List<GenericQueueElement> sortedList = RenderUtils.getSortedElementsByDistance(latestEventsByPos, e);
+
         // Now render only the latest event at each block position
-        for (GenericQueueElement element : latestEventsByPos.values()) {
+        for (GenericQueueElement element : sortedList) {
             if (element instanceof PlayerBlockBreakQueueElement pbbe) {
 
-                RenderUtils.renderBlockInWorld(e, element.x, element.y, element.z, pbbe.pickBlockID, pbbe.pickBlockMeta, getRenderAlpha(element));
+                RenderUtils.renderBlockInWorld(e, element.x, element.y, element.z, pbbe.blockID, pbbe.metadata, getRenderAlpha(element));
             }
         }
     }
