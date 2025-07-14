@@ -19,7 +19,7 @@ public class FakeWorld implements IBlockAccess {
 
     @Override
     public TileEntity getTileEntity(int x, int y, int z) {
-        return null;
+        return tileEntity;
     }
 
     @Override

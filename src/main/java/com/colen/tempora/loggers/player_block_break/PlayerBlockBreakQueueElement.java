@@ -18,6 +18,7 @@ public class PlayerBlockBreakQueueElement extends GenericQueueElement {
     public int pickBlockID;
     public int pickBlockMeta;
     public String playerUUIDWhoBrokeBlock;
+    public String encodedNBT;
 
     @Override
     public void fromBytes(ByteBuf buf) {
@@ -27,6 +28,7 @@ public class PlayerBlockBreakQueueElement extends GenericQueueElement {
         pickBlockID = buf.readInt();
         pickBlockMeta = buf.readInt();
         playerUUIDWhoBrokeBlock = ByteBufUtils.readUTF8String(buf);
+        encodedNBT = ByteBufUtils.readUTF8String(buf);
     }
 
     @Override
@@ -37,6 +39,7 @@ public class PlayerBlockBreakQueueElement extends GenericQueueElement {
         buf.writeInt(pickBlockID);
         buf.writeInt(pickBlockMeta);
         ByteBufUtils.writeUTF8String(buf, playerUUIDWhoBrokeBlock);
+        ByteBufUtils.writeUTF8String(buf, encodedNBT);
     }
 
     @Override

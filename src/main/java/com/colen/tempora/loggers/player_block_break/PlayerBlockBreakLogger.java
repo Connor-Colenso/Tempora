@@ -4,6 +4,7 @@ import static com.colen.tempora.TemporaUtils.isClientSide;
 import static com.colen.tempora.rendering.RenderUtils.getRenderAlpha;
 import static com.colen.tempora.utils.BlockUtils.getPickBlockSafe;
 import static com.colen.tempora.utils.DatabaseUtils.MISSING_STRING_DATA;
+import static com.colen.tempora.utils.nbt.NBTConverter.NO_NBT;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -14,7 +15,9 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
+import com.colen.tempora.utils.nbt.NBTConverter;
 import gregtech.api.enums.ItemList;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
@@ -22,6 +25,8 @@ import net.minecraft.client.renderer.RenderBlocks;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.event.world.BlockEvent;
 
@@ -71,7 +76,12 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
         for (GenericQueueElement element : sortedList) {
             if (element instanceof PlayerBlockBreakQueueElement pbbe) {
 
-                RenderUtils.renderBlockInWorld(e, element.x, element.y, element.z, pbbe.blockID, pbbe.metadata, getRenderAlpha(element));
+                NBTTagCompound nbt = null;
+                if (!Objects.equals(pbbe.encodedNBT, NO_NBT)) {
+                    nbt = NBTConverter.decodeFromString(pbbe.encodedNBT);
+                }
+
+                RenderUtils.renderBlockInWorld(e, element.x, element.y, element.z, pbbe.blockID, pbbe.metadata, getRenderAlpha(element), nbt);
             }
         }
     }
@@ -81,6 +91,7 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
     public List<ColumnDef> getCustomTableColumns() {
         return Arrays.asList(
             new ColumnDef("playerUUID", "TEXT", "NOT NULL DEFAULT " + MISSING_STRING_DATA),
+            new ColumnDef("encodedNBT", "TEXT", "NOT NULL DEFAULT " + NO_NBT),
             new ColumnDef("metadata", "INTEGER", "NOT NULL DEFAULT -1"),
             new ColumnDef("blockId", "INTEGER", "NOT NULL DEFAULT -1"),
             new ColumnDef("pickBlockID", "INTEGER", "NOT NULL DEFAULT -1"),
@@ -102,6 +113,7 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
                 queueElement.dimensionId = resultSet.getInt("dimensionID");
                 queueElement.timestamp = resultSet.getLong("timestamp");
 
+                queueElement.encodedNBT = resultSet.getString("encodedNBT");
                 queueElement.playerUUIDWhoBrokeBlock = resultSet.getString("playerUUID");
                 queueElement.blockID = resultSet.getInt("blockId");
                 queueElement.metadata = resultSet.getInt("metadata");
@@ -122,7 +134,7 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
         if (elements == null || elements.isEmpty()) return;
 
         final String sql = "INSERT INTO " + getSQLTableName()
-            + " (playerUUID, blockId, metadata, pickBlockID, pickBlockMeta, x, y, z, dimensionID, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            + " (playerUUID, blockId, metadata, pickBlockID, pickBlockMeta, encodedNBT, x, y, z, dimensionID, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (PreparedStatement pstmt = getDBConn().prepareStatement(sql)) {
             for (PlayerBlockBreakQueueElement elem : elements) {
@@ -131,11 +143,12 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
                 pstmt.setInt(3, elem.metadata);
                 pstmt.setInt(4, elem.pickBlockID);
                 pstmt.setInt(5, elem.pickBlockMeta);
-                pstmt.setDouble(6, elem.x);
-                pstmt.setDouble(7, elem.y);
-                pstmt.setDouble(8, elem.z);
-                pstmt.setInt(9, elem.dimensionId);
-                pstmt.setTimestamp(10, new Timestamp(elem.timestamp));
+                pstmt.setString(6, elem.encodedNBT);
+                pstmt.setDouble(7, elem.x);
+                pstmt.setDouble(8, elem.y);
+                pstmt.setDouble(9, elem.z);
+                pstmt.setInt(10, elem.dimensionId);
+                pstmt.setTimestamp(11, new Timestamp(elem.timestamp));
                 pstmt.addBatch();
             }
 
@@ -159,6 +172,16 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
 
         queueElement.blockID = Block.getIdFromBlock(event.block);
         queueElement.metadata = event.blockMetadata;
+        TileEntity tileEntity = event.world.getTileEntity(event.x,event.y, event.z);
+
+        if (tileEntity != null) {
+            NBTTagCompound tag = new NBTTagCompound();
+            tileEntity.writeToNBT(tag);
+
+            queueElement.encodedNBT = NBTConverter.encodeToString(tag);
+        } else {
+            queueElement.encodedNBT = NO_NBT;
+        }
 
         // Calculate pickBlockID and pickBlockMeta using getPickBlock
         ItemStack pickStack = getPickBlockSafe(event.block, event.world, event.x, event.y, event.z);
