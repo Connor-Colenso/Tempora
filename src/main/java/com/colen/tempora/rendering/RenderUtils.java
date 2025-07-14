@@ -7,11 +7,15 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderBlocks;
 import net.minecraft.client.renderer.RenderGlobal;
 import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.entity.Render;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.IIcon;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import org.lwjgl.opengl.GL11;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
 
 import static com.colen.tempora.rendering.RenderRegionsInWorld.SECONDS_RENDERING_DURATION;
 
@@ -55,13 +59,12 @@ public abstract class RenderUtils {
         GL11.glPushMatrix();
 
         // Optional scaling (centered)
-        double SCALE_FACTOR = 0.8;
+        double SCALE_FACTOR = 14.0/16.0;
         GL11.glTranslated(x + 0.5, y + 0.5, z + 0.5); // Move to block center
         GL11.glScaled(SCALE_FACTOR, SCALE_FACTOR, SCALE_FACTOR);
         GL11.glTranslated(-0.5, -0.5, -0.5); // Move render origin back so block is centered
 
         tes.startDrawingQuads();
-
         rb.renderBlockByRenderType(Block.getBlockById(blockID), 0, 0, 0);
 
         tes.draw();
@@ -87,6 +90,42 @@ public abstract class RenderUtils {
 
         GL11.glPopMatrix();
     }
+
+    public static List<GenericQueueElement> getSortedElementsByDistance(
+        Map<String, GenericQueueElement> latestEventsByPos,
+        RenderWorldLastEvent e
+    ) {
+        Minecraft mc = Minecraft.getMinecraft();
+
+        // Interpolated player position
+        double px = mc.thePlayer.lastTickPosX + (mc.thePlayer.posX - mc.thePlayer.lastTickPosX) * e.partialTicks;
+        double py = mc.thePlayer.lastTickPosY + (mc.thePlayer.posY - mc.thePlayer.lastTickPosY) * e.partialTicks;
+        double pz = mc.thePlayer.lastTickPosZ + (mc.thePlayer.posZ - mc.thePlayer.lastTickPosZ) * e.partialTicks;
+
+        // Copy values to a list once (to avoid mutating map.values())
+        List<GenericQueueElement> sorted = new ArrayList<>(latestEventsByPos.values());
+
+        // In-place sort, avoids stream/lambdas/GC overhead
+        sorted.sort(new Comparator<>() {
+            @Override
+            public int compare(GenericQueueElement a, GenericQueueElement b) {
+                double da = squareDist(a, px, py, pz);
+                double db = squareDist(b, px, py, pz);
+                return Double.compare(db, da); // reversed order
+            }
+
+            private double squareDist(GenericQueueElement e, double x, double y, double z) {
+                double dx = e.x - x;
+                double dy = e.y - y;
+                double dz = e.z - z;
+                return dx * dx + dy * dy + dz * dz;
+            }
+        });
+
+        return sorted;
+    }
+
+
 
     private static void drawBlock(final Block block, final int meta, final double x, final double y,
                                   final double z) {
