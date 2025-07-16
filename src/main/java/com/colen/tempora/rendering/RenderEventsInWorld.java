@@ -14,7 +14,7 @@ public final class RenderEventsInWorld {
     @SubscribeEvent
     public void onRender(RenderWorldLastEvent e) {
         for (GenericPositionalLogger<?> positionalLogger : GenericPositionalLogger.getLoggerList()) {
-            positionalLogger.renderEventInWorld(e);
+            positionalLogger.renderEventsInWorld(e);
             positionalLogger.clearOldEventsToRender();
         }
     }

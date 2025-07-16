@@ -18,16 +18,15 @@ import java.util.Map;
 import java.util.Objects;
 
 import com.colen.tempora.utils.nbt.NBTConverter;
-import gregtech.api.enums.ItemList;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.RenderBlocks;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
+import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.event.world.BlockEvent;
 
 import org.jetbrains.annotations.NotNull;
@@ -41,16 +40,18 @@ import com.colen.tempora.rendering.RenderUtils;
 
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import org.lwjgl.opengl.GL11;
 
 public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockBreakQueueElement> {
+
+    private boolean logNBT;
 
     @Override
     public LoggerEnum getLoggerType() {
         return LoggerEnum.PlayerBlockBreakLogger;
     }
+
     @Override
-    public void renderEventInWorld(RenderWorldLastEvent e) {
+    public void renderEventsInWorld(RenderWorldLastEvent e) {
         Minecraft mc = Minecraft.getMinecraft();
         int playerDim = mc.thePlayer.dimension;
 
@@ -96,6 +97,14 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
             new ColumnDef("blockId", "INTEGER", "NOT NULL DEFAULT -1"),
             new ColumnDef("pickBlockID", "INTEGER", "NOT NULL DEFAULT -1"),
             new ColumnDef("pickBlockMeta", "INTEGER", "NOT NULL DEFAULT -1"));
+    }
+
+    @Override
+    public void handleCustomLoggerConfig(Configuration config) {
+        logNBT = config.getBoolean("logNBT", getSQLTableName(), true, """
+            If true, it will log the NBT of all blocks changes which interact with this event. This improves rendering of events and gives a better history.
+            WARNING: NBT may be large and this could cause the database to grow much quicker.
+            """);
     }
 
     @Override
@@ -172,13 +181,14 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
 
         queueElement.blockID = Block.getIdFromBlock(event.block);
         queueElement.metadata = event.blockMetadata;
-        TileEntity tileEntity = event.world.getTileEntity(event.x,event.y, event.z);
 
-        if (tileEntity != null) {
-            NBTTagCompound tag = new NBTTagCompound();
-            tileEntity.writeToNBT(tag);
-
-            queueElement.encodedNBT = NBTConverter.encodeToString(tag);
+        if (logNBT) {
+            TileEntity tileEntity = event.world.getTileEntity(event.x, event.y, event.z);
+            if (tileEntity != null) {
+                NBTTagCompound tag = new NBTTagCompound();
+                tileEntity.writeToNBT(tag);
+                queueElement.encodedNBT = NBTConverter.encodeToString(tag);
+            }
         } else {
             queueElement.encodedNBT = NO_NBT;
         }
