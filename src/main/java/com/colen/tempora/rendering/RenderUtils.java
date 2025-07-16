@@ -39,80 +39,68 @@ public abstract class RenderUtils {
         double pz = mc.thePlayer.lastTickPosZ + (mc.thePlayer.posZ - mc.thePlayer.lastTickPosZ) * e.partialTicks;
 
         GL11.glPushMatrix();
+        GL11.glTranslated(-px, -py, -pz); // World-relative render origin
 
-        // Translate world so player is at (0,0,0)
-        GL11.glTranslated(-px, -py, -pz);
-
-        // Setup render state
-        GL11.glDisable(GL11.GL_DEPTH_TEST);
-        GL11.glEnable(GL11.GL_BLEND);
-        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+        // Setup OpenGL render state
         GL11.glColor4f(1f, 1f, 1f, alpha);
 
-        // Prepare RenderBlocks with FakeWorld
+        // Setup rendering environment
         RenderBlocks rb = new RenderBlocks();
         rb.useInventoryTint = false;
-        rb.renderAllFaces = true;
 
+        Block block = Block.getBlockById(blockID);
         TileEntity tileEntity = null;
+
         if (nbt != null) {
             tileEntity = TileEntity.createAndLoadEntity(nbt);
             tileEntity.blockMetadata = metadata;
-            tileEntity.blockType = Block.getBlockById(blockID);
+            tileEntity.blockType = block;
             tileEntity.setWorldObj(mc.theWorld);
             tileEntity.validate();
         }
 
         FakeWorld fakeWorld = new FakeWorld();
-        fakeWorld.block = Block.getBlockById(blockID);
-
-        if (fakeWorld.block instanceof BlockCableBus) {
-            BusRenderHelper.instances.get().setPass(0);
-        }
-
+        fakeWorld.block = block;
         fakeWorld.tileEntity = tileEntity;
         fakeWorld.metadata = metadata;
-        rb.blockAccess = fakeWorld;
-
         fakeWorld.x = (int) x;
         fakeWorld.y = (int) y;
         fakeWorld.z = (int) z;
+        rb.blockAccess = fakeWorld;
 
-        // === Render Block Centered at (x, y, z) ===
+        boolean isAE2Cable = block instanceof BlockCableBus;
+        if (isAE2Cable) {
+            BusRenderHelper.instances.get().setPass(0);
+        }
+
+        // === Render block centered at (x, y, z) ===
         GL11.glPushMatrix();
 
-        // Optional scaling (centered)
-        double SCALE_FACTOR = 14.0/16.0;
-        if (!(fakeWorld.block instanceof BlockCableBus)) {
-            GL11.glTranslated(x + 0.5, y + 0.5, z + 0.5); // Move to block center
-            GL11.glScaled(SCALE_FACTOR, SCALE_FACTOR, SCALE_FACTOR);
-            GL11.glTranslated(-0.5, -0.5, -0.5); // Move render origin back so block is centered
-        } else {
+        // Apply scaling and centering transform
+        double SCALE_FACTOR = 14.0 / 16.0;
+        GL11.glTranslated(x + 0.5, y + 0.5, z + 0.5);
+        GL11.glScaled(SCALE_FACTOR, SCALE_FACTOR, SCALE_FACTOR);
+        GL11.glTranslated(-0.5, -0.5, -0.5);
+
+        // AE2 expects its TileEntity to be at 0,0,0
+        if (isAE2Cable && tileEntity != null) {
             tileEntity.xCoord = 0;
             tileEntity.yCoord = 0;
             tileEntity.zCoord = 0;
-            GL11.glTranslated(x + 0.5, y + 0.5, z + 0.5); // Move to block center
-            GL11.glScaled(SCALE_FACTOR, SCALE_FACTOR, SCALE_FACTOR);
-            GL11.glTranslated(-0.5, -0.5, -0.5); // Move render origin back so block is centered
         }
 
         tes.startDrawingQuads();
-        rb.renderBlockByRenderType(Block.getBlockById(blockID), 0, 0, 0);
-
+        rb.renderBlockByRenderType(block, 0, 0, 0);
         tes.draw();
 
         if (System.currentTimeMillis() / 500 % 2 == 0) {
-            RenderUtils.renderRegion(0, 0, 0, 1, 1, 1);
+            renderRegion(0, 0, 0, 1, 1, 1);
         }
 
         GL11.glPopMatrix();
-
-        // Restore render state
-        GL11.glDisable(GL11.GL_BLEND);
-        GL11.glEnable(GL11.GL_DEPTH_TEST);
-
         GL11.glPopMatrix();
     }
+
 
     public static List<GenericQueueElement> getSortedElementsByDistance(
         Map<String, GenericQueueElement> latestEventsByPos,
