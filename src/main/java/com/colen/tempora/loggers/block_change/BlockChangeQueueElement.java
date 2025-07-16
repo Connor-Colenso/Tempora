@@ -11,6 +11,8 @@ import com.colen.tempora.utils.TimeUtils;
 import cpw.mods.fml.common.network.ByteBufUtils;
 import io.netty.buffer.ByteBuf;
 
+import static com.colen.tempora.utils.nbt.NBTConverter.NO_NBT;
+
 public class BlockChangeQueueElement extends GenericQueueElement {
 
     public int blockID;
@@ -18,7 +20,7 @@ public class BlockChangeQueueElement extends GenericQueueElement {
     public int pickBlockID;
     public int pickBlockMeta;
     public String stackTrace;
-    public String encodedNBT;
+    public String encodedNBT = NO_NBT;
     public String closestPlayerUUID;
     public double closestPlayerDistance;
 

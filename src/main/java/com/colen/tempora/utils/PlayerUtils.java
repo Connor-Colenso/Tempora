@@ -23,20 +23,20 @@ import com.mojang.authlib.GameProfile;
 public class PlayerUtils {
 
     public static String UUIDToName(String UUIDString) {
-        if (!UUIDString.equals(UNKNOWN_PLAYER_NAME)) {
-            // To get a name from a UUID:
-            UUID playerUUID = UUID.fromString(UUIDString); // field_152366_X
+        if (UUIDString.equals(UNKNOWN_PLAYER_NAME)) return UNKNOWN_PLAYER_NAME;
 
-            GameProfile gameprofile = MinecraftServer.getServer()
-                .func_152358_ax()
-                .func_152652_a(playerUUID);
+        // To get a name from a UUID:
+        UUID playerUUID = UUID.fromString(UUIDString); // field_152366_X
 
-            if (gameprofile != null) {
-                return gameprofile.getName();
-            }
+        GameProfile gameprofile = MinecraftServer.getServer()
+            .func_152358_ax()
+            .func_152652_a(playerUUID);
+
+        if (gameprofile != null) {
+            return gameprofile.getName();
+        } else {
+            return UNKNOWN_PLAYER_NAME;
         }
-
-        return "[COULD_NOT_RESOLVE_UUID] - " + UUIDString;
     }
 
     private static final Pattern UUID_PATTERN = Pattern

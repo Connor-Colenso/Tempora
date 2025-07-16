@@ -157,8 +157,6 @@ public class PlayerBlockPlaceLogger extends GenericPositionalLogger<PlayerBlockP
                 tileEntity.writeToNBT(tag);
                 queueElement.encodedNBT = NBTConverter.encodeToString(tag);
             }
-        } else {
-            queueElement.encodedNBT = NO_NBT;
         }
 
         if (event.player instanceof EntityPlayerMP) {
