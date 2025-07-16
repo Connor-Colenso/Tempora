@@ -89,7 +89,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
     public abstract LoggerEnum getLoggerType();
 
-    public abstract void renderEventInWorld(RenderWorldLastEvent e);
+    public abstract void renderEventsInWorld(RenderWorldLastEvent e);
 
     public final String getSQLTableName() {
         return getLoggerType().toString();
@@ -327,11 +327,14 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
         final String maxDbSizeString = config.getString(
             "MaxDatabaseSize",
             getSQLTableName(),
-            "100TB",
-            "Approximate maximum database file size (e.g. '500KB', '1MB', '5GB'). By default this is set high, so essentially no erasure happens."
-                + "The actual file size and deletion process is approximate and may not be 100% exact.");
+            "-1",
+            "Approximate maximum database file size (e.g. '500KB', '1MB', '5GB'). By default this is set to -1, meaning no erasure happens.");
 
-        largestDatabaseSizeInBytes = parseSizeStringToBytes(maxDbSizeString);
+        if (maxDbSizeString.equals("-1")) {
+            largestDatabaseSizeInBytes = Long.MAX_VALUE;
+        } else {
+            largestDatabaseSizeInBytes = parseSizeStringToBytes(maxDbSizeString);
+        }
 
     }
 

@@ -3,6 +3,7 @@ package com.colen.tempora.loggers.player_block_place;
 import static com.colen.tempora.TemporaUtils.isClientSide;
 import static com.colen.tempora.utils.BlockUtils.getPickBlockSafe;
 import static com.colen.tempora.utils.DatabaseUtils.MISSING_STRING_DATA;
+import static com.colen.tempora.utils.nbt.NBTConverter.NO_NBT;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -12,11 +13,15 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.colen.tempora.utils.nbt.NBTConverter;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
+import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.event.world.BlockEvent.PlaceEvent;
 
 import org.jetbrains.annotations.NotNull;
@@ -33,13 +38,23 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
 public class PlayerBlockPlaceLogger extends GenericPositionalLogger<PlayerBlockPlaceQueueElement> {
 
+    private boolean logNBT;
+
+    @Override
+    public void handleCustomLoggerConfig(Configuration config) {
+        logNBT = config.getBoolean("logNBT", getSQLTableName(), true, """
+            If true, it will log the NBT of all blocks changes which interact with this event. This improves rendering of events and gives a better history.
+            WARNING: NBT may be large and this could cause the database to grow much quicker.
+            """);
+    }
+
     @Override
     public LoggerEnum getLoggerType() {
         return LoggerEnum.PlayerBlockPlaceLogger;
     }
 
     @Override
-    public void renderEventInWorld(RenderWorldLastEvent e) {
+    public void renderEventsInWorld(RenderWorldLastEvent e) {
 
     }
 
@@ -47,6 +62,7 @@ public class PlayerBlockPlaceLogger extends GenericPositionalLogger<PlayerBlockP
     public List<ColumnDef> getCustomTableColumns() {
         return Arrays.asList(
             new ColumnDef("playerUUID", "TEXT", "NOT NULL DEFAULT " + MISSING_STRING_DATA),
+            new ColumnDef("encodedNBT", "TEXT", "NOT NULL DEFAULT " + NO_NBT),
             new ColumnDef("metadata", "INTEGER", "NOT NULL DEFAULT -1"),
             new ColumnDef("blockId", "INTEGER", "NOT NULL DEFAULT -1"),
             new ColumnDef("pickBlockMeta", "INTEGER", "NOT NULL DEFAULT -1"),
@@ -65,6 +81,7 @@ public class PlayerBlockPlaceLogger extends GenericPositionalLogger<PlayerBlockP
             queueElement.z = resultSet.getInt("z");
             queueElement.dimensionId = resultSet.getInt("dimensionID");
             queueElement.playerNameWhoPlacedBlock = PlayerUtils.UUIDToName(resultSet.getString("playerUUID"));
+            queueElement.encodedNBT = resultSet.getString("encodedNBT");
             queueElement.blockID = resultSet.getInt("blockId");
             queueElement.metadata = resultSet.getInt("metadata");
             queueElement.pickBlockID = resultSet.getInt("pickBlockId");
@@ -82,21 +99,22 @@ public class PlayerBlockPlaceLogger extends GenericPositionalLogger<PlayerBlockP
         if (blockPlaceQueueElements == null || blockPlaceQueueElements.isEmpty()) return;
 
         final String sql = "INSERT INTO " + getSQLTableName()
-            + " (playerUUID, blockId, metadata, pickBlockId, pickBlockMeta, x, y, z, dimensionID, timestamp) "
-            + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            + " (playerUUID, encodedNBT, blockId, metadata, pickBlockId, pickBlockMeta, x, y, z, dimensionID, timestamp) "
+            + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (PreparedStatement pstmt = getDBConn().prepareStatement(sql)) {
             for (PlayerBlockPlaceQueueElement element : blockPlaceQueueElements) {
                 pstmt.setString(1, element.playerNameWhoPlacedBlock);
-                pstmt.setInt(2, element.blockID);
-                pstmt.setInt(3, element.metadata);
-                pstmt.setInt(4, element.pickBlockID);
-                pstmt.setInt(5, element.pickBlockMeta);
-                pstmt.setDouble(6, element.x);
-                pstmt.setDouble(7, element.y);
-                pstmt.setDouble(8, element.z);
-                pstmt.setInt(9, element.dimensionId);
-                pstmt.setTimestamp(10, new Timestamp(element.timestamp));
+                pstmt.setString(2, element.encodedNBT);
+                pstmt.setInt(3, element.blockID);
+                pstmt.setInt(4, element.metadata);
+                pstmt.setInt(5, element.pickBlockID);
+                pstmt.setInt(6, element.pickBlockMeta);
+                pstmt.setDouble(7, element.x);
+                pstmt.setDouble(8, element.y);
+                pstmt.setDouble(9, element.z);
+                pstmt.setInt(10, element.dimensionId);
+                pstmt.setTimestamp(11, new Timestamp(element.timestamp));
                 pstmt.addBatch();
             }
 
@@ -130,6 +148,17 @@ public class PlayerBlockPlaceLogger extends GenericPositionalLogger<PlayerBlockP
             // Fallback to raw values if pickBlock is null
             queueElement.pickBlockID = queueElement.blockID;
             queueElement.pickBlockMeta = queueElement.metadata;
+        }
+
+        if (logNBT) {
+            TileEntity tileEntity = event.world.getTileEntity(event.x, event.y, event.z);
+            if (tileEntity != null) {
+                NBTTagCompound tag = new NBTTagCompound();
+                tileEntity.writeToNBT(tag);
+                queueElement.encodedNBT = NBTConverter.encodeToString(tag);
+            }
+        } else {
+            queueElement.encodedNBT = NO_NBT;
         }
 
         if (event.player instanceof EntityPlayerMP) {

@@ -18,6 +18,7 @@ public class BlockChangeQueueElement extends GenericQueueElement {
     public int pickBlockID;
     public int pickBlockMeta;
     public String stackTrace;
+    public String encodedNBT;
     public String closestPlayerUUID;
     public double closestPlayerDistance;
 

@@ -41,7 +41,7 @@ public class InventoryLogger extends GenericPositionalLogger<InventoryQueueEleme
     }
 
     @Override
-    public void renderEventInWorld(RenderWorldLastEvent e) {
+    public void renderEventsInWorld(RenderWorldLastEvent e) {
 
     }
 

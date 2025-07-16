@@ -18,6 +18,7 @@ public class PlayerBlockPlaceQueueElement extends GenericQueueElement {
     public int pickBlockID;
     public int pickBlockMeta;
     public String playerNameWhoPlacedBlock;
+    public String encodedNBT;
 
     @Override
     public void fromBytes(ByteBuf buf) {
