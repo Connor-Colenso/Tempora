@@ -2,6 +2,7 @@ package com.colen.tempora.loggers.generic;
 
 import static com.colen.tempora.Tempora.NETWORK;
 
+import com.colen.tempora.enums.LoggerEnum;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.event.ClickEvent;
 import net.minecraft.event.HoverEvent;
@@ -47,6 +48,8 @@ public abstract class GenericQueueElement implements IMessage {
         buf.writeInt(dimensionId);
         buf.writeLong(timestamp);
     }
+
+    public abstract LoggerEnum getLoggerType();
 
     // How the x y z should be shown in chat and in the /tp command.
     public enum CoordFormat {

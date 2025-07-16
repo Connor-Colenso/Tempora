@@ -2,6 +2,7 @@ package com.colen.tempora.loggers.item_use;
 
 import static com.colen.tempora.utils.ItemUtils.getNameOfItemStack;
 
+import com.colen.tempora.enums.LoggerEnum;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 
@@ -53,5 +54,10 @@ public class ItemUseQueueElement extends GenericQueueElement {
             itemMetadata,
             coords,
             timeAgo);
+    }
+
+    @Override
+    public LoggerEnum getLoggerType() {
+        return LoggerEnum.ItemUseLogger;
     }
 }

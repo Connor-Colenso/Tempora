@@ -1,5 +1,6 @@
 package com.colen.tempora.loggers.entity_position;
 
+import com.colen.tempora.enums.LoggerEnum;
 import net.minecraft.event.ClickEvent;
 import net.minecraft.event.HoverEvent;
 import net.minecraft.util.ChatComponentText;
@@ -55,5 +56,10 @@ public class EntityPositionQueueElement extends GenericQueueElement {
                 .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, clickToCopy)));
 
         return new ChatComponentTranslation("message.entity_position", entityName, uuidChatComponent, coords, timeAgo);
+    }
+
+    @Override
+    public LoggerEnum getLoggerType() {
+        return LoggerEnum.EntityPositionLogger;
     }
 }

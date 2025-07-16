@@ -1,5 +1,6 @@
 package com.colen.tempora.loggers.explosion;
 
+import com.colen.tempora.enums.LoggerEnum;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 
@@ -54,5 +55,10 @@ public class ExplosionQueueElement extends GenericQueueElement {
             String.format("%.1f", closestPlayerDistance),
             coords,
             timeAgo);
+    }
+
+    @Override
+    public LoggerEnum getLoggerType() {
+        return LoggerEnum.ExplosionLogger;
     }
 }

@@ -1,5 +1,6 @@
 package com.colen.tempora.loggers.player_block_place;
 
+import com.colen.tempora.enums.LoggerEnum;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 
@@ -68,5 +69,10 @@ public class PlayerBlockPlaceQueueElement extends GenericQueueElement {
             metadata,
             coords,
             timeAgo);
+    }
+
+    @Override
+    public LoggerEnum getLoggerType() {
+        return LoggerEnum.PlayerBlockPlaceLogger;
     }
 }

@@ -82,7 +82,7 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
                     nbt = NBTConverter.decodeFromString(pbbe.encodedNBT);
                 }
 
-                RenderUtils.renderBlockInWorld(e, element.x, element.y, element.z, pbbe.blockID, pbbe.metadata, getRenderAlpha(element), nbt);
+                RenderUtils.renderBlockInWorld(e, element.x, element.y, element.z, pbbe.blockID, pbbe.metadata, nbt, pbbe.getLoggerType());
             }
         }
     }

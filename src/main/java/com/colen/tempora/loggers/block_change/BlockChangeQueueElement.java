@@ -1,5 +1,6 @@
 package com.colen.tempora.loggers.block_change;
 
+import com.colen.tempora.enums.LoggerEnum;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 
@@ -71,5 +72,10 @@ public class BlockChangeQueueElement extends GenericQueueElement {
         ByteBufUtils.writeUTF8String(buf, stackTrace);
         ByteBufUtils.writeUTF8String(buf, closestPlayerUUID);
         buf.writeDouble(closestPlayerDistance);
+    }
+
+    @Override
+    public LoggerEnum getLoggerType() {
+        return LoggerEnum.BlockChangeLogger;
     }
 }

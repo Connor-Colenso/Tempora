@@ -1,5 +1,6 @@
 package com.colen.tempora.loggers.player_block_break;
 
+import com.colen.tempora.enums.LoggerEnum;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 
@@ -66,5 +67,10 @@ public class PlayerBlockBreakQueueElement extends GenericQueueElement {
             coords, // clickable coordinates
             timeAgo // localized relative time
         );
+    }
+
+    @Override
+    public LoggerEnum getLoggerType() {
+        return LoggerEnum.PlayerBlockBreakLogger;
     }
 }
