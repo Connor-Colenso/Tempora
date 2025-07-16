@@ -1,7 +1,5 @@
 package com.colen.tempora.rendering;
 
-import appeng.block.networking.BlockCableBus;
-import appeng.client.render.BusRenderHelper;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.rendering.FakeWorld.FakeWorld;
 import net.minecraft.block.Block;
@@ -68,11 +66,6 @@ public abstract class RenderUtils {
         fakeWorld.z = (int) z;
         rb.blockAccess = fakeWorld;
 
-        boolean isAE2Cable = block instanceof BlockCableBus;
-        if (isAE2Cable) {
-            BusRenderHelper.instances.get().setPass(0);
-        }
-
         // === Render block centered at (x, y, z) ===
         GL11.glPushMatrix();
 
@@ -82,8 +75,7 @@ public abstract class RenderUtils {
         GL11.glScaled(SCALE_FACTOR, SCALE_FACTOR, SCALE_FACTOR);
         GL11.glTranslated(-0.5, -0.5, -0.5);
 
-        // AE2 expects its TileEntity to be at 0,0,0
-        if (isAE2Cable && tileEntity != null) {
+        if (tileEntity != null) {
             tileEntity.xCoord = 0;
             tileEntity.yCoord = 0;
             tileEntity.zCoord = 0;
