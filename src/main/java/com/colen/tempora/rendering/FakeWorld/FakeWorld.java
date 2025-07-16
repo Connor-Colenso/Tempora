@@ -1,6 +1,7 @@
 package com.colen.tempora.rendering.FakeWorld;
 
 import net.minecraft.block.Block;
+import net.minecraft.init.Blocks;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.biome.BiomeGenBase;
@@ -12,9 +13,15 @@ public class FakeWorld implements IBlockAccess {
     public TileEntity tileEntity = new TileEntity();
     public int metadata;
 
+    public int x, y, z;
+
     @Override
     public Block getBlock(int p_147439_1_, int p_147439_2_, int p_147439_3_) {
-        return block;
+        if (p_147439_1_ == x && p_147439_2_ == y && p_147439_3_ == z) {
+            return block;
+        } else {
+            return Blocks.air;
+        }
     }
 
     @Override
@@ -41,7 +48,9 @@ public class FakeWorld implements IBlockAccess {
 
     @Override
     public boolean isAirBlock(int x, int y, int z) {
-        return false;
+        // Return false if this is the single real block coordinate (block is present)
+        return x != this.x || y != this.y || z != this.z;
+        // Otherwise, treat as air
     }
 
     @Override
