@@ -160,8 +160,6 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
                 tileEntity.writeToNBT(tag);
                 queueElement.encodedNBT = NBTConverter.encodeToString(tag);
             }
-        } else {
-            queueElement.encodedNBT = NO_NBT;
         }
 
         ItemStack pickStack = getPickBlockSafe(blockIn, world, x, y, z);

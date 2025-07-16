@@ -267,7 +267,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
                 getDBConn().commit();
                 buffer.clear();
             } catch (Exception x) {
-                throw new RuntimeException("DB failure in " + sqlTableName, x); // bubbles to handler
+                throw new RuntimeException("DB failure in " + sqlTableName, x);
             }
         }
 

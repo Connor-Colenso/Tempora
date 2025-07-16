@@ -189,8 +189,6 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
                 tileEntity.writeToNBT(tag);
                 queueElement.encodedNBT = NBTConverter.encodeToString(tag);
             }
-        } else {
-            queueElement.encodedNBT = NO_NBT;
         }
 
         // Calculate pickBlockID and pickBlockMeta using getPickBlock
