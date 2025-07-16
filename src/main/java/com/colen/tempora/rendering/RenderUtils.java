@@ -1,5 +1,7 @@
 package com.colen.tempora.rendering;
 
+import appeng.block.networking.BlockCableBus;
+import appeng.client.render.BusRenderHelper;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.rendering.FakeWorld.FakeWorld;
 import net.minecraft.block.Block;
@@ -63,18 +65,36 @@ public abstract class RenderUtils {
 
         FakeWorld fakeWorld = new FakeWorld();
         fakeWorld.block = Block.getBlockById(blockID);
+
+        if (fakeWorld.block instanceof BlockCableBus) {
+            BusRenderHelper.instances.get().setPass(0);
+        }
+
         fakeWorld.tileEntity = tileEntity;
         fakeWorld.metadata = metadata;
         rb.blockAccess = fakeWorld;
+
+        fakeWorld.x = (int) x;
+        fakeWorld.y = (int) y;
+        fakeWorld.z = (int) z;
 
         // === Render Block Centered at (x, y, z) ===
         GL11.glPushMatrix();
 
         // Optional scaling (centered)
         double SCALE_FACTOR = 14.0/16.0;
-        GL11.glTranslated(x + 0.5, y + 0.5, z + 0.5); // Move to block center
-        GL11.glScaled(SCALE_FACTOR, SCALE_FACTOR, SCALE_FACTOR);
-        GL11.glTranslated(-0.5, -0.5, -0.5); // Move render origin back so block is centered
+        if (!(fakeWorld.block instanceof BlockCableBus)) {
+            GL11.glTranslated(x + 0.5, y + 0.5, z + 0.5); // Move to block center
+            GL11.glScaled(SCALE_FACTOR, SCALE_FACTOR, SCALE_FACTOR);
+            GL11.glTranslated(-0.5, -0.5, -0.5); // Move render origin back so block is centered
+        } else {
+            tileEntity.xCoord = 0;
+            tileEntity.yCoord = 0;
+            tileEntity.zCoord = 0;
+            GL11.glTranslated(x + 0.5, y + 0.5, z + 0.5); // Move to block center
+            GL11.glScaled(SCALE_FACTOR, SCALE_FACTOR, SCALE_FACTOR);
+            GL11.glTranslated(-0.5, -0.5, -0.5); // Move render origin back so block is centered
+        }
 
         tes.startDrawingQuads();
         rb.renderBlockByRenderType(Block.getBlockById(blockID), 0, 0, 0);
