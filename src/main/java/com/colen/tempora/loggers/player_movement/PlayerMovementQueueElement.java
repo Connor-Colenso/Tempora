@@ -1,5 +1,6 @@
 package com.colen.tempora.loggers.player_movement;
 
+import com.colen.tempora.enums.LoggerEnum;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 
@@ -38,5 +39,10 @@ public class PlayerMovementQueueElement extends GenericQueueElement {
             CoordFormat.FLOAT_1DP);
 
         return new ChatComponentTranslation("message.player_movement", playerUUID, coords, formattedTime);
+    }
+
+    @Override
+    public LoggerEnum getLoggerType() {
+        return LoggerEnum.PlayerMovementLogger;
     }
 }
