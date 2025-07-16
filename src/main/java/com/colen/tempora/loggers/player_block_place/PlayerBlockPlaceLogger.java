@@ -12,9 +12,12 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
+import com.colen.tempora.rendering.RenderUtils;
 import com.colen.tempora.utils.nbt.NBTConverter;
 import net.minecraft.block.Block;
+import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -55,7 +58,22 @@ public class PlayerBlockPlaceLogger extends GenericPositionalLogger<PlayerBlockP
 
     @Override
     public void renderEventsInWorld(RenderWorldLastEvent e) {
+        Minecraft mc = Minecraft.getMinecraft();
+        int playerDim = mc.thePlayer.dimension;
 
+        List<GenericQueueElement> sortedList = RenderUtils.getSortedLatestEventsByDistance(eventsToRenderInWorld, playerDim, e);
+
+        for (GenericQueueElement element : sortedList) {
+            if (element instanceof PlayerBlockPlaceQueueElement pbpl) {
+
+                NBTTagCompound nbt = null;
+                if (!Objects.equals(pbpl.encodedNBT, NO_NBT)) {
+                    nbt = NBTConverter.decodeFromString(pbpl.encodedNBT);
+                }
+
+                RenderUtils.renderBlockInWorld(e, element.x, element.y, element.z, pbpl.blockID, pbpl.metadata, nbt, getLoggerType());
+            }
+        }
     }
 
     @Override
