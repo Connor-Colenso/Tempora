@@ -55,25 +55,8 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
         Minecraft mc = Minecraft.getMinecraft();
         int playerDim = mc.thePlayer.dimension;
 
-        // Map to store the latest event at each position
-        Map<String, GenericQueueElement> latestEventsByPos = new HashMap<>();
+        List<GenericQueueElement> sortedList = RenderUtils.getSortedLatestEventsByDistance(eventsToRenderInWorld, playerDim, e);
 
-        for (GenericQueueElement element : eventsToRenderInWorld) {
-            if (element.dimensionId != playerDim) continue;
-
-            // Unique key per block position and dimension
-            String key = (int) element.x + "," + (int) element.y + "," + (int) element.z;
-
-            // Only keep the most recent event for that position
-            GenericQueueElement existing = latestEventsByPos.get(key);
-            if (existing == null || element.timestamp > existing.timestamp) {
-                latestEventsByPos.put(key, element);
-            }
-        }
-
-        List<GenericQueueElement> sortedList = RenderUtils.getSortedElementsByDistance(latestEventsByPos, e);
-
-        // Now render only the latest event at each block position
         for (GenericQueueElement element : sortedList) {
             if (element instanceof PlayerBlockBreakQueueElement pbbe) {
 
@@ -82,10 +65,11 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
                     nbt = NBTConverter.decodeFromString(pbbe.encodedNBT);
                 }
 
-                RenderUtils.renderBlockInWorld(e, element.x, element.y, element.z, pbbe.blockID, pbbe.metadata, nbt, pbbe.getLoggerType());
+                RenderUtils.renderBlockInWorld(e, element.x, element.y, element.z, pbbe.blockID, pbbe.metadata, nbt, getLoggerType());
             }
         }
     }
+
 
 
     @Override

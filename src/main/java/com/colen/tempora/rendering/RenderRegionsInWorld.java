@@ -33,7 +33,7 @@ public final class RenderRegionsInWorld {
             GL11.glPushMatrix();
             GL11.glTranslated(-px, -py, -pz);
 
-            RenderUtils.renderRegion(r.minX, r.minY, r.minZ, r.maxX + 1, r.maxY + 1, r.maxZ + 1);
+            RenderUtils.renderRegion(r.minX, r.minY, r.minZ, r.maxX + 1, r.maxY + 1, r.maxZ + 1, 1, 0, 0);
 
             GL11.glPopMatrix();
         }

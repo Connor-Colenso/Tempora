@@ -1,5 +1,6 @@
 package com.colen.tempora.rendering;
 
+import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.rendering.FakeWorld.FakeWorld;
 import net.minecraft.block.Block;
@@ -15,7 +16,9 @@ import net.minecraftforge.client.event.RenderWorldLastEvent;
 import org.lwjgl.opengl.GL11;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -27,7 +30,7 @@ public abstract class RenderUtils {
     static final double[] BLOCK_Y = { +0.5, -0.5, -0.5, +0.5, +0.5, -0.5, -0.5, +0.5 };
     static final double[] BLOCK_Z = { +0.5, +0.5, +0.5, +0.5, -0.5, -0.5, -0.5, -0.5 };
 
-    public static void renderBlockInWorld(RenderWorldLastEvent e, double x, double y, double z, int blockID, int metadata, float alpha, NBTTagCompound nbt) {
+    public static void renderBlockInWorld(RenderWorldLastEvent e, double x, double y, double z, int blockID, int metadata, NBTTagCompound nbt, LoggerEnum loggerEnum) {
         Tessellator tes = Tessellator.instance;
         Minecraft mc = Minecraft.getMinecraft();
 
@@ -38,9 +41,6 @@ public abstract class RenderUtils {
 
         GL11.glPushMatrix();
         GL11.glTranslated(-px, -py, -pz); // World-relative render origin
-
-        // Setup OpenGL render state
-        GL11.glColor4f(1f, 1f, 1f, alpha);
 
         // Setup rendering environment
         RenderBlocks rb = new RenderBlocks();
@@ -54,6 +54,9 @@ public abstract class RenderUtils {
             tileEntity.blockMetadata = metadata;
             tileEntity.blockType = block;
             tileEntity.setWorldObj(mc.theWorld);
+            tileEntity.xCoord = 0;
+            tileEntity.yCoord = 0;
+            tileEntity.zCoord = 0;
             tileEntity.validate();
         }
 
@@ -75,24 +78,42 @@ public abstract class RenderUtils {
         GL11.glScaled(SCALE_FACTOR, SCALE_FACTOR, SCALE_FACTOR);
         GL11.glTranslated(-0.5, -0.5, -0.5);
 
-        if (tileEntity != null) {
-            tileEntity.xCoord = 0;
-            tileEntity.yCoord = 0;
-            tileEntity.zCoord = 0;
-        }
-
         tes.startDrawingQuads();
         rb.renderBlockByRenderType(block, 0, 0, 0);
         tes.draw();
 
         if (System.currentTimeMillis() / 500 % 2 == 0) {
-            renderRegion(0, 0, 0, 1, 1, 1);
+            if (loggerEnum == LoggerEnum.PlayerBlockBreakLogger) {
+                renderRegion(0, 0, 0, 1, 1, 1, 1, 0, 0);
+            } else if (loggerEnum == LoggerEnum.PlayerBlockPlaceLogger) {
+                renderRegion(0, 0, 0, 1, 1, 1, 0, 1, 0);
+            } else if (loggerEnum == LoggerEnum.BlockChangeLogger) {
+                renderRegion(0, 0, 0, 1, 1, 1, 0, 0, 1);
+            }
         }
 
         GL11.glPopMatrix();
         GL11.glPopMatrix();
     }
 
+    public static List<GenericQueueElement> getSortedLatestEventsByDistance(Collection<GenericQueueElement> input, int playerDim, RenderWorldLastEvent e) {
+        Minecraft mc = Minecraft.getMinecraft();
+
+        Map<String, GenericQueueElement> latestEventsByPos = new HashMap<>();
+
+        for (GenericQueueElement element : input) {
+            if (element.dimensionId != playerDim) continue;
+
+            String key = (int) element.x + "," + (int) element.y + "," + (int) element.z;
+
+            GenericQueueElement existing = latestEventsByPos.get(key);
+            if (existing == null || element.timestamp > existing.timestamp) {
+                latestEventsByPos.put(key, element);
+            }
+        }
+
+        return getSortedElementsByDistance(latestEventsByPos, e);
+    }
 
     public static List<GenericQueueElement> getSortedElementsByDistance(
         Map<String, GenericQueueElement> latestEventsByPos,
@@ -202,9 +223,8 @@ public abstract class RenderUtils {
         return Math.max(0f, 0.5f * (1f - Math.min(fadeProgress, 1f)));
     }
 
-
     public static void renderRegion(double startX, double startY, double startZ,
-                                    double endX, double endY, double endZ) {
+                                    double endX, double endY, double endZ, double red, double green, double blue) {
         GL11.glPushAttrib(GL11.GL_ENABLE_BIT | GL11.GL_LINE_BIT | GL11.GL_COLOR_BUFFER_BIT); // Save lighting, texture, blend, depth, etc.
         GL11.glPushMatrix();
 
@@ -214,7 +234,7 @@ public abstract class RenderUtils {
         GL11.glEnable(GL11.GL_BLEND);
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
         GL11.glLineWidth(2F);
-        GL11.glColor4f(1F, 0F, 0F, 0.7F);
+        GL11.glColor3d(red, green, blue);
 
         AxisAlignedBB bb = AxisAlignedBB.getBoundingBox(startX, startY, startZ, endX, endY, endZ);
         RenderGlobal.drawOutlinedBoundingBox(bb, 0xFFFFFFFF);
