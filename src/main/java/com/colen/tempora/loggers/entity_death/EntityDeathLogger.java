@@ -16,6 +16,7 @@ import com.colen.tempora.loggers.block_change.BlockChangeQueueElement;
 import com.colen.tempora.rendering.RenderUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityList;
 import net.minecraft.entity.monster.EntityZombie;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
@@ -39,17 +40,19 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueE
 
     @Override
     public void renderEventsInWorld(RenderWorldLastEvent e) {
-
         List<GenericQueueElement> sortedList = RenderUtils.getSortedLatestEventsByDistance(eventsToRenderInWorld, e);
 
         for (GenericQueueElement element : sortedList) {
             if (element instanceof EntityDeathQueueElement bcqe) {
-                Entity mob = new EntityZombie(Minecraft.getMinecraft().theWorld);
-                RenderUtils.renderEntityInWorld(mob, bcqe.x, bcqe.y, bcqe.z, e.partialTicks, 1F, 0F, 0F);
+                Entity entity = EntityList.createEntityByName(bcqe.nameOfDeadMob, Minecraft.getMinecraft().theWorld);
+
+                // Render mob
+                RenderUtils.renderEntityInWorld(entity, bcqe.x, bcqe.y, bcqe.z, 0F, 0F);
+
+                // Render bounding box (optional, matches location)
+                RenderUtils.renderEntityAABBInWorld(entity, bcqe.x, bcqe.y, bcqe.z, 1.0, 0, 0);
             }
         }
-
-
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
@@ -66,7 +69,7 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueE
         queueElement.dimensionId = event.entity.dimension;
         queueElement.timestamp = System.currentTimeMillis();
 
-        queueElement.nameOfDeadMob = event.entityLiving.getCommandSenderName(); // Gets the mob name, weirdly.
+        queueElement.nameOfDeadMob = EntityList.getEntityString(event.entityLiving);
         queueElement.entityUUID = event.entityLiving.getUniqueID()
             .toString();
 
