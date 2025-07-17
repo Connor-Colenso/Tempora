@@ -58,10 +58,7 @@ public class PlayerBlockPlaceLogger extends GenericPositionalLogger<PlayerBlockP
 
     @Override
     public void renderEventsInWorld(RenderWorldLastEvent e) {
-        Minecraft mc = Minecraft.getMinecraft();
-        int playerDim = mc.thePlayer.dimension;
-
-        List<GenericQueueElement> sortedList = RenderUtils.getSortedLatestEventsByDistance(eventsToRenderInWorld, playerDim, e);
+        List<GenericQueueElement> sortedList = RenderUtils.getSortedLatestEventsByDistance(eventsToRenderInWorld, e);
 
         for (GenericQueueElement element : sortedList) {
             if (element instanceof PlayerBlockPlaceQueueElement pbpl) {
