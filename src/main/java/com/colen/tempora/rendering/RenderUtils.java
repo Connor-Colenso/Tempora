@@ -5,7 +5,6 @@ import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.rendering.FakeWorld.FakeWorld;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.RenderBlocks;
 import net.minecraft.client.renderer.RenderGlobal;
 import net.minecraft.client.renderer.Tessellator;
@@ -14,7 +13,6 @@ import net.minecraft.entity.Entity;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
-import net.minecraft.util.IIcon;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import org.lwjgl.opengl.GL11;
 
@@ -29,44 +27,37 @@ import static com.colen.tempora.rendering.RenderRegionsInWorld.SECONDS_RENDERING
 
 public abstract class RenderUtils {
 
-    static final double[] BLOCK_X = { -0.5, -0.5, +0.5, +0.5, +0.5, +0.5, -0.5, -0.5 };
-    static final double[] BLOCK_Y = { +0.5, -0.5, -0.5, +0.5, +0.5, -0.5, -0.5, +0.5 };
-    static final double[] BLOCK_Z = { +0.5, +0.5, +0.5, +0.5, -0.5, -0.5, -0.5, -0.5 };
-
-    public static void renderEntityInWorld(Entity entity, double x, double y, double z, float partialTicks, float scale, float rotationYaw, float rotationPitch) {
+    public static void renderEntityInWorld(Entity entity, double x, double y, double z, float rotationYaw, float rotationPitch) {
         if (entity == null) return;
 
-        Minecraft mc = Minecraft.getMinecraft();
         RenderManager rm = RenderManager.instance;
 
-        entity.setWorld(mc.theWorld);
+        // Set entity position for this render (important for correct AABB/location)
+        entity.setPosition(x, y, z);
 
-        // Setup minimal entity state
-        entity.ticksExisted = 1;
-        entity.prevPosX = entity.posX = 0;
-        entity.prevPosY = entity.posY = 0;
-        entity.prevPosZ = entity.posZ = 0;
-        entity.prevRotationYaw = entity.rotationYaw = rotationYaw;
-        entity.prevRotationPitch = entity.rotationPitch = rotationPitch;
-
-        // Set lighting
-        int i = entity.getBrightnessForRender(partialTicks);
-        OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, i % 65536, i / 65536);
-        GL11.glColor4f(1F, 1F, 1F, 1F);
-
-        // Render relative to camera position
         GL11.glPushMatrix();
-        GL11.glTranslated(
-            x - rm.renderPosX + 0.5,
-            y - rm.renderPosY,
-            z - rm.renderPosZ + 0.5
+        GL11.glTranslated(x - rm.renderPosX, y - rm.renderPosY, z - rm.renderPosZ);
+        rm.renderEntityWithPosYaw(entity, 0.0D, 0.0D, 0.0D, rotationYaw, rotationPitch);
+        GL11.glPopMatrix();
+    }
+
+
+    public static void renderEntityAABBInWorld(Entity entity, double x, double y, double z, double red, double green, double blue) {
+        if (entity == null) return;
+
+        AxisAlignedBB aabb = entity.boundingBox;
+
+        RenderManager rm = RenderManager.instance;
+        GL11.glPushMatrix();
+        GL11.glTranslated(x - rm.renderPosX, y - rm.renderPosY, z - rm.renderPosZ);
+
+        // Draw bounding box relative to the position
+        renderRegion(
+            aabb.minX - x, aabb.minY - y, aabb.minZ - z,
+            aabb.maxX - x, aabb.maxY - y, aabb.maxZ - z,
+            red, green, blue
         );
 
-        // Optional transforms (spin, scale, tilt)
-        GL11.glTranslatef(0.0F, 0.4F, 0.0F); // if you still want it lifted slightly
-        GL11.glScalef(scale, scale, scale);
-
-        rm.renderEntityWithPosYaw(entity, 0.0D, 0.0D, 0.0D, rotationYaw, 0);
         GL11.glPopMatrix();
     }
 
@@ -192,64 +183,6 @@ public abstract class RenderUtils {
     }
 
 
-
-    private static void drawBlock(final Block block, final int meta, final double x, final double y,
-                                  final double z) {
-        final Tessellator tes = Tessellator.instance;
-        IIcon texture;
-        double minU;
-        double maxU;
-        double minV;
-        double maxV;
-
-        for (int side = 0; side < 6; side++) {
-            texture = block.getIcon(side, meta);
-            minU = texture.getMinU();
-            maxU = texture.getMaxU();
-            minV = texture.getMinV();
-            maxV = texture.getMaxV();
-
-            switch (side) {
-                case 0 -> { // Bottom
-                    tes.addVertexWithUV(x + BLOCK_X[5], y + BLOCK_Y[5], z + BLOCK_Z[5], maxU, minV);
-                    tes.addVertexWithUV(x + BLOCK_X[2], y + BLOCK_Y[2], z + BLOCK_Z[2], maxU, maxV);
-                    tes.addVertexWithUV(x + BLOCK_X[1], y + BLOCK_Y[1], z + BLOCK_Z[1], minU, maxV);
-                    tes.addVertexWithUV(x + BLOCK_X[6], y + BLOCK_Y[6], z + BLOCK_Z[6], minU, minV);
-                }
-                case 1 -> { // Top
-                    tes.addVertexWithUV(x + BLOCK_X[3], y + BLOCK_Y[3], z + BLOCK_Z[3], maxU, maxV);
-                    tes.addVertexWithUV(x + BLOCK_X[4], y + BLOCK_Y[4], z + BLOCK_Z[4], maxU, minV);
-                    tes.addVertexWithUV(x + BLOCK_X[7], y + BLOCK_Y[7], z + BLOCK_Z[7], minU, minV);
-                    tes.addVertexWithUV(x + BLOCK_X[0], y + BLOCK_Y[0], z + BLOCK_Z[0], minU, maxV);
-                }
-                case 2 -> { // North
-                    tes.addVertexWithUV(x + BLOCK_X[6], y + BLOCK_Y[6], z + BLOCK_Z[6], maxU, maxV);
-                    tes.addVertexWithUV(x + BLOCK_X[7], y + BLOCK_Y[7], z + BLOCK_Z[7], maxU, minV);
-                    tes.addVertexWithUV(x + BLOCK_X[4], y + BLOCK_Y[4], z + BLOCK_Z[4], minU, minV);
-                    tes.addVertexWithUV(x + BLOCK_X[5], y + BLOCK_Y[5], z + BLOCK_Z[5], minU, maxV);
-                }
-                case 3 -> { // South
-                    tes.addVertexWithUV(x + BLOCK_X[2], y + BLOCK_Y[2], z + BLOCK_Z[2], maxU, maxV);
-                    tes.addVertexWithUV(x + BLOCK_X[3], y + BLOCK_Y[3], z + BLOCK_Z[3], maxU, minV);
-                    tes.addVertexWithUV(x + BLOCK_X[0], y + BLOCK_Y[0], z + BLOCK_Z[0], minU, minV);
-                    tes.addVertexWithUV(x + BLOCK_X[1], y + BLOCK_Y[1], z + BLOCK_Z[1], minU, maxV);
-                }
-                case 4 -> { // West
-                    tes.addVertexWithUV(x + BLOCK_X[1], y + BLOCK_Y[1], z + BLOCK_Z[1], maxU, maxV);
-                    tes.addVertexWithUV(x + BLOCK_X[0], y + BLOCK_Y[0], z + BLOCK_Z[0], maxU, minV);
-                    tes.addVertexWithUV(x + BLOCK_X[7], y + BLOCK_Y[7], z + BLOCK_Z[7], minU, minV);
-                    tes.addVertexWithUV(x + BLOCK_X[6], y + BLOCK_Y[6], z + BLOCK_Z[6], minU, maxV);
-                }
-                case 5 -> { // East
-                    tes.addVertexWithUV(x + BLOCK_X[5], y + BLOCK_Y[5], z + BLOCK_Z[5], maxU, maxV);
-                    tes.addVertexWithUV(x + BLOCK_X[4], y + BLOCK_Y[4], z + BLOCK_Z[4], maxU, minV);
-                    tes.addVertexWithUV(x + BLOCK_X[3], y + BLOCK_Y[3], z + BLOCK_Z[3], minU, minV);
-                    tes.addVertexWithUV(x + BLOCK_X[2], y + BLOCK_Y[2], z + BLOCK_Z[2], minU, maxV);
-                }
-            }
-        }
-    }
-
     public static float getRenderAlpha(GenericQueueElement element) {
         final long fullDuration = SECONDS_RENDERING_DURATION * 1000L;
         final long halfDuration = fullDuration / 2L;
@@ -284,6 +217,5 @@ public abstract class RenderUtils {
         GL11.glPopMatrix();
         GL11.glPopAttrib(); // Restore everything
     }
-
 
 }

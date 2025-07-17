@@ -50,7 +50,7 @@ public class EntityDeathQueueElement extends GenericQueueElement {
 
         return new ChatComponentTranslation(
             "message.entity_death",
-            nameOfDeadMob,
+            new ChatComponentTranslation("entity." + nameOfDeadMob + ".name"),
             uuidChatComponent,
             killedBy,
             coords,
