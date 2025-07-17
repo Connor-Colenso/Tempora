@@ -5,9 +5,12 @@ import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.rendering.FakeWorld.FakeWorld;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.RenderBlocks;
 import net.minecraft.client.renderer.RenderGlobal;
 import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.entity.RenderManager;
+import net.minecraft.entity.Entity;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
@@ -29,6 +32,44 @@ public abstract class RenderUtils {
     static final double[] BLOCK_X = { -0.5, -0.5, +0.5, +0.5, +0.5, +0.5, -0.5, -0.5 };
     static final double[] BLOCK_Y = { +0.5, -0.5, -0.5, +0.5, +0.5, -0.5, -0.5, +0.5 };
     static final double[] BLOCK_Z = { +0.5, +0.5, +0.5, +0.5, -0.5, -0.5, -0.5, -0.5 };
+
+    public static void renderEntityInWorld(Entity entity, double x, double y, double z, float partialTicks, float scale, float rotationYaw, float rotationPitch) {
+        if (entity == null) return;
+
+        Minecraft mc = Minecraft.getMinecraft();
+        RenderManager rm = RenderManager.instance;
+
+        entity.setWorld(mc.theWorld);
+
+        // Setup minimal entity state
+        entity.ticksExisted = 1;
+        entity.prevPosX = entity.posX = 0;
+        entity.prevPosY = entity.posY = 0;
+        entity.prevPosZ = entity.posZ = 0;
+        entity.prevRotationYaw = entity.rotationYaw = rotationYaw;
+        entity.prevRotationPitch = entity.rotationPitch = rotationPitch;
+
+        // Set lighting
+        int i = entity.getBrightnessForRender(partialTicks);
+        OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, i % 65536, i / 65536);
+        GL11.glColor4f(1F, 1F, 1F, 1F);
+
+        // Render relative to camera position
+        GL11.glPushMatrix();
+        GL11.glTranslated(
+            x - rm.renderPosX + 0.5,
+            y - rm.renderPosY,
+            z - rm.renderPosZ + 0.5
+        );
+
+        // Optional transforms (spin, scale, tilt)
+        GL11.glTranslatef(0.0F, 0.4F, 0.0F); // if you still want it lifted slightly
+        GL11.glScalef(scale, scale, scale);
+
+        rm.renderEntityWithPosYaw(entity, 0.0D, 0.0D, 0.0D, rotationYaw, 0);
+        GL11.glPopMatrix();
+    }
+
 
     public static void renderBlockInWorld(RenderWorldLastEvent e, double x, double y, double z, int blockID, int metadata, NBTTagCompound nbt, LoggerEnum loggerEnum) {
         Tessellator tes = Tessellator.instance;
@@ -96,8 +137,9 @@ public abstract class RenderUtils {
         GL11.glPopMatrix();
     }
 
-    public static List<GenericQueueElement> getSortedLatestEventsByDistance(Collection<GenericQueueElement> input, int playerDim, RenderWorldLastEvent e) {
+    public static List<GenericQueueElement> getSortedLatestEventsByDistance(Collection<GenericQueueElement> input, RenderWorldLastEvent e) {
         Minecraft mc = Minecraft.getMinecraft();
+        int playerDim = mc.thePlayer.dimension;
 
         Map<String, GenericQueueElement> latestEventsByPos = new HashMap<>();
 

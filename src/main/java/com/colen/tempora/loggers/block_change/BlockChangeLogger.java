@@ -48,10 +48,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
 
     @Override
     public void renderEventsInWorld(RenderWorldLastEvent e) {
-        Minecraft mc = Minecraft.getMinecraft();
-        int playerDim = mc.thePlayer.dimension;
-
-        List<GenericQueueElement> sortedList = RenderUtils.getSortedLatestEventsByDistance(eventsToRenderInWorld, playerDim, e);
+        List<GenericQueueElement> sortedList = RenderUtils.getSortedLatestEventsByDistance(eventsToRenderInWorld, e);
 
         for (GenericQueueElement element : sortedList) {
             if (element instanceof BlockChangeQueueElement bcqe) {
