@@ -5,6 +5,7 @@ import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.rendering.FakeWorld.FakeWorld;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.RenderBlocks;
 import net.minecraft.client.renderer.RenderGlobal;
 import net.minecraft.client.renderer.Tessellator;
@@ -31,13 +32,18 @@ public abstract class RenderUtils {
         if (entity == null) return;
 
         RenderManager rm = RenderManager.instance;
-
-        // Set entity position for this render (important for correct AABB/location)
         entity.setPosition(x, y, z);
 
         GL11.glPushMatrix();
+        GL11.glColor3d(1, 1, 1);
         GL11.glTranslated(x - rm.renderPosX, y - rm.renderPosY, z - rm.renderPosZ);
+
+        // === Force full-bright (lightmap to 240) ===
+        GL11.glDisable(GL11.GL_LIGHTING);
         rm.renderEntityWithPosYaw(entity, 0.0D, 0.0D, 0.0D, rotationYaw, rotationPitch);
+        GL11.glEnable(GL11.GL_LIGHTING);
+
+        // (Optional: Reset lightmap if needed for later rendering, not always necessary in MC rendering.)
         GL11.glPopMatrix();
     }
 
