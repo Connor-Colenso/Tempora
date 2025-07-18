@@ -28,7 +28,9 @@ public class BlockUtils {
 
         ItemStack stack = new ItemStack(item, 1, meta);
 
-        return new ChatComponentTranslation(stack.getDisplayName());
+        // Use getUnlocalizedName() instead of getDisplayName(), append ".name" for translation key
+        String key = stack.getUnlocalizedName() + ".name";
+        return new ChatComponentTranslation(key);
     }
 
     public static ItemStack getPickBlockSafe(Block block, World world, int x, int y, int z) {
