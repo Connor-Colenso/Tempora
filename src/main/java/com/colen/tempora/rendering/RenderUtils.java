@@ -151,58 +151,43 @@ public abstract class RenderUtils {
         GL11.glPopMatrix();
     }
 
-    public static List<GenericQueueElement> getSortedLatestEventsByDistance(Collection<GenericQueueElement> input, RenderWorldLastEvent e) {
+    public static List<GenericQueueElement> getSortedLatestEventsByDistance(
+        Collection<GenericQueueElement> input, RenderWorldLastEvent e) {
         Minecraft mc = Minecraft.getMinecraft();
         int playerDim = mc.thePlayer.dimension;
 
-        Map<String, GenericQueueElement> latestEventsByPos = new HashMap<>();
+        Map<String, GenericQueueElement> latestPerBlock = new HashMap<>();
 
         for (GenericQueueElement element : input) {
             if (element.dimensionId != playerDim) continue;
 
             String key = (int) element.x + "," + (int) element.y + "," + (int) element.z;
+            GenericQueueElement existing = latestPerBlock.get(key);
 
-            GenericQueueElement existing = latestEventsByPos.get(key);
             if (existing == null || element.timestamp > existing.timestamp) {
-                latestEventsByPos.put(key, element);
+                latestPerBlock.put(key, element);
             }
         }
 
-        return getSortedElementsByDistance(latestEventsByPos, e);
+        List<GenericQueueElement> sorted = new ArrayList<>(latestPerBlock.values());
+        sortByDistanceDescending(sorted, e);
+        return sorted;
     }
 
-    public static List<GenericQueueElement> getSortedElementsByDistance(
-        Map<String, GenericQueueElement> latestEventsByPos,
-        RenderWorldLastEvent e
-    ) {
+    public static void sortByDistanceDescending(List<GenericQueueElement> list, RenderWorldLastEvent e) {
         Minecraft mc = Minecraft.getMinecraft();
-
-        // Interpolated player position
         double px = mc.thePlayer.lastTickPosX + (mc.thePlayer.posX - mc.thePlayer.lastTickPosX) * e.partialTicks;
         double py = mc.thePlayer.lastTickPosY + (mc.thePlayer.posY - mc.thePlayer.lastTickPosY) * e.partialTicks;
         double pz = mc.thePlayer.lastTickPosZ + (mc.thePlayer.posZ - mc.thePlayer.lastTickPosZ) * e.partialTicks;
 
-        // Copy values to a list once (to avoid mutating map.values())
-        List<GenericQueueElement> sorted = new ArrayList<>(latestEventsByPos.values());
+        list.sort((a, b) -> Double.compare(squaredDistance(b, px, py, pz), squaredDistance(a, px, py, pz)));
+    }
 
-        // In-place sort, avoids stream/lambdas/GC overhead
-        sorted.sort(new Comparator<>() {
-            @Override
-            public int compare(GenericQueueElement a, GenericQueueElement b) {
-                double da = squareDist(a, px, py, pz);
-                double db = squareDist(b, px, py, pz);
-                return Double.compare(db, da); // reversed order
-            }
-
-            private double squareDist(GenericQueueElement e, double x, double y, double z) {
-                double dx = e.x - x;
-                double dy = e.y - y;
-                double dz = e.z - z;
-                return dx * dx + dy * dy + dz * dz;
-            }
-        });
-
-        return sorted;
+    private static double squaredDistance(GenericQueueElement e, double x, double y, double z) {
+        double dx = e.x - x;
+        double dy = e.y - y;
+        double dz = e.z - z;
+        return dx * dx + dy * dy + dz * dz;
     }
 
     public static void renderRegion(double startX, double startY, double startZ,

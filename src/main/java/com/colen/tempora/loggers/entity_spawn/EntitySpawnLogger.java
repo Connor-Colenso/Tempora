@@ -11,6 +11,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.colen.tempora.rendering.RenderUtils;
+import net.minecraft.client.Minecraft;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityList;
+import net.minecraft.entity.item.EntityItem;
+import net.minecraft.entity.item.EntityXPOrb;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
@@ -33,14 +39,28 @@ public class EntitySpawnLogger extends GenericPositionalLogger<EntitySpawnQueueE
 
     @Override
     public void renderEventsInWorld(RenderWorldLastEvent e) {
+        RenderUtils.sortByDistanceDescending(eventsToRenderInWorld, e);
 
+        for (GenericQueueElement element : eventsToRenderInWorld) {
+            if (element instanceof EntitySpawnQueueElement esqe) {
+                Entity entity = EntityList.createEntityByName(esqe.entityName, Minecraft.getMinecraft().theWorld);
+
+                // Render mob
+                RenderUtils.renderEntityInWorld(entity, esqe.x, esqe.y, esqe.z, esqe.rotationYaw, esqe.rotationPitch);
+
+                // Render bounding box (optional, matches location)
+                RenderUtils.renderEntityAABBInWorld(entity, esqe.x, esqe.y, esqe.z, 0, 0, 1.0);
+            }
+        }
     }
 
     @Override
     public List<ColumnDef> getCustomTableColumns() {
         return Arrays.asList(
             new ColumnDef("entityName", "TEXT", "NOT NULL DEFAULT " + MISSING_STRING_DATA),
-            new ColumnDef("entityUUID", "TEXT", "NOT NULL DEFAULT " + MISSING_STRING_DATA));
+            new ColumnDef("entityUUID", "TEXT", "NOT NULL DEFAULT " + MISSING_STRING_DATA),
+            new ColumnDef("rotationYaw", "REAL", "NOT NULL DEFAULT 0"),
+            new ColumnDef("rotationPitch", "REAL", "NOT NULL DEFAULT 0"));
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
@@ -49,6 +69,8 @@ public class EntitySpawnLogger extends GenericPositionalLogger<EntitySpawnQueueE
         if (isClientSide()) return;
         if (event.isCanceled()) return;
         if (event.entity instanceof EntityPlayerMP) return;
+        if (event.entity instanceof EntityItem) return;
+        if (event.entity instanceof EntityXPOrb) return;
 
         IEntityMixin entityMixin = (IEntityMixin) event.entity;
         if (entityMixin.getTempora$HasBeenLogged()) return;
@@ -67,6 +89,9 @@ public class EntitySpawnLogger extends GenericPositionalLogger<EntitySpawnQueueE
         queueElement.entityUUID = event.entity.getUniqueID()
             .toString();
 
+        queueElement.rotationYaw = event.entity.rotationYaw;
+        queueElement.rotationPitch = event.entity.rotationPitch;
+
         queueEvent(queueElement);
     }
 
@@ -79,6 +104,8 @@ public class EntitySpawnLogger extends GenericPositionalLogger<EntitySpawnQueueE
             EntitySpawnQueueElement queueElement = new EntitySpawnQueueElement();
             queueElement.entityName = resultSet.getString("entityName");
             queueElement.entityUUID = resultSet.getString("entityUUID");
+            queueElement.rotationYaw = resultSet.getFloat("rotationYaw");
+            queueElement.rotationPitch = resultSet.getFloat("rotationPitch");
             queueElement.x = resultSet.getDouble("x");
             queueElement.y = resultSet.getDouble("y");
             queueElement.z = resultSet.getDouble("z");
@@ -96,17 +123,19 @@ public class EntitySpawnLogger extends GenericPositionalLogger<EntitySpawnQueueE
         if (entitySpawnQueueElements == null || entitySpawnQueueElements.isEmpty()) return;
 
         final String sql = "INSERT INTO " + getSQLTableName()
-            + " (entityName, entityUUID, x, y, z, dimensionID, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?)";
+            + " (entityName, entityUUID, rotationYaw, rotationPitch, x, y, z, dimensionID, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (PreparedStatement pstmt = getDBConn().prepareStatement(sql)) {
             for (EntitySpawnQueueElement element : entitySpawnQueueElements) {
                 pstmt.setString(1, element.entityName);
                 pstmt.setString(2, element.entityUUID);
-                pstmt.setDouble(3, element.x);
-                pstmt.setDouble(4, element.y);
-                pstmt.setDouble(5, element.z);
-                pstmt.setInt(6, element.dimensionId);
-                pstmt.setTimestamp(7, new Timestamp(element.timestamp));
+                pstmt.setFloat(3, element.rotationYaw);
+                pstmt.setFloat(4, element.rotationPitch);
+                pstmt.setDouble(5, element.x);
+                pstmt.setDouble(6, element.y);
+                pstmt.setDouble(7, element.z);
+                pstmt.setInt(8, element.dimensionId);
+                pstmt.setTimestamp(9, new Timestamp(element.timestamp));
                 pstmt.addBatch();
             }
 
