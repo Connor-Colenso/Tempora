@@ -48,7 +48,7 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueE
                 Entity entity = EntityList.createEntityByName(bcqe.nameOfDeadMob, Minecraft.getMinecraft().theWorld);
 
                 // Render mob
-                RenderUtils.renderEntityInWorld(entity, bcqe.x, bcqe.y, bcqe.z, 0F, 0F);
+                RenderUtils.renderEntityInWorld(entity, bcqe.x, bcqe.y, bcqe.z, bcqe.rotationYaw, bcqe.rotationPitch);
 
                 // Render bounding box (optional, matches location)
                 RenderUtils.renderEntityAABBInWorld(entity, bcqe.x, bcqe.y, bcqe.z, 1.0, 0, 0);
@@ -73,6 +73,9 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueE
         queueElement.nameOfDeadMob = EntityList.getEntityString(event.entityLiving);
         queueElement.entityUUID = event.entityLiving.getUniqueID()
             .toString();
+
+        queueElement.rotationYaw = event.entityLiving.rotationYaw;
+        queueElement.rotationPitch = event.entityLiving.rotationPitch;
 
         // Get what killed it.
         Entity trueSource = event.source.getEntity();
@@ -113,6 +116,9 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueE
                 queueElement.killedBy = killedBy;
             }
 
+            queueElement.rotationYaw = resultSet.getFloat("rotationYaw");
+            queueElement.rotationPitch = resultSet.getFloat("rotationPitch");
+
             queueElement.timestamp = resultSet.getLong("timestamp");
 
             eventList.add(queueElement);
@@ -126,7 +132,10 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueE
         return Arrays.asList(
             new ColumnDef("entityName", "TEXT", "NOT NULL DEFAULT " + MISSING_STRING_DATA),
             new ColumnDef("entityUUID", "TEXT", "NOT NULL DEFAULT " + MISSING_STRING_DATA),
-            new ColumnDef("killedBy", "TEXT", "NOT NULL DEFAULT " + MISSING_STRING_DATA));
+            new ColumnDef("killedBy", "TEXT", "NOT NULL DEFAULT " + MISSING_STRING_DATA),
+            new ColumnDef("rotationYaw", "REAL", "NOT NULL DEFAULT 0"),
+            new ColumnDef("rotationPitch", "REAL", "NOT NULL DEFAULT 0")
+        );
     }
 
     @Override
@@ -134,18 +143,20 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueE
         if (queueElements == null || queueElements.isEmpty()) return;
 
         final String sql = "INSERT INTO " + getSQLTableName()
-            + " (entityName, entityUUID, killedBy, x, y, z, dimensionID, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+            + " (entityName, entityUUID, killedBy, rotationYaw, rotationPitch, x, y, z, dimensionID, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (PreparedStatement pstmt = getDBConn().prepareStatement(sql)) {
             for (EntityDeathQueueElement entity : queueElements) {
                 pstmt.setString(1, entity.nameOfDeadMob);
                 pstmt.setString(2, entity.entityUUID);
                 pstmt.setString(3, entity.killedBy);
-                pstmt.setDouble(4, entity.x);
-                pstmt.setDouble(5, entity.y);
-                pstmt.setDouble(6, entity.z);
-                pstmt.setInt(7, entity.dimensionId);
-                pstmt.setTimestamp(8, new Timestamp(entity.timestamp));
+                pstmt.setFloat(4, entity.rotationYaw);
+                pstmt.setFloat(5, entity.rotationPitch);
+                pstmt.setDouble(6, entity.x);
+                pstmt.setDouble(7, entity.y);
+                pstmt.setDouble(8, entity.z);
+                pstmt.setInt(9, entity.dimensionId);
+                pstmt.setTimestamp(10, new Timestamp(entity.timestamp));
                 pstmt.addBatch();
             }
 

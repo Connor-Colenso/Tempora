@@ -11,6 +11,7 @@ import net.minecraft.client.renderer.RenderGlobal;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
@@ -36,13 +37,27 @@ public abstract class RenderUtils {
         GL11.glColor3d(1, 1, 1);
         GL11.glTranslated(x - RenderManager.renderPosX, y - RenderManager.renderPosY, z - RenderManager.renderPosZ);
 
+        // Set all rotation and render-related fields, if present
+        entity.prevRotationYaw = entity.rotationYaw = rotationYaw;
+        entity.prevRotationPitch = entity.rotationPitch = rotationPitch;
+
+        // For living mobs, update their rotation head/yaw offsets
+        if (entity instanceof EntityLivingBase) {
+            EntityLivingBase living = (EntityLivingBase) entity;
+            living.renderYawOffset = living.prevRenderYawOffset = rotationYaw;
+            living.rotationYawHead = living.prevRotationYawHead = rotationYaw;
+        }
+
         float prevBrightnessX = OpenGlHelper.lastBrightnessX;
         float prevBrightnessY = OpenGlHelper.lastBrightnessY;
 
         // Force full-bright
         GL11.glDisable(GL11.GL_LIGHTING);
         OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240f, 240f);
-        rm.renderEntityWithPosYaw(entity, 0.0D, 0.0D, 0.0D, rotationYaw, rotationPitch);
+
+        // Use partialTicks = 1f to get the exact set rotation
+        rm.renderEntityWithPosYaw(entity, 0.0D, 0.0D, 0.0D, rotationYaw, 1.0F);
+
         OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, prevBrightnessX, prevBrightnessY);
         GL11.glEnable(GL11.GL_LIGHTING);
 

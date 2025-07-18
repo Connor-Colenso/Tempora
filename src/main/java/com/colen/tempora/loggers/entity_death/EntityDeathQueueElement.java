@@ -18,6 +18,8 @@ public class EntityDeathQueueElement extends GenericQueueElement {
     public String nameOfDeadMob;
     public String killedBy;
     public String entityUUID;
+    public float rotationYaw;
+    public float rotationPitch;
 
     @Override
     public void fromBytes(ByteBuf buf) {
@@ -25,6 +27,8 @@ public class EntityDeathQueueElement extends GenericQueueElement {
         nameOfDeadMob = ByteBufUtils.readUTF8String(buf);
         killedBy = ByteBufUtils.readUTF8String(buf);
         entityUUID = ByteBufUtils.readUTF8String(buf);
+        rotationYaw = buf.readFloat();
+        rotationPitch = buf.readFloat();
     }
 
     @Override
@@ -33,6 +37,8 @@ public class EntityDeathQueueElement extends GenericQueueElement {
         ByteBufUtils.writeUTF8String(buf, nameOfDeadMob);
         ByteBufUtils.writeUTF8String(buf, killedBy);
         ByteBufUtils.writeUTF8String(buf, entityUUID);
+        buf.writeFloat(rotationYaw);
+        buf.writeFloat(rotationPitch);
     }
 
     @Override
