@@ -17,6 +17,8 @@ public class EntitySpawnQueueElement extends GenericQueueElement {
 
     public String entityName;
     public String entityUUID;
+    public float rotationYaw;
+    public float rotationPitch;
 
     @Override
     public void fromBytes(ByteBuf buf) {
@@ -44,7 +46,9 @@ public class EntitySpawnQueueElement extends GenericQueueElement {
         IChatComponent timeAgo = TimeUtils.formatTime(timestamp, uuid);
         IChatComponent uuidChatComponent = entityUUIDChatComponent(entityUUID);
 
-        return new ChatComponentTranslation("message.entity_spawn", entityName, uuidChatComponent, coords, timeAgo);
+        return new ChatComponentTranslation("message.entity_spawn",
+            new ChatComponentTranslation("entity." + entityName + ".name"),
+            uuidChatComponent, coords, timeAgo);
     }
 
     @Override

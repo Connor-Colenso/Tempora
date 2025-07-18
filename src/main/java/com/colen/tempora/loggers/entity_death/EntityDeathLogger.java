@@ -12,12 +12,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import com.colen.tempora.loggers.block_change.BlockChangeQueueElement;
 import com.colen.tempora.rendering.RenderUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
-import net.minecraft.entity.monster.EntityZombie;
+import net.minecraft.entity.item.EntityItem;
+import net.minecraft.entity.item.EntityXPOrb;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
@@ -30,7 +30,6 @@ import com.colen.tempora.utils.PlayerUtils;
 
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import org.lwjgl.opengl.GL11;
 
 public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueElement> {
 
@@ -41,9 +40,9 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueE
 
     @Override
     public void renderEventsInWorld(RenderWorldLastEvent e) {
-        List<GenericQueueElement> sortedList = RenderUtils.getSortedLatestEventsByDistance(eventsToRenderInWorld, e);
+        RenderUtils.sortByDistanceDescending(eventsToRenderInWorld, e);
 
-        for (GenericQueueElement element : sortedList) {
+        for (GenericQueueElement element : eventsToRenderInWorld) {
             if (element instanceof EntityDeathQueueElement bcqe) {
                 Entity entity = EntityList.createEntityByName(bcqe.nameOfDeadMob, Minecraft.getMinecraft().theWorld);
 
@@ -61,6 +60,8 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueE
     public void onEntityDeath(LivingDeathEvent event) {
         if (isClientSide()) return;
         if (event.entityLiving instanceof EntityPlayerMP) return; // No players allowed here, this is for mobs only.
+        if (event.entity instanceof EntityItem) return;
+        if (event.entity instanceof EntityXPOrb) return;
         if (event.isCanceled()) return;
 
         EntityDeathQueueElement queueElement = new EntityDeathQueueElement();

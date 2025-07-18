@@ -20,6 +20,8 @@ public class EntityPositionQueueElement extends GenericQueueElement {
 
     public String entityName;
     public String entityUUID;
+    public float rotationYaw;
+    public float rotationPitch;
 
     @Override
     public void fromBytes(ByteBuf buf) {
@@ -55,7 +57,9 @@ public class EntityPositionQueueElement extends GenericQueueElement {
                 .setChatClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, entityUUID))
                 .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, clickToCopy)));
 
-        return new ChatComponentTranslation("message.entity_position", entityName, uuidChatComponent, coords, timeAgo);
+        return new ChatComponentTranslation("message.entity_position",
+            new ChatComponentTranslation("entity." + entityName + ".name"),
+            uuidChatComponent, coords, timeAgo);
     }
 
     @Override
