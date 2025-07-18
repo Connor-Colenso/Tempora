@@ -3,8 +3,10 @@ package com.colen.tempora.rendering;
 import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.rendering.FakeWorld.FakeWorld;
+import com.gtnewhorizons.modularui.api.GlStateManager;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.RenderBlocks;
 import net.minecraft.client.renderer.RenderGlobal;
@@ -208,6 +210,29 @@ public abstract class RenderUtils {
 
         GL11.glPopMatrix();
         GL11.glPopAttrib(); // Restore everything
+    }
+
+
+    public static void renderFloatingText(String text, double x, double y, double z, float partialTicks) {
+
+        RenderManager renderManager = RenderManager.instance;
+        FontRenderer fontrenderer = RenderManager.instance.getFontRenderer();
+
+        GlStateManager.pushMatrix();
+        GlStateManager.translate(x, y, z);
+        GlStateManager.rotate(-renderManager.playerViewY, 0.0F, 1.0F, 0.0F);
+        GlStateManager.rotate(renderManager.playerViewX, 1.0F, 0.0F, 0.0F);
+        GlStateManager.scale(-0.025F, -0.025F, 0.025F);
+        GlStateManager.disableLighting();
+        GlStateManager.disableDepth();
+        GlStateManager.enableBlend();
+
+        fontrenderer.drawString(text, -fontrenderer.getStringWidth(text) / 2, 0, 0xFFFFFF);
+
+        GlStateManager.enableDepth();
+        GlStateManager.enableLighting();
+        GlStateManager.disableBlend();
+        GlStateManager.popMatrix();
     }
 
 }

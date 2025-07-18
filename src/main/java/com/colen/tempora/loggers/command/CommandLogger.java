@@ -1,6 +1,7 @@
 package com.colen.tempora.loggers.command;
 
 import static com.colen.tempora.TemporaUtils.isClientSide;
+import static com.colen.tempora.rendering.RenderUtils.renderFloatingText;
 import static com.colen.tempora.utils.DatabaseUtils.MISSING_STRING_DATA;
 
 import java.sql.PreparedStatement;
@@ -11,7 +12,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.colen.tempora.loggers.entity_death.EntityDeathQueueElement;
+import com.colen.tempora.rendering.RenderUtils;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.command.ICommand;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityList;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.event.CommandEvent;
@@ -33,7 +40,20 @@ public class CommandLogger extends GenericPositionalLogger<CommandQueueElement> 
 
     @Override
     public void renderEventsInWorld(RenderWorldLastEvent e) {
+        RenderManager renderManager = RenderManager.instance;
+        RenderUtils.sortByDistanceDescending(eventsToRenderInWorld, e);
 
+        for (GenericQueueElement element : eventsToRenderInWorld) {
+            if (element instanceof CommandQueueElement cqe) {
+                double x = cqe.x - renderManager.viewerPosX;
+                double y = cqe.y - renderManager.viewerPosY + 1;
+                double z = cqe.z - renderManager.viewerPosZ;
+
+                String text = "/" + cqe.commandName + " " + cqe.arguments;
+
+                renderFloatingText(text, x, y, z, e.partialTicks);
+            }
+        }
     }
 
     @Override
