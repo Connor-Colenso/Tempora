@@ -17,6 +17,7 @@ import com.colen.tempora.utils.PlayerUtils;
 import com.colen.tempora.utils.TimeUtils;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import it.unimi.dsi.fastutil.Pair;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.command.ICommand;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -54,7 +55,10 @@ public class CommandLogger extends GenericPositionalLogger<CommandQueueElement> 
                 List<String> toRender = new ArrayList<>();
                 toRender.add(StatCollector.translateToLocalFormatted("event.command.executed", cqe.truePlayerName));
                 toRender.add("/" + cqe.commandName + " " + cqe.arguments);
-                toRender.add(TimeUtils.getRelativeTimeString(cqe.timestamp));
+
+                Pair<String, String> timePair = TimeUtils.getRelativeTimeKeyAndValue(cqe.timestamp);
+
+                toRender.add(StatCollector.translateToLocalFormatted(timePair.first(), timePair.second()));
 
                 renderFloatingText(toRender, x, y, z);
             }

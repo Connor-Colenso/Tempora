@@ -8,6 +8,8 @@ import java.util.Map;
 
 import javax.annotation.Nullable;
 
+import it.unimi.dsi.fastutil.Pair;
+import it.unimi.dsi.fastutil.objects.ObjectObjectImmutablePair;
 import net.minecraft.command.CommandException;
 import net.minecraft.event.HoverEvent;
 import net.minecraft.util.*;
@@ -59,7 +61,7 @@ public class TimeUtils {
         return zonedDateTime.format(formatter);
     }
 
-    public static String getRelativeTimeString(long pastTimestamp) {
+    public static Pair<String, String> getRelativeTimeKeyAndValue(long pastTimestamp) {
         Instant now = Instant.now();
         Instant past = Instant.ofEpochMilli(pastTimestamp);
         Duration duration = Duration.between(past, now);
@@ -93,12 +95,12 @@ public class TimeUtils {
             key = "time.ago.seconds";
             formattedValue = String.format("%.1f", seconds);
         }
-        // Example output: "3.2 days"
-        return formattedValue + " " + key.replace("time.ago.", "");
+
+        return new ObjectObjectImmutablePair<>(key, formattedValue);
     }
 
     public static IChatComponent getRelativeTimeFromUnix(long pastTimestamp, String timezoneId) {
-        String agoString = getRelativeTimeString(pastTimestamp);
+        Pair<String, String> timePair = getRelativeTimeKeyAndValue(pastTimestamp);
 
         // This code remains unchanged (except fallback if you want):
         Instant past = Instant.ofEpochMilli(pastTimestamp);
@@ -113,12 +115,15 @@ public class TimeUtils {
         String formattedTime = localDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z"));
 
         // Main display (replace with translation key if you want):
-        ChatComponentText text = new ChatComponentText(agoString);
+        ChatComponentTranslation text = new ChatComponentTranslation(timePair.first(), timePair.second());
+
+        ChatComponentTranslation hoverText = new ChatComponentTranslation(formattedTime);
+        hoverText.getChatStyle().setColor(EnumChatFormatting.GRAY);
 
         // Add hover
         text.setChatStyle(
             new ChatStyle().setChatHoverEvent(
-                new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText("§7" + formattedTime)))
+                new HoverEvent(HoverEvent.Action.SHOW_TEXT, hoverText))
         );
 
         return text;
