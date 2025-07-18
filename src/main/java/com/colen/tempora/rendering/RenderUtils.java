@@ -24,8 +24,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.colen.tempora.rendering.RenderRegionsInWorld.SECONDS_RENDERING_DURATION;
-
 public abstract class RenderUtils {
 
     public static void renderEntityInWorld(Entity entity, double x, double y, double z, float rotationYaw, float rotationPitch) {
@@ -36,14 +34,18 @@ public abstract class RenderUtils {
 
         GL11.glPushMatrix();
         GL11.glColor3d(1, 1, 1);
-        GL11.glTranslated(x - rm.renderPosX, y - rm.renderPosY, z - rm.renderPosZ);
+        GL11.glTranslated(x - RenderManager.renderPosX, y - RenderManager.renderPosY, z - RenderManager.renderPosZ);
 
-        // === Force full-bright (lightmap to 240) ===
+        float prevBrightnessX = OpenGlHelper.lastBrightnessX;
+        float prevBrightnessY = OpenGlHelper.lastBrightnessY;
+
+        // Force full-bright
         GL11.glDisable(GL11.GL_LIGHTING);
+        OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240f, 240f);
         rm.renderEntityWithPosYaw(entity, 0.0D, 0.0D, 0.0D, rotationYaw, rotationPitch);
+        OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, prevBrightnessX, prevBrightnessY);
         GL11.glEnable(GL11.GL_LIGHTING);
 
-        // (Optional: Reset lightmap if needed for later rendering, not always necessary in MC rendering.)
         GL11.glPopMatrix();
     }
 
@@ -186,22 +188,6 @@ public abstract class RenderUtils {
         });
 
         return sorted;
-    }
-
-
-    public static float getRenderAlpha(GenericQueueElement element) {
-        final long fullDuration = SECONDS_RENDERING_DURATION * 1000L;
-        final long halfDuration = fullDuration / 2L;
-        final long elapsed = System.currentTimeMillis() - element.eventRenderCreationTime;
-
-        if (elapsed <= halfDuration) {
-            return 0.5f;
-        }
-
-        final long fadeDuration = fullDuration - halfDuration; // second half is fade
-        float fadeProgress = (elapsed - halfDuration) / (float) fadeDuration;
-
-        return Math.max(0f, 0.5f * (1f - Math.min(fadeProgress, 1f)));
     }
 
     public static void renderRegion(double startX, double startY, double startZ,

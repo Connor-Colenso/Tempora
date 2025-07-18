@@ -1,7 +1,6 @@
 package com.colen.tempora.loggers.player_block_break;
 
 import static com.colen.tempora.TemporaUtils.isClientSide;
-import static com.colen.tempora.rendering.RenderUtils.getRenderAlpha;
 import static com.colen.tempora.utils.BlockUtils.getPickBlockSafe;
 import static com.colen.tempora.utils.DatabaseUtils.MISSING_STRING_DATA;
 import static com.colen.tempora.utils.nbt.NBTConverter.NO_NBT;
@@ -12,14 +11,11 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 import com.colen.tempora.utils.nbt.NBTConverter;
 import net.minecraft.block.Block;
-import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
