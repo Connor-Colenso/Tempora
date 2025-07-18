@@ -43,7 +43,6 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueE
     public void renderEventsInWorld(RenderWorldLastEvent e) {
         List<GenericQueueElement> sortedList = RenderUtils.getSortedLatestEventsByDistance(eventsToRenderInWorld, e);
 
-        GL11.glPushMatrix();
         for (GenericQueueElement element : sortedList) {
             if (element instanceof EntityDeathQueueElement bcqe) {
                 Entity entity = EntityList.createEntityByName(bcqe.nameOfDeadMob, Minecraft.getMinecraft().theWorld);
@@ -55,7 +54,6 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueE
                 RenderUtils.renderEntityAABBInWorld(entity, bcqe.x, bcqe.y, bcqe.z, 1.0, 0, 0);
             }
         }
-        GL11.glPopMatrix();
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
