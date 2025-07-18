@@ -12,14 +12,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import com.colen.tempora.loggers.entity_death.EntityDeathQueueElement;
 import com.colen.tempora.rendering.RenderUtils;
-import net.minecraft.client.Minecraft;
+import com.colen.tempora.utils.PlayerUtils;
+import com.colen.tempora.utils.TimeUtils;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.command.ICommand;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityList;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.util.StatCollector;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.event.CommandEvent;
 
@@ -49,9 +48,12 @@ public class CommandLogger extends GenericPositionalLogger<CommandQueueElement> 
                 double y = cqe.y - renderManager.viewerPosY + 1;
                 double z = cqe.z - renderManager.viewerPosZ;
 
-                String text = "/" + cqe.commandName + " " + cqe.arguments;
+                List<String> toRender = new ArrayList<>();
+                toRender.add(StatCollector.translateToLocalFormatted("event.command.executed", cqe.truePlayerName));
+                toRender.add("/" + cqe.commandName + " " + cqe.arguments);
+                toRender.add(TimeUtils.getRelativeTimeString(cqe.timestamp));
 
-                renderFloatingText(text, x, y, z, e.partialTicks);
+                renderFloatingText(toRender, x, y, z);
             }
         }
     }
@@ -83,6 +85,9 @@ public class CommandLogger extends GenericPositionalLogger<CommandQueueElement> 
             queueElement.playerUUID = resultSet.getString("playerUUID");
             queueElement.commandName = resultSet.getString("command");
             queueElement.arguments = resultSet.getString("arguments");
+
+            // Bit of a hack, but the client must have this info to render it properly.
+            queueElement.truePlayerName = PlayerUtils.UUIDToName(queueElement.playerUUID);
 
             eventList.add(queueElement);
         }

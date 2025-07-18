@@ -22,7 +22,6 @@ import org.lwjgl.opengl.GL11;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -213,8 +212,7 @@ public abstract class RenderUtils {
     }
 
 
-    public static void renderFloatingText(String text, double x, double y, double z, float partialTicks) {
-
+    public static void renderFloatingText(List<String> textLines, double x, double y, double z) {
         RenderManager renderManager = RenderManager.instance;
         FontRenderer fontrenderer = RenderManager.instance.getFontRenderer();
 
@@ -227,7 +225,20 @@ public abstract class RenderUtils {
         GlStateManager.disableDepth();
         GlStateManager.enableBlend();
 
-        fontrenderer.drawString(text, -fontrenderer.getStringWidth(text) / 2, 0, 0xFFFFFF);
+        int fontHeight = fontrenderer.FONT_HEIGHT;
+        // Start so that the overall text block is vertically centered
+        int totalHeight = textLines.size() * fontHeight;
+        int yOffset = -totalHeight / 2;
+
+        for (String line : textLines) {
+            fontrenderer.drawString(
+                line,
+                -fontrenderer.getStringWidth(line) / 2,
+                yOffset,
+                0xFFFFFF
+            );
+            yOffset += fontHeight;
+        }
 
         GlStateManager.enableDepth();
         GlStateManager.enableLighting();
