@@ -59,13 +59,11 @@ public class TimeUtils {
         return zonedDateTime.format(formatter);
     }
 
-    public static IChatComponent getRelativeTimeFromUnix(long pastTimestamp, String timezoneId) {
-        // Convert input to Instants
+    public static String getRelativeTimeString(long pastTimestamp) {
         Instant now = Instant.now();
         Instant past = Instant.ofEpochMilli(pastTimestamp);
         Duration duration = Duration.between(past, now);
 
-        // Calculate time units
         double seconds = duration.toMillis() / 1000.0;
         double minutes = seconds / 60.0;
         double hours = minutes / 60.0;
@@ -73,20 +71,8 @@ public class TimeUtils {
         double years = days / 365.0;
         double decades = years / 10.0;
 
-        // Format the exact time in the given timezone
-        ZoneId zoneId;
-        try {
-            zoneId = ZoneId.of(timezoneId);
-        } catch (DateTimeException e) {
-            zoneId = ZoneOffset.UTC; // fallback
-        }
-
-        ZonedDateTime localDateTime = ZonedDateTime.ofInstant(past, zoneId);
-        String formattedTime = localDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z"));
-
-        // Choose appropriate message key and formatted number
-        String key;
         String formattedValue;
+        String key;
 
         if (decades >= 1) {
             key = "time.ago.decades";
@@ -107,16 +93,35 @@ public class TimeUtils {
             key = "time.ago.seconds";
             formattedValue = String.format("%.1f", seconds);
         }
+        // Example output: "3.2 days"
+        return formattedValue + " " + key.replace("time.ago.", "");
+    }
 
-        // Create translated component
-        ChatComponentTranslation translated = new ChatComponentTranslation(key, formattedValue);
+    public static IChatComponent getRelativeTimeFromUnix(long pastTimestamp, String timezoneId) {
+        String agoString = getRelativeTimeString(pastTimestamp);
 
-        // Add hover text showing the exact timestamp
-        translated.setChatStyle(
+        // This code remains unchanged (except fallback if you want):
+        Instant past = Instant.ofEpochMilli(pastTimestamp);
+        ZoneId zoneId;
+        try {
+            zoneId = ZoneId.of(timezoneId);
+        } catch (DateTimeException e) {
+            zoneId = ZoneOffset.UTC;
+        }
+
+        ZonedDateTime localDateTime = ZonedDateTime.ofInstant(past, zoneId);
+        String formattedTime = localDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z"));
+
+        // Main display (replace with translation key if you want):
+        ChatComponentText text = new ChatComponentText(agoString);
+
+        // Add hover
+        text.setChatStyle(
             new ChatStyle().setChatHoverEvent(
-                new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText("§7" + formattedTime))));
+                new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText("§7" + formattedTime)))
+        );
 
-        return translated;
+        return text;
     }
 
     // --------------------------------------------------------------------

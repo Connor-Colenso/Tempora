@@ -12,6 +12,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.colen.tempora.rendering.RenderUtils;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
@@ -38,6 +40,7 @@ public class EntityPositionLogger extends GenericPositionalLogger<EntityPosition
     }
 
     @Override
+    @SideOnly(Side.CLIENT)
     public void renderEventsInWorld(RenderWorldLastEvent e) {
         RenderUtils.sortByDistanceDescending(eventsToRenderInWorld, e);
 

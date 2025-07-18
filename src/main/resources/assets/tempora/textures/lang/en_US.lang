@@ -64,3 +64,6 @@ message.queryevents.query_failed=Database query failed on %s: %s
 message.queryevents.no_results=No results found for %s.
 message.queryevents.showing_results=Showing latest %s results for %s:
 message.queryevents.too_many_pending=Warning, due to high volume, there are still %s events pending. Query results may be outdated.
+
+
+event.command.executed=%s executed

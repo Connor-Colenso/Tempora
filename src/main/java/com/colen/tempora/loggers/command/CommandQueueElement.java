@@ -16,6 +16,7 @@ public class CommandQueueElement extends GenericQueueElement {
     public String playerUUID;
     public String commandName;
     public String arguments;
+    public String truePlayerName;
 
     @Override
     public void fromBytes(ByteBuf buf) {
@@ -23,6 +24,7 @@ public class CommandQueueElement extends GenericQueueElement {
         playerUUID = ByteBufUtils.readUTF8String(buf);
         commandName = ByteBufUtils.readUTF8String(buf);
         arguments = ByteBufUtils.readUTF8String(buf);
+        truePlayerName = ByteBufUtils.readUTF8String(buf);
     }
 
     @Override
@@ -31,6 +33,7 @@ public class CommandQueueElement extends GenericQueueElement {
         ByteBufUtils.writeUTF8String(buf, playerUUID);
         ByteBufUtils.writeUTF8String(buf, commandName);
         ByteBufUtils.writeUTF8String(buf, arguments);
+        ByteBufUtils.writeUTF8String(buf, truePlayerName);
     }
 
     @Override
@@ -49,7 +52,7 @@ public class CommandQueueElement extends GenericQueueElement {
 
         return new ChatComponentTranslation(
             "message.command_issued",
-            PlayerUtils.UUIDToName(playerUUID),
+            truePlayerName,
             commandName,
             arguments,
             coords,
