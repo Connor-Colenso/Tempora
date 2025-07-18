@@ -71,9 +71,8 @@ public abstract class RenderUtils {
 
         AxisAlignedBB aabb = entity.boundingBox;
 
-        RenderManager rm = RenderManager.instance;
         GL11.glPushMatrix();
-        GL11.glTranslated(x - rm.renderPosX, y - rm.renderPosY, z - rm.renderPosZ);
+        GL11.glTranslated(x - RenderManager.renderPosX, y - RenderManager.renderPosY, z - RenderManager.renderPosZ);
 
         // Draw bounding box relative to the position
         renderRegion(
