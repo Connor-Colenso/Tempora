@@ -13,7 +13,7 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 
-import com.colen.tempora.loggers.block_change.IntRegion;
+import com.colen.tempora.loggers.block_change.BlockChangeRecordingRegion;
 import com.colen.tempora.loggers.block_change.RegionRegistry;
 import com.colen.tempora.loggers.generic.GenericQueueElement.CoordFormat;
 import com.colen.tempora.networking.PacketShowRegionInWorld;
@@ -57,7 +57,7 @@ public class ListRegionsCommand extends CommandBase {
 
         String playerName = player.getCommandSenderName();
 
-        List<IntRegion> regions = RegionRegistry.getAll();
+        List<BlockChangeRecordingRegion> regions = RegionRegistry.getAll();
 
         if (dimFilter != null) {
             regions.removeIf(r -> r.dim != dimFilter);
@@ -70,7 +70,7 @@ public class ListRegionsCommand extends CommandBase {
 
         /* ---- list every region ---- */
         int idx = 1;
-        for (IntRegion r : regions) {
+        for (BlockChangeRecordingRegion r : regions) {
 
             // Centre of the region for a sensible teleport target
             double cx = (r.minX + r.maxX) / 2.0;

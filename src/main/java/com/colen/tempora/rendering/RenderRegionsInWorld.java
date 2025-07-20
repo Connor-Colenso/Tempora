@@ -1,13 +1,11 @@
 package com.colen.tempora.rendering;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.RenderGlobal;
-import net.minecraft.util.AxisAlignedBB;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 
 import org.lwjgl.opengl.GL11;
 
-import com.colen.tempora.loggers.block_change.IntRegion;
+import com.colen.tempora.loggers.block_change.BlockChangeRecordingRegion;
 import com.colen.tempora.networking.PacketShowRegionInWorld;
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
@@ -28,7 +26,7 @@ public final class RenderRegionsInWorld {
         double pz = mc.thePlayer.lastTickPosZ + (mc.thePlayer.posZ - mc.thePlayer.lastTickPosZ) * e.partialTicks;
         int curDim = mc.thePlayer.dimension;
 
-        for (IntRegion r : PacketShowRegionInWorld.CLIENT_REGIONS) {
+        for (BlockChangeRecordingRegion r : PacketShowRegionInWorld.CLIENT_REGIONS) {
             if (r.dim != curDim) continue;
             GL11.glPushMatrix();
             GL11.glTranslated(-px, -py, -pz);
