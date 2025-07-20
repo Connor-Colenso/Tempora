@@ -14,6 +14,7 @@ import net.minecraft.client.renderer.RenderBlocks;
 import net.minecraft.client.renderer.RenderGlobal;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.entity.RenderManager;
+import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
@@ -21,6 +22,7 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL13;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -33,38 +35,45 @@ public abstract class RenderUtils {
     public static void renderEntityInWorld(Entity entity, double x, double y, double z, float rotationYaw, float rotationPitch) {
         if (entity == null) return;
 
+        float prevBrightnessX = OpenGlHelper.lastBrightnessX;
+        float prevBrightnessY = OpenGlHelper.lastBrightnessY;
+        int prevActiveTex = GL11.glGetInteger(GL13.GL_ACTIVE_TEXTURE);
+
+        GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
+        GL11.glPushMatrix();
+
+        GL11.glColor4f(1, 1, 1, 1);
+
         RenderManager rm = RenderManager.instance;
         entity.setPosition(x, y, z);
 
-        GL11.glPushMatrix();
-        GL11.glColor3d(1, 1, 1);
         GL11.glTranslated(x - RenderManager.renderPosX, y - RenderManager.renderPosY, z - RenderManager.renderPosZ);
 
-        // Set all rotation and render-related fields, if present
         entity.prevRotationYaw = entity.rotationYaw = rotationYaw;
         entity.prevRotationPitch = entity.rotationPitch = rotationPitch;
 
-        // For living mobs, update their rotation head/yaw offsets
         if (entity instanceof EntityLivingBase) {
-            EntityLivingBase living = (EntityLivingBase) entity;
+            EntityLivingBase living = (EntityLivingBase)entity;
             living.renderYawOffset = living.prevRenderYawOffset = rotationYaw;
             living.rotationYawHead = living.prevRotationYawHead = rotationYaw;
         }
 
-        float prevBrightnessX = OpenGlHelper.lastBrightnessX;
-        float prevBrightnessY = OpenGlHelper.lastBrightnessY;
+        // Usually, if you want fullbright for entities, uncomment these:
+        // GL11.glDisable(GL11.GL_LIGHTING);
+        // OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240f, 240f);
+        // Otherwise, let vanilla control lighting for entities!
 
-        // Force full-bright
-        GL11.glDisable(GL11.GL_LIGHTING);
-        OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240f, 240f);
-
-        // Use partialTicks = 1f to get the exact set rotation
         rm.renderEntityWithPosYaw(entity, 0.0D, 0.0D, 0.0D, rotationYaw, 1.0F);
 
+        // === Essential state reset: ===
+        GL11.glColor4f(1, 1, 1, 1);
+        GL13.glActiveTexture(GL13.GL_TEXTURE0);
+        Minecraft.getMinecraft().renderEngine.bindTexture(TextureMap.locationBlocksTexture);
         OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, prevBrightnessX, prevBrightnessY);
         GL11.glEnable(GL11.GL_LIGHTING);
 
         GL11.glPopMatrix();
+        GL11.glPopAttrib();
     }
 
 
@@ -88,62 +97,66 @@ public abstract class RenderUtils {
 
 
     public static void renderBlockInWorld(RenderWorldLastEvent e, double x, double y, double z, int blockID, int metadata, NBTTagCompound nbt, LoggerEnum loggerEnum) {
-        Tessellator tes = Tessellator.instance;
         Minecraft mc = Minecraft.getMinecraft();
+        Tessellator tes = Tessellator.instance;
 
-        // Interpolated player position for smooth rendering
+        // Save state
+        float prevBrightnessX = OpenGlHelper.lastBrightnessX;
+        float prevBrightnessY = OpenGlHelper.lastBrightnessY;
+        int prevActiveTex = GL11.glGetInteger(GL13.GL_ACTIVE_TEXTURE);
+
+        GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
+        GL11.glPushMatrix();
+
+        // Calculate interpolated player position for shifting origin
         double px = mc.thePlayer.lastTickPosX + (mc.thePlayer.posX - mc.thePlayer.lastTickPosX) * e.partialTicks;
         double py = mc.thePlayer.lastTickPosY + (mc.thePlayer.posY - mc.thePlayer.lastTickPosY) * e.partialTicks;
         double pz = mc.thePlayer.lastTickPosZ + (mc.thePlayer.posZ - mc.thePlayer.lastTickPosZ) * e.partialTicks;
 
-        GL11.glPushMatrix();
-        GL11.glTranslated(-px, -py, -pz); // World-relative render origin
+        GL11.glColor4f(1, 1, 1, 1);
+        mc.renderEngine.bindTexture(TextureMap.locationBlocksTexture);
+        GL11.glTranslated(-px, -py, -pz);
 
-        // Setup rendering environment
         RenderBlocks rb = new RenderBlocks();
         rb.useInventoryTint = false;
-
         Block block = Block.getBlockById(blockID);
-        TileEntity tileEntity = null;
 
+        TileEntity tileEntity = null;
         if (nbt != null) {
             tileEntity = TileEntity.createAndLoadEntity(nbt);
             tileEntity.blockMetadata = metadata;
             tileEntity.blockType = block;
             tileEntity.setWorldObj(mc.theWorld);
-            tileEntity.xCoord = 0;
-            tileEntity.yCoord = 0;
-            tileEntity.zCoord = 0;
+            tileEntity.xCoord = 0; tileEntity.yCoord = 0; tileEntity.zCoord = 0;
             tileEntity.validate();
         }
 
+        // Your FakeWorld logic here
         FakeWorld fakeWorld = new FakeWorld();
         fakeWorld.block = block;
         fakeWorld.tileEntity = tileEntity;
         fakeWorld.metadata = metadata;
-        fakeWorld.x = (int) x;
-        fakeWorld.y = (int) y;
-        fakeWorld.z = (int) z;
+        fakeWorld.x = (int) x; fakeWorld.y = (int) y; fakeWorld.z = (int) z;
         rb.blockAccess = fakeWorld;
 
-        boolean isAE2Cable = block instanceof BlockCableBus;
-        if (isAE2Cable) {
+        // AE2 CableBus hack if needed
+        if (block instanceof BlockCableBus) {
             BusRenderHelper.instances.get().setPass(0);
         }
 
-        // === Render block centered at (x, y, z) ===
+        // Begin transform
         GL11.glPushMatrix();
-
-        // Apply scaling and centering transform
-        double SCALE_FACTOR = 14.0 / 16.0;
         GL11.glTranslated(x + 0.5, y + 0.5, z + 0.5);
+        double SCALE_FACTOR = 14.0 / 16.0;
         GL11.glScaled(SCALE_FACTOR, SCALE_FACTOR, SCALE_FACTOR);
         GL11.glTranslated(-0.5, -0.5, -0.5);
 
+        // Block render
         tes.startDrawingQuads();
         rb.renderBlockByRenderType(block, 0, 0, 0);
         tes.draw();
 
+        // Optionally render logger regions
         if (System.currentTimeMillis() / 500 % 2 == 0) {
             if (loggerEnum == LoggerEnum.PlayerBlockBreakLogger) {
                 renderRegion(0, 0, 0, 1, 1, 1, 1, 0, 0);
@@ -153,11 +166,19 @@ public abstract class RenderUtils {
                 renderRegion(0, 0, 0, 1, 1, 1, 0, 0, 1);
             }
         }
+        GL11.glPopMatrix(); // end scale/align
 
-        GL11.glPopMatrix();
-        GL11.glPopMatrix();
+        GL11.glPopMatrix(); // end world-relative
+
+        // === Absolutely necessary for correct vanilla/forge rendering: ===
+        GL11.glColor4f(1, 1, 1, 1); // Always restore color
+        GL13.glActiveTexture(GL13.GL_TEXTURE0); // Set main texture unit (block textures)
+        mc.renderEngine.bindTexture(TextureMap.locationBlocksTexture); // Bind MC block atlas
+        OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, prevBrightnessX, prevBrightnessY); // Only if you changed lightmap coords above
+        GL11.glEnable(GL11.GL_LIGHTING); // Vanilla expects this on
+
+        GL11.glPopAttrib();
     }
-
     public static List<GenericQueueElement> getSortedLatestEventsByDistance(
         Collection<GenericQueueElement> input, RenderWorldLastEvent e) {
         Minecraft mc = Minecraft.getMinecraft();
