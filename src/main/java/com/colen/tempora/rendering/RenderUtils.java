@@ -1,5 +1,7 @@
 package com.colen.tempora.rendering;
 
+import appeng.block.networking.BlockCableBus;
+import appeng.client.render.BusRenderHelper;
 import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.rendering.FakeWorld.FakeWorld;
@@ -123,6 +125,11 @@ public abstract class RenderUtils {
         fakeWorld.y = (int) y;
         fakeWorld.z = (int) z;
         rb.blockAccess = fakeWorld;
+
+        boolean isAE2Cable = block instanceof BlockCableBus;
+        if (isAE2Cable) {
+            BusRenderHelper.instances.get().setPass(0);
+        }
 
         // === Render block centered at (x, y, z) ===
         GL11.glPushMatrix();
