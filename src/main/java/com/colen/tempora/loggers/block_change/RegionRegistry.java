@@ -10,10 +10,11 @@ import net.minecraft.world.WorldSavedData;
 
 public class RegionRegistry extends WorldSavedData {
 
+    // Avoid changing at all costs.
     private static final String KEY = "TemporaRegions_v1";
     private static RegionRegistry instance;
 
-    private final Map<Integer, List<IntRegion>> byDim = new HashMap<>();
+    private final Map<Integer, List<BlockChangeRecordingRegion>> byDim = new HashMap<>();
 
     public RegionRegistry() {
         super(KEY);
@@ -24,7 +25,7 @@ public class RegionRegistry extends WorldSavedData {
     }
 
     // static API
-    public static void add(IntRegion r) {
+    public static void add(BlockChangeRecordingRegion r) {
         get().addRegion(r);
     }
 
@@ -32,33 +33,33 @@ public class RegionRegistry extends WorldSavedData {
         return get().contains(dim, x, y, z);
     }
 
-    public static int removeRegionsContainingBlock(int dim, double x, double y, double z) {
+    public static int removeRegionsContainingCoordinate(int dim, double x, double y, double z) {
         return get().removeContaining(dim, x, y, z);
     }
 
-    public static List<IntRegion> getAll() {
+    public static List<BlockChangeRecordingRegion> getAll() {
         return get().allRegions();
     }
 
     // instance logic
-    private void addRegion(IntRegion r) {
+    private void addRegion(BlockChangeRecordingRegion r) {
         byDim.computeIfAbsent(r.dim, d -> new ArrayList<>())
             .add(r);
         markDirty();
     }
 
     private boolean contains(int dim, int x, int y, int z) {
-        List<IntRegion> list = byDim.get(dim);
+        List<BlockChangeRecordingRegion> list = byDim.get(dim);
         if (list == null) return false;
-        for (IntRegion r : list) if (r.contains(dim, x, y, z)) return true;
+        for (BlockChangeRecordingRegion r : list) if (r.contains(dim, x, y, z)) return true;
         return false;
     }
 
     private int removeContaining(int dim, double x, double y, double z) {
-        List<IntRegion> list = byDim.get(dim);
+        List<BlockChangeRecordingRegion> list = byDim.get(dim);
         if (list == null) return 0;
         int removed = 0;
-        for (Iterator<IntRegion> it = list.iterator(); it.hasNext();) {
+        for (Iterator<BlockChangeRecordingRegion> it = list.iterator(); it.hasNext();) {
             if (it.next()
                 .contains(dim, x, y, z)) {
                 it.remove();
@@ -69,8 +70,8 @@ public class RegionRegistry extends WorldSavedData {
         return removed;
     }
 
-    private List<IntRegion> allRegions() {
-        List<IntRegion> out = new ArrayList<>();
+    private List<BlockChangeRecordingRegion> allRegions() {
+        List<BlockChangeRecordingRegion> out = new ArrayList<>();
         List<Integer> dims = new ArrayList<>(byDim.keySet());
         Collections.sort(dims);
         for (Integer d : dims) out.addAll(byDim.get(d));
@@ -82,7 +83,7 @@ public class RegionRegistry extends WorldSavedData {
         byDim.clear();
         NBTTagList list = tag.getTagList("regions", 10);
         for (int i = 0; i < list.tagCount(); i++) {
-            IntRegion r = IntRegion.readNBT(list.getCompoundTagAt(i));
+            BlockChangeRecordingRegion r = BlockChangeRecordingRegion.readNBT(list.getCompoundTagAt(i));
             byDim.computeIfAbsent(r.dim, d -> new ArrayList<>())
                 .add(r);
         }
@@ -91,13 +92,14 @@ public class RegionRegistry extends WorldSavedData {
     @Override
     public void writeToNBT(NBTTagCompound tag) {
         NBTTagList list = new NBTTagList();
-        for (List<IntRegion> l : byDim.values()) for (IntRegion r : l) list.appendTag(r.writeNBT());
+        for (List<BlockChangeRecordingRegion> l : byDim.values()) for (BlockChangeRecordingRegion r : l) list.appendTag(r.writeNBT());
         tag.setTag("regions", list);
     }
 
-    // singleton access
+    // Singleton access
     private static RegionRegistry get() {
         if (instance == null) {
+            // Hard code to dim 0, so we can store all info in one dim, even know each has dim int data. This makes data retrieval much easier programmatically.
             World overworld = MinecraftServer.getServer()
                 .worldServerForDimension(0);
             instance = (RegionRegistry) overworld.perWorldStorage.loadData(RegionRegistry.class, KEY);

@@ -7,7 +7,7 @@ import java.util.List;
 import net.minecraft.entity.player.EntityPlayerMP;
 
 import com.colen.tempora.Tempora;
-import com.colen.tempora.loggers.block_change.IntRegion;
+import com.colen.tempora.loggers.block_change.BlockChangeRecordingRegion;
 
 import cpw.mods.fml.common.network.simpleimpl.*;
 import cpw.mods.fml.relauncher.Side;
@@ -18,27 +18,27 @@ import io.netty.buffer.ByteBuf;
 public final class PacketShowRegionInWorld {
 
     @SideOnly(Side.CLIENT)
-    public static final List<IntRegion> CLIENT_REGIONS = Collections.synchronizedList(new ArrayList<>());
+    public static final List<BlockChangeRecordingRegion> CLIENT_REGIONS = Collections.synchronizedList(new ArrayList<>());
 
     /** send to one player */
-    public static void send(EntityPlayerMP target, List<IntRegion> regions) {
+    public static void send(EntityPlayerMP target, List<BlockChangeRecordingRegion> regions) {
         Tempora.NETWORK.sendTo(new RegionMsg(regions), target);
     }
 
     public static final class RegionMsg implements IMessage {
 
-        private List<IntRegion> list = new ArrayList<>();
+        private List<BlockChangeRecordingRegion> list = new ArrayList<>();
 
         public RegionMsg() {}
 
-        public RegionMsg(List<IntRegion> list) {
+        public RegionMsg(List<BlockChangeRecordingRegion> list) {
             this.list = list;
         }
 
         @Override
         public void toBytes(ByteBuf buf) {
             buf.writeInt(list.size());
-            for (IntRegion r : list) {
+            for (BlockChangeRecordingRegion r : list) {
                 buf.writeInt(r.dim);
                 buf.writeInt(r.minX);
                 buf.writeInt(r.minY);
@@ -57,7 +57,7 @@ public final class PacketShowRegionInWorld {
                 int dim = buf.readInt();
                 int x1 = buf.readInt(), y1 = buf.readInt(), z1 = buf.readInt();
                 int x2 = buf.readInt(), y2 = buf.readInt(), z2 = buf.readInt();
-                list.add(new IntRegion(dim, x1, y1, z1, x2, y2, z2, System.currentTimeMillis()));
+                list.add(new BlockChangeRecordingRegion(dim, x1, y1, z1, x2, y2, z2, System.currentTimeMillis()));
             }
         }
 
