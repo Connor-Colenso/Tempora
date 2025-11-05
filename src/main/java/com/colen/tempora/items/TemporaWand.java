@@ -52,7 +52,7 @@ public class TemporaWand extends Item {
         } else {
             for (GenericPositionalLogger<?> logger : GenericPositionalLogger.getLoggerList()) {
                 GenericPositionalLogger
-                    .queryEventsAtPosAndTime(player, x, y, z, Long.MAX_VALUE, logger.getSQLTableName());
+                    .queryEventsAtPosAndTime(player, x, y, z, -1, logger.getSQLTableName());
             }
         }
 
