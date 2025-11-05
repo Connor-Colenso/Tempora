@@ -360,6 +360,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
         return loggerNames;
     }
 
+    // -1 passed into seconds, equates to, find any event that occurred here, no matter how long ago.
     public static void queryEventsAtPosAndTime(ICommandSender sender, int centreX, int centreY, int centreZ,
         long seconds, String tableName) {
         if (!(sender instanceof EntityPlayerMP player)) return;
@@ -385,7 +386,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
                 try (PreparedStatement ps = logger.getReadOnlyConnection()
                     .prepareStatement(sql)) {
-                    /* 1‑3: centre coordinate, 4‑6: radius window */
+
                     ps.setInt(1, centreX);
                     ps.setInt(2, radius);
                     ps.setInt(3, centreY);
@@ -393,9 +394,15 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
                     ps.setInt(5, centreZ);
                     ps.setInt(6, radius);
 
-                    /* dimension / time / limit */
                     ps.setInt(7, dimensionId);
-                    ps.setTimestamp(8, new Timestamp(pastTime));
+
+                    if (seconds < 0) {
+                        // Don’t apply any timestamp filter, fetch everything.
+                        ps.setTimestamp(8, new Timestamp(0));
+                    } else {
+                        ps.setTimestamp(8, new Timestamp(System.currentTimeMillis() - seconds * 1000L));
+                    }
+
                     ps.setInt(9, MAX_DATA_ROWS_PER_DB);
 
                     try (ResultSet rs = ps.executeQuery()) {
