@@ -25,22 +25,11 @@ public class TemporaWand extends Item {
         this.setTextureName("tempora:tempora_wand");
     }
 
-    // @Override
-    // public ItemStack onItemRightClick(ItemStack itemStackIn, World world, EntityPlayer player) {
-    // if (!PlayerUtils.isPlayerOp(player)) {
-    // PlayerUtils.sendMessageToOps("player.tempora.wand.unauthorised", player.getDisplayName());
-    // } else {
-    // if (TemporaUtils.isServerSide()) {
-    // for (GenericPositionalLogger<?> logger : GenericPositionalLogger.getLoggerList()) {
-    // GenericPositionalLogger.queryEventsAtPosAndTime(player, radius, entityPlayerMP.posX, entityPlayerMP.posY,
-    // entityPlayerMP.posZ, seconds, tableName);
-    //
-    // }
-    // }
-    //
-    // }
-    // return super.onItemRightClick(itemStackIn, world, player);
-    // }
+//     @Override
+//     public ItemStack onItemRightClick(ItemStack itemStackIn, World world, EntityPlayer player) {
+//        System.out.println("Right click");
+//        return itemStackIn;
+//     }
 
     @Override
     public boolean onItemUse(ItemStack stack, EntityPlayer player, World world, int x, int y, int z, int side,
