@@ -17,7 +17,6 @@ public class NBTConverter {
     public static final String NO_NBT = "[NO NBT]";
     public static final String NBT_DISABLED = "[NBT PRESENT, LOGGING OFF]";
 
-
     // Encode NBTTagCompound to Base64 String
     public static String encodeToString(NBTTagCompound tagCompound) {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();

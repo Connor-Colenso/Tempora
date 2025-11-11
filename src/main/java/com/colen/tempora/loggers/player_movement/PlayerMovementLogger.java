@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.colen.tempora.utils.EventLoggingHelper;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -95,20 +96,20 @@ public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovement
     }
 
     @Override
-    public void threadedSaveEvents(List<PlayerMovementQueueElement> playerMovementQueueElements) throws SQLException {
-        if (playerMovementQueueElements == null || playerMovementQueueElements.isEmpty()) return;
+    public void threadedSaveEvents(List<PlayerMovementQueueElement> queueElements) throws SQLException {
+        if (queueElements == null || queueElements.isEmpty()) return;
 
         final String sql = "INSERT INTO " + getSQLTableName()
-            + " (playerUUID, x, y, z, dimensionID, timestamp) VALUES (?, ?, ?, ?, ?, ?)";
+            + " (playerUUID, eventID, x, y, z, dimensionID, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?)";
 
+        int index;
         try (PreparedStatement pstmt = getDBConn().prepareStatement(sql)) {
-            for (PlayerMovementQueueElement elem : playerMovementQueueElements) {
-                pstmt.setString(1, elem.playerUUID);
-                pstmt.setDouble(2, elem.x);
-                pstmt.setDouble(3, elem.y);
-                pstmt.setDouble(4, elem.z);
-                pstmt.setInt(5, elem.dimensionId);
-                pstmt.setTimestamp(6, new Timestamp(elem.timestamp));
+            for (PlayerMovementQueueElement queueElement : queueElements) {
+                index = 1;
+
+                pstmt.setString(index++, queueElement.playerUUID);
+                EventLoggingHelper.defaultColumnEntries(queueElement, pstmt, index);
+
                 pstmt.addBatch();
             }
 

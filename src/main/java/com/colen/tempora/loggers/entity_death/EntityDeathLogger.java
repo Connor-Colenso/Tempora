@@ -13,6 +13,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.colen.tempora.rendering.RenderUtils;
+import com.colen.tempora.utils.EventLoggingHelper;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.client.Minecraft;
@@ -147,20 +148,20 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueE
         if (queueElements == null || queueElements.isEmpty()) return;
 
         final String sql = "INSERT INTO " + getSQLTableName()
-            + " (entityName, entityUUID, killedBy, rotationYaw, rotationPitch, x, y, z, dimensionID, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            + " (entityName, entityUUID, killedBy, rotationYaw, rotationPitch, eventID, x, y, z, dimensionID, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
+        int index;
         try (PreparedStatement pstmt = getDBConn().prepareStatement(sql)) {
-            for (EntityDeathQueueElement entity : queueElements) {
-                pstmt.setString(1, entity.nameOfDeadMob);
-                pstmt.setString(2, entity.entityUUID);
-                pstmt.setString(3, entity.killedBy);
-                pstmt.setFloat(4, entity.rotationYaw);
-                pstmt.setFloat(5, entity.rotationPitch);
-                pstmt.setDouble(6, entity.x);
-                pstmt.setDouble(7, entity.y);
-                pstmt.setDouble(8, entity.z);
-                pstmt.setInt(9, entity.dimensionId);
-                pstmt.setTimestamp(10, new Timestamp(entity.timestamp));
+            for (EntityDeathQueueElement queueElement : queueElements) {
+                index = 1;
+
+                pstmt.setString(index++, queueElement.nameOfDeadMob);
+                pstmt.setString(index++, queueElement.entityUUID);
+                pstmt.setString(index++, queueElement.killedBy);
+                pstmt.setFloat(index++, queueElement.rotationYaw);
+                pstmt.setFloat(index++, queueElement.rotationPitch);
+
+                EventLoggingHelper.defaultColumnEntries(queueElement, pstmt, index);
                 pstmt.addBatch();
             }
 

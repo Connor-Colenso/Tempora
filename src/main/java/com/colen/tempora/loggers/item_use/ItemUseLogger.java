@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.colen.tempora.utils.EventLoggingHelper;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.entity.player.EntityPlayer;
@@ -77,22 +78,22 @@ public class ItemUseLogger extends GenericPositionalLogger<ItemUseQueueElement> 
     }
 
     @Override
-    public void threadedSaveEvents(List<ItemUseQueueElement> itemUseQueueElements) throws SQLException {
-        if (itemUseQueueElements == null || itemUseQueueElements.isEmpty()) return;
+    public void threadedSaveEvents(List<ItemUseQueueElement> queueElements) throws SQLException {
+        if (queueElements == null || queueElements.isEmpty()) return;
 
         final String sql = "INSERT INTO " + getSQLTableName()
-            + " (playerUUID, itemID, itemMetadata, x, y, z, dimensionID, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+            + " (playerUUID, itemID, itemMetadata, eventID, x, y, z, dimensionID, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
+        int index;
         try (PreparedStatement pstmt = getDBConn().prepareStatement(sql)) {
-            for (ItemUseQueueElement elem : itemUseQueueElements) {
-                pstmt.setString(1, elem.playerName);
-                pstmt.setInt(2, elem.itemID);
-                pstmt.setInt(3, elem.itemMetadata);
-                pstmt.setDouble(4, elem.x);
-                pstmt.setDouble(5, elem.y);
-                pstmt.setDouble(6, elem.z);
-                pstmt.setInt(7, elem.dimensionId);
-                pstmt.setTimestamp(8, new Timestamp(elem.timestamp));
+            for (ItemUseQueueElement queueElement : queueElements) {
+                index = 1;
+
+                pstmt.setString(index++, queueElement.playerName);
+                pstmt.setInt(index++, queueElement.itemID);
+                pstmt.setInt(index++, queueElement.itemMetadata);
+                EventLoggingHelper.defaultColumnEntries(queueElement, pstmt, index);
+
                 pstmt.addBatch();
             }
             pstmt.executeBatch();

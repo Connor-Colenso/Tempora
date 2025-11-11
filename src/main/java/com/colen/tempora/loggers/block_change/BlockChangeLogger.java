@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Objects;
 
 import com.colen.tempora.rendering.RenderUtils;
+import com.colen.tempora.utils.EventLoggingHelper;
 import com.colen.tempora.utils.nbt.NBTConverter;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -97,24 +98,24 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
         if (queueElements == null || queueElements.isEmpty()) return;
 
         final String sql = "INSERT INTO " + getSQLTableName()
-            + " (blockID, metadata, pickBlockID, pickBlockMeta, stackTrace, encodedNBT, x, y, z, dimensionID, timestamp, closestPlayerUUID, closestPlayerDistance) "
-            + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            + " (blockID, metadata, pickBlockID, pickBlockMeta, stackTrace, encodedNBT, closestPlayerUUID, closestPlayerDistance, eventID, x, y, z, dimensionID, timestamp) "
+            + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
+        int index;
         try (PreparedStatement pstmt = getDBConn().prepareStatement(sql)) {
             for (BlockChangeQueueElement queueElement : queueElements) {
-                pstmt.setInt(1, queueElement.blockID);
-                pstmt.setInt(2, queueElement.metadata);
-                pstmt.setInt(3, queueElement.pickBlockID);
-                pstmt.setInt(4, queueElement.pickBlockMeta);
-                pstmt.setString(5, queueElement.stackTrace);
-                pstmt.setString(6, queueElement.encodedNBT);
-                pstmt.setInt(7, (int) Math.round(queueElement.x));
-                pstmt.setInt(8, (int) Math.round(queueElement.y));
-                pstmt.setInt(9, (int) Math.round(queueElement.z));
-                pstmt.setInt(10, queueElement.dimensionId);
-                pstmt.setTimestamp(11, new Timestamp(queueElement.timestamp));
-                pstmt.setString(12, queueElement.closestPlayerUUID);
-                pstmt.setDouble(13, queueElement.closestPlayerDistance);
+                index = 1;
+
+                pstmt.setInt(index++, queueElement.blockID);
+                pstmt.setInt(index++, queueElement.metadata);
+                pstmt.setInt(index++, queueElement.pickBlockID);
+                pstmt.setInt(index++, queueElement.pickBlockMeta);
+                pstmt.setString(index++, queueElement.stackTrace);
+                pstmt.setString(index++, queueElement.encodedNBT);
+                pstmt.setString(index++, queueElement.closestPlayerUUID);
+                pstmt.setDouble(index++, queueElement.closestPlayerDistance);
+                EventLoggingHelper.defaultColumnEntries(queueElement, pstmt, index);
+
                 pstmt.addBatch();
             }
 

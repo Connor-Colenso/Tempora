@@ -12,6 +12,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import com.colen.tempora.utils.EventLoggingHelper;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.block.Block;
@@ -125,26 +126,26 @@ public class InventoryLogger extends GenericPositionalLogger<InventoryQueueEleme
     }
 
     @Override
-    public void threadedSaveEvents(List<InventoryQueueElement> elements) throws SQLException {
-        if (elements == null || elements.isEmpty()) return;
+    public void threadedSaveEvents(List<InventoryQueueElement> queueElements) throws SQLException {
+        if (queueElements == null || queueElements.isEmpty()) return;
 
         final String sql = "INSERT INTO " + getSQLTableName()
-            + " (x, y, z, dimensionID, timestamp, containerName, interactionType, itemId, itemMetadata, playerUUID, stacksize) "
-            + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            + " (containerName, interactionType, itemId, itemMetadata, playerUUID, stacksize, eventID, x, y, z, dimensionID, timestamp) "
+            + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
+        int index;
         try (PreparedStatement pstmt = getDBConn().prepareStatement(sql)) {
-            for (InventoryQueueElement element : elements) {
-                pstmt.setDouble(1, element.x);
-                pstmt.setDouble(2, element.y);
-                pstmt.setDouble(3, element.z);
-                pstmt.setInt(4, element.dimensionId);
-                pstmt.setTimestamp(5, new Timestamp(element.timestamp));
-                pstmt.setString(6, element.containerName);
-                pstmt.setInt(7, element.interactionType);
-                pstmt.setInt(8, element.itemId);
-                pstmt.setInt(9, element.itemMetadata);
-                pstmt.setString(10, element.playerUUID);
-                pstmt.setInt(11, element.stackSize);
+            for (InventoryQueueElement queueElement : queueElements) {
+                index = 1;
+
+                pstmt.setString(index++, queueElement.containerName);
+                pstmt.setInt(index++, queueElement.interactionType);
+                pstmt.setInt(index++, queueElement.itemId);
+                pstmt.setInt(index++, queueElement.itemMetadata);
+                pstmt.setString(index++, queueElement.playerUUID);
+                pstmt.setInt(index++, queueElement.stackSize);
+                EventLoggingHelper.defaultColumnEntries(queueElement, pstmt, index);
+
                 pstmt.addBatch();
             }
 

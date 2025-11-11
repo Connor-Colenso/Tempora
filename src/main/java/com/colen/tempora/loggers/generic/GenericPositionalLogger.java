@@ -113,6 +113,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
     // These should really, never be missing, so even though the defaults are a bit clunky, it's alright.
     public static List<ColumnDef> getDefaultColumns() {
         return Arrays.asList(
+            new ColumnDef("eventID", "TEXT", "PRIMARY KEY"),
             new ColumnDef("x", "INTEGER", "NOT NULL DEFAULT " + Integer.MIN_VALUE),
             new ColumnDef("y", "INTEGER", "NOT NULL DEFAULT " + Integer.MIN_VALUE),
             new ColumnDef("z", "INTEGER", "NOT NULL DEFAULT " + Integer.MIN_VALUE),
@@ -138,17 +139,18 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
         List<ColumnDef> columns = getAllTableColumns();
 
         // Step 1: CREATE TABLE IF NOT EXISTS
-        StringBuilder createSQL = new StringBuilder("CREATE TABLE IF NOT EXISTS ").append(tableName)
-            .append(" (id INTEGER PRIMARY KEY AUTOINCREMENT");
+        StringBuilder createSQL = new StringBuilder("CREATE TABLE IF NOT EXISTS ")
+            .append(tableName)
+            .append(" (");
 
-        for (ColumnDef col : columns) {
-            createSQL.append(", ")
-                .append(col.name)
+        for (int i = 0; i < columns.size(); i++) {
+            ColumnDef col = columns.get(i);
+            if (i > 0) createSQL.append(", ");
+            createSQL.append(col.name)
                 .append(" ")
                 .append(col.type);
             if (col.extraCondition != null && !col.extraCondition.isEmpty()) {
-                createSQL.append(" ")
-                    .append(col.extraCondition);
+                createSQL.append(" ").append(col.extraCondition);
             }
         }
 
