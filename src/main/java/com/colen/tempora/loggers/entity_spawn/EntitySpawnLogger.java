@@ -12,6 +12,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.colen.tempora.rendering.RenderUtils;
+import com.colen.tempora.utils.EventLoggingHelper;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.client.Minecraft;
@@ -122,23 +123,23 @@ public class EntitySpawnLogger extends GenericPositionalLogger<EntitySpawnQueueE
     }
 
     @Override
-    public void threadedSaveEvents(List<EntitySpawnQueueElement> entitySpawnQueueElements) throws SQLException {
-        if (entitySpawnQueueElements == null || entitySpawnQueueElements.isEmpty()) return;
+    public void threadedSaveEvents(List<EntitySpawnQueueElement> queueElements) throws SQLException {
+        if (queueElements == null || queueElements.isEmpty()) return;
 
         final String sql = "INSERT INTO " + getSQLTableName()
-            + " (entityName, entityUUID, rotationYaw, rotationPitch, x, y, z, dimensionID, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            + " (entityName, entityUUID, rotationYaw, rotationPitch, eventID, x, y, z, dimensionID, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
+        int index;
         try (PreparedStatement pstmt = getDBConn().prepareStatement(sql)) {
-            for (EntitySpawnQueueElement element : entitySpawnQueueElements) {
-                pstmt.setString(1, element.entityName);
-                pstmt.setString(2, element.entityUUID);
-                pstmt.setFloat(3, element.rotationYaw);
-                pstmt.setFloat(4, element.rotationPitch);
-                pstmt.setDouble(5, element.x);
-                pstmt.setDouble(6, element.y);
-                pstmt.setDouble(7, element.z);
-                pstmt.setInt(8, element.dimensionId);
-                pstmt.setTimestamp(9, new Timestamp(element.timestamp));
+            for (EntitySpawnQueueElement queueElement : queueElements) {
+                index = 1;
+
+                pstmt.setString(index++, queueElement.entityName);
+                pstmt.setString(index++, queueElement.entityUUID);
+                pstmt.setFloat(index++, queueElement.rotationYaw);
+                pstmt.setFloat(index++, queueElement.rotationPitch);
+
+                EventLoggingHelper.defaultColumnEntries(queueElement, pstmt, index);
                 pstmt.addBatch();
             }
 

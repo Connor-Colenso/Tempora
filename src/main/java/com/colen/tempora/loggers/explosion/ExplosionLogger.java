@@ -6,11 +6,11 @@ import static com.colen.tempora.utils.DatabaseUtils.MISSING_STRING_DATA;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.colen.tempora.utils.EventLoggingHelper;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.entity.Entity;
@@ -90,24 +90,24 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionQueueEleme
     }
 
     @Override
-    public void threadedSaveEvents(List<ExplosionQueueElement> explosionQueueElements) throws SQLException {
-        if (explosionQueueElements == null || explosionQueueElements.isEmpty()) return;
+    public void threadedSaveEvents(List<ExplosionQueueElement> queueElements) throws SQLException {
+        if (queueElements == null || queueElements.isEmpty()) return;
 
         final String sql = "INSERT INTO " + getSQLTableName()
-            + " (x, y, z, strength, exploderUUID, dimensionID, closestPlayerUUID, closestPlayerDistance, timestamp) "
-            + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            + " (strength, exploderUUID, closestPlayerUUID, closestPlayerDistance, eventID, x, y, z, dimensionID, timestamp) "
+            + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
+        int index;
         try (PreparedStatement pstmt = getDBConn().prepareStatement(sql)) {
-            for (ExplosionQueueElement explosion : explosionQueueElements) {
-                pstmt.setDouble(1, explosion.x);
-                pstmt.setDouble(2, explosion.y);
-                pstmt.setDouble(3, explosion.z);
-                pstmt.setFloat(4, explosion.strength);
-                pstmt.setString(5, explosion.exploderUUID);
-                pstmt.setInt(6, explosion.dimensionId);
-                pstmt.setString(7, explosion.closestPlayerUUID);
-                pstmt.setDouble(8, explosion.closestPlayerDistance);
-                pstmt.setTimestamp(9, new Timestamp(explosion.timestamp));
+            for (ExplosionQueueElement queueElement : queueElements) {
+                index = 1;
+
+                pstmt.setFloat(index++, queueElement.strength);
+                pstmt.setString(index++, queueElement.exploderUUID);
+                pstmt.setString(index++, queueElement.closestPlayerUUID);
+                pstmt.setDouble(index++, queueElement.closestPlayerDistance);
+                EventLoggingHelper.defaultColumnEntries(queueElement, pstmt, index);
+
                 pstmt.addBatch();
             }
 

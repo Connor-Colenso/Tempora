@@ -3,17 +3,18 @@ package com.colen.tempora.loggers.player_block_break;
 import static com.colen.tempora.TemporaUtils.isClientSide;
 import static com.colen.tempora.utils.BlockUtils.getPickBlockSafe;
 import static com.colen.tempora.utils.DatabaseUtils.MISSING_STRING_DATA;
+import static com.colen.tempora.utils.nbt.NBTConverter.NBT_DISABLED;
 import static com.colen.tempora.utils.nbt.NBTConverter.NO_NBT;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
+import com.colen.tempora.utils.EventLoggingHelper;
 import com.colen.tempora.utils.nbt.NBTConverter;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -54,13 +55,17 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
         List<GenericQueueElement> sortedList = RenderUtils.getSortedLatestEventsByDistance(eventsToRenderInWorld, e);
 
         for (GenericQueueElement element : sortedList) {
-            if (element instanceof PlayerBlockBreakQueueElement pbbe) {
+            try {
+                if (element instanceof PlayerBlockBreakQueueElement pbbe) {
 
-                NBTTagCompound nbt = null;
-                if (!Objects.equals(pbbe.encodedNBT, NO_NBT)) {
-                    nbt = NBTConverter.decodeFromString(pbbe.encodedNBT);
+                    NBTTagCompound nbt = null;
+                    if (!Objects.equals(pbbe.encodedNBT, NO_NBT) && !Objects.equals(pbbe.encodedNBT, NBT_DISABLED)) {
+                        nbt = NBTConverter.decodeFromString(pbbe.encodedNBT);
+                    }
+
+                    RenderUtils.renderBlockInWorld(e, element.x, element.y, element.z, pbbe.blockID, pbbe.metadata, nbt, getLoggerType());
                 }
-
+            } catch (Exception e1) {
                 RenderUtils.renderBlockInWorld(e, element.x, element.y, element.z, pbbe.blockID, pbbe.metadata, nbt, getLoggerType());
             }
         }
@@ -119,25 +124,25 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
     }
 
     @Override
-    public void threadedSaveEvents(List<PlayerBlockBreakQueueElement> elements) throws SQLException {
-        if (elements == null || elements.isEmpty()) return;
+    public void threadedSaveEvents(List<PlayerBlockBreakQueueElement> queueElements) throws SQLException {
+        if (queueElements == null || queueElements.isEmpty()) return;
 
         final String sql = "INSERT INTO " + getSQLTableName()
-            + " (playerUUID, blockId, metadata, pickBlockID, pickBlockMeta, encodedNBT, x, y, z, dimensionID, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            + " (playerUUID, blockId, metadata, pickBlockID, pickBlockMeta, encodedNBT, eventID, x, y, z, dimensionID, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
+        int index;
         try (PreparedStatement pstmt = getDBConn().prepareStatement(sql)) {
-            for (PlayerBlockBreakQueueElement elem : elements) {
-                pstmt.setString(1, elem.playerUUIDWhoBrokeBlock);
-                pstmt.setInt(2, elem.blockID);
-                pstmt.setInt(3, elem.metadata);
-                pstmt.setInt(4, elem.pickBlockID);
-                pstmt.setInt(5, elem.pickBlockMeta);
-                pstmt.setString(6, elem.encodedNBT);
-                pstmt.setDouble(7, elem.x);
-                pstmt.setDouble(8, elem.y);
-                pstmt.setDouble(9, elem.z);
-                pstmt.setInt(10, elem.dimensionId);
-                pstmt.setTimestamp(11, new Timestamp(elem.timestamp));
+            for (PlayerBlockBreakQueueElement queueElement : queueElements) {
+                index = 1;
+
+                pstmt.setString(index++, queueElement.playerUUIDWhoBrokeBlock);
+                pstmt.setInt(index++, queueElement.blockID);
+                pstmt.setInt(index++, queueElement.metadata);
+                pstmt.setInt(index++, queueElement.pickBlockID);
+                pstmt.setInt(index++, queueElement.pickBlockMeta);
+                pstmt.setString(index++, queueElement.encodedNBT);
+                EventLoggingHelper.defaultColumnEntries(queueElement, pstmt, index);
+
                 pstmt.addBatch();
             }
 

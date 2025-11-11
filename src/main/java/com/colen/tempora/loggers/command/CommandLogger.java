@@ -7,12 +7,12 @@ import static com.colen.tempora.utils.DatabaseUtils.MISSING_STRING_DATA;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import com.colen.tempora.rendering.RenderUtils;
+import com.colen.tempora.utils.EventLoggingHelper;
 import com.colen.tempora.utils.PlayerUtils;
 import com.colen.tempora.utils.TimeUtils;
 import cpw.mods.fml.relauncher.Side;
@@ -107,19 +107,19 @@ public class CommandLogger extends GenericPositionalLogger<CommandQueueElement> 
         if (commandQueueElements == null || commandQueueElements.isEmpty()) return;
 
         final String sql = "INSERT INTO " + getSQLTableName()
-            + " (playerUUID, command, arguments, x, y, z, dimensionID, timestamp) "
-            + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+            + " (playerUUID, command, arguments, eventID, x, y, z, dimensionID, timestamp) "
+            + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
+        int index;
         try (PreparedStatement pstmt = getDBConn().prepareStatement(sql)) {
             for (CommandQueueElement commandQueueElement : commandQueueElements) {
-                pstmt.setString(1, commandQueueElement.playerUUID);
-                pstmt.setString(2, commandQueueElement.commandName);
-                pstmt.setString(3, commandQueueElement.arguments);
-                pstmt.setDouble(4, commandQueueElement.x);
-                pstmt.setDouble(5, commandQueueElement.y);
-                pstmt.setDouble(6, commandQueueElement.z);
-                pstmt.setInt(7, commandQueueElement.dimensionId);
-                pstmt.setTimestamp(8, new Timestamp(commandQueueElement.timestamp));
+                index = 1;
+
+                pstmt.setString(index++, commandQueueElement.playerUUID);
+                pstmt.setString(index++, commandQueueElement.commandName);
+                pstmt.setString(index++, commandQueueElement.arguments);
+
+                EventLoggingHelper.defaultColumnEntries(commandQueueElement, pstmt, index);
                 pstmt.addBatch();
             }
 
