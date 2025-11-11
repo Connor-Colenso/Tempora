@@ -41,7 +41,7 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
 public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockBreakQueueElement> {
 
-    private boolean logNBT;
+    private static boolean logNBT;
 
     @Override
     public LoggerEnum getLoggerType() {
@@ -83,7 +83,7 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
     public void handleCustomLoggerConfig(Configuration config) {
         logNBT = config.getBoolean("logNBT", getSQLTableName(), true, """
             If true, it will log the NBT of all blocks changes which interact with this event. This improves rendering of events and gives a better history.
-            WARNING: NBT may be large and this could cause the database to grow much quicker.
+            WARNING: NBT may be large and this will cause the database to grow much quicker.
             """);
     }
 
@@ -162,13 +162,17 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
         queueElement.blockID = Block.getIdFromBlock(event.block);
         queueElement.metadata = event.blockMetadata;
 
-        if (logNBT) {
-            TileEntity tileEntity = event.world.getTileEntity(event.x, event.y, event.z);
-            if (tileEntity != null) {
+        TileEntity tileEntity = event.world.getTileEntity(event.x, event.y, event.z);
+        if (tileEntity != null) {
+            if (logNBT) {
                 NBTTagCompound tag = new NBTTagCompound();
                 tileEntity.writeToNBT(tag);
                 queueElement.encodedNBT = NBTConverter.encodeToString(tag);
+            } else {
+                queueElement.encodedNBT = NBTConverter.NBT_DISABLED;
             }
+        } else {
+            queueElement.encodedNBT = NO_NBT;
         }
 
         // Calculate pickBlockID and pickBlockMeta using getPickBlock
