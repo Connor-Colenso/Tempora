@@ -14,8 +14,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
+import com.colen.tempora.Tempora;
 import com.colen.tempora.utils.EventLoggingHelper;
 import com.colen.tempora.utils.nbt.NBTConverter;
+import cpw.mods.fml.common.FMLLog;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.block.Block;
@@ -65,8 +67,10 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
 
                     RenderUtils.renderBlockInWorld(e, element.x, element.y, element.z, pbbe.blockID, pbbe.metadata, nbt, getLoggerType());
                 }
-            } catch (Exception e1) {
-                RenderUtils.renderBlockInWorld(e, element.x, element.y, element.z, pbbe.blockID, pbbe.metadata, nbt, getLoggerType());
+            } catch (Exception ignored) {
+                // Render an error block here instead, if something went critically wrong.
+                FMLLog.warning("Tempora failed to render a block.");
+                RenderUtils.renderBlockInWorld(e, element.x, element.y, element.z, Block.getIdFromBlock(Tempora.renderingErrorBlock), 0, null, getLoggerType());
             }
         }
     }

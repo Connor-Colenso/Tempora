@@ -65,5 +65,7 @@ message.queryevents.no_results=No results found for %s.
 message.queryevents.showing_results=Showing latest %s results for %s:
 message.queryevents.too_many_pending=Warning, due to high volume, there are still %s events pending. Query results may be outdated.
 
-
 event.command.executed=%s executed
+
+tile.renderingErrorBlock.name=Tempora Rendering Error
+tooltip.temporasRenderingBlockError=If you are seeing this, something has likely gone wrong with Temporas event rendering. Please report it to Colen. Thanks!
