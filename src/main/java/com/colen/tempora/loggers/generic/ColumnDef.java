@@ -18,7 +18,5 @@ public class ColumnDef {
         if (!hasDefault && !isPrimary) {
             throw new IllegalArgumentException("A column def must have a default condition (except primary key).");
         }
-
-
     }
 }
