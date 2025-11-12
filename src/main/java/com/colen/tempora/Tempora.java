@@ -2,6 +2,11 @@ package com.colen.tempora;
 
 import static com.colen.tempora.config.Config.synchronizeConfiguration;
 
+import codechicken.nei.api.API;
+import com.colen.tempora.blocks.RenderingErrorBlock;
+import com.colen.tempora.blocks.RenderingErrorItemBlock;
+import net.minecraft.block.Block;
+import net.minecraft.item.ItemStack;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
 
@@ -84,10 +89,14 @@ public class Tempora {
     public static EntityDeathLogger entityDeathLogger;
     public static EntitySpawnLogger entitySpawnLogger;
 
+    public static Block renderingErrorBlock = new RenderingErrorBlock();
+
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {
         config = new Configuration(event.getSuggestedConfigurationFile());
         GameRegistry.registerItem(new TemporaWand(), "admin_wand");
+        GameRegistry.registerBlock(renderingErrorBlock, RenderingErrorItemBlock.class, "renderingErrorBlock");
+
         Tempora.LOG.info("I am " + Tempora.MODNAME + " at version " + Tags.VERSION);
     }
 
@@ -153,7 +162,9 @@ public class Tempora {
     }
 
     @Mod.EventHandler
-    public void postInit(FMLPostInitializationEvent event) {}
+    public void postInit(FMLPostInitializationEvent event) {
+        API.hideItem(new ItemStack(renderingErrorBlock));
+    }
 
     @Mod.EventHandler
     public void serverInit(FMLServerStartingEvent event) {
