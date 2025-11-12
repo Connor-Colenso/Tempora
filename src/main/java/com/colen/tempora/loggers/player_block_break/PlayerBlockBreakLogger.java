@@ -57,25 +57,49 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
         List<GenericQueueElement> sortedList = RenderUtils.getSortedLatestEventsByDistance(eventsToRenderInWorld, e);
 
         for (GenericQueueElement element : sortedList) {
-            try {
-                if (element instanceof PlayerBlockBreakQueueElement pbbe) {
-
+            if (element instanceof PlayerBlockBreakQueueElement pbbe) {
+                try {
                     NBTTagCompound nbt = null;
                     if (!Objects.equals(pbbe.encodedNBT, NO_NBT) && !Objects.equals(pbbe.encodedNBT, NBT_DISABLED)) {
                         nbt = NBTConverter.decodeFromString(pbbe.encodedNBT);
                     }
 
                     RenderUtils.renderBlockInWorld(e, element.x, element.y, element.z, pbbe.blockID, pbbe.metadata, nbt, getLoggerType());
+                } catch (Exception exception) {
+                    // Render an error block here instead, if something went critically wrong.
+                    FMLLog.warning(
+                        "[Tempora] Failed to render %s event (eventID=%s) at (%.1f, %.1f, %.1f) in dim %d. " +
+                            "BlockID=%d:%d PickBlock=%d:%d Player=%s NBT=%s Timestamp=%d | Exception: %s: %s",
+                        getLoggerType(),                        // LoggerEnum
+                        pbbe.eventID,                           // Unique ID
+                        pbbe.x, pbbe.y, pbbe.z,                 // Coordinates
+                        pbbe.dimensionId,                       // Dimension ID
+                        pbbe.blockID, pbbe.metadata,            // Block ID + metadata
+                        pbbe.pickBlockID, pbbe.pickBlockMeta,   // Pick block (if any)
+                        pbbe.playerUUIDWhoBrokeBlock,           // Player UUID
+                        (pbbe.encodedNBT != null && !pbbe.encodedNBT.isEmpty()
+                            ? pbbe.encodedNBT.substring(0, Math.min(pbbe.encodedNBT.length(), 64)) + "..."
+                            : "none"),                          // Safe truncated NBT preview
+                        pbbe.timestamp,                         // Timestamp
+                        exception.getClass().getSimpleName(),   // Exception type
+                        exception.getMessage()                  // Exception message
+                    );
+
+                    // Optionally print full stack trace to console for devs
+                    exception.printStackTrace();
+
+                    RenderUtils.renderBlockInWorld(
+                        e,
+                        pbbe.x, pbbe.y, pbbe.z,
+                        Block.getIdFromBlock(Tempora.renderingErrorBlock),
+                        0,
+                        null,
+                        getLoggerType()
+                    );
                 }
-            } catch (Exception ignored) {
-                // Render an error block here instead, if something went critically wrong.
-                FMLLog.warning("Tempora failed to render a block.");
-                RenderUtils.renderBlockInWorld(e, element.x, element.y, element.z, Block.getIdFromBlock(Tempora.renderingErrorBlock), 0, null, getLoggerType());
             }
         }
     }
-
-
 
     @Override
     public List<ColumnDef> getCustomTableColumns() {

@@ -131,7 +131,7 @@ public abstract class RenderUtils {
             tileEntity.validate();
         }
 
-        // Your FakeWorld logic here
+        // Fake world logic
         FakeWorld fakeWorld = new FakeWorld();
         fakeWorld.block = block;
         fakeWorld.tileEntity = tileEntity;
