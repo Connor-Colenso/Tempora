@@ -3,6 +3,7 @@ package com.colen.tempora.loggers.generic;
 import static com.colen.tempora.Tempora.NETWORK;
 
 import com.colen.tempora.enums.LoggerEnum;
+import cpw.mods.fml.common.FMLCommonHandler;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.event.ClickEvent;
 import net.minecraft.event.HoverEvent;
@@ -13,6 +14,9 @@ import net.minecraft.util.IChatComponent;
 import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import io.netty.buffer.ByteBuf;
 
+import java.nio.charset.StandardCharsets;
+import java.util.UUID;
+
 public abstract class GenericQueueElement implements IMessage {
 
     public double x;
@@ -20,6 +24,9 @@ public abstract class GenericQueueElement implements IMessage {
     public double z;
     public int dimensionId;
     public long timestamp;
+
+    // This initialised eventID will be overwritten on the client side, when it reads from the byte buffer in 'fromBytes'.
+    public String eventID = UUID.randomUUID().toString();
 
     // This field purely dictates when an event was made, so we know when to stop rendering it in world. It is only
     // relevant on the client.
@@ -38,6 +45,12 @@ public abstract class GenericQueueElement implements IMessage {
         z = buf.readDouble();
         dimensionId = buf.readInt();
         timestamp = buf.readLong();
+
+        // Read the string eventID
+        int strLen = buf.readInt(); // Length of the string.
+        byte[] strBytes = new byte[strLen];
+        buf.readBytes(strBytes);
+        eventID = new String(strBytes);
     }
 
     @Override
@@ -47,6 +60,11 @@ public abstract class GenericQueueElement implements IMessage {
         buf.writeDouble(z);
         buf.writeInt(dimensionId);
         buf.writeLong(timestamp);
+
+        // Write the string eventID
+        byte[] strBytes = eventID.getBytes();
+        buf.writeInt(strBytes.length);
+        buf.writeBytes(strBytes);
     }
 
     public abstract LoggerEnum getLoggerType();
