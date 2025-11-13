@@ -374,7 +374,6 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
     public static void queryEventByCoordinate(ICommandSender sender, int centreX, int centreY, int centreZ, int radius,
         long seconds, String tableName, int dimensionId) {
-        long pastTime = System.currentTimeMillis() - seconds * 1000L;
 
         synchronized (GenericPositionalLogger.class) {
             for (GenericPositionalLogger<?> logger : loggerList) {
@@ -461,6 +460,32 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
                 }
             }
         }
+    }
+
+    public EventToLog queryEventByEventID(String eventID) {
+
+        synchronized (GenericPositionalLogger.class) {
+
+            String sql = "SELECT * FROM " + getSQLTableName()
+                + " WHERE eventID == ?"
+                + " ORDER BY timestamp DESC LIMIT ?";
+
+            try (PreparedStatement ps = getReadOnlyConnection().prepareStatement(sql)) {
+
+                ps.setString(1, eventID);
+                ps.setInt(2, MAX_DATA_ROWS_PER_DB);
+
+                ResultSet rs = ps.executeQuery();
+
+                List<GenericQueueElement> packets = generateQueryResults(rs);
+
+                return (EventToLog) packets.get(0);
+            } catch (Exception e) {
+                // todo log
+            }
+        }
+
+        return null;
     }
 
     public static void onServerStart() {
