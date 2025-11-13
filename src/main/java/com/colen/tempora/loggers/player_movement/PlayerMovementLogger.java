@@ -9,6 +9,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
@@ -76,11 +77,7 @@ public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovement
         while (resultSet.next()) {
 
             PlayerMovementQueueElement queueElement = new PlayerMovementQueueElement();
-            queueElement.x = resultSet.getDouble("x");
-            queueElement.y = resultSet.getDouble("y");
-            queueElement.z = resultSet.getDouble("z");
-            queueElement.dimensionId = resultSet.getInt("dimensionID");
-            queueElement.timestamp = resultSet.getLong("timestamp");
+            queueElement.populateDefaultFieldsFromResultSet(resultSet);
 
             queueElement.playerUUID = PlayerUtils.UUIDToName(resultSet.getString("playerUUID"));
 
@@ -128,6 +125,7 @@ public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovement
             .getTickCounter() % playerMovementLoggingInterval != 0) return;
 
         PlayerMovementQueueElement queueElement = new PlayerMovementQueueElement();
+        queueElement.eventID = UUID.randomUUID().toString();
         queueElement.x = player.posX;
         queueElement.y = player.posY;
         queueElement.z = player.posZ;

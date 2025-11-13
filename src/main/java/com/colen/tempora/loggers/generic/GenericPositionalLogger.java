@@ -467,21 +467,20 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
         synchronized (GenericPositionalLogger.class) {
 
             String sql = "SELECT * FROM " + getSQLTableName()
-                + " WHERE eventID == ?"
-                + " ORDER BY timestamp DESC LIMIT ?";
+                + " WHERE eventID == ? LIMIT 1";
 
             try (PreparedStatement ps = getReadOnlyConnection().prepareStatement(sql)) {
 
                 ps.setString(1, eventID);
-                ps.setInt(2, MAX_DATA_ROWS_PER_DB);
 
                 ResultSet rs = ps.executeQuery();
-
                 List<GenericQueueElement> packets = generateQueryResults(rs);
+                if (packets.isEmpty()) return null;
 
                 return (EventToLog) packets.get(0);
+
             } catch (Exception e) {
-                // todo log
+                e.printStackTrace();
             }
         }
 

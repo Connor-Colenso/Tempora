@@ -2,8 +2,10 @@ package com.colen.tempora.loggers.generic;
 
 import static com.colen.tempora.Tempora.NETWORK;
 
-import java.util.UUID;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
+import cpw.mods.fml.common.network.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.event.ClickEvent;
 import net.minecraft.event.HoverEvent;
@@ -23,17 +25,22 @@ public abstract class GenericQueueElement implements IMessage {
     public double z;
     public int dimensionId;
     public long timestamp;
-
-    // This initialised eventID will be overwritten on the client side, when it reads from the byte buffer in
-    // 'fromBytes'.
-    public String eventID = UUID.randomUUID()
-        .toString();
+    public String eventID;
 
     // This field purely dictates when an event was made, so we know when to stop rendering it in world. It is only
     // relevant on the client.
     public long eventRenderCreationTime;
 
     public abstract IChatComponent localiseText(String uuid);
+
+    public void populateDefaultFieldsFromResultSet(ResultSet resultSet) throws SQLException{
+        x = resultSet.getDouble("x");
+        y = resultSet.getDouble("y");
+        z = resultSet.getDouble("z");
+        dimensionId = resultSet.getInt("dimensionID");
+        timestamp = resultSet.getLong("timestamp");
+        eventID = resultSet.getString("eventID");
+    }
 
     public void sendEventToClientForRendering(EntityPlayerMP player) {
         NETWORK.sendTo(this, player);
@@ -46,12 +53,7 @@ public abstract class GenericQueueElement implements IMessage {
         z = buf.readDouble();
         dimensionId = buf.readInt();
         timestamp = buf.readLong();
-
-        // Read the string eventID
-        int strLen = buf.readInt(); // Length of the string.
-        byte[] strBytes = new byte[strLen];
-        buf.readBytes(strBytes);
-        eventID = new String(strBytes);
+        eventID = ByteBufUtils.readUTF8String(buf);
     }
 
     @Override
@@ -61,11 +63,7 @@ public abstract class GenericQueueElement implements IMessage {
         buf.writeDouble(z);
         buf.writeInt(dimensionId);
         buf.writeLong(timestamp);
-
-        // Write the string eventID
-        byte[] strBytes = eventID.getBytes();
-        buf.writeInt(strBytes.length);
-        buf.writeBytes(strBytes);
+        ByteBufUtils.writeUTF8String(buf, eventID);
     }
 
     public abstract LoggerEnum getLoggerType();
@@ -128,6 +126,27 @@ public abstract class GenericQueueElement implements IMessage {
             fmt.display(y),
             fmt.display(z),
             dimId);
+        hoverText.getChatStyle()
+            .setColor(EnumChatFormatting.GRAY);
+
+        display.getChatStyle()
+            .setColor(EnumChatFormatting.AQUA)
+            .setChatClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, cmd))
+            .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hoverText));
+
+        return display;
+    }
+
+    public static IChatComponent generateUndoCommand(LoggerEnum loggerName, String eventID) {
+
+        // Translation‑driven teleport options.
+        IChatComponent display = new ChatComponentTranslation("tempora.undo.query.display");
+
+        // Todo link to command file, using a constant
+        String cmd = "/tempora_undo " + loggerName + " " + eventID;
+
+        IChatComponent hoverText = new ChatComponentTranslation(
+            "tempora.undo.query.hover");
         hoverText.getChatStyle()
             .setColor(EnumChatFormatting.GRAY);
 

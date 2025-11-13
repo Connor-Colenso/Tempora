@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -148,17 +149,14 @@ public class PlayerBlockPlaceLogger extends GenericPositionalLogger<PlayerBlockP
         while (resultSet.next()) {
 
             PlayerBlockPlaceQueueElement queueElement = new PlayerBlockPlaceQueueElement();
-            queueElement.x = resultSet.getInt("x");
-            queueElement.y = resultSet.getInt("y");
-            queueElement.z = resultSet.getInt("z");
-            queueElement.dimensionId = resultSet.getInt("dimensionID");
+            queueElement.populateDefaultFieldsFromResultSet(resultSet);
+
             queueElement.playerNameWhoPlacedBlock = PlayerUtils.UUIDToName(resultSet.getString("playerUUID"));
             queueElement.encodedNBT = resultSet.getString("encodedNBT");
             queueElement.blockID = resultSet.getInt("blockId");
             queueElement.metadata = resultSet.getInt("metadata");
             queueElement.pickBlockID = resultSet.getInt("pickBlockId");
             queueElement.pickBlockMeta = resultSet.getInt("pickBlockMeta");
-            queueElement.timestamp = resultSet.getLong("timestamp");
 
             eventList.add(queueElement);
         }
@@ -201,7 +199,7 @@ public class PlayerBlockPlaceLogger extends GenericPositionalLogger<PlayerBlockP
         if (event.isCanceled()) return;
 
         PlayerBlockPlaceQueueElement queueElement = new PlayerBlockPlaceQueueElement();
-
+        queueElement.eventID = UUID.randomUUID().toString();
         queueElement.x = event.x;
         queueElement.y = event.y;
         queueElement.z = event.z;

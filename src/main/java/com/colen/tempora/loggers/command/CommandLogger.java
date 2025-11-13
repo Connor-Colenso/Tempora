@@ -10,6 +10,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.command.ICommand;
@@ -78,16 +79,8 @@ public class CommandLogger extends GenericPositionalLogger<CommandQueueElement> 
         ArrayList<GenericQueueElement> eventList = new ArrayList<>();
 
         while (resultSet.next()) {
-            double x = resultSet.getDouble("x");
-            double y = resultSet.getDouble("y");
-            double z = resultSet.getDouble("z");
-
             CommandQueueElement queueElement = new CommandQueueElement();
-            queueElement.x = x;
-            queueElement.y = y;
-            queueElement.z = z;
-            queueElement.dimensionId = resultSet.getInt("dimensionID");
-            queueElement.timestamp = resultSet.getLong("timestamp");
+            queueElement.populateDefaultFieldsFromResultSet(resultSet);
 
             queueElement.playerUUID = resultSet.getString("playerUUID");
             queueElement.commandName = resultSet.getString("command");
@@ -139,6 +132,7 @@ public class CommandLogger extends GenericPositionalLogger<CommandQueueElement> 
             String[] args = event.parameters;
 
             CommandQueueElement queueElement = new CommandQueueElement();
+            queueElement.eventID = UUID.randomUUID().toString();
             queueElement.x = player.posX;
             queueElement.y = player.posY;
             queueElement.z = player.posZ;

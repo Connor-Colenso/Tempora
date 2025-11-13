@@ -10,6 +10,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
@@ -68,6 +69,7 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueE
         if (event.isCanceled()) return;
 
         EntityDeathQueueElement queueElement = new EntityDeathQueueElement();
+        queueElement.eventID = UUID.randomUUID().toString();
         queueElement.x = event.entity.posX;
         queueElement.y = event.entity.posY;
         queueElement.z = event.entity.posZ;
@@ -106,12 +108,7 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueE
 
         while (resultSet.next()) {
             EntityDeathQueueElement queueElement = new EntityDeathQueueElement();
-            queueElement.x = resultSet.getDouble("x");
-            queueElement.y = resultSet.getDouble("y");
-            queueElement.z = resultSet.getDouble("z");
-            queueElement.dimensionId = resultSet.getInt("dimensionID");
-            queueElement.nameOfDeadMob = resultSet.getString("entityName");
-            queueElement.entityUUID = resultSet.getString("entityUUID");
+            queueElement.populateDefaultFieldsFromResultSet(resultSet);
 
             String killedBy = resultSet.getString("killedBy");
             if (isUUID(killedBy)) {
@@ -120,10 +117,10 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueE
                 queueElement.killedBy = killedBy;
             }
 
+            queueElement.nameOfDeadMob = resultSet.getString("entityName");
+            queueElement.entityUUID = resultSet.getString("entityUUID");
             queueElement.rotationYaw = resultSet.getFloat("rotationYaw");
             queueElement.rotationPitch = resultSet.getFloat("rotationPitch");
-
-            queueElement.timestamp = resultSet.getLong("timestamp");
 
             eventList.add(queueElement);
         }

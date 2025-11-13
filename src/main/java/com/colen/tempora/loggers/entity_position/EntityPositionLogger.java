@@ -9,6 +9,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
@@ -77,13 +78,10 @@ public class EntityPositionLogger extends GenericPositionalLogger<EntityPosition
         while (resultSet.next()) {
 
             EntityPositionQueueElement queueElement = new EntityPositionQueueElement();
-            queueElement.x = resultSet.getDouble("x");
-            queueElement.y = resultSet.getDouble("y");
-            queueElement.z = resultSet.getDouble("z");
-            queueElement.dimensionId = resultSet.getInt("dimensionID");
+            queueElement.populateDefaultFieldsFromResultSet(resultSet);
+
             queueElement.entityName = resultSet.getString("entityName");
             queueElement.entityUUID = resultSet.getString("entityUUID");
-            queueElement.timestamp = resultSet.getLong("timestamp");
 
             eventList.add(queueElement);
 
@@ -138,6 +136,7 @@ public class EntityPositionLogger extends GenericPositionalLogger<EntityPosition
         if (event.entity instanceof EntityXPOrb) return;
 
         EntityPositionQueueElement queueElement = new EntityPositionQueueElement();
+        queueElement.eventID = UUID.randomUUID().toString();
         queueElement.x = event.entityLiving.posX;
         queueElement.y = event.entityLiving.posY;
         queueElement.z = event.entityLiving.posZ;
