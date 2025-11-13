@@ -60,6 +60,7 @@ public class BlockChangeQueueElement extends GenericQueueElement {
         stackTrace = ByteBufUtils.readUTF8String(buf);
         closestPlayerUUID = ByteBufUtils.readUTF8String(buf);
         closestPlayerDistance = buf.readDouble();
+        encodedNBT = ByteBufUtils.readUTF8String(buf);
     }
 
     @Override
@@ -72,6 +73,7 @@ public class BlockChangeQueueElement extends GenericQueueElement {
         ByteBufUtils.writeUTF8String(buf, stackTrace);
         ByteBufUtils.writeUTF8String(buf, closestPlayerUUID);
         buf.writeDouble(closestPlayerDistance);
+        ByteBufUtils.writeUTF8String(buf, encodedNBT);
     }
 
     @Override

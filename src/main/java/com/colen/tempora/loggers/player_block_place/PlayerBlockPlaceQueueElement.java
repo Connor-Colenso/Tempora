@@ -31,6 +31,7 @@ public class PlayerBlockPlaceQueueElement extends GenericQueueElement {
         pickBlockID = buf.readInt();
         pickBlockMeta = buf.readInt();
         playerNameWhoPlacedBlock = ByteBufUtils.readUTF8String(buf);
+        encodedNBT = ByteBufUtils.readUTF8String(buf);
     }
 
     @Override
@@ -41,6 +42,7 @@ public class PlayerBlockPlaceQueueElement extends GenericQueueElement {
         buf.writeInt(pickBlockID);
         buf.writeInt(pickBlockMeta);
         ByteBufUtils.writeUTF8String(buf, playerNameWhoPlacedBlock);
+        ByteBufUtils.writeUTF8String(buf, encodedNBT);
     }
 
     @Override
