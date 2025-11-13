@@ -15,7 +15,7 @@ import com.colen.tempora.loggers.block_change.RegionRegistry;
  * Creates an axis‑aligned, integer‑bounded region in the sender’s current dimension
  * and stores it in RegionRegistry.
  */
-public class CreateRegion extends CommandBase {
+public class CreateRegionCommand extends CommandBase {
 
     @Override
     public String getCommandName() {
