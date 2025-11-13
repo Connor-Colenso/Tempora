@@ -2,6 +2,7 @@ package com.colen.tempora.loggers.explosion;
 
 import static com.colen.tempora.TemporaUtils.isClientSide;
 import static com.colen.tempora.utils.DatabaseUtils.MISSING_STRING_DATA;
+import static micdoodle8.mods.galacticraft.core.proxy.ClientProxyCore.mc;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -12,6 +13,8 @@ import java.util.HashSet;
 import java.util.List;
 
 import net.minecraft.block.Block;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
@@ -51,8 +54,14 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionQueueEleme
     public void renderEventsInWorld(RenderWorldLastEvent e) {
 
         List<GenericQueueElement> sortedList = RenderUtils.getSortedLatestEventsByDistance(eventsToRenderInWorld, e);
-
         Tessellator tessellator = Tessellator.instance;
+        Minecraft mc = Minecraft.getMinecraft();
+        EntityPlayerSP player = mc.thePlayer;
+
+        // compute player interpolated position once
+        double px = player.lastTickPosX + (player.posX - player.lastTickPosX) * e.partialTicks;
+        double py = player.lastTickPosY + (player.posY - player.lastTickPosY) * e.partialTicks;
+        double pz = player.lastTickPosZ + (player.posZ - player.lastTickPosZ) * e.partialTicks;
 
         for (GenericQueueElement element : sortedList) {
             if (element instanceof ExplosionQueueElement exqe) {
@@ -69,24 +78,49 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionQueueEleme
 
                 // Draw purple lines to affected blocks
                 for (ChunkPosition chunkPosition : ChunkPositionUtils.decodePositions(exqe.affectedBlockCoordinates)) {
-                    double startX = exqe.x + 0.5;
-                    double startY = exqe.y + 0.5;
-                    double startZ = exqe.z + 0.5;
+                    double startX = exqe.x;
+                    double startY = exqe.y;
+                    double startZ = exqe.z;
 
                     double endX = chunkPosition.chunkPosX + 0.5;
                     double endY = chunkPosition.chunkPosY + 0.5;
                     double endZ = chunkPosition.chunkPosZ + 0.5;
 
-                    // Draw line
-                    tessellator.startDrawing(GL11.GL_LINES); // GL_LINES
-                    tessellator.setColorRGBA(255, 0, 255, 255);
-                    tessellator.addVertex(startX, startY, startZ);
-                    tessellator.addVertex(endX, endY, endZ);
-                    tessellator.draw();
+                    // single push for both state changes and translation
+                    GL11.glPushMatrix();
+                    try {
+                        // Translate to camera-relative world coords
+                        GL11.glTranslated(-px, -py, -pz);
+
+                        // GL state for drawing unlit, untextured lines
+                        GL11.glDisable(GL11.GL_TEXTURE_2D);
+                        GL11.glDisable(GL11.GL_LIGHTING);
+                        GL11.glDisable(GL11.GL_CULL_FACE);
+                        GL11.glEnable(GL11.GL_BLEND);
+                        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+                        GL11.glLineWidth(0.5f);
+
+                        // Draw line in world coords (now camera-relative)
+                        tessellator.startDrawing(GL11.GL_LINES);
+                        tessellator.setColorRGBA(255, 0, 255, 255);
+                        tessellator.addVertex(startX, startY, startZ);
+                        tessellator.addVertex(endX, endY, endZ);
+                        tessellator.draw();
+
+                        // Restore GL state we changed
+                        GL11.glLineWidth(1.0F);
+                        GL11.glDisable(GL11.GL_BLEND);
+                        GL11.glEnable(GL11.GL_CULL_FACE);
+                        GL11.glEnable(GL11.GL_LIGHTING);
+                        GL11.glEnable(GL11.GL_TEXTURE_2D);
+                    } finally {
+                        GL11.glPopMatrix();
+                    }
                 }
             }
         }
     }
+
 
 
     @Override
