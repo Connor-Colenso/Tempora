@@ -191,12 +191,7 @@ public abstract class RenderUtils {
         GL11.glColor4f(1, 1, 1, 1); // Always restore color
         GL13.glActiveTexture(GL13.GL_TEXTURE0); // Set main texture unit (block textures)
         mc.renderEngine.bindTexture(TextureMap.locationBlocksTexture); // Bind MC block atlas
-        OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, prevBrightnessX, prevBrightnessY); // Only
-                                                                                                               // if you
-                                                                                                               // changed
-                                                                                                               // lightmap
-                                                                                                               // coords
-                                                                                                               // above
+        OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, prevBrightnessX, prevBrightnessY);
         GL11.glEnable(GL11.GL_LIGHTING); // Vanilla expects this on
 
         GL11.glPopAttrib();

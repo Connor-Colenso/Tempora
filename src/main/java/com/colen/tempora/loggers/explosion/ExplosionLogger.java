@@ -8,12 +8,15 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 
 import net.minecraft.block.Block;
+import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
+import net.minecraft.world.ChunkPosition;
 import net.minecraft.world.World;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.event.world.ExplosionEvent;
@@ -26,6 +29,7 @@ import com.colen.tempora.loggers.generic.ColumnDef;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.rendering.RenderUtils;
+import com.colen.tempora.utils.ChunkPositionUtils;
 import com.colen.tempora.utils.EventLoggingHelper;
 import com.colen.tempora.utils.PlayerUtils;
 
@@ -33,6 +37,7 @@ import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import org.lwjgl.opengl.GL11;
 
 public class ExplosionLogger extends GenericPositionalLogger<ExplosionQueueElement> {
 
@@ -47,18 +52,42 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionQueueEleme
 
         List<GenericQueueElement> sortedList = RenderUtils.getSortedLatestEventsByDistance(eventsToRenderInWorld, e);
 
+        Tessellator tessellator = Tessellator.instance;
+
         for (GenericQueueElement element : sortedList) {
-            RenderUtils.renderBlockInWorld(
-                e,
-                element.x - 0.5,
-                element.y - 0.5,
-                element.z - 0.5,
-                Block.getIdFromBlock(Blocks.tnt),
-                0,
-                null,
-                getLoggerType());
+            if (element instanceof ExplosionQueueElement exqe) {
+                // Draw explosion center as TNT block
+                RenderUtils.renderBlockInWorld(
+                    e,
+                    exqe.x - 0.5,
+                    exqe.y - 0.5,
+                    exqe.z - 0.5,
+                    Block.getIdFromBlock(Blocks.tnt),
+                    0,
+                    null,
+                    getLoggerType());
+
+                // Draw purple lines to affected blocks
+                for (ChunkPosition chunkPosition : ChunkPositionUtils.decodePositions(exqe.affectedBlockCoordinates)) {
+                    double startX = exqe.x + 0.5;
+                    double startY = exqe.y + 0.5;
+                    double startZ = exqe.z + 0.5;
+
+                    double endX = chunkPosition.chunkPosX + 0.5;
+                    double endY = chunkPosition.chunkPosY + 0.5;
+                    double endZ = chunkPosition.chunkPosZ + 0.5;
+
+                    // Draw line
+                    tessellator.startDrawing(GL11.GL_LINES); // GL_LINES
+                    tessellator.setColorRGBA(255, 0, 255, 255);
+                    tessellator.addVertex(startX, startY, startZ);
+                    tessellator.addVertex(endX, endY, endZ);
+                    tessellator.draw();
+                }
+            }
         }
     }
+
 
     @Override
     public List<GenericQueueElement> generateQueryResults(ResultSet resultSet) throws SQLException {
@@ -89,6 +118,7 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionQueueEleme
 
             queueElement.closestPlayerDistance = resultSet.getDouble("closestPlayerDistance");
             queueElement.timestamp = resultSet.getLong("timestamp");
+            queueElement.affectedBlockCoordinates = resultSet.getString("affectedBlockCoordinates");
 
             eventList.add(queueElement);
         }
@@ -102,7 +132,8 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionQueueEleme
             new ColumnDef("strength", "REAL", "NOT NULL DEFAULT -1"),
             new ColumnDef("exploderUUID", "TEXT", "NOT NULL DEFAULT " + MISSING_STRING_DATA),
             new ColumnDef("closestPlayerUUID", "TEXT", "NOT NULL DEFAULT " + MISSING_STRING_DATA),
-            new ColumnDef("closestPlayerDistance", "REAL", "NOT NULL DEFAULT -1"));
+            new ColumnDef("closestPlayerDistance", "REAL", "NOT NULL DEFAULT -1"),
+            new ColumnDef("affectedBlockCoordinates", "TEXT", "NOT NULL DEFAULT " + MISSING_STRING_DATA));
     }
 
     @Override
@@ -110,8 +141,8 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionQueueEleme
         if (queueElements == null || queueElements.isEmpty()) return;
 
         final String sql = "INSERT INTO " + getSQLTableName()
-            + " (strength, exploderUUID, closestPlayerUUID, closestPlayerDistance, eventID, x, y, z, dimensionID, timestamp) "
-            + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            + " (strength, exploderUUID, closestPlayerUUID, closestPlayerDistance, affectedBlockCoordinates, eventID, x, y, z, dimensionID, timestamp) "
+            + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         int index;
         try (PreparedStatement pstmt = getDBConn().prepareStatement(sql)) {
@@ -122,6 +153,7 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionQueueEleme
                 pstmt.setString(index++, queueElement.exploderUUID);
                 pstmt.setString(index++, queueElement.closestPlayerUUID);
                 pstmt.setDouble(index++, queueElement.closestPlayerDistance);
+                pstmt.setString(index++, queueElement.affectedBlockCoordinates);
                 EventLoggingHelper.defaultColumnEntries(queueElement, pstmt, index);
 
                 pstmt.addBatch();
@@ -172,6 +204,8 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionQueueEleme
         queueElement.exploderUUID = exploderName;
         queueElement.closestPlayerUUID = closestPlayerName;
         queueElement.closestPlayerDistance = closestDistance;
+
+        queueElement.affectedBlockCoordinates = ChunkPositionUtils.encodePositions(event.explosion.affectedBlockPositions);
 
         queueEvent(queueElement);
     }
