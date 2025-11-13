@@ -10,11 +10,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.colen.tempora.rendering.RenderUtils;
 import com.colen.tempora.utils.EventLoggingHelper;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Blocks;
 import net.minecraft.world.World;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.event.world.ExplosionEvent;
@@ -42,6 +45,11 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionQueueEleme
     @SideOnly(Side.CLIENT)
     public void renderEventsInWorld(RenderWorldLastEvent e) {
 
+        List<GenericQueueElement> sortedList = RenderUtils.getSortedLatestEventsByDistance(eventsToRenderInWorld, e);
+
+        for (GenericQueueElement element : sortedList) {
+            RenderUtils.renderBlockInWorld(e, element.x - 0.5, element.y - 0.5, element.z - 0.5, Block.getIdFromBlock(Blocks.tnt), 0, null, getLoggerType());
+        }
     }
 
     @Override

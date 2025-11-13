@@ -164,6 +164,9 @@ public abstract class RenderUtils {
                 renderRegion(0, 0, 0, 1, 1, 1, 0, 1, 0);
             } else if (loggerEnum == LoggerEnum.BlockChangeLogger) {
                 renderRegion(0, 0, 0, 1, 1, 1, 0, 0, 1);
+            } else if (loggerEnum == LoggerEnum.ExplosionLogger) {
+                // Purple.
+                renderRegion(0,0,0,1,1,1,0.655, 0.125, 0.8);
             }
         }
         GL11.glPopMatrix(); // end scale/align
