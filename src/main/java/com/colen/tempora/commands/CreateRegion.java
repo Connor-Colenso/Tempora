@@ -48,7 +48,15 @@ public class CreateRegion extends CommandBase {
         World world = sender.getEntityWorld();
         int dim = world.provider.dimensionId;
 
-        BlockChangeRecordingRegion region = new BlockChangeRecordingRegion(dim, x1, y1, z1, x2, y2, z2, System.currentTimeMillis());
+        BlockChangeRecordingRegion region = new BlockChangeRecordingRegion(
+            dim,
+            x1,
+            y1,
+            z1,
+            x2,
+            y2,
+            z2,
+            System.currentTimeMillis());
         RegionRegistry.add(region);
 
         ChatComponentTranslation msg = new ChatComponentTranslation(

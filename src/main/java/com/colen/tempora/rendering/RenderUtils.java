@@ -1,11 +1,11 @@
 package com.colen.tempora.rendering;
 
-import appeng.block.networking.BlockCableBus;
-import appeng.client.render.BusRenderHelper;
-import com.colen.tempora.enums.LoggerEnum;
-import com.colen.tempora.loggers.generic.GenericQueueElement;
-import com.colen.tempora.rendering.FakeWorld.FakeWorld;
-import com.gtnewhorizons.modularui.api.GlStateManager;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
@@ -21,18 +21,22 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
+
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import com.colen.tempora.enums.LoggerEnum;
+import com.colen.tempora.loggers.generic.GenericQueueElement;
+import com.colen.tempora.rendering.FakeWorld.FakeWorld;
+import com.gtnewhorizons.modularui.api.GlStateManager;
+
+import appeng.block.networking.BlockCableBus;
+import appeng.client.render.BusRenderHelper;
 
 public abstract class RenderUtils {
 
-    public static void renderEntityInWorld(Entity entity, double x, double y, double z, float rotationYaw, float rotationPitch) {
+    public static void renderEntityInWorld(Entity entity, double x, double y, double z, float rotationYaw,
+        float rotationPitch) {
         if (entity == null) return;
 
         float prevBrightnessX = OpenGlHelper.lastBrightnessX;
@@ -53,7 +57,7 @@ public abstract class RenderUtils {
         entity.prevRotationPitch = entity.rotationPitch = rotationPitch;
 
         if (entity instanceof EntityLivingBase) {
-            EntityLivingBase living = (EntityLivingBase)entity;
+            EntityLivingBase living = (EntityLivingBase) entity;
             living.renderYawOffset = living.prevRenderYawOffset = rotationYaw;
             living.rotationYawHead = living.prevRotationYawHead = rotationYaw;
         }
@@ -76,8 +80,8 @@ public abstract class RenderUtils {
         GL11.glPopAttrib();
     }
 
-
-    public static void renderEntityAABBInWorld(Entity entity, double x, double y, double z, double red, double green, double blue) {
+    public static void renderEntityAABBInWorld(Entity entity, double x, double y, double z, double red, double green,
+        double blue) {
         if (entity == null) return;
 
         AxisAlignedBB aabb = entity.boundingBox;
@@ -87,16 +91,21 @@ public abstract class RenderUtils {
 
         // Draw bounding box relative to the position
         renderRegion(
-            aabb.minX - x, aabb.minY - y, aabb.minZ - z,
-            aabb.maxX - x, aabb.maxY - y, aabb.maxZ - z,
-            red, green, blue
-        );
+            aabb.minX - x,
+            aabb.minY - y,
+            aabb.minZ - z,
+            aabb.maxX - x,
+            aabb.maxY - y,
+            aabb.maxZ - z,
+            red,
+            green,
+            blue);
 
         GL11.glPopMatrix();
     }
 
-
-    public static void renderBlockInWorld(RenderWorldLastEvent e, double x, double y, double z, int blockID, int metadata, NBTTagCompound nbt, LoggerEnum loggerEnum) {
+    public static void renderBlockInWorld(RenderWorldLastEvent e, double x, double y, double z, int blockID,
+        int metadata, NBTTagCompound nbt, LoggerEnum loggerEnum) {
         Minecraft mc = Minecraft.getMinecraft();
         Tessellator tes = Tessellator.instance;
 
@@ -127,7 +136,9 @@ public abstract class RenderUtils {
             tileEntity.blockMetadata = metadata;
             tileEntity.blockType = block;
             tileEntity.setWorldObj(mc.theWorld);
-            tileEntity.xCoord = 0; tileEntity.yCoord = 0; tileEntity.zCoord = 0;
+            tileEntity.xCoord = 0;
+            tileEntity.yCoord = 0;
+            tileEntity.zCoord = 0;
             tileEntity.validate();
         }
 
@@ -136,12 +147,15 @@ public abstract class RenderUtils {
         fakeWorld.block = block;
         fakeWorld.tileEntity = tileEntity;
         fakeWorld.metadata = metadata;
-        fakeWorld.x = (int) x; fakeWorld.y = (int) y; fakeWorld.z = (int) z;
+        fakeWorld.x = (int) x;
+        fakeWorld.y = (int) y;
+        fakeWorld.z = (int) z;
         rb.blockAccess = fakeWorld;
 
         // AE2 CableBus hack if needed
         if (block instanceof BlockCableBus) {
-            BusRenderHelper.instances.get().setPass(0);
+            BusRenderHelper.instances.get()
+                .setPass(0);
         }
 
         // Begin transform
@@ -166,7 +180,7 @@ public abstract class RenderUtils {
                 renderRegion(0, 0, 0, 1, 1, 1, 0, 0, 1);
             } else if (loggerEnum == LoggerEnum.ExplosionLogger) {
                 // Purple.
-                renderRegion(0,0,0,1,1,1,0.655, 0.125, 0.8);
+                renderRegion(0, 0, 0, 1, 1, 1, 0.655, 0.125, 0.8);
             }
         }
         GL11.glPopMatrix(); // end scale/align
@@ -177,13 +191,19 @@ public abstract class RenderUtils {
         GL11.glColor4f(1, 1, 1, 1); // Always restore color
         GL13.glActiveTexture(GL13.GL_TEXTURE0); // Set main texture unit (block textures)
         mc.renderEngine.bindTexture(TextureMap.locationBlocksTexture); // Bind MC block atlas
-        OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, prevBrightnessX, prevBrightnessY); // Only if you changed lightmap coords above
+        OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, prevBrightnessX, prevBrightnessY); // Only
+                                                                                                               // if you
+                                                                                                               // changed
+                                                                                                               // lightmap
+                                                                                                               // coords
+                                                                                                               // above
         GL11.glEnable(GL11.GL_LIGHTING); // Vanilla expects this on
 
         GL11.glPopAttrib();
     }
-    public static List<GenericQueueElement> getSortedLatestEventsByDistance(
-        Collection<GenericQueueElement> input, RenderWorldLastEvent e) {
+
+    public static List<GenericQueueElement> getSortedLatestEventsByDistance(Collection<GenericQueueElement> input,
+        RenderWorldLastEvent e) {
         Minecraft mc = Minecraft.getMinecraft();
         int playerDim = mc.thePlayer.dimension;
 
@@ -221,9 +241,10 @@ public abstract class RenderUtils {
         return dx * dx + dy * dy + dz * dz;
     }
 
-    public static void renderRegion(double startX, double startY, double startZ,
-                                    double endX, double endY, double endZ, double red, double green, double blue) {
-        GL11.glPushAttrib(GL11.GL_ENABLE_BIT | GL11.GL_LINE_BIT | GL11.GL_COLOR_BUFFER_BIT); // Save lighting, texture, blend, depth, etc.
+    public static void renderRegion(double startX, double startY, double startZ, double endX, double endY, double endZ,
+        double red, double green, double blue) {
+        GL11.glPushAttrib(GL11.GL_ENABLE_BIT | GL11.GL_LINE_BIT | GL11.GL_COLOR_BUFFER_BIT); // Save lighting, texture,
+                                                                                             // blend, depth, etc.
         GL11.glPushMatrix();
 
         GL11.glDisable(GL11.GL_TEXTURE_2D);
@@ -240,7 +261,6 @@ public abstract class RenderUtils {
         GL11.glPopMatrix();
         GL11.glPopAttrib(); // Restore everything
     }
-
 
     public static void renderFloatingText(List<String> textLines, double x, double y, double z) {
         RenderManager renderManager = RenderManager.instance;
@@ -261,12 +281,7 @@ public abstract class RenderUtils {
         int yOffset = -totalHeight / 2;
 
         for (String line : textLines) {
-            fontrenderer.drawString(
-                line,
-                -fontrenderer.getStringWidth(line) / 2,
-                yOffset,
-                0xFFFFFF
-            );
+            fontrenderer.drawString(line, -fontrenderer.getStringWidth(line) / 2, yOffset, 0xFFFFFF);
             yOffset += fontHeight;
         }
 

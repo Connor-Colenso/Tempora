@@ -18,7 +18,8 @@ import io.netty.buffer.ByteBuf;
 public final class PacketShowRegionInWorld {
 
     @SideOnly(Side.CLIENT)
-    public static final List<BlockChangeRecordingRegion> CLIENT_REGIONS = Collections.synchronizedList(new ArrayList<>());
+    public static final List<BlockChangeRecordingRegion> CLIENT_REGIONS = Collections
+        .synchronizedList(new ArrayList<>());
 
     /** send to one player */
     public static void send(EntityPlayerMP target, List<BlockChangeRecordingRegion> regions) {

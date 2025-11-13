@@ -10,10 +10,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import com.colen.tempora.rendering.RenderUtils;
-import com.colen.tempora.utils.EventLoggingHelper;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
@@ -29,10 +25,14 @@ import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.loggers.generic.ColumnDef;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
+import com.colen.tempora.rendering.RenderUtils;
+import com.colen.tempora.utils.EventLoggingHelper;
 import com.colen.tempora.utils.PlayerUtils;
 
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 
 public class ExplosionLogger extends GenericPositionalLogger<ExplosionQueueElement> {
 
@@ -48,7 +48,15 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionQueueEleme
         List<GenericQueueElement> sortedList = RenderUtils.getSortedLatestEventsByDistance(eventsToRenderInWorld, e);
 
         for (GenericQueueElement element : sortedList) {
-            RenderUtils.renderBlockInWorld(e, element.x - 0.5, element.y - 0.5, element.z - 0.5, Block.getIdFromBlock(Blocks.tnt), 0, null, getLoggerType());
+            RenderUtils.renderBlockInWorld(
+                e,
+                element.x - 0.5,
+                element.y - 0.5,
+                element.z - 0.5,
+                Block.getIdFromBlock(Blocks.tnt),
+                0,
+                null,
+                getLoggerType());
         }
     }
 

@@ -11,13 +11,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import com.colen.tempora.rendering.RenderUtils;
-import com.colen.tempora.utils.EventLoggingHelper;
-import com.colen.tempora.utils.PlayerUtils;
-import com.colen.tempora.utils.TimeUtils;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
-import it.unimi.dsi.fastutil.Pair;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.command.ICommand;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -29,9 +22,16 @@ import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.loggers.generic.ColumnDef;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
+import com.colen.tempora.rendering.RenderUtils;
+import com.colen.tempora.utils.EventLoggingHelper;
+import com.colen.tempora.utils.PlayerUtils;
+import com.colen.tempora.utils.TimeUtils;
 
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+import it.unimi.dsi.fastutil.Pair;
 
 public class CommandLogger extends GenericPositionalLogger<CommandQueueElement> {
 
