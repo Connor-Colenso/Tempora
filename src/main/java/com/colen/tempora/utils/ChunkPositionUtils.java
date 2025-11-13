@@ -1,13 +1,13 @@
 package com.colen.tempora.utils;
 
+import static com.colen.tempora.utils.DatabaseUtils.MISSING_STRING_DATA;
+
 import java.util.*;
 
 import net.minecraft.world.ChunkPosition;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import static com.colen.tempora.utils.DatabaseUtils.MISSING_STRING_DATA;
 
 public class ChunkPositionUtils {
 
@@ -31,7 +31,7 @@ public class ChunkPositionUtils {
     /** Decode a string back into a HashSet of ChunkPositions */
     public static @NotNull HashSet<ChunkPosition> decodePositions(@Nullable String encoded) {
         HashSet<ChunkPosition> result = new HashSet<>();
-        if (encoded == null || encoded.isEmpty()  || encoded.equals(MISSING_STRING_DATA)) return result;
+        if (encoded == null || encoded.isEmpty() || encoded.equals(MISSING_STRING_DATA)) return result;
 
         String[] parts = encoded.split(POS_SEPARATOR);
         for (String part : parts) {
