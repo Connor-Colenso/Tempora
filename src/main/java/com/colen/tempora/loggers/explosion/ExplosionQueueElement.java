@@ -17,6 +17,8 @@ public class ExplosionQueueElement extends GenericQueueElement {
     public String exploderUUID;
     public String closestPlayerUUID;
     public double closestPlayerDistance;
+    // We only use this field for rendering.
+    public String affectedBlockCoordinates;
 
     @Override
     public void fromBytes(ByteBuf buf) {
@@ -25,6 +27,7 @@ public class ExplosionQueueElement extends GenericQueueElement {
         exploderUUID = ByteBufUtils.readUTF8String(buf);
         closestPlayerUUID = ByteBufUtils.readUTF8String(buf);
         closestPlayerDistance = buf.readDouble();
+        affectedBlockCoordinates = ByteBufUtils.readUTF8String(buf);
     }
 
     @Override
@@ -34,6 +37,7 @@ public class ExplosionQueueElement extends GenericQueueElement {
         ByteBufUtils.writeUTF8String(buf, exploderUUID);
         ByteBufUtils.writeUTF8String(buf, closestPlayerUUID);
         buf.writeDouble(closestPlayerDistance);
+        ByteBufUtils.writeUTF8String(buf, affectedBlockCoordinates);
     }
 
     @Override
