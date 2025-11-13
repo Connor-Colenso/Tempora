@@ -64,7 +64,6 @@ public class ExplosionQueueElement extends GenericQueueElement {
         return str;
     }
 
-
     @Override
     public IChatComponent localiseText(String uuid) {
         IChatComponent coords = generateTeleportChatComponent(
