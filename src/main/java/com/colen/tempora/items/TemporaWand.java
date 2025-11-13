@@ -4,6 +4,7 @@ import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.Facing;
 import net.minecraft.world.World;
 
 import com.colen.tempora.TemporaUtils;
@@ -25,11 +26,6 @@ public class TemporaWand extends Item {
         this.setTextureName("tempora:tempora_wand");
     }
 
-    // @Override
-    // public ItemStack onItemRightClick(ItemStack itemStackIn, World world, EntityPlayer player) {
-    // System.out.println("Right click");
-    // return itemStackIn;
-    // }
 
     @Override
     public boolean onItemUse(ItemStack stack, EntityPlayer player, World world, int x, int y, int z, int side,
@@ -40,7 +36,11 @@ public class TemporaWand extends Item {
             PlayerUtils.sendMessageToOps("player.tempora.wand.unauthorised", player.getDisplayName());
         } else {
             for (GenericPositionalLogger<?> logger : GenericPositionalLogger.getLoggerList()) {
-                GenericPositionalLogger.queryEventsAtPosAndTime(player, x, y, z, -1, logger.getSQLTableName());
+                int px = x + Facing.offsetsXForSide[side];
+                int py = y + Facing.offsetsYForSide[side];
+                int pz = z + Facing.offsetsZForSide[side];
+
+                GenericPositionalLogger.queryEventsAtPosAndTime(player, px, py, pz, -1, logger.getSQLTableName());
             }
         }
 
