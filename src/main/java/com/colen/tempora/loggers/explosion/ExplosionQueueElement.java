@@ -1,21 +1,22 @@
 package com.colen.tempora.loggers.explosion;
 
-import com.google.common.base.Charsets;
+import static cpw.mods.fml.common.network.ByteBufUtils.readVarInt;
+import static cpw.mods.fml.common.network.ByteBufUtils.varIntByteCount;
+import static cpw.mods.fml.common.network.ByteBufUtils.writeVarInt;
+
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
+
+import org.apache.commons.lang3.Validate;
 
 import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.utils.PlayerUtils;
 import com.colen.tempora.utils.TimeUtils;
+import com.google.common.base.Charsets;
 
 import cpw.mods.fml.common.network.ByteBufUtils;
 import io.netty.buffer.ByteBuf;
-import org.apache.commons.lang3.Validate;
-
-import static cpw.mods.fml.common.network.ByteBufUtils.readVarInt;
-import static cpw.mods.fml.common.network.ByteBufUtils.varIntByteCount;
-import static cpw.mods.fml.common.network.ByteBufUtils.writeVarInt;
 
 public class ExplosionQueueElement extends GenericQueueElement {
 
@@ -47,8 +48,7 @@ public class ExplosionQueueElement extends GenericQueueElement {
     }
 
     // To bypass string encoding limits, for large quantities of affectedBlockCoordinates. Todo: review this
-    public static void writeUTF8String(ByteBuf to, String string)
-    {
+    public static void writeUTF8String(ByteBuf to, String string) {
         byte[] utf8Bytes = string.getBytes(Charsets.UTF_8);
         // Allow up to 4 bytes for the length varint (~268 MB of data)
         Validate.isTrue(varIntByteCount(utf8Bytes.length) <= 3, "The string is too long for this encoding.");
@@ -56,8 +56,7 @@ public class ExplosionQueueElement extends GenericQueueElement {
         to.writeBytes(utf8Bytes);
     }
 
-    public static String readUTF8String(ByteBuf from)
-    {
+    public static String readUTF8String(ByteBuf from) {
         int len = readVarInt(from, 3);
         String str = from.toString(from.readerIndex(), len, Charsets.UTF_8);
         from.readerIndex(from.readerIndex() + len);

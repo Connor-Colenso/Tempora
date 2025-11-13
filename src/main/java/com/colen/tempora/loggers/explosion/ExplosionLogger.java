@@ -9,7 +9,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 
 import net.minecraft.block.Block;
@@ -25,6 +24,7 @@ import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.event.world.ExplosionEvent;
 
 import org.jetbrains.annotations.NotNull;
+import org.lwjgl.opengl.GL11;
 
 import com.colen.tempora.TemporaUtils;
 import com.colen.tempora.enums.LoggerEnum;
@@ -40,7 +40,6 @@ import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import org.lwjgl.opengl.GL11;
 
 public class ExplosionLogger extends GenericPositionalLogger<ExplosionQueueElement> {
 
@@ -120,8 +119,6 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionQueueEleme
             }
         }
     }
-
-
 
     @Override
     public List<GenericQueueElement> generateQueryResults(ResultSet resultSet) throws SQLException {
@@ -211,15 +208,14 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionQueueEleme
         final Entity exploder = event.explosion.getExplosivePlacedBy();
         final String exploderName;
         if (exploder != null) {
-            exploderName = exploder.getUniqueID().toString();
+            exploderName = exploder.getUniqueID()
+                .toString();
         } else if (event.explosion.exploder != null) {
-            exploderName = event.explosion.exploder.getClass().getSimpleName();
+            exploderName = event.explosion.exploder.getClass()
+                .getSimpleName();
         } else {
             exploderName = "[UNKNOWN]";
         }
-
-
-
 
         EntityPlayer closestPlayer = null;
         double closestDistance = Double.MAX_VALUE;
@@ -248,7 +244,8 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionQueueEleme
         queueElement.closestPlayerUUID = closestPlayerName;
         queueElement.closestPlayerDistance = closestDistance;
 
-        queueElement.affectedBlockCoordinates = ChunkPositionUtils.encodePositions(event.explosion.affectedBlockPositions);
+        queueElement.affectedBlockCoordinates = ChunkPositionUtils
+            .encodePositions(event.explosion.affectedBlockPositions);
 
         queueEvent(queueElement);
     }

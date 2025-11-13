@@ -464,36 +464,39 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
     }
 
     public static void onServerStart() {
-            System.out.println("Opening Tempora DBs...");
+        System.out.println("Opening Tempora DBs...");
 
-            for (GenericPositionalLogger<?> logger : loggerList) {
-                try {
-                    // Just to 100% ensure we are not getting events from a prior save.
-                    logger.clearEvents();
+        for (GenericPositionalLogger<?> logger : loggerList) {
+            try {
+                // Just to 100% ensure we are not getting events from a prior save.
+                logger.clearEvents();
 
-                    logger.initDbConnection();
+                logger.initDbConnection();
 
-                    if (logger.isHighRiskModeEnabled()) {
-                        logger.enableHighRiskFastMode();
-                    }
-
-                    // Enable batching, to reduce overhead on db writes.
-                    logger.getDBConn()
-                        .setAutoCommit(false);
-
-                    logger.initTable();
-                    logger.createAllIndexes();
-                    logger.removeOldDatabaseData();
-                    logger.trimOversizedDatabase();
-
-                    logger.startQueueWorker(logger.getSQLTableName());
-                } catch (SQLException sqlException) {
-                    String loggerName = logger.getClass().getSimpleName();
-                    System.err.println("Failed to initialize logger: " + loggerName);
-                    sqlException.printStackTrace();
-                    throw new RuntimeException("Tempora database initial stages failure for logger: " + loggerName, sqlException);
+                if (logger.isHighRiskModeEnabled()) {
+                    logger.enableHighRiskFastMode();
                 }
+
+                // Enable batching, to reduce overhead on db writes.
+                logger.getDBConn()
+                    .setAutoCommit(false);
+
+                logger.initTable();
+                logger.createAllIndexes();
+                logger.removeOldDatabaseData();
+                logger.trimOversizedDatabase();
+
+                logger.startQueueWorker(logger.getSQLTableName());
+            } catch (SQLException sqlException) {
+                String loggerName = logger.getClass()
+                    .getSimpleName();
+                System.err.println("Failed to initialize logger: " + loggerName);
+                sqlException.printStackTrace();
+                throw new RuntimeException(
+                    "Tempora database initial stages failure for logger: " + loggerName,
+                    sqlException);
             }
+        }
     }
 
     private void clearEvents() {
