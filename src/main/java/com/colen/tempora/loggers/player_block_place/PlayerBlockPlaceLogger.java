@@ -13,12 +13,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-import com.colen.tempora.rendering.RenderUtils;
-import com.colen.tempora.utils.EventLoggingHelper;
-import com.colen.tempora.utils.nbt.NBTConverter;
-import cpw.mods.fml.common.FMLLog;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
@@ -36,10 +30,16 @@ import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.loggers.generic.ColumnDef;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
+import com.colen.tempora.rendering.RenderUtils;
+import com.colen.tempora.utils.EventLoggingHelper;
 import com.colen.tempora.utils.PlayerUtils;
+import com.colen.tempora.utils.nbt.NBTConverter;
 
+import cpw.mods.fml.common.FMLLog;
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 
 public class PlayerBlockPlaceLogger extends GenericPositionalLogger<PlayerBlockPlaceQueueElement> {
 
@@ -47,10 +47,14 @@ public class PlayerBlockPlaceLogger extends GenericPositionalLogger<PlayerBlockP
 
     @Override
     public void handleCustomLoggerConfig(Configuration config) {
-        logNBT = config.getBoolean("logNBT", getSQLTableName(), true, """
-            If true, it will log the NBT of all blocks changes which interact with this event. This improves rendering of events and gives a better history.
-            WARNING: NBT may be large and this could cause the database to grow much quicker.
-            """);
+        logNBT = config.getBoolean(
+            "logNBT",
+            getSQLTableName(),
+            true,
+            """
+                If true, it will log the NBT of all blocks changes which interact with this event. This improves rendering of events and gives a better history.
+                WARNING: NBT may be large and this could cause the database to grow much quicker.
+                """);
     }
 
     @Override
@@ -68,30 +72,44 @@ public class PlayerBlockPlaceLogger extends GenericPositionalLogger<PlayerBlockP
             if (element instanceof PlayerBlockPlaceQueueElement pbpl) {
                 try {
                     NBTTagCompound nbt = null;
-                    if (!Objects.equals(pbpl.encodedNBT, NO_NBT) && !Objects.equals(pbpl.encodedNBT, NBTConverter.NBT_DISABLED)) {
+                    if (!Objects.equals(pbpl.encodedNBT, NO_NBT)
+                        && !Objects.equals(pbpl.encodedNBT, NBTConverter.NBT_DISABLED)) {
                         nbt = NBTConverter.decodeFromString(pbpl.encodedNBT);
                     }
 
                     // Render the placed block at its logged position
-                    RenderUtils.renderBlockInWorld(e, pbpl.x, pbpl.y, pbpl.z, pbpl.blockID, pbpl.metadata, nbt, getLoggerType());
+                    RenderUtils.renderBlockInWorld(
+                        e,
+                        pbpl.x,
+                        pbpl.y,
+                        pbpl.z,
+                        pbpl.blockID,
+                        pbpl.metadata,
+                        nbt,
+                        getLoggerType());
                 } catch (Exception exception) {
                     // Log detailed error info
                     FMLLog.warning(
-                        "[Tempora] Failed to render %s event (eventID=%s) at (%.1f, %.1f, %.1f) in dim %d. " +
-                            "BlockID=%d:%d PickBlock=%d:%d Player=%s NBT=%s Timestamp=%d | Exception: %s: %s",
-                        getLoggerType(),                        // LoggerEnum
-                        pbpl.eventID,                            // Unique event ID
-                        pbpl.x, pbpl.y, pbpl.z,                  // Coordinates
-                        pbpl.dimensionId,                        // Dimension
-                        pbpl.blockID, pbpl.metadata,             // Block ID and meta
-                        pbpl.pickBlockID, pbpl.pickBlockMeta,    // Pick block info
-                        pbpl.playerNameWhoPlacedBlock,           // Player UUID/name
+                        "[Tempora] Failed to render %s event (eventID=%s) at (%.1f, %.1f, %.1f) in dim %d. "
+                            + "BlockID=%d:%d PickBlock=%d:%d Player=%s NBT=%s Timestamp=%d | Exception: %s: %s",
+                        getLoggerType(), // LoggerEnum
+                        pbpl.eventID, // Unique event ID
+                        pbpl.x,
+                        pbpl.y,
+                        pbpl.z, // Coordinates
+                        pbpl.dimensionId, // Dimension
+                        pbpl.blockID,
+                        pbpl.metadata, // Block ID and meta
+                        pbpl.pickBlockID,
+                        pbpl.pickBlockMeta, // Pick block info
+                        pbpl.playerNameWhoPlacedBlock, // Player UUID/name
                         (pbpl.encodedNBT != null && !pbpl.encodedNBT.isEmpty()
                             ? pbpl.encodedNBT.substring(0, Math.min(pbpl.encodedNBT.length(), 64)) + "..."
-                            : "none"),                           // Safe truncated NBT
-                        pbpl.timestamp,                          // Timestamp
-                        exception.getClass().getSimpleName(),    // Exception type
-                        exception.getMessage()                   // Exception message
+                            : "none"), // Safe truncated NBT
+                        pbpl.timestamp, // Timestamp
+                        exception.getClass()
+                            .getSimpleName(), // Exception type
+                        exception.getMessage() // Exception message
                     );
 
                     // Optionally print full stack trace for debugging
@@ -100,17 +118,17 @@ public class PlayerBlockPlaceLogger extends GenericPositionalLogger<PlayerBlockP
                     // Render a fallback “error” block to visualize failed event
                     RenderUtils.renderBlockInWorld(
                         e,
-                        pbpl.x, pbpl.y, pbpl.z,
+                        pbpl.x,
+                        pbpl.y,
+                        pbpl.z,
                         Block.getIdFromBlock(com.colen.tempora.Tempora.renderingErrorBlock),
                         0,
                         null,
-                        getLoggerType()
-                    );
+                        getLoggerType());
                 }
             }
         }
     }
-
 
     @Override
     public List<ColumnDef> getCustomTableColumns() {

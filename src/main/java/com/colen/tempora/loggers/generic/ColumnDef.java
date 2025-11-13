@@ -11,7 +11,8 @@ public class ColumnDef {
         this.type = type;
         this.extraCondition = extraCondition;
 
-        String upper = extraCondition.toUpperCase().trim();
+        String upper = extraCondition.toUpperCase()
+            .trim();
         boolean isPrimary = upper.startsWith("PRIMARY KEY");
         boolean hasDefault = upper.contains("DEFAULT");
 

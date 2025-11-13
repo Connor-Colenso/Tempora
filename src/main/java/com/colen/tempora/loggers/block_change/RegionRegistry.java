@@ -92,14 +92,16 @@ public class RegionRegistry extends WorldSavedData {
     @Override
     public void writeToNBT(NBTTagCompound tag) {
         NBTTagList list = new NBTTagList();
-        for (List<BlockChangeRecordingRegion> l : byDim.values()) for (BlockChangeRecordingRegion r : l) list.appendTag(r.writeNBT());
+        for (List<BlockChangeRecordingRegion> l : byDim.values())
+            for (BlockChangeRecordingRegion r : l) list.appendTag(r.writeNBT());
         tag.setTag("regions", list);
     }
 
     // Singleton access
     private static RegionRegistry get() {
         if (instance == null) {
-            // Hard code to dim 0, so we can store all info in one dim, even know each has dim int data. This makes data retrieval much easier programmatically.
+            // Hard code to dim 0, so we can store all info in one dim, even know each has dim int data. This makes data
+            // retrieval much easier programmatically.
             World overworld = MinecraftServer.getServer()
                 .worldServerForDimension(0);
             instance = (RegionRegistry) overworld.perWorldStorage.loadData(RegionRegistry.class, KEY);

@@ -4,11 +4,6 @@ import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
 import net.minecraft.util.ChatComponentTranslation;
-import net.minecraft.util.EnumChatFormatting;
-import net.minecraft.world.World;
-
-import com.colen.tempora.loggers.block_change.BlockChangeRecordingRegion;
-import com.colen.tempora.loggers.block_change.RegionRegistry;
 
 public class CommandTemporaUndo extends CommandBase {
 
@@ -31,8 +26,7 @@ public class CommandTemporaUndo extends CommandBase {
     public void processCommand(ICommandSender sender, String[] args) {
         if (args.length != 1) throw new WrongUsageException(getCommandUsage(sender));
 
-        ChatComponentTranslation msg = new ChatComponentTranslation(
-            "command.tempora.region.created", 1);
+        ChatComponentTranslation msg = new ChatComponentTranslation("command.tempora.region.created", 1);
 
         sender.addChatMessage(msg);
     }

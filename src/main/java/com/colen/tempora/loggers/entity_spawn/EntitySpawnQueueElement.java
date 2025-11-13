@@ -2,10 +2,10 @@ package com.colen.tempora.loggers.entity_spawn;
 
 import static com.colen.tempora.utils.GenericUtils.entityUUIDChatComponent;
 
-import com.colen.tempora.enums.LoggerEnum;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 
+import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.utils.PlayerUtils;
 import com.colen.tempora.utils.TimeUtils;
@@ -46,9 +46,12 @@ public class EntitySpawnQueueElement extends GenericQueueElement {
         IChatComponent timeAgo = TimeUtils.formatTime(timestamp, uuid);
         IChatComponent uuidChatComponent = entityUUIDChatComponent(entityUUID);
 
-        return new ChatComponentTranslation("message.entity_spawn",
+        return new ChatComponentTranslation(
+            "message.entity_spawn",
             new ChatComponentTranslation("entity." + entityName + ".name"),
-            uuidChatComponent, coords, timeAgo);
+            uuidChatComponent,
+            coords,
+            timeAgo);
     }
 
     @Override

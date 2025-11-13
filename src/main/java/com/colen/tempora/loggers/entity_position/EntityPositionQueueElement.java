@@ -1,6 +1,5 @@
 package com.colen.tempora.loggers.entity_position;
 
-import com.colen.tempora.enums.LoggerEnum;
 import net.minecraft.event.ClickEvent;
 import net.minecraft.event.HoverEvent;
 import net.minecraft.util.ChatComponentText;
@@ -9,6 +8,7 @@ import net.minecraft.util.ChatStyle;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
+import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.utils.PlayerUtils;
 import com.colen.tempora.utils.TimeUtils;
@@ -57,9 +57,12 @@ public class EntityPositionQueueElement extends GenericQueueElement {
                 .setChatClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, entityUUID))
                 .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, clickToCopy)));
 
-        return new ChatComponentTranslation("message.entity_position",
+        return new ChatComponentTranslation(
+            "message.entity_position",
             new ChatComponentTranslation("entity." + entityName + ".name"),
-            uuidChatComponent, coords, timeAgo);
+            uuidChatComponent,
+            coords,
+            timeAgo);
     }
 
     @Override

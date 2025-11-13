@@ -14,12 +14,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-import com.colen.tempora.Tempora;
-import com.colen.tempora.utils.EventLoggingHelper;
-import com.colen.tempora.utils.nbt.NBTConverter;
-import cpw.mods.fml.common.FMLLog;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
@@ -32,15 +26,21 @@ import net.minecraftforge.event.world.BlockEvent;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.colen.tempora.Tempora;
 import com.colen.tempora.TemporaUtils;
 import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.loggers.generic.ColumnDef;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.rendering.RenderUtils;
+import com.colen.tempora.utils.EventLoggingHelper;
+import com.colen.tempora.utils.nbt.NBTConverter;
 
+import cpw.mods.fml.common.FMLLog;
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 
 public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockBreakQueueElement> {
 
@@ -64,25 +64,38 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
                         nbt = NBTConverter.decodeFromString(pbbe.encodedNBT);
                     }
 
-                    RenderUtils.renderBlockInWorld(e, element.x, element.y, element.z, pbbe.blockID, pbbe.metadata, nbt, getLoggerType());
+                    RenderUtils.renderBlockInWorld(
+                        e,
+                        element.x,
+                        element.y,
+                        element.z,
+                        pbbe.blockID,
+                        pbbe.metadata,
+                        nbt,
+                        getLoggerType());
                 } catch (Exception exception) {
                     // Render an error block here instead, if something went critically wrong.
                     FMLLog.warning(
-                        "[Tempora] Failed to render %s event (eventID=%s) at (%.1f, %.1f, %.1f) in dim %d. " +
-                            "BlockID=%d:%d PickBlock=%d:%d Player=%s NBT=%s Timestamp=%d | Exception: %s: %s",
-                        getLoggerType(),                        // LoggerEnum
-                        pbbe.eventID,                           // Unique ID
-                        pbbe.x, pbbe.y, pbbe.z,                 // Coordinates
-                        pbbe.dimensionId,                       // Dimension ID
-                        pbbe.blockID, pbbe.metadata,            // Block ID + metadata
-                        pbbe.pickBlockID, pbbe.pickBlockMeta,   // Pick block (if any)
-                        pbbe.playerUUIDWhoBrokeBlock,           // Player UUID
+                        "[Tempora] Failed to render %s event (eventID=%s) at (%.1f, %.1f, %.1f) in dim %d. "
+                            + "BlockID=%d:%d PickBlock=%d:%d Player=%s NBT=%s Timestamp=%d | Exception: %s: %s",
+                        getLoggerType(), // LoggerEnum
+                        pbbe.eventID, // Unique ID
+                        pbbe.x,
+                        pbbe.y,
+                        pbbe.z, // Coordinates
+                        pbbe.dimensionId, // Dimension ID
+                        pbbe.blockID,
+                        pbbe.metadata, // Block ID + metadata
+                        pbbe.pickBlockID,
+                        pbbe.pickBlockMeta, // Pick block (if any)
+                        pbbe.playerUUIDWhoBrokeBlock, // Player UUID
                         (pbbe.encodedNBT != null && !pbbe.encodedNBT.isEmpty()
                             ? pbbe.encodedNBT.substring(0, Math.min(pbbe.encodedNBT.length(), 64)) + "..."
-                            : "none"),                          // Safe truncated NBT preview
-                        pbbe.timestamp,                         // Timestamp
-                        exception.getClass().getSimpleName(),   // Exception type
-                        exception.getMessage()                  // Exception message
+                            : "none"), // Safe truncated NBT preview
+                        pbbe.timestamp, // Timestamp
+                        exception.getClass()
+                            .getSimpleName(), // Exception type
+                        exception.getMessage() // Exception message
                     );
 
                     // Optionally print full stack trace to console for devs
@@ -90,12 +103,13 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
 
                     RenderUtils.renderBlockInWorld(
                         e,
-                        pbbe.x, pbbe.y, pbbe.z,
+                        pbbe.x,
+                        pbbe.y,
+                        pbbe.z,
                         Block.getIdFromBlock(Tempora.renderingErrorBlock),
                         0,
                         null,
-                        getLoggerType()
-                    );
+                        getLoggerType());
                 }
             }
         }
@@ -114,10 +128,14 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
 
     @Override
     public void handleCustomLoggerConfig(Configuration config) {
-        logNBT = config.getBoolean("logNBT", getSQLTableName(), true, """
-            If true, it will log the NBT of all blocks changes which interact with this event. This improves rendering of events and gives a better history.
-            WARNING: NBT may be large and this will cause the database to grow much quicker.
-            """);
+        logNBT = config.getBoolean(
+            "logNBT",
+            getSQLTableName(),
+            true,
+            """
+                If true, it will log the NBT of all blocks changes which interact with this event. This improves rendering of events and gives a better history.
+                WARNING: NBT may be large and this will cause the database to grow much quicker.
+                """);
     }
 
     @Override

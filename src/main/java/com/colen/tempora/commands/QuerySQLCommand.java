@@ -108,7 +108,10 @@ public class QuerySQLCommand extends CommandBase {
 
             // We do this first, to not bury the info below, in case of a long response.
             for (GenericQueueElement queueElement : output) {
-                sender.addChatMessage(queueElement.localiseText(entityPlayerMP.getPersistentID().toString()));
+                sender.addChatMessage(
+                    queueElement.localiseText(
+                        entityPlayerMP.getPersistentID()
+                            .toString()));
 
                 // Render info.
                 queueElement.sendEventToClientForRendering(entityPlayerMP);
@@ -186,7 +189,8 @@ public class QuerySQLCommand extends CommandBase {
             .startsWith("select");
     }
 
-    private List<GenericQueueElement> executeReadOnlyQuery(GenericPositionalLogger<?> logger, String sql) throws SQLException {
+    private List<GenericQueueElement> executeReadOnlyQuery(GenericPositionalLogger<?> logger, String sql)
+        throws SQLException {
 
         try (Connection roConn = logger.getReadOnlyConnection();
             PreparedStatement stmt = roConn.prepareStatement(sql);

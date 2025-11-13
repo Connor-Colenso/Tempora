@@ -139,8 +139,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
         List<ColumnDef> columns = getAllTableColumns();
 
         // Step 1: CREATE TABLE IF NOT EXISTS
-        StringBuilder createSQL = new StringBuilder("CREATE TABLE IF NOT EXISTS ")
-            .append(tableName)
+        StringBuilder createSQL = new StringBuilder("CREATE TABLE IF NOT EXISTS ").append(tableName)
             .append(" (");
 
         for (int i = 0; i < columns.size(); i++) {
@@ -150,7 +149,8 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
                 .append(" ")
                 .append(col.type);
             if (col.extraCondition != null && !col.extraCondition.isEmpty()) {
-                createSQL.append(" ").append(col.extraCondition);
+                createSQL.append(" ")
+                    .append(col.extraCondition);
             }
         }
 

@@ -8,12 +8,13 @@ import java.util.Map;
 
 import javax.annotation.Nullable;
 
-import it.unimi.dsi.fastutil.Pair;
-import it.unimi.dsi.fastutil.objects.ObjectObjectImmutablePair;
 import net.minecraft.command.CommandException;
 import net.minecraft.event.HoverEvent;
 import net.minecraft.util.*;
 import net.minecraftforge.common.config.Configuration;
+
+import it.unimi.dsi.fastutil.Pair;
+import it.unimi.dsi.fastutil.objects.ObjectObjectImmutablePair;
 
 public class TimeUtils {
 
@@ -118,13 +119,11 @@ public class TimeUtils {
         ChatComponentTranslation text = new ChatComponentTranslation(timePair.first(), timePair.second());
 
         ChatComponentTranslation hoverText = new ChatComponentTranslation(formattedTime);
-        hoverText.getChatStyle().setColor(EnumChatFormatting.GRAY);
+        hoverText.getChatStyle()
+            .setColor(EnumChatFormatting.GRAY);
 
         // Add hover
-        text.setChatStyle(
-            new ChatStyle().setChatHoverEvent(
-                new HoverEvent(HoverEvent.Action.SHOW_TEXT, hoverText))
-        );
+        text.setChatStyle(new ChatStyle().setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hoverText)));
 
         return text;
     }

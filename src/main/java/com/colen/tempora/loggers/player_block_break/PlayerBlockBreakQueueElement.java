@@ -1,9 +1,11 @@
 package com.colen.tempora.loggers.player_block_break;
 
-import com.colen.tempora.enums.LoggerEnum;
+import static com.colen.tempora.utils.nbt.NBTConverter.NO_NBT;
+
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 
+import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.utils.BlockUtils;
 import com.colen.tempora.utils.PlayerUtils;
@@ -11,8 +13,6 @@ import com.colen.tempora.utils.TimeUtils;
 
 import cpw.mods.fml.common.network.ByteBufUtils;
 import io.netty.buffer.ByteBuf;
-
-import static com.colen.tempora.utils.nbt.NBTConverter.NO_NBT;
 
 public class PlayerBlockBreakQueueElement extends GenericQueueElement {
 

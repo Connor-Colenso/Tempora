@@ -2,8 +2,8 @@ package com.colen.tempora.loggers.generic;
 
 import static com.colen.tempora.Tempora.NETWORK;
 
-import com.colen.tempora.enums.LoggerEnum;
-import cpw.mods.fml.common.FMLCommonHandler;
+import java.util.UUID;
+
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.event.ClickEvent;
 import net.minecraft.event.HoverEvent;
@@ -11,11 +11,10 @@ import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
+import com.colen.tempora.enums.LoggerEnum;
+
 import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import io.netty.buffer.ByteBuf;
-
-import java.nio.charset.StandardCharsets;
-import java.util.UUID;
 
 public abstract class GenericQueueElement implements IMessage {
 
@@ -25,8 +24,10 @@ public abstract class GenericQueueElement implements IMessage {
     public int dimensionId;
     public long timestamp;
 
-    // This initialised eventID will be overwritten on the client side, when it reads from the byte buffer in 'fromBytes'.
-    public String eventID = UUID.randomUUID().toString();
+    // This initialised eventID will be overwritten on the client side, when it reads from the byte buffer in
+    // 'fromBytes'.
+    public String eventID = UUID.randomUUID()
+        .toString();
 
     // This field purely dictates when an event was made, so we know when to stop rendering it in world. It is only
     // relevant on the client.

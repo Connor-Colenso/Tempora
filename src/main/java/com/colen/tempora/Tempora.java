@@ -2,9 +2,6 @@ package com.colen.tempora;
 
 import static com.colen.tempora.config.Config.synchronizeConfiguration;
 
-import codechicken.nei.api.API;
-import com.colen.tempora.blocks.RenderingErrorBlock;
-import com.colen.tempora.blocks.RenderingErrorItemBlock;
 import net.minecraft.block.Block;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.common.MinecraftForge;
@@ -13,6 +10,8 @@ import net.minecraftforge.common.config.Configuration;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.colen.tempora.blocks.RenderingErrorBlock;
+import com.colen.tempora.blocks.RenderingErrorItemBlock;
 import com.colen.tempora.commands.CreateRegion;
 import com.colen.tempora.commands.HomeChunkCommand;
 import com.colen.tempora.commands.ListRegionsCommand;
@@ -49,6 +48,7 @@ import com.colen.tempora.networking.PacketTimeZone;
 import com.colen.tempora.rendering.RenderEventsInWorld;
 import com.colen.tempora.rendering.RenderRegionsInWorld;
 
+import codechicken.nei.api.API;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.SidedProxy;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
