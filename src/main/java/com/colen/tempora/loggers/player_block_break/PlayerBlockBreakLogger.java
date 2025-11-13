@@ -19,7 +19,9 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.world.World;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.event.world.BlockEvent;
@@ -32,6 +34,7 @@ import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.loggers.generic.ColumnDef;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
+import com.colen.tempora.loggers.optional.ISupportsUndo;
 import com.colen.tempora.rendering.RenderUtils;
 import com.colen.tempora.utils.EventLoggingHelper;
 import com.colen.tempora.utils.nbt.NBTConverter;
@@ -42,7 +45,8 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockBreakQueueElement> {
+public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockBreakQueueElement>
+    implements ISupportsUndo {
 
     private static boolean logNBT;
 
@@ -246,5 +250,37 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
         }
 
         queueEvent(queueElement);
+    }
+
+    // Todo return enum determining why fail occurred?
+    @Override
+    public boolean undoEvent(String eventUUID) {
+
+        PlayerBlockBreakQueueElement queueElement = queryEventByEventID(eventUUID);
+
+        // NBT existed but was not logged, it is not safe to undo this event.
+        if (queueElement.encodedNBT.equals(NBT_DISABLED)) return false;
+
+        World w = MinecraftServer.getServer()
+            .worldServerForDimension(queueElement.dimensionId);
+
+        Block block = Block.getBlockById(queueElement.blockID);
+        if (block == null) return false;
+        w.setBlock((int) queueElement.x, (int) queueElement.y, (int) queueElement.z, block, queueElement.metadata, 2);
+
+        // Block had no NBT.
+        if (queueElement.encodedNBT.equals(NO_NBT)) return true;
+
+        try {
+            TileEntity tileEntity = TileEntity
+                .createAndLoadEntity(NBTConverter.decodeFromString(queueElement.encodedNBT));
+            w.setTileEntity((int) queueElement.x, (int) queueElement.y, (int) queueElement.z, tileEntity);
+        } catch (Exception e) {
+            // todo Improve this
+            e.printStackTrace();
+            return false;
+        }
+
+        return true;
     }
 }
