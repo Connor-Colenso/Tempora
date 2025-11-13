@@ -1,5 +1,7 @@
 package com.colen.tempora.commands;
 
+import com.colen.tempora.loggers.generic.GenericPositionalLogger;
+import com.colen.tempora.loggers.optional.ISupportsUndo;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
@@ -26,9 +28,15 @@ public class TemporaUndoCommand extends CommandBase {
     public void processCommand(ICommandSender sender, String[] args) {
         if (args.length != 2) throw new WrongUsageException(getCommandUsage(sender));
 
-        ChatComponentTranslation msg = new ChatComponentTranslation("command.tempora.region.created", 1);
+        String loggerName = args[0];
+        String eventID = args[1];
 
-        sender.addChatMessage(msg);
+        GenericPositionalLogger<?> genericLogger = GenericPositionalLogger.getLogger(loggerName);
+        if (genericLogger instanceof ISupportsUndo supportsUndo) {
+            String unlocalisedResponse = supportsUndo.undoEvent(eventID);
+            sender.addChatMessage(new ChatComponentTranslation(unlocalisedResponse));
+        } else {
+            throw new WrongUsageException("tempora.command.undo.not_undoable", loggerName);
+        }
     }
-
 }

@@ -10,6 +10,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
@@ -127,11 +128,7 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionQueueEleme
         while (resultSet.next()) {
 
             ExplosionQueueElement queueElement = new ExplosionQueueElement();
-            queueElement.x = resultSet.getDouble("x");
-            queueElement.y = resultSet.getDouble("y");
-            queueElement.z = resultSet.getDouble("z");
-            queueElement.dimensionId = resultSet.getInt("dimensionID");
-            queueElement.strength = resultSet.getFloat("strength");
+            queueElement.populateDefaultFieldsFromResultSet(resultSet);
 
             String exploderUUID = resultSet.getString("exploderUUID");
             if (exploderUUID.equals(TemporaUtils.UNKNOWN_PLAYER_NAME)) {
@@ -147,8 +144,8 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionQueueEleme
                 queueElement.closestPlayerUUID = PlayerUtils.UUIDToName(closestPlayerUUID);
             }
 
+            queueElement.strength = resultSet.getFloat("strength");
             queueElement.closestPlayerDistance = resultSet.getDouble("closestPlayerDistance");
-            queueElement.timestamp = resultSet.getLong("timestamp");
             queueElement.affectedBlockCoordinates = resultSet.getString("affectedBlockCoordinates");
 
             eventList.add(queueElement);
@@ -233,6 +230,7 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionQueueEleme
         closestDistance = Math.sqrt(closestDistance); // Convert from square distance to actual distance
 
         ExplosionQueueElement queueElement = new ExplosionQueueElement();
+        queueElement.eventID = UUID.randomUUID().toString();
         queueElement.x = event.explosion.explosionX;
         queueElement.y = event.explosion.explosionY;
         queueElement.z = event.explosion.explosionZ;

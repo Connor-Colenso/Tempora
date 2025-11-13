@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
@@ -139,15 +140,12 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
         ArrayList<GenericQueueElement> events = new ArrayList<>();
         while (resultSet.next()) {
             BlockChangeQueueElement queueElement = new BlockChangeQueueElement();
+            queueElement.populateDefaultFieldsFromResultSet(resultSet);
+
             queueElement.blockID = resultSet.getInt("blockId");
             queueElement.metadata = resultSet.getInt("metadata");
             queueElement.stackTrace = resultSet.getString("stackTrace");
             queueElement.encodedNBT = resultSet.getString("encodedNBT");
-            queueElement.x = resultSet.getInt("x");
-            queueElement.y = resultSet.getInt("y");
-            queueElement.z = resultSet.getInt("z");
-            queueElement.dimensionId = resultSet.getInt("dimensionID");
-            queueElement.timestamp = resultSet.getLong("timestamp");
             queueElement.closestPlayerUUID = PlayerUtils.UUIDToName(resultSet.getString("closestPlayerUUID"));
             queueElement.closestPlayerDistance = resultSet.getDouble("closestPlayerDistance");
 
@@ -174,6 +172,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
         if (!isChunkPopulatedAt(world, x, z)) return;
 
         final BlockChangeQueueElement queueElement = new BlockChangeQueueElement();
+        queueElement.eventID = UUID.randomUUID().toString();
         queueElement.x = x;
         queueElement.y = y;
         queueElement.z = z;

@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
@@ -106,21 +107,18 @@ public class InventoryLogger extends GenericPositionalLogger<InventoryQueueEleme
     }
 
     @Override
-    public List<GenericQueueElement> generateQueryResults(ResultSet rs) throws SQLException {
+    public List<GenericQueueElement> generateQueryResults(ResultSet resultSet) throws SQLException {
         ArrayList<GenericQueueElement> eventList = new ArrayList<>();
-        while (rs.next()) {
+        while (resultSet.next()) {
             InventoryQueueElement queueElement = new InventoryQueueElement();
-            queueElement.x = rs.getDouble("x");
-            queueElement.y = rs.getDouble("y");
-            queueElement.z = rs.getDouble("z");
-            queueElement.dimensionId = rs.getInt("dimensionID");
-            queueElement.timestamp = rs.getLong("timestamp");
-            queueElement.containerName = rs.getString("containerName");
-            queueElement.playerUUID = rs.getString("playerUUID");
-            queueElement.interactionType = rs.getInt("interactionType");
-            queueElement.itemId = rs.getInt("itemId");
-            queueElement.itemMetadata = rs.getInt("itemMetadata");
-            queueElement.stackSize = rs.getInt("stacksize");
+            queueElement.populateDefaultFieldsFromResultSet(resultSet);
+
+            queueElement.containerName = resultSet.getString("containerName");
+            queueElement.playerUUID = resultSet.getString("playerUUID");
+            queueElement.interactionType = resultSet.getInt("interactionType");
+            queueElement.itemId = resultSet.getInt("itemId");
+            queueElement.itemMetadata = resultSet.getInt("itemMetadata");
+            queueElement.stackSize = resultSet.getInt("stacksize");
             eventList.add(queueElement);
         }
         return eventList;
@@ -163,6 +161,7 @@ public class InventoryLogger extends GenericPositionalLogger<InventoryQueueEleme
         copyStack.stackSize = Math.abs(delta);
 
         InventoryQueueElement queueElement = new InventoryQueueElement();
+        queueElement.eventID = UUID.randomUUID().toString();
 
         if (inventory instanceof InventoryPlayer) {
             queueElement.containerName = inventory.getInventoryName();

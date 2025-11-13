@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -149,13 +150,8 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
             ArrayList<GenericQueueElement> eventList = new ArrayList<>();
 
             while (resultSet.next()) {
-
                 PlayerBlockBreakQueueElement queueElement = new PlayerBlockBreakQueueElement();
-                queueElement.x = resultSet.getInt("x");
-                queueElement.y = resultSet.getInt("y");
-                queueElement.z = resultSet.getInt("z");
-                queueElement.dimensionId = resultSet.getInt("dimensionID");
-                queueElement.timestamp = resultSet.getLong("timestamp");
+                queueElement.populateDefaultFieldsFromResultSet(resultSet);
 
                 queueElement.encodedNBT = resultSet.getString("encodedNBT");
                 queueElement.playerUUIDWhoBrokeBlock = resultSet.getString("playerUUID");
@@ -208,6 +204,7 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
         if (event.isCanceled()) return;
 
         PlayerBlockBreakQueueElement queueElement = new PlayerBlockBreakQueueElement();
+        queueElement.eventID = UUID.randomUUID().toString();
         queueElement.x = event.x;
         queueElement.y = event.y;
         queueElement.z = event.z;
@@ -252,35 +249,34 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
         queueEvent(queueElement);
     }
 
-    // Todo return enum determining why fail occurred?
     @Override
-    public boolean undoEvent(String eventUUID) {
+    public String undoEvent(String eventUUID) {
 
         PlayerBlockBreakQueueElement queueElement = queryEventByEventID(eventUUID);
 
         // NBT existed but was not logged, it is not safe to undo this event.
-        if (queueElement.encodedNBT.equals(NBT_DISABLED)) return false;
+        if (queueElement.encodedNBT.equals(NBT_DISABLED)) return "tempora.cannot.block.break.undo.nbt.logging.disabled";
 
         World w = MinecraftServer.getServer()
             .worldServerForDimension(queueElement.dimensionId);
 
         Block block = Block.getBlockById(queueElement.blockID);
-        if (block == null) return false;
+        if (block == null) return "tempora.cannot.block.break.undo.block.not.found";
         w.setBlock((int) queueElement.x, (int) queueElement.y, (int) queueElement.z, block, queueElement.metadata, 2);
-
+        // Just to ensure meta is being set right, stops blocks interfering.
+        w.setBlockMetadataWithNotify((int) queueElement.x, (int) queueElement.y, (int) queueElement.z, queueElement.metadata, 2);
         // Block had no NBT.
-        if (queueElement.encodedNBT.equals(NO_NBT)) return true;
+        if (queueElement.encodedNBT.equals(NO_NBT)) return "tempora.undo.success";
 
         try {
             TileEntity tileEntity = TileEntity
                 .createAndLoadEntity(NBTConverter.decodeFromString(queueElement.encodedNBT));
             w.setTileEntity((int) queueElement.x, (int) queueElement.y, (int) queueElement.z, tileEntity);
         } catch (Exception e) {
-            // todo Improve this
             e.printStackTrace();
-            return false;
+            return "tempora.undo.block.break.unknown.error";
         }
 
-        return true;
+        return "tempora.undo.success";
     }
 }
