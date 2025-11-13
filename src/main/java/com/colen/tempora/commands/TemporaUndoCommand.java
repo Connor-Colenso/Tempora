@@ -5,7 +5,7 @@ import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
 import net.minecraft.util.ChatComponentTranslation;
 
-public class CommandTemporaUndo extends CommandBase {
+public class TemporaUndoCommand extends CommandBase {
 
     @Override
     public String getCommandName() {
@@ -14,7 +14,7 @@ public class CommandTemporaUndo extends CommandBase {
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/tempora_undo event_id";
+        return "/tempora_undo logger_name event_id";
     }
 
     @Override
@@ -24,7 +24,7 @@ public class CommandTemporaUndo extends CommandBase {
 
     @Override
     public void processCommand(ICommandSender sender, String[] args) {
-        if (args.length != 1) throw new WrongUsageException(getCommandUsage(sender));
+        if (args.length != 2) throw new WrongUsageException(getCommandUsage(sender));
 
         ChatComponentTranslation msg = new ChatComponentTranslation("command.tempora.region.created", 1);
 

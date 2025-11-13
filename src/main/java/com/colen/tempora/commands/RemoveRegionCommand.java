@@ -18,7 +18,7 @@ import com.colen.tempora.loggers.block_change.RegionRegistry;
  * Deletes every stored region that currently contains the issuing player.
  * (If regions overlap, they are all removed.)
  */
-public class RemoveRegion extends CommandBase {
+public class RemoveRegionCommand extends CommandBase {
 
     @Override
     public String getCommandName() {
