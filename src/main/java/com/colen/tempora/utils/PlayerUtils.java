@@ -24,6 +24,7 @@ public class PlayerUtils {
 
     public static String UUIDToName(String UUIDString) {
         if (UUIDString.equals(UNKNOWN_PLAYER_NAME)) return UNKNOWN_PLAYER_NAME;
+        if (! isUUID(UUIDString)) return UUIDString;
 
         // To get a name from a UUID:
         UUID playerUUID = UUID.fromString(UUIDString); // field_152366_X

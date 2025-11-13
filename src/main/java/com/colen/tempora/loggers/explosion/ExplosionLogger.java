@@ -209,8 +209,17 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionQueueEleme
         final double y = event.explosion.explosionY;
         final double z = event.explosion.explosionZ;
         final Entity exploder = event.explosion.getExplosivePlacedBy();
-        final String exploderName = (exploder != null) ? exploder.getUniqueID()
-            .toString() : TemporaUtils.UNKNOWN_PLAYER_NAME;
+        final String exploderName;
+        if (exploder != null) {
+            exploderName = exploder.getUniqueID().toString();
+        } else if (event.explosion.exploder != null) {
+            exploderName = event.explosion.exploder.getClass().getSimpleName();
+        } else {
+            exploderName = "[UNKNOWN]";
+        }
+
+
+
 
         EntityPlayer closestPlayer = null;
         double closestDistance = Double.MAX_VALUE;
