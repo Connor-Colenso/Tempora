@@ -7,6 +7,9 @@ import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
 import net.minecraft.util.ChatComponentTranslation;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class TemporaUndoCommand extends CommandBase {
 
     @Override
@@ -16,7 +19,7 @@ public class TemporaUndoCommand extends CommandBase {
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/tempora_undo logger_name event_id";
+        return "/tempora_undo <logger_name> <event_id>";
     }
 
     @Override
@@ -35,8 +38,26 @@ public class TemporaUndoCommand extends CommandBase {
         if (genericLogger instanceof ISupportsUndo supportsUndo) {
             String unlocalisedResponse = supportsUndo.undoEvent(eventID);
             sender.addChatMessage(new ChatComponentTranslation(unlocalisedResponse));
+        } else if (genericLogger == null) {
+            throw new WrongUsageException("tempora.command.undo.wrong.logger", loggerName);
         } else {
             throw new WrongUsageException("tempora.command.undo.not_undoable", loggerName);
         }
+    }
+
+    @Override
+    public List<String> addTabCompletionOptions(ICommandSender sender, String[] args) {
+        if (args.length == 1) {
+            String partialFilter = args[0].toLowerCase();
+            List<String> matchingOptions = new ArrayList<>();
+            for (String option : GenericPositionalLogger.getAllLoggerNames()) {
+                if (option.toLowerCase()
+                    .startsWith(partialFilter)) {
+                    matchingOptions.add(option);
+                }
+            }
+            return matchingOptions;
+        }
+        return null; // Return null when there are no matches.
     }
 }
