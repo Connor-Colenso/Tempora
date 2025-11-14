@@ -78,3 +78,6 @@ tempora.undo.success=Successfully undid the event.
 
 tempora.undo.query.display=[UNDO]
 tempora.undo.query.hover=Clicking this will revert the events effect on the world.
+
+tempora.command.undo.not_undoable=The event type %s does not support undo operations.
+tempora.command.undo.wrong.logger=The event type %s does not exist.
