@@ -383,7 +383,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
                 String sql = "SELECT * FROM " + logger.getSQLTableName()
                     + " WHERE ABS(x - ?) <= ?  AND ABS(y - ?) <= ?  AND ABS(z - ?) <= ? "
                     + "   AND dimensionID = ? AND timestamp >= ? "
-                    + " ORDER BY timestamp DESC LIMIT ?";
+                    + " ORDER BY timestamp LIMIT ?";
 
                 try (PreparedStatement ps = logger.getReadOnlyConnection()
                     .prepareStatement(sql)) {
@@ -408,7 +408,6 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
                     try (ResultSet rs = ps.executeQuery()) {
                         List<GenericQueueElement> packets = logger.generateQueryResults(rs);
-                        Collections.reverse(packets);
 
                         if (packets.isEmpty()) {
                             IChatComponent noResults = new ChatComponentTranslation(
