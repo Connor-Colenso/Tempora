@@ -26,7 +26,6 @@ public class TemporaWand extends Item {
         this.setTextureName("tempora:tempora_wand");
     }
 
-
     @Override
     public boolean onItemUse(ItemStack stack, EntityPlayer player, World world, int x, int y, int z, int side,
         float hitX, float hitY, float hitZ) {

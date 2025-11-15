@@ -125,7 +125,8 @@ public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovement
             .getTickCounter() % playerMovementLoggingInterval != 0) return;
 
         PlayerMovementQueueElement queueElement = new PlayerMovementQueueElement();
-        queueElement.eventID = UUID.randomUUID().toString();
+        queueElement.eventID = UUID.randomUUID()
+            .toString();
         queueElement.x = player.posX;
         queueElement.y = player.posY;
         queueElement.z = player.posZ;

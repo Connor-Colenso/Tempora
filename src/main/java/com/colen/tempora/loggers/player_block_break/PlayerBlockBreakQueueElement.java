@@ -66,8 +66,7 @@ public class PlayerBlockBreakQueueElement extends GenericQueueElement {
             metadata, // metadata
             coords, // clickable coordinates
             timeAgo, // localized relative time
-            generateUndoCommand(getLoggerType(), eventID)
-        );
+            generateUndoCommand(getLoggerType(), eventID));
     }
 
     @Override

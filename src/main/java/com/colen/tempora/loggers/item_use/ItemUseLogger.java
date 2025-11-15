@@ -122,7 +122,8 @@ public class ItemUseLogger extends GenericPositionalLogger<ItemUseQueueElement> 
         final ItemStack usedItem = player.getCurrentEquippedItem();
 
         ItemUseQueueElement queueElement = new ItemUseQueueElement();
-        queueElement.eventID = UUID.randomUUID().toString();
+        queueElement.eventID = UUID.randomUUID()
+            .toString();
         queueElement.x = player.posX;
         queueElement.y = player.posY;
         queueElement.z = player.posZ;

@@ -136,7 +136,8 @@ public class EntityPositionLogger extends GenericPositionalLogger<EntityPosition
         if (event.entity instanceof EntityXPOrb) return;
 
         EntityPositionQueueElement queueElement = new EntityPositionQueueElement();
-        queueElement.eventID = UUID.randomUUID().toString();
+        queueElement.eventID = UUID.randomUUID()
+            .toString();
         queueElement.x = event.entityLiving.posX;
         queueElement.y = event.entityLiving.posY;
         queueElement.z = event.entityLiving.posZ;

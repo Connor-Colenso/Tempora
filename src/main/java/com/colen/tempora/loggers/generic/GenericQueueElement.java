@@ -5,7 +5,6 @@ import static com.colen.tempora.Tempora.NETWORK;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import cpw.mods.fml.common.network.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.event.ClickEvent;
 import net.minecraft.event.HoverEvent;
@@ -15,6 +14,7 @@ import net.minecraft.util.IChatComponent;
 
 import com.colen.tempora.enums.LoggerEnum;
 
+import cpw.mods.fml.common.network.ByteBufUtils;
 import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import io.netty.buffer.ByteBuf;
 
@@ -33,7 +33,7 @@ public abstract class GenericQueueElement implements IMessage {
 
     public abstract IChatComponent localiseText(String uuid);
 
-    public void populateDefaultFieldsFromResultSet(ResultSet resultSet) throws SQLException{
+    public void populateDefaultFieldsFromResultSet(ResultSet resultSet) throws SQLException {
         x = resultSet.getDouble("x");
         y = resultSet.getDouble("y");
         z = resultSet.getDouble("z");
@@ -145,8 +145,7 @@ public abstract class GenericQueueElement implements IMessage {
         // Todo link to command file, using a constant
         String cmd = "/tempora_undo " + loggerName + " " + eventID;
 
-        IChatComponent hoverText = new ChatComponentTranslation(
-            "tempora.undo.query.hover");
+        IChatComponent hoverText = new ChatComponentTranslation("tempora.undo.query.hover");
         hoverText.getChatStyle()
             .setColor(EnumChatFormatting.GRAY);
 

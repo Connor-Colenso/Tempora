@@ -466,8 +466,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
         synchronized (GenericPositionalLogger.class) {
 
-            String sql = "SELECT * FROM " + getSQLTableName()
-                + " WHERE eventID == ? LIMIT 1";
+            String sql = "SELECT * FROM " + getSQLTableName() + " WHERE eventID == ? LIMIT 1";
 
             try (PreparedStatement ps = getReadOnlyConnection().prepareStatement(sql)) {
 

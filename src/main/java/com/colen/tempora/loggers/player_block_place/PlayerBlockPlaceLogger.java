@@ -199,7 +199,8 @@ public class PlayerBlockPlaceLogger extends GenericPositionalLogger<PlayerBlockP
         if (event.isCanceled()) return;
 
         PlayerBlockPlaceQueueElement queueElement = new PlayerBlockPlaceQueueElement();
-        queueElement.eventID = UUID.randomUUID().toString();
+        queueElement.eventID = UUID.randomUUID()
+            .toString();
         queueElement.x = event.x;
         queueElement.y = event.y;
         queueElement.z = event.z;

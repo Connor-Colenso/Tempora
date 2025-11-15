@@ -83,7 +83,8 @@ public class EntitySpawnLogger extends GenericPositionalLogger<EntitySpawnQueueE
         entityMixin.setTempora$HasBeenLogged(true);
 
         EntitySpawnQueueElement queueElement = new EntitySpawnQueueElement();
-        queueElement.eventID = UUID.randomUUID().toString();
+        queueElement.eventID = UUID.randomUUID()
+            .toString();
         queueElement.x = event.entity.posX;
         queueElement.y = event.entity.posY;
         queueElement.z = event.entity.posZ;
