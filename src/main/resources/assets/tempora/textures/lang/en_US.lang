@@ -81,3 +81,5 @@ tempora.undo.query.hover=Clicking this will revert the events effect on the worl
 
 tempora.command.undo.not_undoable=The event type %s does not support undo operations.
 tempora.command.undo.wrong.logger=The event type %s does not exist.
+tempora.event.not.found=No event with the ID %s could be found in %s.
+
