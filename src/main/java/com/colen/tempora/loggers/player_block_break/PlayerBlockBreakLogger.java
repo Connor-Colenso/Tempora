@@ -3,8 +3,9 @@ package com.colen.tempora.loggers.player_block_break;
 import static com.colen.tempora.TemporaUtils.isClientSide;
 import static com.colen.tempora.utils.BlockUtils.getPickBlockSafe;
 import static com.colen.tempora.utils.DatabaseUtils.MISSING_STRING_DATA;
-import static com.colen.tempora.utils.nbt.NBTConverter.NBT_DISABLED;
-import static com.colen.tempora.utils.nbt.NBTConverter.NO_NBT;
+import static com.colen.tempora.utils.nbt.NBTUtils.NBT_DISABLED;
+import static com.colen.tempora.utils.nbt.NBTUtils.NO_NBT;
+import static com.colen.tempora.utils.nbt.NBTUtils.getEncodedTileEntityNBT;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -40,7 +41,7 @@ import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.loggers.optional.ISupportsUndo;
 import com.colen.tempora.rendering.RenderUtils;
 import com.colen.tempora.utils.EventLoggingHelper;
-import com.colen.tempora.utils.nbt.NBTConverter;
+import com.colen.tempora.utils.nbt.NBTUtils;
 
 import cpw.mods.fml.common.FMLLog;
 import cpw.mods.fml.common.eventhandler.EventPriority;
@@ -68,7 +69,7 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
                 try {
                     NBTTagCompound nbt = null;
                     if (!Objects.equals(pbbe.encodedNBT, NO_NBT) && !Objects.equals(pbbe.encodedNBT, NBT_DISABLED)) {
-                        nbt = NBTConverter.decodeFromString(pbbe.encodedNBT);
+                        nbt = NBTUtils.decodeFromString(pbbe.encodedNBT);
                     }
 
                     RenderUtils.renderBlockInWorld(
@@ -217,18 +218,7 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
         queueElement.blockID = Block.getIdFromBlock(event.block);
         queueElement.metadata = event.blockMetadata;
 
-        TileEntity tileEntity = event.world.getTileEntity(event.x, event.y, event.z);
-        if (tileEntity != null) {
-            if (logNBT) {
-                NBTTagCompound tag = new NBTTagCompound();
-                tileEntity.writeToNBT(tag);
-                queueElement.encodedNBT = NBTConverter.encodeToString(tag);
-            } else {
-                queueElement.encodedNBT = NBTConverter.NBT_DISABLED;
-            }
-        } else {
-            queueElement.encodedNBT = NO_NBT;
-        }
+        queueElement.encodedNBT = getEncodedTileEntityNBT(event.world, event.x, event.y, event.z, logNBT);
 
         // Calculate pickBlockID and pickBlockMeta using getPickBlock
         ItemStack pickStack = getPickBlockSafe(event.block, event.world, event.x, event.y, event.z);
@@ -283,10 +273,12 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
         if (queueElement.encodedNBT.equals(NO_NBT)) return new ChatComponentTranslation("tempora.undo.success");
 
         try {
-            TileEntity tileEntity = TileEntity
-                .createAndLoadEntity(NBTConverter.decodeFromString(queueElement.encodedNBT));
+            TileEntity tileEntity = TileEntity.createAndLoadEntity(NBTUtils.decodeFromString(queueElement.encodedNBT));
             w.setTileEntity((int) queueElement.x, (int) queueElement.y, (int) queueElement.z, tileEntity);
         } catch (Exception e) {
+            // Erase the block. Try stop world state having issues.
+            w.setBlockToAir((int) queueElement.x, (int) queueElement.y, (int) queueElement.z);
+
             e.printStackTrace();
             return new ChatComponentTranslation("tempora.undo.block.break.unknown.error");
         }

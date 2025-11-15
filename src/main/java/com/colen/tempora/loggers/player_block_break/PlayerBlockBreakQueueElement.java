@@ -1,7 +1,5 @@
 package com.colen.tempora.loggers.player_block_break;
 
-import static com.colen.tempora.utils.nbt.NBTConverter.NO_NBT;
-
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 
@@ -21,7 +19,7 @@ public class PlayerBlockBreakQueueElement extends GenericQueueElement {
     public int pickBlockID;
     public int pickBlockMeta;
     public String playerUUIDWhoBrokeBlock;
-    public String encodedNBT = NO_NBT;
+    public String encodedNBT;
 
     @Override
     public void fromBytes(ByteBuf buf) {

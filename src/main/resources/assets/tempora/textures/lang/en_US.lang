@@ -83,3 +83,7 @@ tempora.command.undo.not_undoable=The event type %s does not support undo operat
 tempora.command.undo.wrong.logger=The event type %s does not exist.
 tempora.event.not.found=No event with the ID %s could be found in %s.
 
+message.block_change=The block at %s was set from %s (%d:%d) to %s (%d:%d) (%s). Closest player: %s (%s blocks away).
+
+# This does not exist in vanilla MC sadly.
+tile.air.name=Air
