@@ -6,6 +6,7 @@ import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
 import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.IChatComponent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,8 +37,8 @@ public class TemporaUndoCommand extends CommandBase {
 
         GenericPositionalLogger<?> genericLogger = GenericPositionalLogger.getLogger(loggerName);
         if (genericLogger instanceof ISupportsUndo supportsUndo) {
-            String unlocalisedResponse = supportsUndo.undoEvent(eventID);
-            sender.addChatMessage(new ChatComponentTranslation(unlocalisedResponse));
+            IChatComponent chatMessage = supportsUndo.undoEvent(eventID);
+            sender.addChatMessage(chatMessage);
         } else if (genericLogger == null) {
             throw new WrongUsageException("tempora.command.undo.wrong.logger", loggerName);
         } else {
