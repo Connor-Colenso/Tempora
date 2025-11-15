@@ -172,7 +172,8 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
         if (!isChunkPopulatedAt(world, x, z)) return;
 
         final BlockChangeQueueElement queueElement = new BlockChangeQueueElement();
-        queueElement.eventID = UUID.randomUUID().toString();
+        queueElement.eventID = UUID.randomUUID()
+            .toString();
         queueElement.x = x;
         queueElement.y = y;
         queueElement.z = z;

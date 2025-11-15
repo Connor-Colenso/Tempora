@@ -161,7 +161,8 @@ public class InventoryLogger extends GenericPositionalLogger<InventoryQueueEleme
         copyStack.stackSize = Math.abs(delta);
 
         InventoryQueueElement queueElement = new InventoryQueueElement();
-        queueElement.eventID = UUID.randomUUID().toString();
+        queueElement.eventID = UUID.randomUUID()
+            .toString();
 
         if (inventory instanceof InventoryPlayer) {
             queueElement.containerName = inventory.getInventoryName();

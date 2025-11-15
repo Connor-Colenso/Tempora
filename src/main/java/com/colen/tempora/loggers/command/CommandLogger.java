@@ -132,7 +132,8 @@ public class CommandLogger extends GenericPositionalLogger<CommandQueueElement> 
             String[] args = event.parameters;
 
             CommandQueueElement queueElement = new CommandQueueElement();
-            queueElement.eventID = UUID.randomUUID().toString();
+            queueElement.eventID = UUID.randomUUID()
+                .toString();
             queueElement.x = player.posX;
             queueElement.y = player.posY;
             queueElement.z = player.posZ;

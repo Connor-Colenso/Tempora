@@ -69,7 +69,8 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueE
         if (event.isCanceled()) return;
 
         EntityDeathQueueElement queueElement = new EntityDeathQueueElement();
-        queueElement.eventID = UUID.randomUUID().toString();
+        queueElement.eventID = UUID.randomUUID()
+            .toString();
         queueElement.x = event.entity.posX;
         queueElement.y = event.entity.posY;
         queueElement.z = event.entity.posZ;

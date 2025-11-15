@@ -2,7 +2,6 @@ package com.colen.tempora;
 
 import static com.colen.tempora.config.Config.synchronizeConfiguration;
 
-import com.colen.tempora.commands.*;
 import net.minecraft.block.Block;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.common.MinecraftForge;
@@ -13,6 +12,7 @@ import org.apache.logging.log4j.Logger;
 
 import com.colen.tempora.blocks.RenderingErrorBlock;
 import com.colen.tempora.blocks.RenderingErrorItemBlock;
+import com.colen.tempora.commands.*;
 import com.colen.tempora.events.PlayerLogin;
 import com.colen.tempora.items.TemporaWand;
 import com.colen.tempora.loggers.block_change.BlockChangeLogger;

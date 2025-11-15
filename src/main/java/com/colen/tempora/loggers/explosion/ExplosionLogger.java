@@ -230,7 +230,8 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionQueueEleme
         closestDistance = Math.sqrt(closestDistance); // Convert from square distance to actual distance
 
         ExplosionQueueElement queueElement = new ExplosionQueueElement();
-        queueElement.eventID = UUID.randomUUID().toString();
+        queueElement.eventID = UUID.randomUUID()
+            .toString();
         queueElement.x = event.explosion.explosionX;
         queueElement.y = event.explosion.explosionY;
         queueElement.z = event.explosion.explosionZ;

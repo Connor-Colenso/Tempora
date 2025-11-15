@@ -17,16 +17,12 @@ import java.util.UUID;
 
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.event.ClickEvent;
-import net.minecraft.event.HoverEvent;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatComponentTranslation;
-import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.world.World;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
@@ -210,7 +206,8 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
         if (event.isCanceled()) return;
 
         PlayerBlockBreakQueueElement queueElement = new PlayerBlockBreakQueueElement();
-        queueElement.eventID = UUID.randomUUID().toString();
+        queueElement.eventID = UUID.randomUUID()
+            .toString();
         queueElement.x = event.x;
         queueElement.y = event.y;
         queueElement.z = event.z;
@@ -261,8 +258,7 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
         PlayerBlockBreakQueueElement queueElement = queryEventByEventID(eventUUID);
 
         if (queueElement == null) {
-            return new ChatComponentTranslation(
-                "tempora.event.not.found", eventUUID, getLoggerType());
+            return new ChatComponentTranslation("tempora.event.not.found", eventUUID, getLoggerType());
         }
 
         // NBT existed but was not logged, it is not safe to undo this event.
@@ -273,12 +269,16 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
             .worldServerForDimension(queueElement.dimensionId);
 
         Block block = Block.getBlockById(queueElement.blockID);
-        if (block == null)
-            return new ChatComponentTranslation("tempora.cannot.block.break.undo.block.not.found");
+        if (block == null) return new ChatComponentTranslation("tempora.cannot.block.break.undo.block.not.found");
 
         w.setBlock((int) queueElement.x, (int) queueElement.y, (int) queueElement.z, block, queueElement.metadata, 2);
         // Just to ensure meta is being set right, stops blocks interfering.
-        w.setBlockMetadataWithNotify((int) queueElement.x, (int) queueElement.y, (int) queueElement.z, queueElement.metadata, 2);
+        w.setBlockMetadataWithNotify(
+            (int) queueElement.x,
+            (int) queueElement.y,
+            (int) queueElement.z,
+            queueElement.metadata,
+            2);
         // Block had no NBT.
         if (queueElement.encodedNBT.equals(NO_NBT)) return new ChatComponentTranslation("tempora.undo.success");
 
