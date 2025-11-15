@@ -11,8 +11,10 @@ import java.util.Base64;
 
 import net.minecraft.nbt.NBTSizeTracker;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.tileentity.TileEntity;
+import net.minecraft.world.World;
 
-public class NBTConverter {
+public class NBTUtils {
 
     public static final String NO_NBT = "NO_NBT";
     public static final String NBT_DISABLED = "NBT_PRESENT_LOGGING_OFF";
@@ -68,4 +70,22 @@ public class NBTConverter {
             throw new RuntimeException("Failed to read NBTTagCompound", e);
         }
     }
+
+    public static String getEncodedTileEntityNBT(World world, int x, int y, int z, boolean nbtLoggingEnabled) {
+        if (world == null) return NO_NBT;
+
+        TileEntity tileEntity = world.getTileEntity(x, y, z);
+        if (tileEntity == null) {
+            return NO_NBT;
+        }
+
+        if (nbtLoggingEnabled) {
+            NBTTagCompound tag = new NBTTagCompound();
+            tileEntity.writeToNBT(tag);
+            return encodeToString(tag);
+        } else {
+            return NBT_DISABLED;
+        }
+    }
+
 }

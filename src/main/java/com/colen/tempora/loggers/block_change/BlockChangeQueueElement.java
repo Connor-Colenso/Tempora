@@ -1,7 +1,5 @@
 package com.colen.tempora.loggers.block_change;
 
-import static com.colen.tempora.utils.nbt.NBTConverter.NO_NBT;
-
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 
@@ -16,19 +14,29 @@ import io.netty.buffer.ByteBuf;
 
 public class BlockChangeQueueElement extends GenericQueueElement {
 
-    public int blockID;
-    public int metadata;
-    public int pickBlockID;
-    public int pickBlockMeta;
+    public int beforeBlockID;
+    public int beforeMetadata;
+    public int beforePickBlockID;
+    public int beforePickBlockMeta;
+    public String beforeEncodedNBT;
+
+    public int afterBlockID;
+    public int afterMetadata;
+    public int afterPickBlockID;
+    public int afterPickBlockMeta;
+    public String afterEncodedNBT;
+
     public String stackTrace;
-    public String encodedNBT = NO_NBT;
     public String closestPlayerUUID;
     public double closestPlayerDistance;
 
     @Override
     public IChatComponent localiseText(String uuid) {
+        // Block names
+        IChatComponent beforeBlockName = BlockUtils.getUnlocalisedChatComponent(beforePickBlockID, beforePickBlockMeta);
+        IChatComponent afterBlockName = BlockUtils.getUnlocalisedChatComponent(afterPickBlockID, afterPickBlockMeta);
 
-        IChatComponent blockName = BlockUtils.getUnlocalisedChatComponent(blockID, metadata);
+        // Coordinates component
         IChatComponent coords = generateTeleportChatComponent(
             x,
             y,
@@ -36,44 +44,69 @@ public class BlockChangeQueueElement extends GenericQueueElement {
             dimensionId,
             PlayerUtils.UUIDToName(uuid),
             CoordFormat.INT);
-        // We use UUID to determine timezone, for localising.
+
+        // Time ago
         IChatComponent timeAgo = TimeUtils.formatTime(timestamp, uuid);
+
+        // Closest player info
+        String closestPlayerName = closestPlayerUUID != null ? PlayerUtils.UUIDToName(closestPlayerUUID) : "Unknown";
+        String closestPlayerDist = String.format("%.1f", closestPlayerDistance); // float formatting
 
         return new ChatComponentTranslation(
             "message.block_change",
-            blockName,
-            coords,
-            stackTrace,
-            timeAgo,
-            closestPlayerUUID,
-            String.format("%.1f", closestPlayerDistance) // %s (distance)
+            coords, // %s: coordinates
+            beforeBlockName, // %s: block before name
+            beforeBlockID, // %d: block before ID
+            beforeMetadata, // %d: block before metadata
+            afterBlockName, // %s: block after name
+            afterBlockID, // %d: block after ID
+            afterMetadata, // %d: block after metadata
+            timeAgo, // %s: time ago
+            closestPlayerName, // %s: closest player
+            closestPlayerDist // %s: distance
         );
     }
 
     @Override
     public void fromBytes(ByteBuf buf) {
         super.fromBytes(buf);
-        blockID = buf.readInt();
-        metadata = buf.readInt();
-        pickBlockID = buf.readInt();
-        pickBlockMeta = buf.readInt();
+
+        beforeBlockID = buf.readInt();
+        beforeMetadata = buf.readInt();
+        beforePickBlockID = buf.readInt();
+        beforePickBlockMeta = buf.readInt();
+        beforeEncodedNBT = ByteBufUtils.readUTF8String(buf);
+
+        afterBlockID = buf.readInt();
+        afterMetadata = buf.readInt();
+        afterPickBlockID = buf.readInt();
+        afterPickBlockMeta = buf.readInt();
+        afterEncodedNBT = ByteBufUtils.readUTF8String(buf);
+
         stackTrace = ByteBufUtils.readUTF8String(buf);
         closestPlayerUUID = ByteBufUtils.readUTF8String(buf);
         closestPlayerDistance = buf.readDouble();
-        encodedNBT = ByteBufUtils.readUTF8String(buf);
     }
 
     @Override
     public void toBytes(ByteBuf buf) {
         super.toBytes(buf);
-        buf.writeInt(blockID);
-        buf.writeInt(metadata);
-        buf.writeInt(pickBlockID);
-        buf.writeInt(pickBlockMeta);
+
+        buf.writeInt(beforeBlockID);
+        buf.writeInt(beforeMetadata);
+        buf.writeInt(beforePickBlockID);
+        buf.writeInt(beforePickBlockMeta);
+        ByteBufUtils.writeUTF8String(buf, beforeEncodedNBT);
+
+        buf.writeInt(afterBlockID);
+        buf.writeInt(afterMetadata);
+        buf.writeInt(afterPickBlockID);
+        buf.writeInt(afterPickBlockMeta);
+        ByteBufUtils.writeUTF8String(buf, afterEncodedNBT);
+
         ByteBufUtils.writeUTF8String(buf, stackTrace);
         ByteBufUtils.writeUTF8String(buf, closestPlayerUUID);
         buf.writeDouble(closestPlayerDistance);
-        ByteBufUtils.writeUTF8String(buf, encodedNBT);
     }
 
     @Override

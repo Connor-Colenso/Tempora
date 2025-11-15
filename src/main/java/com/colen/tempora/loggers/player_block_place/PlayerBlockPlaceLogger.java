@@ -3,7 +3,8 @@ package com.colen.tempora.loggers.player_block_place;
 import static com.colen.tempora.TemporaUtils.isClientSide;
 import static com.colen.tempora.utils.BlockUtils.getPickBlockSafe;
 import static com.colen.tempora.utils.DatabaseUtils.MISSING_STRING_DATA;
-import static com.colen.tempora.utils.nbt.NBTConverter.NO_NBT;
+import static com.colen.tempora.utils.nbt.NBTUtils.NO_NBT;
+import static com.colen.tempora.utils.nbt.NBTUtils.getEncodedTileEntityNBT;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -19,7 +20,6 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.tileentity.TileEntity;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.event.world.BlockEvent.PlaceEvent;
@@ -34,7 +34,7 @@ import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.rendering.RenderUtils;
 import com.colen.tempora.utils.EventLoggingHelper;
 import com.colen.tempora.utils.PlayerUtils;
-import com.colen.tempora.utils.nbt.NBTConverter;
+import com.colen.tempora.utils.nbt.NBTUtils;
 
 import cpw.mods.fml.common.FMLLog;
 import cpw.mods.fml.common.eventhandler.EventPriority;
@@ -74,8 +74,8 @@ public class PlayerBlockPlaceLogger extends GenericPositionalLogger<PlayerBlockP
                 try {
                     NBTTagCompound nbt = null;
                     if (!Objects.equals(pbpl.encodedNBT, NO_NBT)
-                        && !Objects.equals(pbpl.encodedNBT, NBTConverter.NBT_DISABLED)) {
-                        nbt = NBTConverter.decodeFromString(pbpl.encodedNBT);
+                        && !Objects.equals(pbpl.encodedNBT, NBTUtils.NBT_DISABLED)) {
+                        nbt = NBTUtils.decodeFromString(pbpl.encodedNBT);
                     }
 
                     // Render the placed block at its logged position
@@ -221,14 +221,8 @@ public class PlayerBlockPlaceLogger extends GenericPositionalLogger<PlayerBlockP
             queueElement.pickBlockMeta = queueElement.metadata;
         }
 
-        if (logNBT) {
-            TileEntity tileEntity = event.world.getTileEntity(event.x, event.y, event.z);
-            if (tileEntity != null) {
-                NBTTagCompound tag = new NBTTagCompound();
-                tileEntity.writeToNBT(tag);
-                queueElement.encodedNBT = NBTConverter.encodeToString(tag);
-            }
-        }
+        // Log NBT.
+        queueElement.encodedNBT = getEncodedTileEntityNBT(event.world, event.x, event.y, event.z, logNBT);
 
         if (event.player instanceof EntityPlayerMP) {
             queueElement.playerNameWhoPlacedBlock = event.player.getUniqueID()

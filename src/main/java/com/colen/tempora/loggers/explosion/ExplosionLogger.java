@@ -214,6 +214,7 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionQueueEleme
             exploderName = "[UNKNOWN]";
         }
 
+        // Todo use built ins to clean this up further.
         EntityPlayer closestPlayer = null;
         double closestDistance = Double.MAX_VALUE;
 
