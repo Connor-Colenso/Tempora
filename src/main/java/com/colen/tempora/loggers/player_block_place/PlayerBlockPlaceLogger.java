@@ -15,6 +15,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+import com.colen.tempora.loggers.player_block_break.PlayerBlockBreakQueueElement;
+import com.colen.tempora.utils.RenderingUtils;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
@@ -66,68 +68,10 @@ public class PlayerBlockPlaceLogger extends GenericPositionalLogger<PlayerBlockP
     @Override
     @SideOnly(Side.CLIENT)
     public void renderEventsInWorld(RenderWorldLastEvent e) {
-        // Sort events by distance for consistent rendering order
-        List<GenericQueueElement> sortedList = RenderUtils.getSortedLatestEventsByDistance(eventsToRenderInWorld, e);
+        List<PlayerBlockPlaceQueueElement> sortedList = getSortedLatestEventsByDistance(eventsToRenderInWorld, e);
 
-        for (GenericQueueElement element : sortedList) {
-            if (element instanceof PlayerBlockPlaceQueueElement pbpl) {
-                try {
-                    NBTTagCompound nbt = null;
-                    if (!Objects.equals(pbpl.encodedNBT, NO_NBT)
-                        && !Objects.equals(pbpl.encodedNBT, NBTUtils.NBT_DISABLED)) {
-                        nbt = NBTUtils.decodeFromString(pbpl.encodedNBT);
-                    }
-
-                    // Render the placed block at its logged position
-                    RenderUtils.renderBlockInWorld(
-                        e,
-                        pbpl.x,
-                        pbpl.y,
-                        pbpl.z,
-                        pbpl.blockID,
-                        pbpl.metadata,
-                        nbt,
-                        getLoggerType());
-                } catch (Exception exception) {
-                    // Log detailed error info
-                    FMLLog.warning(
-                        "[Tempora] Failed to render %s event (eventID=%s) at (%.1f, %.1f, %.1f) in dim %d. "
-                            + "BlockID=%d:%d PickBlock=%d:%d Player=%s NBT=%s Timestamp=%d | Exception: %s: %s",
-                        getLoggerType(), // LoggerEnum
-                        pbpl.eventID, // Unique event ID
-                        pbpl.x,
-                        pbpl.y,
-                        pbpl.z, // Coordinates
-                        pbpl.dimensionId, // Dimension
-                        pbpl.blockID,
-                        pbpl.metadata, // Block ID and meta
-                        pbpl.pickBlockID,
-                        pbpl.pickBlockMeta, // Pick block info
-                        pbpl.playerNameWhoPlacedBlock, // Player UUID/name
-                        (pbpl.encodedNBT != null && !pbpl.encodedNBT.isEmpty()
-                            ? pbpl.encodedNBT.substring(0, Math.min(pbpl.encodedNBT.length(), 64)) + "..."
-                            : "none"), // Safe truncated NBT
-                        pbpl.timestamp, // Timestamp
-                        exception.getClass()
-                            .getSimpleName(), // Exception type
-                        exception.getMessage() // Exception message
-                    );
-
-                    // Optionally print full stack trace for debugging
-                    exception.printStackTrace();
-
-                    // Render a fallback “error” block to visualize failed event
-                    RenderUtils.renderBlockInWorld(
-                        e,
-                        pbpl.x,
-                        pbpl.y,
-                        pbpl.z,
-                        Block.getIdFromBlock(com.colen.tempora.Tempora.renderingErrorBlock),
-                        0,
-                        null,
-                        getLoggerType());
-                }
-            }
+        for (PlayerBlockPlaceQueueElement pbbqe : sortedList) {
+            RenderingUtils.renderBlockWithLogging(e, pbbqe, pbbqe.blockID, pbbqe.metadata, pbbqe.encodedNBT, pbbqe.playerNameWhoPlacedBlock, getLoggerType());
         }
     }
 

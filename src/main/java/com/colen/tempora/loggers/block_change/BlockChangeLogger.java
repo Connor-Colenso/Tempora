@@ -2,6 +2,7 @@ package com.colen.tempora.loggers.block_change;
 
 import static com.colen.tempora.TemporaUtils.UNKNOWN_PLAYER_NAME;
 import static com.colen.tempora.utils.DatabaseUtils.MISSING_STRING_DATA;
+import static com.colen.tempora.utils.nbt.NBTUtils.NBT_DISABLED;
 import static com.colen.tempora.utils.nbt.NBTUtils.NO_NBT;
 
 import java.sql.PreparedStatement;
@@ -13,6 +14,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+import com.colen.tempora.Tempora;
+import com.colen.tempora.utils.RenderingUtils;
+import cpw.mods.fml.common.FMLLog;
+import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
@@ -52,26 +57,10 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
     @Override
     @SideOnly(Side.CLIENT)
     public void renderEventsInWorld(RenderWorldLastEvent e) {
-        List<GenericQueueElement> sortedList = RenderUtils.getSortedLatestEventsByDistance(eventsToRenderInWorld, e);
+        List<BlockChangeQueueElement> sortedList = getSortedLatestEventsByDistance(eventsToRenderInWorld, e);
 
-        for (GenericQueueElement element : sortedList) {
-            if (element instanceof BlockChangeQueueElement bcqe) {
-
-                NBTTagCompound nbt = null;
-                if (!Objects.equals(bcqe.beforeEncodedNBT, NO_NBT)) {
-                    nbt = NBTUtils.decodeFromString(bcqe.beforeEncodedNBT);
-                }
-
-                RenderUtils.renderBlockInWorld(
-                    e,
-                    element.x,
-                    element.y,
-                    element.z,
-                    bcqe.afterBlockID,
-                    bcqe.afterMetadata,
-                    nbt,
-                    getLoggerType());
-            }
+        for (BlockChangeQueueElement bcqe : sortedList) {
+            RenderingUtils.renderBlockWithLogging(e, bcqe, bcqe.beforeBlockID, bcqe.beforeMetadata, bcqe.beforeEncodedNBT, bcqe.closestPlayerUUID, getLoggerType());
         }
     }
 
