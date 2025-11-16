@@ -43,18 +43,16 @@ public class EntityPositionLogger extends GenericPositionalLogger<EntityPosition
     @Override
     @SideOnly(Side.CLIENT)
     public void renderEventsInWorld(RenderWorldLastEvent e) {
-        RenderUtils.sortByDistanceDescending(eventsToRenderInWorld, e);
+        sortByDistanceDescending(eventsToRenderInWorld, e);
 
-        for (GenericQueueElement element : eventsToRenderInWorld) {
-            if (element instanceof EntityPositionQueueElement epqh) {
-                Entity entity = EntityList.createEntityByName(epqh.entityName, Minecraft.getMinecraft().theWorld);
+        for (EntityPositionQueueElement epqh : eventsToRenderInWorld) {
+            Entity entity = EntityList.createEntityByName(epqh.entityName, Minecraft.getMinecraft().theWorld);
 
-                // Render mob
-                RenderUtils.renderEntityInWorld(entity, epqh.x, epqh.y, epqh.z, epqh.rotationYaw, epqh.rotationPitch);
+            // Render mob
+            RenderUtils.renderEntityInWorld(entity, epqh.x, epqh.y, epqh.z, epqh.rotationYaw, epqh.rotationPitch);
 
-                // Render bounding box (optional, matches location)
-                RenderUtils.renderEntityAABBInWorld(entity, epqh.x, epqh.y, epqh.z, 0, 1.0, 0);
-            }
+            // Render bounding box (optional, matches location)
+            RenderUtils.renderEntityAABBInWorld(entity, epqh.x, epqh.y, epqh.z, 0, 1.0, 0);
         }
     }
 

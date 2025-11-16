@@ -45,24 +45,22 @@ public class CommandLogger extends GenericPositionalLogger<CommandQueueElement> 
     @SideOnly(Side.CLIENT)
     public void renderEventsInWorld(RenderWorldLastEvent e) {
         RenderManager renderManager = RenderManager.instance;
-        RenderUtils.sortByDistanceDescending(eventsToRenderInWorld, e);
+        sortByDistanceDescending(eventsToRenderInWorld, e);
 
-        for (GenericQueueElement element : eventsToRenderInWorld) {
-            if (element instanceof CommandQueueElement cqe) {
-                double x = cqe.x - renderManager.viewerPosX;
-                double y = cqe.y - renderManager.viewerPosY + 1;
-                double z = cqe.z - renderManager.viewerPosZ;
+        for (CommandQueueElement cqe : eventsToRenderInWorld) {
+            double x = cqe.x - renderManager.viewerPosX;
+            double y = cqe.y - renderManager.viewerPosY + 1;
+            double z = cqe.z - renderManager.viewerPosZ;
 
-                List<String> toRender = new ArrayList<>();
-                toRender.add(StatCollector.translateToLocalFormatted("event.command.executed", cqe.truePlayerName));
-                toRender.add("/" + cqe.commandName + " " + cqe.arguments);
+            List<String> toRender = new ArrayList<>();
+            toRender.add(StatCollector.translateToLocalFormatted("event.command.executed", cqe.truePlayerName));
+            toRender.add("/" + cqe.commandName + " " + cqe.arguments);
 
-                Pair<String, String> timePair = TimeUtils.getRelativeTimeKeyAndValue(cqe.timestamp);
+            Pair<String, String> timePair = TimeUtils.getRelativeTimeKeyAndValue(cqe.timestamp);
 
-                toRender.add(StatCollector.translateToLocalFormatted(timePair.first(), timePair.second()));
+            toRender.add(StatCollector.translateToLocalFormatted(timePair.first(), timePair.second()));
 
-                renderFloatingText(toRender, x, y, z);
-            }
+            renderFloatingText(toRender, x, y, z);
         }
     }
 

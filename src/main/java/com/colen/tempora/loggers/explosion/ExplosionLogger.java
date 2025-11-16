@@ -53,7 +53,7 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionQueueEleme
     @SideOnly(Side.CLIENT)
     public void renderEventsInWorld(RenderWorldLastEvent e) {
 
-        List<GenericQueueElement> sortedList = RenderUtils.getSortedLatestEventsByDistance(eventsToRenderInWorld, e);
+        List<ExplosionQueueElement> sortedList = getSortedLatestEventsByDistance(eventsToRenderInWorld, e);
         Tessellator tessellator = Tessellator.instance;
         Minecraft mc = Minecraft.getMinecraft();
         EntityPlayerSP player = mc.thePlayer;
@@ -63,59 +63,57 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionQueueEleme
         double py = player.lastTickPosY + (player.posY - player.lastTickPosY) * e.partialTicks;
         double pz = player.lastTickPosZ + (player.posZ - player.lastTickPosZ) * e.partialTicks;
 
-        for (GenericQueueElement element : sortedList) {
-            if (element instanceof ExplosionQueueElement exqe) {
-                // Draw explosion center as TNT block
-                RenderUtils.renderBlockInWorld(
-                    e,
-                    exqe.x - 0.5,
-                    exqe.y - 0.5,
-                    exqe.z - 0.5,
-                    Block.getIdFromBlock(Blocks.tnt),
-                    0,
-                    null,
-                    getLoggerType());
+        for (ExplosionQueueElement exqe : sortedList) {
+            // Draw explosion center as TNT block
+            RenderUtils.renderBlockInWorld(
+                e,
+                exqe.x - 0.5,
+                exqe.y - 0.5,
+                exqe.z - 0.5,
+                Block.getIdFromBlock(Blocks.tnt),
+                0,
+                null,
+                getLoggerType());
 
-                // Draw purple lines to affected blocks
-                for (ChunkPosition chunkPosition : ChunkPositionUtils.decodePositions(exqe.affectedBlockCoordinates)) {
-                    double startX = exqe.x;
-                    double startY = exqe.y;
-                    double startZ = exqe.z;
+            // Draw purple lines to affected blocks
+            for (ChunkPosition chunkPosition : ChunkPositionUtils.decodePositions(exqe.affectedBlockCoordinates)) {
+                double startX = exqe.x;
+                double startY = exqe.y;
+                double startZ = exqe.z;
 
-                    double endX = chunkPosition.chunkPosX + 0.5;
-                    double endY = chunkPosition.chunkPosY + 0.5;
-                    double endZ = chunkPosition.chunkPosZ + 0.5;
+                double endX = chunkPosition.chunkPosX + 0.5;
+                double endY = chunkPosition.chunkPosY + 0.5;
+                double endZ = chunkPosition.chunkPosZ + 0.5;
 
-                    // single push for both state changes and translation
-                    GL11.glPushMatrix();
-                    try {
-                        // Translate to camera-relative world coords
-                        GL11.glTranslated(-px, -py, -pz);
+                // single push for both state changes and translation
+                GL11.glPushMatrix();
+                try {
+                    // Translate to camera-relative world coords
+                    GL11.glTranslated(-px, -py, -pz);
 
-                        // GL state for drawing unlit, untextured lines
-                        GL11.glDisable(GL11.GL_TEXTURE_2D);
-                        GL11.glDisable(GL11.GL_LIGHTING);
-                        GL11.glDisable(GL11.GL_CULL_FACE);
-                        GL11.glEnable(GL11.GL_BLEND);
-                        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-                        GL11.glLineWidth(0.5f);
+                    // GL state for drawing unlit, untextured lines
+                    GL11.glDisable(GL11.GL_TEXTURE_2D);
+                    GL11.glDisable(GL11.GL_LIGHTING);
+                    GL11.glDisable(GL11.GL_CULL_FACE);
+                    GL11.glEnable(GL11.GL_BLEND);
+                    GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+                    GL11.glLineWidth(0.5f);
 
-                        // Draw line in world coords (now camera-relative)
-                        tessellator.startDrawing(GL11.GL_LINES);
-                        tessellator.setColorRGBA(255, 0, 255, 255);
-                        tessellator.addVertex(startX, startY, startZ);
-                        tessellator.addVertex(endX, endY, endZ);
-                        tessellator.draw();
+                    // Draw line in world coords (now camera-relative)
+                    tessellator.startDrawing(GL11.GL_LINES);
+                    tessellator.setColorRGBA(255, 0, 255, 255);
+                    tessellator.addVertex(startX, startY, startZ);
+                    tessellator.addVertex(endX, endY, endZ);
+                    tessellator.draw();
 
-                        // Restore GL state we changed
-                        GL11.glLineWidth(1.0F);
-                        GL11.glDisable(GL11.GL_BLEND);
-                        GL11.glEnable(GL11.GL_CULL_FACE);
-                        GL11.glEnable(GL11.GL_LIGHTING);
-                        GL11.glEnable(GL11.GL_TEXTURE_2D);
-                    } finally {
-                        GL11.glPopMatrix();
-                    }
+                    // Restore GL state we changed
+                    GL11.glLineWidth(1.0F);
+                    GL11.glDisable(GL11.GL_BLEND);
+                    GL11.glEnable(GL11.GL_CULL_FACE);
+                    GL11.glEnable(GL11.GL_LIGHTING);
+                    GL11.glEnable(GL11.GL_TEXTURE_2D);
+                } finally {
+                    GL11.glPopMatrix();
                 }
             }
         }

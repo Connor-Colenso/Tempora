@@ -197,45 +197,6 @@ public abstract class RenderUtils {
         GL11.glPopAttrib();
     }
 
-    public static List<GenericQueueElement> getSortedLatestEventsByDistance(Collection<GenericQueueElement> input,
-        RenderWorldLastEvent e) {
-        Minecraft mc = Minecraft.getMinecraft();
-        int playerDim = mc.thePlayer.dimension;
-
-        Map<String, GenericQueueElement> latestPerBlock = new HashMap<>();
-
-        for (GenericQueueElement element : input) {
-            if (element.dimensionId != playerDim) continue;
-
-            String key = (int) element.x + "," + (int) element.y + "," + (int) element.z;
-            GenericQueueElement existing = latestPerBlock.get(key);
-
-            if (existing == null || element.timestamp > existing.timestamp) {
-                latestPerBlock.put(key, element);
-            }
-        }
-
-        List<GenericQueueElement> sorted = new ArrayList<>(latestPerBlock.values());
-        sortByDistanceDescending(sorted, e);
-        return sorted;
-    }
-
-    public static void sortByDistanceDescending(List<GenericQueueElement> list, RenderWorldLastEvent e) {
-        Minecraft mc = Minecraft.getMinecraft();
-        double px = mc.thePlayer.lastTickPosX + (mc.thePlayer.posX - mc.thePlayer.lastTickPosX) * e.partialTicks;
-        double py = mc.thePlayer.lastTickPosY + (mc.thePlayer.posY - mc.thePlayer.lastTickPosY) * e.partialTicks;
-        double pz = mc.thePlayer.lastTickPosZ + (mc.thePlayer.posZ - mc.thePlayer.lastTickPosZ) * e.partialTicks;
-
-        list.sort((a, b) -> Double.compare(squaredDistance(b, px, py, pz), squaredDistance(a, px, py, pz)));
-    }
-
-    private static double squaredDistance(GenericQueueElement e, double x, double y, double z) {
-        double dx = e.x - x;
-        double dy = e.y - y;
-        double dz = e.z - z;
-        return dx * dx + dy * dy + dz * dz;
-    }
-
     public static void renderRegion(double startX, double startY, double startZ, double endX, double endY, double endZ,
         double red, double green, double blue) {
         GL11.glPushAttrib(GL11.GL_ENABLE_BIT | GL11.GL_LINE_BIT | GL11.GL_COLOR_BUFFER_BIT); // Save lighting, texture,

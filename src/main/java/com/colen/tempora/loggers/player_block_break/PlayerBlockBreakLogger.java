@@ -16,6 +16,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+import com.colen.tempora.loggers.block_change.BlockChangeQueueElement;
+import com.colen.tempora.utils.RenderingUtils;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
@@ -62,63 +64,11 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
     @Override
     @SideOnly(Side.CLIENT)
     public void renderEventsInWorld(RenderWorldLastEvent e) {
-        List<GenericQueueElement> sortedList = RenderUtils.getSortedLatestEventsByDistance(eventsToRenderInWorld, e);
+        List<PlayerBlockBreakQueueElement> sortedList = getSortedLatestEventsByDistance(eventsToRenderInWorld, e);
 
         for (GenericQueueElement element : sortedList) {
-            if (element instanceof PlayerBlockBreakQueueElement pbbe) {
-                try {
-                    NBTTagCompound nbt = null;
-                    if (!Objects.equals(pbbe.encodedNBT, NO_NBT) && !Objects.equals(pbbe.encodedNBT, NBT_DISABLED)) {
-                        nbt = NBTUtils.decodeFromString(pbbe.encodedNBT);
-                    }
-
-                    RenderUtils.renderBlockInWorld(
-                        e,
-                        element.x,
-                        element.y,
-                        element.z,
-                        pbbe.blockID,
-                        pbbe.metadata,
-                        nbt,
-                        getLoggerType());
-                } catch (Exception exception) {
-                    // Render an error block here instead, if something went critically wrong.
-                    FMLLog.warning(
-                        "[Tempora] Failed to render %s event (eventID=%s) at (%.1f, %.1f, %.1f) in dim %d. "
-                            + "BlockID=%d:%d PickBlock=%d:%d Player=%s NBT=%s Timestamp=%d | Exception: %s: %s",
-                        getLoggerType(), // LoggerEnum
-                        pbbe.eventID, // Unique ID
-                        pbbe.x,
-                        pbbe.y,
-                        pbbe.z, // Coordinates
-                        pbbe.dimensionId, // Dimension ID
-                        pbbe.blockID,
-                        pbbe.metadata, // Block ID + metadata
-                        pbbe.pickBlockID,
-                        pbbe.pickBlockMeta, // Pick block (if any)
-                        pbbe.playerUUIDWhoBrokeBlock, // Player UUID
-                        (pbbe.encodedNBT != null && !pbbe.encodedNBT.isEmpty()
-                            ? pbbe.encodedNBT.substring(0, Math.min(pbbe.encodedNBT.length(), 64)) + "..."
-                            : "none"), // Safe truncated NBT preview
-                        pbbe.timestamp, // Timestamp
-                        exception.getClass()
-                            .getSimpleName(), // Exception type
-                        exception.getMessage() // Exception message
-                    );
-
-                    // Optionally print full stack trace to console for devs
-                    exception.printStackTrace();
-
-                    RenderUtils.renderBlockInWorld(
-                        e,
-                        pbbe.x,
-                        pbbe.y,
-                        pbbe.z,
-                        Block.getIdFromBlock(Tempora.renderingErrorBlock),
-                        0,
-                        null,
-                        getLoggerType());
-                }
+            if (element instanceof PlayerBlockBreakQueueElement pbbqe) {
+                RenderingUtils.renderBlockWithLogging(e, element, pbbqe.blockID, pbbqe.metadata, pbbqe.encodedNBT, pbbqe.playerUUIDWhoBrokeBlock, getLoggerType());
             }
         }
     }

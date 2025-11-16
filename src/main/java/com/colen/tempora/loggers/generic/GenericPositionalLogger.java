@@ -13,14 +13,20 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+import net.minecraft.client.Minecraft;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentTranslation;
@@ -53,7 +59,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
     private final LinkedBlockingQueue<EventToLog> eventQueue = new LinkedBlockingQueue<>();
     private static final Set<GenericPositionalLogger<?>> loggerList = new HashSet<>();
-    protected List<GenericQueueElement> eventsToRenderInWorld = new ArrayList<>();
+    protected List<EventToLog> eventsToRenderInWorld = new ArrayList<>();
     private LogWriteSafety durabilityMode;
 
     private boolean isEnabled;
@@ -77,6 +83,47 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
         }
 
         return null;
+    }
+
+    @SideOnly(Side.CLIENT)
+    public List<EventToLog> getSortedLatestEventsByDistance(Collection<EventToLog> input, RenderWorldLastEvent e) {
+        Minecraft mc = Minecraft.getMinecraft();
+        int playerDim = mc.thePlayer.dimension;
+
+        Map<String, EventToLog> latestPerBlock = new HashMap<>();
+
+        for (EventToLog element : input) {
+            if (element.dimensionId != playerDim) continue;
+
+            String key = (int) element.x + "," + (int) element.y + "," + (int) element.z;
+            EventToLog existing = latestPerBlock.get(key);
+
+            if (existing == null || element.timestamp > existing.timestamp) {
+                latestPerBlock.put(key, element);
+            }
+        }
+
+        List<EventToLog> sorted = new ArrayList<>(latestPerBlock.values());
+        sortByDistanceDescending(sorted, e);
+        return sorted;
+    }
+
+    @SideOnly(Side.CLIENT)
+    public void sortByDistanceDescending(List<EventToLog> list, RenderWorldLastEvent e) {
+        Minecraft mc = Minecraft.getMinecraft();
+        double px = mc.thePlayer.lastTickPosX + (mc.thePlayer.posX - mc.thePlayer.lastTickPosX) * e.partialTicks;
+        double py = mc.thePlayer.lastTickPosY + (mc.thePlayer.posY - mc.thePlayer.lastTickPosY) * e.partialTicks;
+        double pz = mc.thePlayer.lastTickPosZ + (mc.thePlayer.posZ - mc.thePlayer.lastTickPosZ) * e.partialTicks;
+
+        list.sort((a, b) -> Double.compare(squaredDistance(b, px, py, pz), squaredDistance(a, px, py, pz)));
+    }
+
+    @SideOnly(Side.CLIENT)
+    private static double squaredDistance(GenericQueueElement e, double x, double y, double z) {
+        double dx = e.x - x;
+        double dy = e.y - y;
+        double dz = e.z - z;
+        return dx * dx + dy * dy + dz * dz;
     }
 
     protected LogWriteSafety defaultLogWriteSafetyMode() {
