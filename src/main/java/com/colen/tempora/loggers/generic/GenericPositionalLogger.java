@@ -439,6 +439,9 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
                             // itself.
                             EntityPlayerMP player = (EntityPlayerMP) sender;
 
+                            // Do not remove!
+                            Collections.reverse(packets);
+
                             String uuid = player.getUniqueID()
                                 .toString();
                             packets.forEach(p -> sender.addChatMessage(p.localiseText(uuid)));
