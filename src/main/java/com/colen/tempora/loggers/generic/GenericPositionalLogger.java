@@ -214,8 +214,9 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
                     + " are you sure you spelt the oldest data setting correctly ("
                     + oldestDataCutoff
                     + ")? Check your tempora config.");
-            System.exit(0);
+
             e.printStackTrace();
+            throw new RuntimeException("Database cleanup failed");
         }
     }
 
