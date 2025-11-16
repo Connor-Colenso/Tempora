@@ -96,7 +96,7 @@ public class InventoryLogger extends GenericPositionalLogger<InventoryQueueEleme
             new ColumnDef("containerName", "TEXT", "NOT NULL DEFAULT " + MISSING_STRING_DATA),
             new ColumnDef("interactionType", "TEXT", "NOT NULL DEFAULT " + MISSING_STRING_DATA),
             new ColumnDef("playerUUID", "TEXT", "NOT NULL DEFAULT " + MISSING_STRING_DATA),
-            new ColumnDef("itemId", "INTEGER", "NOT NULL DEFAULT -1"),
+            new ColumnDef("itemID", "INTEGER", "NOT NULL DEFAULT -1"),
             new ColumnDef("itemMetadata", "INTEGER", "NOT NULL DEFAULT -1"),
             new ColumnDef("stacksize", "INTEGER", "NOT NULL DEFAULT -1"));
     }
@@ -115,7 +115,7 @@ public class InventoryLogger extends GenericPositionalLogger<InventoryQueueEleme
             queueElement.containerName = resultSet.getString("containerName");
             queueElement.playerUUID = resultSet.getString("playerUUID");
             queueElement.interactionType = resultSet.getInt("interactionType");
-            queueElement.itemId = resultSet.getInt("itemId");
+            queueElement.itemId = resultSet.getInt("itemID");
             queueElement.itemMetadata = resultSet.getInt("itemMetadata");
             queueElement.stackSize = resultSet.getInt("stacksize");
             eventList.add(queueElement);
