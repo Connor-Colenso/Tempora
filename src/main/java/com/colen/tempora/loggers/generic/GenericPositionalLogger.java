@@ -384,7 +384,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
                 String sql = "SELECT * FROM " + logger.getSQLTableName()
                     + " WHERE ABS(x - ?) <= ?  AND ABS(y - ?) <= ?  AND ABS(z - ?) <= ? "
                     + "   AND dimensionID = ? AND timestamp >= ? "
-                    + " ORDER BY timestamp LIMIT ?";
+                    + " ORDER BY timestamp DESC LIMIT ?";
 
                 try (PreparedStatement ps = logger.getReadOnlyConnection()
                     .prepareStatement(sql)) {
