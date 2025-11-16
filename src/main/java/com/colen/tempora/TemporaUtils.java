@@ -3,13 +3,7 @@ package com.colen.tempora;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.network.play.client.C0EPacketClickWindow;
 import net.minecraftforge.common.DimensionManager;
 
 import com.colen.tempora.config.Config;

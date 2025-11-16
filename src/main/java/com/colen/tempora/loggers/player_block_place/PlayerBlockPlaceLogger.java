@@ -12,16 +12,12 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 
-import com.colen.tempora.loggers.player_block_break.PlayerBlockBreakQueueElement;
-import com.colen.tempora.utils.RenderingUtils;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.event.world.BlockEvent.PlaceEvent;
@@ -33,12 +29,10 @@ import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.loggers.generic.ColumnDef;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
-import com.colen.tempora.rendering.RenderUtils;
 import com.colen.tempora.utils.EventLoggingHelper;
 import com.colen.tempora.utils.PlayerUtils;
-import com.colen.tempora.utils.nbt.NBTUtils;
+import com.colen.tempora.utils.RenderingUtils;
 
-import cpw.mods.fml.common.FMLLog;
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.relauncher.Side;
@@ -71,7 +65,14 @@ public class PlayerBlockPlaceLogger extends GenericPositionalLogger<PlayerBlockP
         List<PlayerBlockPlaceQueueElement> sortedList = getSortedLatestEventsByDistance(eventsToRenderInWorld, e);
 
         for (PlayerBlockPlaceQueueElement pbbqe : sortedList) {
-            RenderingUtils.renderBlockWithLogging(e, pbbqe, pbbqe.blockID, pbbqe.metadata, pbbqe.encodedNBT, pbbqe.playerNameWhoPlacedBlock, getLoggerType());
+            RenderingUtils.renderBlockWithLogging(
+                e,
+                pbbqe,
+                pbbqe.blockID,
+                pbbqe.metadata,
+                pbbqe.encodedNBT,
+                pbbqe.playerNameWhoPlacedBlock,
+                getLoggerType());
         }
     }
 
