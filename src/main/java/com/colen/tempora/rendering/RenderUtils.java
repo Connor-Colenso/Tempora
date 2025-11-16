@@ -1,10 +1,6 @@
 package com.colen.tempora.rendering;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
@@ -26,7 +22,6 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 
 import com.colen.tempora.enums.LoggerEnum;
-import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.rendering.FakeWorld.FakeWorld;
 import com.gtnewhorizons.modularui.api.GlStateManager;
 

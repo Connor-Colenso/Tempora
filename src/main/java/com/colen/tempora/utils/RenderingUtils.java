@@ -1,23 +1,26 @@
 package com.colen.tempora.utils;
 
+import static com.colen.tempora.utils.nbt.NBTUtils.NBT_DISABLED;
+import static com.colen.tempora.utils.nbt.NBTUtils.NO_NBT;
+
+import java.util.Objects;
+
+import net.minecraft.block.Block;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraftforge.client.event.RenderWorldLastEvent;
+
 import com.colen.tempora.Tempora;
 import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.rendering.RenderUtils;
 import com.colen.tempora.utils.nbt.NBTUtils;
+
 import cpw.mods.fml.common.FMLLog;
-import net.minecraft.block.Block;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraftforge.client.event.RenderWorldLastEvent;
-
-import java.util.Objects;
-
-import static com.colen.tempora.utils.nbt.NBTUtils.NBT_DISABLED;
-import static com.colen.tempora.utils.nbt.NBTUtils.NO_NBT;
 
 public class RenderingUtils {
 
-    public static void renderBlockWithLogging(RenderWorldLastEvent e, GenericQueueElement queueElement, int blockID, int metadata, String encodedNBT, String playerUUID, LoggerEnum loggerType) {
+    public static void renderBlockWithLogging(RenderWorldLastEvent e, GenericQueueElement queueElement, int blockID,
+        int metadata, String encodedNBT, String playerUUID, LoggerEnum loggerType) {
         try {
             NBTTagCompound nbt = null;
             if (!Objects.equals(encodedNBT, NO_NBT) && !Objects.equals(encodedNBT, NBT_DISABLED)) {
@@ -51,7 +54,8 @@ public class RenderingUtils {
                     ? encodedNBT.substring(0, Math.min(encodedNBT.length(), 64)) + "..."
                     : "none"), // Safe truncated NBT preview
                 queueElement.timestamp,
-                exception.getClass().getSimpleName(), // Exception type
+                exception.getClass()
+                    .getSimpleName(), // Exception type
                 exception.getMessage() // Exception message
             );
 

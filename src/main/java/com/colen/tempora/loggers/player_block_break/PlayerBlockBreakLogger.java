@@ -13,16 +13,12 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 
-import com.colen.tempora.loggers.block_change.BlockChangeQueueElement;
-import com.colen.tempora.utils.RenderingUtils;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ChatComponentTranslation;
@@ -34,18 +30,16 @@ import net.minecraftforge.event.world.BlockEvent;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.colen.tempora.Tempora;
 import com.colen.tempora.TemporaUtils;
 import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.loggers.generic.ColumnDef;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.loggers.optional.ISupportsUndo;
-import com.colen.tempora.rendering.RenderUtils;
 import com.colen.tempora.utils.EventLoggingHelper;
+import com.colen.tempora.utils.RenderingUtils;
 import com.colen.tempora.utils.nbt.NBTUtils;
 
-import cpw.mods.fml.common.FMLLog;
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.relauncher.Side;
@@ -68,7 +62,14 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
 
         for (GenericQueueElement element : sortedList) {
             if (element instanceof PlayerBlockBreakQueueElement pbbqe) {
-                RenderingUtils.renderBlockWithLogging(e, element, pbbqe.blockID, pbbqe.metadata, pbbqe.encodedNBT, pbbqe.playerUUIDWhoBrokeBlock, getLoggerType());
+                RenderingUtils.renderBlockWithLogging(
+                    e,
+                    element,
+                    pbbqe.blockID,
+                    pbbqe.metadata,
+                    pbbqe.encodedNBT,
+                    pbbqe.playerUUIDWhoBrokeBlock,
+                    getLoggerType());
             }
         }
     }

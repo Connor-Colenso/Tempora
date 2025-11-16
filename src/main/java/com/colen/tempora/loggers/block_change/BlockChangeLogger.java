@@ -2,7 +2,6 @@ package com.colen.tempora.loggers.block_change;
 
 import static com.colen.tempora.TemporaUtils.UNKNOWN_PLAYER_NAME;
 import static com.colen.tempora.utils.DatabaseUtils.MISSING_STRING_DATA;
-import static com.colen.tempora.utils.nbt.NBTUtils.NBT_DISABLED;
 import static com.colen.tempora.utils.nbt.NBTUtils.NO_NBT;
 
 import java.sql.PreparedStatement;
@@ -11,15 +10,9 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 
-import com.colen.tempora.Tempora;
-import com.colen.tempora.utils.RenderingUtils;
-import cpw.mods.fml.common.FMLLog;
-import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldProvider;
 import net.minecraft.world.chunk.Chunk;
@@ -30,11 +23,10 @@ import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.loggers.generic.ColumnDef;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
-import com.colen.tempora.rendering.RenderUtils;
 import com.colen.tempora.utils.EventLoggingHelper;
 import com.colen.tempora.utils.GenericUtils;
 import com.colen.tempora.utils.PlayerUtils;
-import com.colen.tempora.utils.nbt.NBTUtils;
+import com.colen.tempora.utils.RenderingUtils;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -60,7 +52,14 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
         List<BlockChangeQueueElement> sortedList = getSortedLatestEventsByDistance(eventsToRenderInWorld, e);
 
         for (BlockChangeQueueElement bcqe : sortedList) {
-            RenderingUtils.renderBlockWithLogging(e, bcqe, bcqe.beforeBlockID, bcqe.beforeMetadata, bcqe.beforeEncodedNBT, bcqe.closestPlayerUUID, getLoggerType());
+            RenderingUtils.renderBlockWithLogging(
+                e,
+                bcqe,
+                bcqe.beforeBlockID,
+                bcqe.beforeMetadata,
+                bcqe.beforeEncodedNBT,
+                bcqe.closestPlayerUUID,
+                getLoggerType());
         }
     }
 

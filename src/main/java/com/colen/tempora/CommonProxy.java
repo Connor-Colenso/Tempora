@@ -4,7 +4,6 @@ import static com.colen.tempora.Tempora.NETWORK;
 import static com.colen.tempora.Tempora.renderingErrorBlock;
 import static com.colen.tempora.config.Config.synchronizeConfiguration;
 
-import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import net.minecraftforge.common.config.Configuration;
 
 import com.colen.tempora.blocks.RenderingErrorItemBlock;
@@ -21,6 +20,7 @@ import com.colen.tempora.loggers.entity_spawn.EntitySpawnLogger;
 import com.colen.tempora.loggers.entity_spawn.EntitySpawnPacketHandler;
 import com.colen.tempora.loggers.explosion.ExplosionLogger;
 import com.colen.tempora.loggers.explosion.ExplosionPacketHandler;
+import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.inventory.InventoryLogger;
 import com.colen.tempora.loggers.inventory.InventoryPacketHandler;
 import com.colen.tempora.loggers.item_use.ItemUseLogger;
