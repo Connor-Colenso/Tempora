@@ -6,6 +6,7 @@ import static com.colen.tempora.utils.nbt.NBTUtils.getEncodedTileEntityNBT;
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldProvider;
 import net.minecraft.world.chunk.IChunkProvider;
@@ -41,7 +42,9 @@ public class MixinWorld {
         CallbackInfoReturnable<Boolean> cir) {
 
         // Pre checks.
-        if (!provider.worldObj.isRemote) return;
+        MinecraftServer server = MinecraftServer.getServer();
+        boolean isDedicated = server != null && server.isDedicatedServer();
+        if (!isDedicated) return;
         if (Tempora.blockChangeLogger == null) return;
         if (chunkProvider instanceof ChunkProviderGenerate) return; // worldgen
 
@@ -77,7 +80,9 @@ public class MixinWorld {
         CallbackInfoReturnable<Boolean> cir) {
 
         // Pre checks.
-        if (!provider.worldObj.isRemote) return;
+        MinecraftServer server = MinecraftServer.getServer();
+        boolean isDedicated = server != null && server.isDedicatedServer();
+        if (!isDedicated) return;
         if (Tempora.blockChangeLogger == null) return;
         if (chunkProvider instanceof ChunkProviderGenerate) return; // worldgen
 
