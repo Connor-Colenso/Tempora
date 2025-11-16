@@ -103,7 +103,6 @@ public class InventoryLogger extends GenericPositionalLogger<InventoryQueueEleme
 
     public InventoryLogger() {
         registerLogger(this);
-        // No event logging needed, so we override the constructor here.
     }
 
     @Override

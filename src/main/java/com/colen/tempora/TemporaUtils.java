@@ -58,22 +58,4 @@ public class TemporaUtils {
     public static boolean shouldTemporaRun() {
         return isServerSide() || Config.shouldTemporaRun;
     }
-
-    // Unix epoch in miliseconds -> Date string
-    public static String parseUnix(long timestamp) {
-        Instant instant = Instant.ofEpochMilli(timestamp);
-        ZonedDateTime zdt = ZonedDateTime.ofInstant(instant, ZoneId.systemDefault());
-        return zdt.format(DateTimeFormatter.ISO_INSTANT);
-    }
-
-    public static String parseUnix(String timestamp) {
-        return parseUnix(Long.parseLong(timestamp));
-    }
-
-    public static void process(C0EPacketClickWindow packet, EntityPlayerMP player) {
-        System.out.println(
-            player.getDisplayName() + " "
-                + packet.func_149546_g()
-                    .getUnlocalizedName());
-    }
 }

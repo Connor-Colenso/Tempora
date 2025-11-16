@@ -19,7 +19,6 @@ import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.ChatStyle;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
-import net.minecraftforge.common.config.Configuration;
 
 import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.objects.ObjectObjectImmutablePair;
@@ -35,10 +34,6 @@ public class TimeUtils {
     }
 
     public static HashMap<String, String> UUIDtoTimeZone = new HashMap<>();
-
-    public static void handleConfig(Configuration config) {
-
-    }
 
     /**
      * Formats a given timestamp (in milliseconds) to a string based on the default system timezone.
