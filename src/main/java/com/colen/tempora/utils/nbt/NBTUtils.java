@@ -47,12 +47,24 @@ public class NBTUtils {
         return tagCompound;
     }
 
+    private static Method resolveWriteMethod() {
+        // This is needed due to obfuscation between dev/full pack.
+        for (String name : new String[]{ "func_150298_a", "write"}) {
+            try {
+                Method m = NBTTagCompound.class.getDeclaredMethod(name, DataOutput.class);
+                m.setAccessible(true); // Allow access to private method
+                return m;
+            } catch (NoSuchMethodException ignored) {}
+        }
+        throw new RuntimeException("Could not find NBTTagCompound.write method");
+    }
+
+    private static final Method WRITE_METHOD = resolveWriteMethod();
+
     // Method to invoke the private write method
     private static void invokeWriteMethod(NBTTagCompound tagCompound, DataOutput output) {
         try {
-            Method writeMethod = NBTTagCompound.class.getDeclaredMethod("write", DataOutput.class);
-            writeMethod.setAccessible(true); // Allow access to private method
-            writeMethod.invoke(tagCompound, output);
+            WRITE_METHOD.invoke(tagCompound, output);
         } catch (Exception e) {
             throw new RuntimeException("Failed to write NBTTagCompound", e);
         }
