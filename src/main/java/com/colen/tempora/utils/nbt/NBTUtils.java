@@ -9,6 +9,7 @@ import java.io.DataOutputStream;
 import java.lang.reflect.Method;
 import java.util.Base64;
 
+import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTSizeTracker;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
@@ -48,15 +49,14 @@ public class NBTUtils {
     }
 
     private static Method resolveWriteMethod() {
-        // This is needed due to obfuscation between dev/full pack.
         for (String name : new String[] { "func_150298_a", "write" }) {
             try {
-                Method m = NBTTagCompound.class.getDeclaredMethod(name, DataOutput.class);
-                m.setAccessible(true); // Allow access to private method
+                Method m = NBTBase.class.getDeclaredMethod(name, DataOutput.class);
+                m.setAccessible(true);
                 return m;
             } catch (NoSuchMethodException ignored) {}
         }
-        throw new RuntimeException("Could not find NBTTagCompound.write method");
+        throw new RuntimeException("Could not find NBTBase.write(DataOutput)");
     }
 
     private static final Method WRITE_METHOD = resolveWriteMethod();
