@@ -49,7 +49,7 @@ public class NBTUtils {
 
     private static Method resolveWriteMethod() {
         // This is needed due to obfuscation between dev/full pack.
-        for (String name : new String[]{ "func_150298_a", "write"}) {
+        for (String name : new String[] { "func_150298_a", "write" }) {
             try {
                 Method m = NBTTagCompound.class.getDeclaredMethod(name, DataOutput.class);
                 m.setAccessible(true); // Allow access to private method
