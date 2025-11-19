@@ -37,7 +37,6 @@ import com.gtnewhorizons.modularui.common.internal.wrapper.ModularUIContainer;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-// Todo fix shift click not logging.
 public class InventoryLogger extends GenericPositionalLogger<InventoryQueueElement> {
 
     @Override
@@ -51,6 +50,7 @@ public class InventoryLogger extends GenericPositionalLogger<InventoryQueueEleme
 
     }
 
+    // This only exists so debug breakpoints can be used, as we are no longer inside of the mixin itself.
     public static void preLogLogic(EntityPlayer player, Container container, List<Slot> inventorySlots,
         Map<Integer, ItemStack> snapshot) {
         for (Slot s : inventorySlots) {
