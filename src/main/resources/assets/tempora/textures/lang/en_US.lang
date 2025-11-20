@@ -11,7 +11,7 @@ message.inventory_interaction_added=%s added %dx%s (%d:%d) to %s at %s (%s).
 message.inventory_interaction_removed=%s removed %dx%s (%d:%d) from %s at %s (%s).
 message.block_change=%s was set at %s by %s (%s). The closest player was %s (%s blocks away).
 player.tempora.wand.unauthorised=§c[ALERT]§r %s attempted to use a Tempora wand without authorisation.
-msg.tempora.wand.checking.pos="Checking %s in dimension %s.
+msg.tempora.wand.checking.pos=Checking %s in dimension %s.
 
 time.ago.decades=%s decades ago
 time.ago.years=%s years ago
