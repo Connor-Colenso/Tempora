@@ -14,16 +14,15 @@ import com.colen.tempora.utils.PlayerUtils;
 public class TemporaWand extends Item {
 
     public TemporaWand() {
-        // Max stack size. Common values are 1 for tools/weapons, 16 for special items, and 64 for most other items.
         this.setMaxStackSize(1);
-
-        // Set the creative tab for this item.
-        this.setCreativeTab(CreativeTabs.tabTools); // Adjust this to whatever tab you want the item to appear in.
-
-        // Set the unlocalized and registry name for this item.
-        this.setUnlocalizedName("tempora_wand"); // This is used for localization.
-
+        this.setCreativeTab(CreativeTabs.tabTools);
+        this.setUnlocalizedName("tempora_wand");
         this.setTextureName("tempora:tempora_wand");
+    }
+
+    @Override
+    public boolean onBlockStartBreak(ItemStack stack, int x, int y, int z, EntityPlayer player) {
+        return true;
     }
 
     @Override
