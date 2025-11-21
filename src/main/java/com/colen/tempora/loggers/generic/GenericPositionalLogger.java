@@ -497,7 +497,6 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
                             for (GenericQueueElement packet : packets) {
                                 packet.sendEventToClientForRendering(player);
                             }
-
                         }
                     }
                 } catch (SQLException e) {
