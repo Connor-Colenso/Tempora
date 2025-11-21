@@ -2,6 +2,7 @@ package com.colen.tempora.loggers.block_change;
 
 import static com.colen.tempora.TemporaUtils.UNKNOWN_PLAYER_NAME;
 import static com.colen.tempora.utils.DatabaseUtils.MISSING_STRING_DATA;
+import static com.colen.tempora.utils.nbt.NBTUtils.NBT_DISABLED;
 import static com.colen.tempora.utils.nbt.NBTUtils.NO_NBT;
 
 import java.sql.PreparedStatement;
@@ -12,7 +13,12 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
+import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.IChatComponent;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldProvider;
 import net.minecraft.world.chunk.Chunk;
@@ -23,15 +29,17 @@ import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.loggers.generic.ColumnDef;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
+import com.colen.tempora.loggers.optional.ISupportsUndo;
 import com.colen.tempora.utils.EventLoggingHelper;
 import com.colen.tempora.utils.GenericUtils;
 import com.colen.tempora.utils.PlayerUtils;
 import com.colen.tempora.utils.RenderingUtils;
+import com.colen.tempora.utils.nbt.NBTUtils;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueElement> {
+public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueElement> implements ISupportsUndo {
 
     private boolean globalBlockChangeLogging;
 
@@ -220,5 +228,56 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
         Chunk chunk = world.getChunkFromChunkCoords(chunkX, chunkZ);
 
         return chunk.isTerrainPopulated;
+    }
+
+    @Override
+    public IChatComponent undoEvent(String eventUUID) {
+
+        BlockChangeQueueElement queueElement = queryEventByEventID(eventUUID);
+
+        if (queueElement == null) {
+            return new ChatComponentTranslation("tempora.event.not.found", eventUUID, getLoggerType());
+        }
+
+        // NBT existed but was not logged, it is not safe to undo this event.
+        if (queueElement.beforeEncodedNBT.equals(NBT_DISABLED))
+            return new ChatComponentTranslation("tempora.cannot.block.break.undo.nbt.logging.disabled");
+
+        World w = MinecraftServer.getServer()
+            .worldServerForDimension(queueElement.dimensionId);
+
+        Block block = Block.getBlockById(queueElement.beforeBlockID);
+        if (block == null) return new ChatComponentTranslation("tempora.cannot.block.break.undo.block.not.found");
+
+        w.setBlock(
+            (int) queueElement.x,
+            (int) queueElement.y,
+            (int) queueElement.z,
+            block,
+            queueElement.beforeMetadata,
+            2);
+        // Just to ensure meta is being set right, stops blocks interfering.
+        w.setBlockMetadataWithNotify(
+            (int) queueElement.x,
+            (int) queueElement.y,
+            (int) queueElement.z,
+            queueElement.beforeMetadata,
+            2);
+        // Block had no NBT.
+        if (queueElement.beforeEncodedNBT.equals(NO_NBT)) return new ChatComponentTranslation("tempora.undo.success");
+
+        try {
+            TileEntity tileEntity = TileEntity
+                .createAndLoadEntity(NBTUtils.decodeFromString(queueElement.beforeEncodedNBT));
+            w.setTileEntity((int) queueElement.x, (int) queueElement.y, (int) queueElement.z, tileEntity);
+        } catch (Exception e) {
+            // Erase the block. Try stop world state having issues.
+            w.setBlockToAir((int) queueElement.x, (int) queueElement.y, (int) queueElement.z);
+
+            e.printStackTrace();
+            return new ChatComponentTranslation("tempora.undo.block.break.unknown.error");
+        }
+
+        return new ChatComponentTranslation("tempora.undo.success");
     }
 }
