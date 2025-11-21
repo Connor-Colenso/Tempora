@@ -7,6 +7,8 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.ChatStyle;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.Facing;
 import net.minecraft.world.World;
 
@@ -78,8 +80,7 @@ public class TemporaWand extends Item {
                         player.dimension,
                         player.getDisplayName(),
                         GenericQueueElement.CoordFormat.INT),
-                    player.dimension)
-            );
+                    player.dimension).setChatStyle(new ChatStyle().setColor(EnumChatFormatting.RED)));
 
             for (GenericPositionalLogger<?> logger : GenericPositionalLogger.getLoggerList()) {
                 GenericPositionalLogger.queryEventsAtPosAndTime(player, x, y, z, -1, logger.getSQLTableName());

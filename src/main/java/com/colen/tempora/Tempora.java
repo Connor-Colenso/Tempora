@@ -14,6 +14,7 @@ import com.colen.tempora.commands.QueryEventsCommand;
 import com.colen.tempora.commands.QuerySQLCommand;
 import com.colen.tempora.commands.RemoveRegionCommand;
 import com.colen.tempora.commands.TemporaUndoCommand;
+import com.colen.tempora.commands.TemporaUndoRanged;
 import com.colen.tempora.loggers.block_change.BlockChangeLogger;
 import com.colen.tempora.loggers.command.CommandLogger;
 import com.colen.tempora.loggers.entity_death.EntityDeathLogger;
@@ -110,6 +111,7 @@ public class Tempora {
         event.registerServerCommand(new RemoveRegionCommand());
 
         event.registerServerCommand(new TemporaUndoCommand());
+        event.registerServerCommand(new TemporaUndoRanged());
     }
 
     @Mod.EventHandler
