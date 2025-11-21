@@ -17,6 +17,7 @@ import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.loggers.optional.ISupportsUndo;
 import com.colen.tempora.utils.TimeUtils;
+import net.minecraft.util.ChatComponentTranslation;
 
 public class TemporaUndoRanged extends CommandBase {
 
@@ -51,7 +52,7 @@ public class TemporaUndoRanged extends CommandBase {
         }
 
         if (!(genericLogger instanceof ISupportsUndo supportsUndo)) {
-            sender.addChatMessage(new ChatComponentText("This logger does not support undo."));
+            sender.addChatMessage(new ChatComponentTranslation("tempora.command.undo.not_undoable", loggerName));
             return;
         }
 
@@ -119,11 +120,11 @@ public class TemporaUndoRanged extends CommandBase {
                 count++;
             }
 
-            sender.addChatMessage(new ChatComponentText("Undid " + count + " events."));
+            sender.addChatMessage(new ChatComponentTranslation("tempora.undo.success", count));
 
         } catch (Exception e) {
             e.printStackTrace();
-            sender.addChatMessage(new ChatComponentText("Undo failed: " + e.getMessage()));
+            sender.addChatMessage(new ChatComponentTranslation("tempora.undo.failed", e.getMessage()));
         }
     }
 
