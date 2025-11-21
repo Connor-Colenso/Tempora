@@ -15,6 +15,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
+import com.colen.tempora.loggers.block_change.BlockChangeQueueElement;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
@@ -195,41 +196,43 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
 
     // Todo de-dupe code here and in other block adjacent loggers.
     @Override
-    public IChatComponent undoEvent(String eventUUID) {
+    public IChatComponent undoEvent(GenericQueueElement queueElement) {
+        if (! (queueElement instanceof PlayerBlockBreakQueueElement pbbqe)) return new ChatComponentTranslation("error");
 
-        PlayerBlockBreakQueueElement queueElement = queryEventByEventID(eventUUID);
-
-        if (queueElement == null) {
-            return new ChatComponentTranslation("tempora.event.not.found", eventUUID, getLoggerType());
-        }
+//        if (queueElement == null) {
+//            return new ChatComponentTranslation("tempora.event.not.found", eventUUID, getLoggerType());
+//        }
 
         // NBT existed but was not logged, it is not safe to undo this event.
-        if (queueElement.encodedNBT.equals(NBT_DISABLED))
+        if (pbbqe.encodedNBT.equals(NBT_DISABLED))
             return new ChatComponentTranslation("tempora.cannot.block.break.undo.nbt.logging.disabled");
 
         World w = MinecraftServer.getServer()
             .worldServerForDimension(queueElement.dimensionId);
 
-        Block block = Block.getBlockById(queueElement.blockID);
+        Block block = Block.getBlockById(pbbqe.blockID);
         if (block == null) return new ChatComponentTranslation("tempora.cannot.block.break.undo.block.not.found");
 
-        w.setBlock((int) queueElement.x, (int) queueElement.y, (int) queueElement.z, block, queueElement.metadata, 2);
+        // Flag of 2 will update clients nearby.
+        w.setBlock((int) pbbqe.x, (int) pbbqe.y, (int) pbbqe.z, block, pbbqe.metadata, 2);
+
         // Just to ensure meta is being set right, stops blocks interfering.
         w.setBlockMetadataWithNotify(
-            (int) queueElement.x,
-            (int) queueElement.y,
-            (int) queueElement.z,
-            queueElement.metadata,
+            (int) pbbqe.x,
+            (int) pbbqe.y,
+            (int) pbbqe.z,
+            pbbqe.metadata,
             2);
         // Block had no NBT.
-        if (queueElement.encodedNBT.equals(NO_NBT)) return new ChatComponentTranslation("tempora.undo.success");
+        if (pbbqe.encodedNBT.equals(NO_NBT)) return new ChatComponentTranslation("tempora.undo.success");
 
         try {
-            TileEntity tileEntity = TileEntity.createAndLoadEntity(NBTUtils.decodeFromString(queueElement.encodedNBT));
-            w.setTileEntity((int) queueElement.x, (int) queueElement.y, (int) queueElement.z, tileEntity);
+            TileEntity tileEntity = TileEntity.createAndLoadEntity(NBTUtils.decodeFromString(pbbqe.encodedNBT));
+            w.setTileEntity((int) pbbqe.x, (int) pbbqe.y, (int) pbbqe.z, tileEntity);
         } catch (Exception e) {
             // Erase the block. Try stop world state having issues.
-            w.setBlockToAir((int) queueElement.x, (int) queueElement.y, (int) queueElement.z);
+            w.setBlockToAir((int) pbbqe.x, (int) pbbqe.y, (int) pbbqe.z);
+            w.removeTileEntity((int) pbbqe.x, (int) pbbqe.y, (int) pbbqe.z);
 
             e.printStackTrace();
             return new ChatComponentTranslation("tempora.undo.block.break.unknown.error");

@@ -24,6 +24,8 @@ import com.colen.tempora.loggers.block_change.SetBlockEventInfo;
 
 import cpw.mods.fml.common.FMLLog;
 
+import java.util.*;
+
 // Todo only allow on server side.
 @Mixin(World.class)
 public class MixinWorld {
@@ -33,7 +35,8 @@ public class MixinWorld {
     @Shadow
     protected IChunkProvider chunkProvider;
 
-    private static SetBlockEventInfo setBlockEventInfo;
+    // It is possible for SetBlock to call other SetBlocks, hence this is required, to untangle nested calls.
+    private static Deque<SetBlockEventInfo> eventInfoQueue = new ArrayDeque<>();
 
     private static long worldTick;
 
@@ -48,31 +51,34 @@ public class MixinWorld {
         if (Tempora.blockChangeLogger == null) return;
         if (chunkProvider instanceof ChunkProviderGenerate) return; // worldgen
 
-        setBlockEventInfo = new SetBlockEventInfo();
+        eventInfoQueue.add(new SetBlockEventInfo());
 
-        setBlockEventInfo.beforeBlockID = Block.getIdFromBlock(provider.worldObj.getBlock(x, y, z));
-        setBlockEventInfo.beforeMeta = provider.worldObj.getBlockMetadata(x, y, z);
+        SetBlockEventInfo currentEventInfo = eventInfoQueue.peek();
+
+        currentEventInfo.beforeBlockID = Block.getIdFromBlock(provider.worldObj.getBlock(x, y, z));
+        currentEventInfo.beforeMeta = provider.worldObj.getBlockMetadata(x, y, z);
 
         // Pick block info.
         ItemStack pickStack = getPickBlockSafe(blockIn, provider.worldObj, x, y, z);
         if (pickStack != null && pickStack.getItem() != null) {
-            setBlockEventInfo.beforePickBlockID = Item.getIdFromItem(pickStack.getItem());
-            setBlockEventInfo.beforePickBlockMeta = pickStack.getItemDamage();
+            currentEventInfo.beforePickBlockID = Item.getIdFromItem(pickStack.getItem());
+            currentEventInfo.beforePickBlockMeta = pickStack.getItemDamage();
         } else {
             // Fallback to the raw place‑block data
-            setBlockEventInfo.beforePickBlockID = setBlockEventInfo.beforeBlockID;
-            setBlockEventInfo.beforePickBlockMeta = setBlockEventInfo.beforeMeta;
+            currentEventInfo.beforePickBlockID = currentEventInfo.beforeBlockID;
+            currentEventInfo.beforePickBlockMeta = currentEventInfo.beforeMeta;
         }
 
         // Log NBT.
-        setBlockEventInfo.beforeEncodedNBT = getEncodedTileEntityNBT(
+        currentEventInfo.beforeEncodedNBT = getEncodedTileEntityNBT(
             provider.worldObj,
             x,
             y,
             z,
             BlockChangeLogger.isLogNBTEnabled());
 
-        worldTick = provider.worldObj.getTotalWorldTime();
+
+        currentEventInfo.worldTick = provider.worldObj.getTotalWorldTime();
     }
 
     @Inject(method = "setBlock", at = @At("RETURN"))
@@ -91,22 +97,28 @@ public class MixinWorld {
 
         worldTick = provider.worldObj.getTotalWorldTime();
 
-        setBlockEventInfo.afterBlockID = Block.getIdFromBlock(provider.worldObj.getBlock(x, y, z));
-        setBlockEventInfo.afterMeta = provider.worldObj.getBlockMetadata(x, y, z);
+        SetBlockEventInfo currentEventInfo = eventInfoQueue.poll();
+        if (currentEventInfo == null) {
+            // todo critical
+            FMLLog.severe("CRITICAL");
+        }
+
+        currentEventInfo.afterBlockID = Block.getIdFromBlock(provider.worldObj.getBlock(x, y, z));
+        currentEventInfo.afterMeta = provider.worldObj.getBlockMetadata(x, y, z);
 
         // Pick block info.
         ItemStack pickStack = getPickBlockSafe(blockIn, provider.worldObj, x, y, z);
         if (pickStack != null && pickStack.getItem() != null) {
-            setBlockEventInfo.afterPickBlockID = Item.getIdFromItem(pickStack.getItem());
-            setBlockEventInfo.afterPickBlockMeta = pickStack.getItemDamage();
+            currentEventInfo.afterPickBlockID = Item.getIdFromItem(pickStack.getItem());
+            currentEventInfo.afterPickBlockMeta = pickStack.getItemDamage();
         } else {
             // Fallback to the raw place‑block data
-            setBlockEventInfo.afterPickBlockID = setBlockEventInfo.afterBlockID;
-            setBlockEventInfo.afterPickBlockMeta = setBlockEventInfo.afterMeta;
+            currentEventInfo.afterPickBlockID = currentEventInfo.afterBlockID;
+            currentEventInfo.afterPickBlockMeta = currentEventInfo.afterMeta;
         }
 
         // Log NBT.
-        setBlockEventInfo.afterEncodedNBT = getEncodedTileEntityNBT(
+        currentEventInfo.afterEncodedNBT = getEncodedTileEntityNBT(
             provider.worldObj,
             x,
             y,
@@ -114,13 +126,12 @@ public class MixinWorld {
             BlockChangeLogger.isLogNBTEnabled());
 
         // Ignore no-ops (same block and metadata)
-        if (setBlockEventInfo.isNoOp()) return;
+        if (currentEventInfo.isNoOp()) return;
 
         // Todo more safety checks like compare x y z.
         // Todo get mod ID.
         if (worldTick == provider.worldObj.getTotalWorldTime()) {
-            Tempora.blockChangeLogger.recordSetBlock(x, y, z, setBlockEventInfo, provider, "mod");
-
+            Tempora.blockChangeLogger.recordSetBlock(x, y, z, currentEventInfo, provider, "mod");
         } else {
             FMLLog.severe(
                 "[TEMPORA BLOCK LOGGER CRITICAL ERROR]\n" + "World tick mismatch detected during setBlock logging!\n"
@@ -135,10 +146,10 @@ public class MixinWorld {
                 x,
                 y,
                 z,
-                setBlockEventInfo.beforeBlockID,
-                setBlockEventInfo.beforeMeta,
-                setBlockEventInfo.afterBlockID,
-                setBlockEventInfo.afterMeta,
+                currentEventInfo.beforeBlockID,
+                currentEventInfo.beforeMeta,
+                currentEventInfo.afterBlockID,
+                currentEventInfo.afterMeta,
                 flags);
         }
     }

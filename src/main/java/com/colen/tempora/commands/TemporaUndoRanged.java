@@ -113,14 +113,16 @@ public class TemporaUndoRanged extends CommandBase {
             ResultSet rs = ps.executeQuery();
             List<GenericQueueElement> results = genericLogger.generateQueryResults(rs);
 
-            // Undo events
-            int count = 0;
-            for (GenericQueueElement packet : results) {
-                supportsUndo.undoEvent(packet.eventID);
-                count++;
-            }
+            long start = System.currentTimeMillis();
 
-            sender.addChatMessage(new ChatComponentTranslation("tempora.undo.success", count));
+            // Undo events
+            supportsUndo.undoEvents(results);
+
+            long end = System.currentTimeMillis();
+            System.out.println("Time taken: " + (end - start) + " ms");
+            player.addChatMessage(new ChatComponentText("Took " + (end - start) + " ms"));
+
+            sender.addChatMessage(new ChatComponentTranslation("tempora.undo.success"));
 
         } catch (Exception e) {
             e.printStackTrace();
