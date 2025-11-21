@@ -42,9 +42,9 @@ public class MixinWorld {
         CallbackInfoReturnable<Boolean> cir) {
 
         // Pre checks.
-        MinecraftServer server = MinecraftServer.getServer();
-        boolean isDedicated = server != null && server.isDedicatedServer();
-        if (!isDedicated) return;
+//        MinecraftServer server = MinecraftServer.getServer();
+//        boolean isDedicated = server != null && server.isDedicatedServer();
+//        if (!isDedicated) return;
         if (Tempora.blockChangeLogger == null) return;
         if (chunkProvider instanceof ChunkProviderGenerate) return; // worldgen
 
@@ -80,9 +80,9 @@ public class MixinWorld {
         CallbackInfoReturnable<Boolean> cir) {
 
         // Pre checks.
-        MinecraftServer server = MinecraftServer.getServer();
-        boolean isDedicated = server != null && server.isDedicatedServer();
-        if (!isDedicated) return;
+//        MinecraftServer server = MinecraftServer.getServer();
+//        boolean isDedicated = server != null && server.isDedicatedServer();
+//        if (!isDedicated) return;
         if (Tempora.blockChangeLogger == null) return;
         if (chunkProvider instanceof ChunkProviderGenerate) return; // worldgen
 

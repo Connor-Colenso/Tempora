@@ -83,6 +83,8 @@ tempora.undo.query.hover=Clicking this will revert the events effect on the worl
 tempora.command.undo.not_undoable=The event type %s does not support undo operations.
 tempora.command.undo.wrong.logger=The event type %s does not exist.
 tempora.event.not.found=No event with the ID %s could be found in %s.
+tempora.undo.success=Undid %d events.
+tempora.undo.failed=Undo failed: %s
 
 message.block_change=The block at %s was set from %s (%d:%d) to %s (%d:%d) (%s). Closest player: %s (%s blocks away).
 
