@@ -3,6 +3,7 @@ package com.colen.tempora.commands;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.colen.tempora.loggers.generic.GenericQueueElement;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
@@ -37,7 +38,8 @@ public class TemporaUndoCommand extends CommandBase {
 
         GenericPositionalLogger<?> genericLogger = GenericPositionalLogger.getLogger(loggerName);
         if (genericLogger instanceof ISupportsUndo supportsUndo) {
-            IChatComponent chatMessage = supportsUndo.undoEvent(eventID);
+            GenericQueueElement queueElement = genericLogger.queryEventByEventID(eventID);
+            IChatComponent chatMessage = supportsUndo.undoEvent(queueElement);
             sender.addChatMessage(chatMessage);
         } else if (genericLogger == null) {
             throw new WrongUsageException("tempora.command.undo.wrong.logger", loggerName);

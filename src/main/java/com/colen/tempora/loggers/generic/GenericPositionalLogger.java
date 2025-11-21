@@ -511,7 +511,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
         }
     }
 
-    public EventToLog queryEventByEventID(String eventID) {
+    public GenericQueueElement queryEventByEventID(String eventID) {
 
         synchronized (GenericPositionalLogger.class) {
 
@@ -525,7 +525,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
                 List<GenericQueueElement> packets = generateQueryResults(rs);
                 if (packets.isEmpty()) return null;
 
-                return (EventToLog) packets.get(0);
+                return packets.get(0);
 
             } catch (Exception e) {
                 e.printStackTrace();
