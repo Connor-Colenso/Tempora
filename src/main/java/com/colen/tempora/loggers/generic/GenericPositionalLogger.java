@@ -1,5 +1,6 @@
 package com.colen.tempora.loggers.generic;
 
+import static com.colen.tempora.TemporaUtils.deleteLoggerDatabase;
 import static com.colen.tempora.utils.GenericUtils.parseSizeStringToBytes;
 
 import java.nio.file.Files;
@@ -40,6 +41,8 @@ import org.sqlite.SQLiteConfig;
 import com.colen.tempora.TemporaUtils;
 import com.colen.tempora.config.Config;
 import com.colen.tempora.enums.LoggerEnum;
+import com.colen.tempora.utils.DatabaseUtils;
+import com.colen.tempora.utils.GenericUtils;
 import com.colen.tempora.utils.TimeUtils;
 
 import cpw.mods.fml.common.FMLCommonHandler;
@@ -179,6 +182,10 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
     private void initDbConnection() throws SQLException {
         String dbUrl = TemporaUtils.jdbcUrl(getSQLTableName() + ".db");
         positionalLoggerDBConnection = DriverManager.getConnection(dbUrl);
+    }
+
+    private void closeDbConnection() throws SQLException {
+        positionalLoggerDBConnection.close();
     }
 
     private void initTable() throws SQLException {
@@ -539,19 +546,47 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
         System.out.println("Opening Tempora DBs...");
 
         for (GenericPositionalLogger<?> logger : loggerList) {
+            initialiseLogger(logger);
+        }
+    }
+
+    private static void initialiseLogger(GenericPositionalLogger<?> logger) {
+        String loggerName = logger.getLoggerType()
+            .name();
+
+        while (true) {
             try {
-                // Just to 100% ensure we are not getting events from a prior save.
+                // Clear events and initialise connection
                 logger.clearEvents();
-
                 logger.initDbConnection();
+                Connection conn = logger.getDBConn();
 
+                // Check for corruption
+                if (DatabaseUtils.isDatabaseCorrupted(conn)) {
+
+                    boolean erase = GenericUtils.askTerminalYesNo(
+                        "Tempora has detected db corruption in " + loggerName
+                            + ". Would you like to erase the database and create a new one?");
+
+                    if (erase) {
+                        logger.closeDbConnection();
+                        deleteLoggerDatabase(loggerName);
+                        continue;
+                    } else {
+                        throw new RuntimeException(
+                            "Tempora database " + loggerName
+                                + ".db is corrupted. "
+                                + "Please disable database, fix the corruption manually or delete the database "
+                                + "and let Tempora generate a new clean version.");
+                    }
+                }
+
+                // Normal initialisation logic
                 if (logger.isHighRiskModeEnabled()) {
                     logger.enableHighRiskFastMode();
                 }
 
-                // Enable batching, to reduce overhead on db writes.
-                logger.getDBConn()
-                    .setAutoCommit(false);
+                conn.setAutoCommit(false);
 
                 logger.initTable();
                 logger.createAllIndexes();
@@ -559,14 +594,12 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
                 logger.trimOversizedDatabase();
 
                 logger.startQueueWorker(logger.getSQLTableName());
-            } catch (SQLException sqlException) {
-                String loggerName = logger.getClass()
-                    .getSimpleName();
-                System.err.println("Failed to initialize logger: " + loggerName);
-                sqlException.printStackTrace();
-                throw new RuntimeException(
-                    "Tempora database initial stages failure for logger: " + loggerName,
-                    sqlException);
+
+                // Success! exit loop
+                break;
+
+            } catch (SQLException e) {
+                throw new RuntimeException("[Tempora] Failed to initialise database for logger " + loggerName, e);
             }
         }
     }
@@ -666,8 +699,8 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
                 // Shut down each db.
                 if (logger.getDBConn() != null && !logger.getDBConn()
                     .isClosed()) {
-                    logger.getDBConn()
-                        .close();
+                    ;
+                    logger.closeDbConnection();
                 }
             }
 

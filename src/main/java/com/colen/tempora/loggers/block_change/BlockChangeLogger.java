@@ -232,7 +232,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
 
     @Override
     public IChatComponent undoEvent(GenericQueueElement queueElement) {
-        if (! (queueElement instanceof BlockChangeQueueElement)) return new ChatComponentTranslation("error");
+        if (!(queueElement instanceof BlockChangeQueueElement)) return new ChatComponentTranslation("error");
 
         BlockChangeQueueElement bcqe = (BlockChangeQueueElement) queueElement;
 
@@ -246,26 +246,14 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
         Block block = Block.getBlockById(bcqe.beforeBlockID);
         if (block == null) return new ChatComponentTranslation("tempora.cannot.block.break.undo.block.not.found");
 
-        w.setBlock(
-            (int) bcqe.x,
-            (int) bcqe.y,
-            (int) bcqe.z,
-            block,
-            bcqe.beforeMetadata,
-            2);
+        w.setBlock((int) bcqe.x, (int) bcqe.y, (int) bcqe.z, block, bcqe.beforeMetadata, 2);
         // Just to ensure meta is being set right, stops blocks interfering.
-        w.setBlockMetadataWithNotify(
-            (int) bcqe.x,
-            (int) bcqe.y,
-            (int) bcqe.z,
-            bcqe.beforeMetadata,
-            2);
+        w.setBlockMetadataWithNotify((int) bcqe.x, (int) bcqe.y, (int) bcqe.z, bcqe.beforeMetadata, 2);
         // Block had no NBT.
         if (bcqe.beforeEncodedNBT.equals(NO_NBT)) return new ChatComponentTranslation("tempora.undo.success");
 
         try {
-            TileEntity tileEntity = TileEntity
-                .createAndLoadEntity(NBTUtils.decodeFromString(bcqe.beforeEncodedNBT));
+            TileEntity tileEntity = TileEntity.createAndLoadEntity(NBTUtils.decodeFromString(bcqe.beforeEncodedNBT));
             w.setTileEntity((int) bcqe.x, (int) bcqe.y, (int) bcqe.z, tileEntity);
         } catch (Exception e) {
             // Erase the block. Try stop world state having issues.

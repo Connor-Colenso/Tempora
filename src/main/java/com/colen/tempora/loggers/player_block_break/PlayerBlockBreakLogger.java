@@ -15,7 +15,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
-import com.colen.tempora.loggers.block_change.BlockChangeQueueElement;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
@@ -197,11 +196,11 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
     // Todo de-dupe code here and in other block adjacent loggers.
     @Override
     public IChatComponent undoEvent(GenericQueueElement queueElement) {
-        if (! (queueElement instanceof PlayerBlockBreakQueueElement pbbqe)) return new ChatComponentTranslation("error");
+        if (!(queueElement instanceof PlayerBlockBreakQueueElement pbbqe)) return new ChatComponentTranslation("error");
 
-//        if (queueElement == null) {
-//            return new ChatComponentTranslation("tempora.event.not.found", eventUUID, getLoggerType());
-//        }
+        // if (queueElement == null) {
+        // return new ChatComponentTranslation("tempora.event.not.found", eventUUID, getLoggerType());
+        // }
 
         // NBT existed but was not logged, it is not safe to undo this event.
         if (pbbqe.encodedNBT.equals(NBT_DISABLED))
@@ -217,12 +216,7 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
         w.setBlock((int) pbbqe.x, (int) pbbqe.y, (int) pbbqe.z, block, pbbqe.metadata, 2);
 
         // Just to ensure meta is being set right, stops blocks interfering.
-        w.setBlockMetadataWithNotify(
-            (int) pbbqe.x,
-            (int) pbbqe.y,
-            (int) pbbqe.z,
-            pbbqe.metadata,
-            2);
+        w.setBlockMetadataWithNotify((int) pbbqe.x, (int) pbbqe.y, (int) pbbqe.z, pbbqe.metadata, 2);
         // Block had no NBT.
         if (pbbqe.encodedNBT.equals(NO_NBT)) return new ChatComponentTranslation("tempora.undo.success");
 

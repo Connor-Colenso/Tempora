@@ -3,6 +3,7 @@ package com.colen.tempora.utils;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Scanner;
 import java.util.Set;
 
 import net.minecraft.event.ClickEvent;
@@ -77,6 +78,27 @@ public class GenericUtils {
         // else no suffix: assume bytes
 
         return Long.parseLong(numberPart) * multiplier;
+    }
+
+    public static boolean askTerminalYesNo(String question) {
+        Scanner scanner = new Scanner(System.in);
+
+        while (true) {
+            System.out.print(question + " [yes/no]: ");
+
+            String input = scanner.nextLine()
+                .trim()
+                .toLowerCase();
+
+            if (input.equals("yes") || input.equals("y")) {
+                return true;
+            }
+            if (input.equals("no") || input.equals("n")) {
+                return false;
+            }
+
+            System.out.println("Please type 'yes' or 'no'.");
+        }
     }
 
 }

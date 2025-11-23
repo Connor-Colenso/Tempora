@@ -3,10 +3,11 @@ package com.colen.tempora.mixins;
 import static com.colen.tempora.utils.BlockUtils.getPickBlockSafe;
 import static com.colen.tempora.utils.nbt.NBTUtils.getEncodedTileEntityNBT;
 
+import java.util.*;
+
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldProvider;
 import net.minecraft.world.chunk.IChunkProvider;
@@ -23,8 +24,6 @@ import com.colen.tempora.loggers.block_change.BlockChangeLogger;
 import com.colen.tempora.loggers.block_change.SetBlockEventInfo;
 
 import cpw.mods.fml.common.FMLLog;
-
-import java.util.*;
 
 // Todo only allow on server side.
 @Mixin(World.class)
@@ -45,9 +44,9 @@ public class MixinWorld {
         CallbackInfoReturnable<Boolean> cir) {
 
         // Pre checks.
-//        MinecraftServer server = MinecraftServer.getServer();
-//        boolean isDedicated = server != null && server.isDedicatedServer();
-//        if (!isDedicated) return;
+        // MinecraftServer server = MinecraftServer.getServer();
+        // boolean isDedicated = server != null && server.isDedicatedServer();
+        // if (!isDedicated) return;
         if (Tempora.blockChangeLogger == null) return;
         if (chunkProvider instanceof ChunkProviderGenerate) return; // worldgen
 
@@ -77,7 +76,6 @@ public class MixinWorld {
             z,
             BlockChangeLogger.isLogNBTEnabled());
 
-
         currentEventInfo.worldTick = provider.worldObj.getTotalWorldTime();
     }
 
@@ -86,9 +84,9 @@ public class MixinWorld {
         CallbackInfoReturnable<Boolean> cir) {
 
         // Pre checks.
-//        MinecraftServer server = MinecraftServer.getServer();
-//        boolean isDedicated = server != null && server.isDedicatedServer();
-//        if (!isDedicated) return;
+        // MinecraftServer server = MinecraftServer.getServer();
+        // boolean isDedicated = server != null && server.isDedicatedServer();
+        // if (!isDedicated) return;
         if (Tempora.blockChangeLogger == null) return;
         if (chunkProvider instanceof ChunkProviderGenerate) return; // worldgen
 
