@@ -1,9 +1,10 @@
 package com.colen.tempora.loggers.optional;
 
-import com.colen.tempora.loggers.generic.GenericQueueElement;
+import java.util.List;
+
 import net.minecraft.util.IChatComponent;
 
-import java.util.List;
+import com.colen.tempora.loggers.generic.GenericQueueElement;
 
 public interface ISupportsUndo {
 

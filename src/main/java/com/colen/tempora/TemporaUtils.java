@@ -9,6 +9,7 @@ import net.minecraftforge.common.DimensionManager;
 import com.colen.tempora.config.Config;
 
 import cpw.mods.fml.common.FMLCommonHandler;
+import cpw.mods.fml.common.FMLLog;
 import cpw.mods.fml.relauncher.Side;
 
 public class TemporaUtils {
@@ -27,6 +28,23 @@ public class TemporaUtils {
             throw new RuntimeException("Cannot create database directory: " + dir, e);
         }
         return dir;
+    }
+
+    public static void deleteLoggerDatabase(String loggerName) {
+        Path dbPath = databaseDir().resolve(loggerName + ".db");
+
+        try {
+            if (Files.exists(dbPath)) {
+                Files.delete(dbPath);
+                FMLLog.info("Deleted Tempora database: %s", dbPath.toString());
+            } else {
+                FMLLog.warning("Database file does not exist: %s", dbPath.toString());
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            FMLLog.severe("Failed to delete Tempora database: %s", dbPath.toString());
+            throw new RuntimeException("Unable to delete database file: " + dbPath, e);
+        }
     }
 
     /** Absolute JDBC URL for the given database file (e.g. "blocks.db"). */
