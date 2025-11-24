@@ -1,6 +1,5 @@
 package com.colen.tempora.mixins;
 
-import com.colen.tempora.TemporaUtils;
 import net.minecraft.block.Block;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldProvider;
@@ -14,6 +13,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import com.colen.tempora.Tempora;
+import com.colen.tempora.TemporaUtils;
 
 // Todo only allow on server side.
 @Mixin(World.class)
