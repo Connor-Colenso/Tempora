@@ -10,11 +10,10 @@ import static com.colen.tempora.utils.nbt.NBTUtils.getEncodedTileEntityNBT;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Deque;
 import java.util.List;
+import java.util.Stack;
 import java.util.UUID;
 
 import net.minecraft.block.Block;
@@ -60,7 +59,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
     private static boolean logNBT;
 
     // It is possible for SetBlock to call other SetBlocks, hence this is required, to untangle nested calls.
-    private static final Deque<SetBlockEventInfo> eventInfoQueue = new ArrayDeque<>();
+    private static final Stack<SetBlockEventInfo> eventInfoStack = new Stack<>();
 
     @Override
     public LoggerEnum getLoggerType() {
@@ -187,11 +186,12 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
         return events;
     }
 
+    // TODO Urgent! Look into world gen being logged when it shouldn't. Is causing severe issues with tall grass reverting to air on tempora undo ranged command usage.
     public void onSetBlockHead(int x, int y, int z, Block blockIn, WorldProvider provider) {
 
-        eventInfoQueue.add(new SetBlockEventInfo());
+        eventInfoStack.add(new SetBlockEventInfo());
 
-        SetBlockEventInfo currentEventInfo = eventInfoQueue.peek();
+        SetBlockEventInfo currentEventInfo = eventInfoStack.peek();
 
         currentEventInfo.beforeBlockID = Block.getIdFromBlock(provider.worldObj.getBlock(x, y, z));
         currentEventInfo.beforeMeta = provider.worldObj.getBlockMetadata(x, y, z);
@@ -221,7 +221,11 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
     public void onSetBlockReturn(int x, int y, int z, Block blockIn, int flags, WorldProvider provider,
         CallbackInfoReturnable<Boolean> cir) {
 
-        SetBlockEventInfo currentEventInfo = eventInfoQueue.poll();
+        if (eventInfoStack.size() > 20) {
+            FMLLog.warning("Tempora BlockChangeLogger internal stack is at " + eventInfoStack.size());
+        }
+
+        SetBlockEventInfo currentEventInfo = eventInfoStack.pop();
         if (currentEventInfo == null) {
             // todo critical error writeup.
             FMLLog.severe("CRITICAL");
@@ -279,7 +283,6 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
                 currentEventInfo.afterMeta,
                 flags);
         }
-
     }
 
     private void recordSetBlock(int x, int y, int z, SetBlockEventInfo setBlockEventInfo, WorldProvider worldProvider,
