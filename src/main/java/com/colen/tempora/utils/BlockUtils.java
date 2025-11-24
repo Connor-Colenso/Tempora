@@ -41,7 +41,7 @@ public class BlockUtils {
             return null;
         }
 
-        // Determine block for metadata.
+        // Determine block for metadata. todo review special logic here.
         Block theBlock = item instanceof ItemBlock && !(block instanceof BlockFlowerPot) ? Block.getBlockFromItem(item)
             : block;
 
