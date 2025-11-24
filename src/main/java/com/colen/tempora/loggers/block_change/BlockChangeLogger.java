@@ -17,8 +17,6 @@ import java.util.Deque;
 import java.util.List;
 import java.util.UUID;
 
-import com.colen.tempora.Tempora;
-import cpw.mods.fml.common.FMLLog;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
@@ -33,6 +31,9 @@ import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.config.Configuration;
 
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+
+import com.colen.tempora.Tempora;
 import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.loggers.generic.ColumnDef;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
@@ -44,9 +45,9 @@ import com.colen.tempora.utils.PlayerUtils;
 import com.colen.tempora.utils.RenderingUtils;
 import com.colen.tempora.utils.nbt.NBTUtils;
 
+import cpw.mods.fml.common.FMLLog;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueElement> implements ISupportsUndo {
 
@@ -57,7 +58,6 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
     }
 
     private static boolean logNBT;
-
 
     // It is possible for SetBlock to call other SetBlocks, hence this is required, to untangle nested calls.
     private static final Deque<SetBlockEventInfo> eventInfoQueue = new ArrayDeque<>();
@@ -219,7 +219,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
     }
 
     public void onSetBlockReturn(int x, int y, int z, Block blockIn, int flags, WorldProvider provider,
-                               CallbackInfoReturnable<Boolean> cir) {
+        CallbackInfoReturnable<Boolean> cir) {
 
         SetBlockEventInfo currentEventInfo = eventInfoQueue.poll();
         if (currentEventInfo == null) {
@@ -228,7 +228,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
         }
 
         // Block placement failed for some reason. So do not log.
-        if (! cir.getReturnValue()) return;
+        if (!cir.getReturnValue()) return;
 
         currentEventInfo.afterBlockID = Block.getIdFromBlock(provider.worldObj.getBlock(x, y, z));
         currentEventInfo.afterMeta = provider.worldObj.getBlockMetadata(x, y, z);
