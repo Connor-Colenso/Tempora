@@ -752,8 +752,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
             .format("CREATE INDEX IF NOT EXISTS idx_%s_timestamp ON %s (timestamp DESC);", tableName, tableName);
         stmt.execute(createTimestampIndex);
 
-        System.out.println("Indexes created for table: " + tableName);
-
+        FMLLog.info("Created indexes for table: " + tableName);
     }
 
     // Use the fastest durability mode: may lose or corrupt the DB on sudden power loss.

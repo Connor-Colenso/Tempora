@@ -6,11 +6,13 @@
   "target": "@env(DEFAULT)",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
+    "MixinChunkProviderGenerate",
     "MixinEntity",
     "MixinFMLNetworkHandler",
+    "MixinGameRegistry",
+    "MixinNetHandlerPlayServer",
     "MixinNetworkMonitor",
-    "MixinWorld",
-    "MixinNetHandlerPlayServer"
+    "MixinWorld"
   ],
   "client": [],
   "server": [
