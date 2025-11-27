@@ -37,6 +37,7 @@ import com.gtnewhorizons.modularui.common.internal.wrapper.ModularUIContainer;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
+// Todo fix drag and drop not logging correctly.
 public class InventoryLogger extends GenericPositionalLogger<InventoryQueueElement> {
 
     @Override
