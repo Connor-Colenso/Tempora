@@ -10,10 +10,11 @@ import static com.colen.tempora.utils.nbt.NBTUtils.getEncodedTileEntityNBT;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Deque;
 import java.util.List;
-import java.util.Stack;
 import java.util.UUID;
 
 import net.minecraft.block.Block;
@@ -59,7 +60,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
     private static boolean logNBT;
 
     // It is possible for SetBlock to call other SetBlocks, hence this is required, to untangle nested calls.
-    private static final Stack<SetBlockEventInfo> eventInfoStack = new Stack<>();
+    private static final Deque<SetBlockEventInfo> eventInfoStack = new ArrayDeque<>();
 
     @Override
     public LoggerEnum getLoggerType() {
@@ -186,11 +187,10 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
         return events;
     }
 
-    // TODO Urgent! Look into world gen being logged when it shouldn't. Is causing severe issues with tall grass
     // reverting to air on tempora undo ranged command usage.
     public void onSetBlockHead(int x, int y, int z, Block blockIn, WorldProvider provider) {
 
-        eventInfoStack.add(new SetBlockEventInfo());
+        eventInfoStack.push(new SetBlockEventInfo());
 
         SetBlockEventInfo currentEventInfo = eventInfoStack.peek();
         currentEventInfo.isWorldGen = WorldGenPhaseTracker.isInWorldGen();
@@ -224,10 +224,16 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
     public void onSetBlockReturn(int x, int y, int z, Block blockIn, int flags, WorldProvider provider,
         CallbackInfoReturnable<Boolean> cir) {
 
-        SetBlockEventInfo currentEventInfo = eventInfoStack.pop();
+        SetBlockEventInfo currentEventInfo = eventInfoStack.poll();
         if (currentEventInfo == null) {
-            // todo critical error writeup.
-            FMLLog.severe("CRITICAL");
+            FMLLog.severe(
+                "[TEMPORA BLOCK LOGGER CRITICAL ERROR]\n"
+                    + "SetBlock return hook encountered a null SetBlockEventInfo!\n"
+                    + "This indicates that onSetBlockReturn was called without a matching onSetBlockHead,\n"
+                    + "or that the eventInfoStack has become desynchronised.\n");
+
+            new IllegalStateException("Tempora SetBlockEventInfo stack desynchronised (null entry)").printStackTrace();
+            return;
         }
 
         // Block placement failed for some reason. So do not log.
@@ -328,17 +334,6 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
 
         queueEvent(queueElement);
     }
-
-    // private boolean isChunkPopulatedAt(World world, int blockX, int blockZ) {
-    // // Convert block coordinates to chunk coordinates
-    // int chunkX = blockX >> 4; // divide by 16
-    // int chunkZ = blockZ >> 4;
-    //
-    // // Get the chunk object
-    // Chunk chunk = world.getChunkFromChunkCoords(chunkX, chunkZ);
-    //
-    // return chunk.isTerrainPopulated;
-    // }
 
     @Override
     public IChatComponent undoEvent(GenericQueueElement queueElement) {
