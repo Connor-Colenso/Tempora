@@ -1,12 +1,14 @@
 package com.colen.tempora.mixins;
 
-import com.colen.tempora.utils.WorldGenPhaseTracker;
 import net.minecraft.world.chunk.IChunkProvider;
 import net.minecraft.world.gen.ChunkProviderGenerate;
+
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+import com.colen.tempora.utils.WorldGenPhaseTracker;
 
 @Mixin(ChunkProviderGenerate.class)
 public class MixinChunkProviderGenerate {

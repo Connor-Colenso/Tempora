@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.Stack;
 import java.util.UUID;
 
-import com.colen.tempora.utils.WorldGenPhaseTracker;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
@@ -27,7 +26,6 @@ import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldProvider;
-import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.config.Configuration;
 
@@ -43,6 +41,7 @@ import com.colen.tempora.utils.EventLoggingHelper;
 import com.colen.tempora.utils.GenericUtils;
 import com.colen.tempora.utils.PlayerUtils;
 import com.colen.tempora.utils.RenderingUtils;
+import com.colen.tempora.utils.WorldGenPhaseTracker;
 import com.colen.tempora.utils.nbt.NBTUtils;
 
 import cpw.mods.fml.common.FMLLog;
@@ -187,7 +186,8 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
         return events;
     }
 
-    // TODO Urgent! Look into world gen being logged when it shouldn't. Is causing severe issues with tall grass reverting to air on tempora undo ranged command usage.
+    // TODO Urgent! Look into world gen being logged when it shouldn't. Is causing severe issues with tall grass
+    // reverting to air on tempora undo ranged command usage.
     public void onSetBlockHead(int x, int y, int z, Block blockIn, WorldProvider provider) {
 
         eventInfoStack.add(new SetBlockEventInfo());
@@ -329,16 +329,16 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
         queueEvent(queueElement);
     }
 
-//    private boolean isChunkPopulatedAt(World world, int blockX, int blockZ) {
-//        // Convert block coordinates to chunk coordinates
-//        int chunkX = blockX >> 4; // divide by 16
-//        int chunkZ = blockZ >> 4;
-//
-//        // Get the chunk object
-//        Chunk chunk = world.getChunkFromChunkCoords(chunkX, chunkZ);
-//
-//        return chunk.isTerrainPopulated;
-//    }
+    // private boolean isChunkPopulatedAt(World world, int blockX, int blockZ) {
+    // // Convert block coordinates to chunk coordinates
+    // int chunkX = blockX >> 4; // divide by 16
+    // int chunkZ = blockZ >> 4;
+    //
+    // // Get the chunk object
+    // Chunk chunk = world.getChunkFromChunkCoords(chunkX, chunkZ);
+    //
+    // return chunk.isTerrainPopulated;
+    // }
 
     @Override
     public IChatComponent undoEvent(GenericQueueElement queueElement) {
