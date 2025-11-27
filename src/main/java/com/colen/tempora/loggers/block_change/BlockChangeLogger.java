@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Stack;
 import java.util.UUID;
 
+import com.colen.tempora.utils.WorldGenPhaseTracker;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
@@ -192,6 +193,8 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
         eventInfoStack.add(new SetBlockEventInfo());
 
         SetBlockEventInfo currentEventInfo = eventInfoStack.peek();
+        currentEventInfo.isWorldGen = WorldGenPhaseTracker.isInWorldGen();
+        if (currentEventInfo.isWorldGen) return;
 
         currentEventInfo.beforeBlockID = Block.getIdFromBlock(provider.worldObj.getBlock(x, y, z));
         currentEventInfo.beforeMeta = provider.worldObj.getBlockMetadata(x, y, z);
@@ -221,10 +224,6 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
     public void onSetBlockReturn(int x, int y, int z, Block blockIn, int flags, WorldProvider provider,
         CallbackInfoReturnable<Boolean> cir) {
 
-        if (eventInfoStack.size() > 20) {
-            FMLLog.warning("Tempora BlockChangeLogger internal stack is at " + eventInfoStack.size());
-        }
-
         SetBlockEventInfo currentEventInfo = eventInfoStack.pop();
         if (currentEventInfo == null) {
             // todo critical error writeup.
@@ -233,6 +232,8 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
 
         // Block placement failed for some reason. So do not log.
         if (!cir.getReturnValue()) return;
+        // We do not log world gen, as it mostly meaningless.
+        if (currentEventInfo.isWorldGen) return;
 
         currentEventInfo.afterBlockID = Block.getIdFromBlock(provider.worldObj.getBlock(x, y, z));
         currentEventInfo.afterMeta = provider.worldObj.getBlockMetadata(x, y, z);
@@ -293,8 +294,6 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
             return;
         }
 
-        if (!isChunkPopulatedAt(worldProvider.worldObj, x, z)) return;
-
         final BlockChangeQueueElement queueElement = new BlockChangeQueueElement();
         queueElement.eventID = UUID.randomUUID()
             .toString();
@@ -330,16 +329,16 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
         queueEvent(queueElement);
     }
 
-    private boolean isChunkPopulatedAt(World world, int blockX, int blockZ) {
-        // Convert block coordinates to chunk coordinates
-        int chunkX = blockX >> 4; // divide by 16
-        int chunkZ = blockZ >> 4;
-
-        // Get the chunk object
-        Chunk chunk = world.getChunkFromChunkCoords(chunkX, chunkZ);
-
-        return chunk.isTerrainPopulated;
-    }
+//    private boolean isChunkPopulatedAt(World world, int blockX, int blockZ) {
+//        // Convert block coordinates to chunk coordinates
+//        int chunkX = blockX >> 4; // divide by 16
+//        int chunkZ = blockZ >> 4;
+//
+//        // Get the chunk object
+//        Chunk chunk = world.getChunkFromChunkCoords(chunkX, chunkZ);
+//
+//        return chunk.isTerrainPopulated;
+//    }
 
     @Override
     public IChatComponent undoEvent(GenericQueueElement queueElement) {

@@ -16,6 +16,7 @@ public class SetBlockEventInfo {
 
     // This is for event tracking internally, and not to be transmitted to the client.
     public long worldTick;
+    public boolean isWorldGen;
 
     public boolean isNoOp() {
         return beforeBlockID == afterBlockID && beforeMeta == afterMeta;
