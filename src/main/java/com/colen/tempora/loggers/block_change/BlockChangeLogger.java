@@ -10,28 +10,10 @@ import static com.colen.tempora.utils.nbt.NBTUtils.getEncodedTileEntityNBT;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Deque;
 import java.util.List;
 import java.util.UUID;
-
-import com.colen.tempora.utils.BlockUtils;
-import net.minecraft.block.Block;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ChatComponentTranslation;
-import net.minecraft.util.IChatComponent;
-import net.minecraft.world.World;
-import net.minecraft.world.WorldProvider;
-import net.minecraftforge.client.event.RenderWorldLastEvent;
-import net.minecraftforge.common.config.Configuration;
-
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import com.colen.tempora.Tempora;
 import com.colen.tempora.enums.LoggerEnum;
@@ -39,6 +21,7 @@ import com.colen.tempora.loggers.generic.ColumnDef;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.loggers.optional.ISupportsUndo;
+import com.colen.tempora.utils.BlockUtils;
 import com.colen.tempora.utils.EventLoggingHelper;
 import com.colen.tempora.utils.GenericUtils;
 import com.colen.tempora.utils.PlayerUtils;
@@ -49,6 +32,18 @@ import com.colen.tempora.utils.nbt.NBTUtils;
 import cpw.mods.fml.common.FMLLog;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import net.minecraft.block.Block;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.IChatComponent;
+import net.minecraft.world.World;
+import net.minecraftforge.client.event.RenderWorldLastEvent;
+import net.minecraftforge.common.config.Configuration;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueElement> implements ISupportsUndo {
 
@@ -60,8 +55,15 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
 
     private static boolean logNBT;
 
-    // It is possible for SetBlock to call other SetBlocks, hence this is required, to untangle nested calls.
-    private static final Deque<SetBlockEventInfo> eventInfoStack = new ArrayDeque<>();
+    /**
+     * Track nested block writes per thread.
+     * We only log when depth goes from 0 -> 1 -> 0.
+     */
+    private static final ThreadLocal<Integer> depth =
+        ThreadLocal.withInitial(() -> 0);
+
+    private static final ThreadLocal<SetBlockEventInfo> currentEvent =
+        new ThreadLocal<>();
 
     @Override
     public LoggerEnum getLoggerType() {
@@ -188,126 +190,149 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
         return events;
     }
 
-    // reverting to air on tempora undo ranged command usage.
-    public void onSetBlockHead(int x, int y, int z, Block blockIn, WorldProvider provider) {
+    /**
+     * Called at HEAD of Chunk.func_150807_a
+     */
+    public void onSetBlockHead(int x, int y, int z, World world) {
 
-        eventInfoStack.push(new SetBlockEventInfo());
+        int d = depth.get();
+        depth.set(d + 1);
 
-        SetBlockEventInfo currentEventInfo = eventInfoStack.peek();
-        currentEventInfo.isWorldGen = WorldGenPhaseTracker.isInWorldGen();
-        if (currentEventInfo.isWorldGen) return;
+        // Only capture info for the outermost mutation in this call stack
+        if (d != 0) {
+            return;
+        }
 
-        currentEventInfo.beforeBlockID = Block.getIdFromBlock(provider.worldObj.getBlock(x, y, z));
-        currentEventInfo.beforeMeta = provider.worldObj.getBlockMetadata(x, y, z);
+        SetBlockEventInfo currentEventInfo = new SetBlockEventInfo();
+        currentEvent.set(currentEventInfo);
 
-        // Pick block info. // todo use this in other logs.
-        ItemStack pickStack = provider.worldObj.getBlock(x, y, z).getPickBlock(null, provider.worldObj, x, y, z);
+        currentEventInfo.isWorldGen = WorldGenPhaseTracker.isWorldGen();
+        if (currentEventInfo.isWorldGen) {
+            return;
+        }
+
+        currentEventInfo.beforeBlockID = Block.getIdFromBlock(world.getBlock(x, y, z));
+        currentEventInfo.beforeMeta = world.getBlockMetadata(x, y, z);
+
+        // Pick block info.
+        ItemStack pickStack = world.getBlock(x, y, z).getPickBlock(null, world, x, y, z);
         if (pickStack != null && pickStack.getItem() != null) {
             currentEventInfo.beforePickBlockID = Item.getIdFromItem(pickStack.getItem());
             currentEventInfo.beforePickBlockMeta = pickStack.getItemDamage();
         } else {
-            // Fallback to the raw place‑block data
+            // Fallback to the raw place-block data
             currentEventInfo.beforePickBlockID = currentEventInfo.beforeBlockID;
             currentEventInfo.beforePickBlockMeta = currentEventInfo.beforeMeta;
         }
 
         // Log NBT.
         currentEventInfo.beforeEncodedNBT = getEncodedTileEntityNBT(
-            provider.worldObj,
+            world,
             x,
             y,
             z,
             BlockChangeLogger.isLogNBTEnabled());
 
-        currentEventInfo.worldTick = provider.worldObj.getTotalWorldTime();
+        currentEventInfo.worldTick = world.getTotalWorldTime();
     }
 
-    public void onSetBlockReturn(int x, int y, int z, Block blockIn, int flags, WorldProvider provider,
-        CallbackInfoReturnable<Boolean> cir) {
+    /**
+     * Called at RETURN of Chunk.func_150807_a
+     */
+    public void onSetBlockReturn(int x, int y, int z, World world,
+                                 CallbackInfoReturnable<Boolean> cir) {
 
-        SetBlockEventInfo currentEventInfo = eventInfoStack.poll();
+        int d = depth.get() - 1;
+        depth.set(d);
+
+        // Only act when unwinding the outermost call
+        if (d != 0) {
+            return;
+        }
+
+        SetBlockEventInfo currentEventInfo = currentEvent.get();
+        currentEvent.remove();
+
         if (currentEventInfo == null) {
             FMLLog.severe(
                 "[TEMPORA BLOCK LOGGER CRITICAL ERROR]\n"
-                    + "SetBlock return hook encountered a null SetBlockEventInfo!\n"
+                    + "SetBlock return hook encountered a null SetBlockEventInfo at outermost depth!\n"
                     + "This indicates that onSetBlockReturn was called without a matching onSetBlockHead,\n"
-                    + "or that the eventInfoStack has become desynchronised.\n");
-
-            new IllegalStateException("Tempora SetBlockEventInfo stack desynchronised (null entry)").printStackTrace();
+                    + "or that the event tracking has become desynchronised.\n");
+            new IllegalStateException("Tempora SetBlockEventInfo missing at outermost depth").printStackTrace();
             return;
         }
 
         // Block placement failed for some reason. So do not log.
         if (!cir.getReturnValue()) return;
-        // We do not log world gen, as it mostly meaningless.
+        // We do not log world gen, as it is mostly meaningless.
         if (currentEventInfo.isWorldGen) return;
 
-        currentEventInfo.afterBlockID = Block.getIdFromBlock(provider.worldObj.getBlock(x, y, z));
-        currentEventInfo.afterMeta = provider.worldObj.getBlockMetadata(x, y, z);
+        currentEventInfo.afterBlockID = Block.getIdFromBlock(world.getBlock(x, y, z));
+        currentEventInfo.afterMeta = world.getBlockMetadata(x, y, z);
 
-        // Pick block info. // todo use this in other logs.
-        ItemStack pickStack = provider.worldObj.getBlock(x, y, z).getPickBlock(null, provider.worldObj, x, y, z);
+        // Pick block info.
+        ItemStack pickStack = world.getBlock(x, y, z).getPickBlock(null, world, x, y, z);
         if (pickStack != null && pickStack.getItem() != null) {
             currentEventInfo.afterPickBlockID = Item.getIdFromItem(pickStack.getItem());
             currentEventInfo.afterPickBlockMeta = pickStack.getItemDamage();
         } else {
-            // Fallback to the raw place‑block data
+            // Fallback to the raw place-block data
             currentEventInfo.afterPickBlockID = currentEventInfo.afterBlockID;
             currentEventInfo.afterPickBlockMeta = currentEventInfo.afterMeta;
         }
 
         // Log NBT.
         currentEventInfo.afterEncodedNBT = getEncodedTileEntityNBT(
-            provider.worldObj,
+            world,
             x,
             y,
             z,
-            BlockChangeLogger.isLogNBTEnabled());
+            BlockChangeLogger.isLogNBTEnabled()); // todo investigate chest breaking and not saving nbt.
 
         // Ignore no-ops (same block and metadata)
         if (currentEventInfo.isNoOp()) return;
 
-        // Todo more safety checks like compare x y z.
-        // Todo get mod ID.
-        if (currentEventInfo.worldTick == provider.worldObj.getTotalWorldTime()) {
-            Tempora.blockChangeLogger.recordSetBlock(x, y, z, currentEventInfo, provider, "mod");
+        // Todo: more safety checks like compare x y z.
+        // Todo: get mod ID.
+        if (currentEventInfo.worldTick == world.getTotalWorldTime()) {
+            Tempora.blockChangeLogger.recordSetBlock(x, y, z, currentEventInfo, world, "mod");
         } else {
             FMLLog.severe(
-                "[TEMPORA BLOCK LOGGER CRITICAL ERROR]\n" + "World tick mismatch detected during setBlock logging!\n"
+                "[TEMPORA BLOCK LOGGER CRITICAL ERROR]\n"
+                    + "World tick mismatch detected during setBlock logging!\n"
                     + "Expected tick: %d | Actual tick: %d\n"
                     + "Dim ID: %d | Pos: (%d,%d,%d)\n"
-                    + "Before: %s:%d | After: %s:%d | Flags: %d\n"
+                    + "Before: %s:%d | After: %s:%d\n"
                     + "This should NEVER occur.\n"
                     + "Please report this with full logs immediately.",
                 currentEventInfo.worldTick,
-                provider.worldObj.getTotalWorldTime(),
-                provider.dimensionId,
+                world.getTotalWorldTime(),
+                world.provider.dimensionId,
                 x,
                 y,
                 z,
                 currentEventInfo.beforeBlockID,
                 currentEventInfo.beforeMeta,
                 currentEventInfo.afterBlockID,
-                currentEventInfo.afterMeta,
-                flags);
+                currentEventInfo.afterMeta);
         }
     }
 
-    private void recordSetBlock(int x, int y, int z, SetBlockEventInfo setBlockEventInfo, WorldProvider worldProvider,
-        String modID) {
+    private void recordSetBlock(int x, int y, int z, SetBlockEventInfo setBlockEventInfo, World world,
+                        String modID) {
 
         // Only log changes if (x, y, z) is inside a defined region
-        if (!globalBlockChangeLogging && !RegionRegistry.containsBlock(worldProvider.dimensionId, x, y, z)) {
+        if (!globalBlockChangeLogging && !RegionRegistry.containsBlock(world.provider.dimensionId, x, y, z)) {
             return;
         }
 
         final BlockChangeQueueElement queueElement = new BlockChangeQueueElement();
-        queueElement.eventID = UUID.randomUUID()
-            .toString();
+        queueElement.eventID = UUID.randomUUID().toString();
         queueElement.x = x;
         queueElement.y = y;
         queueElement.z = z;
-        queueElement.dimensionId = worldProvider.dimensionId;
+        queueElement.dimensionId = world.provider.dimensionId;
         queueElement.timestamp = System.currentTimeMillis();
 
         queueElement.stackTrace = modID + " : " + GenericUtils.getCallingClassChain();
@@ -324,13 +349,16 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
         queueElement.afterPickBlockMeta = setBlockEventInfo.afterPickBlockMeta;
         queueElement.afterEncodedNBT = setBlockEventInfo.afterEncodedNBT;
 
-        EntityPlayer closestPlayer = worldProvider.worldObj.getClosestPlayer(x, y, z, -1);;
+        EntityPlayer closestPlayer = world.getClosestPlayer(x, y, z, -1);
         double closestDistance = -1;
 
-        if (closestPlayer != null) closestDistance = closestPlayer.getDistance(x, y, z);
+        if (closestPlayer != null) {
+            closestDistance = closestPlayer.getDistance(x, y, z);
+        }
 
-        queueElement.closestPlayerUUID = closestPlayer != null ? closestPlayer.getUniqueID()
-            .toString() : UNKNOWN_PLAYER_NAME;
+        queueElement.closestPlayerUUID = closestPlayer != null
+            ? closestPlayer.getUniqueID().toString()
+            : UNKNOWN_PLAYER_NAME;
         queueElement.closestPlayerDistance = closestDistance;
 
         queueEvent(queueElement);
