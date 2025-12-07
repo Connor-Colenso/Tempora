@@ -12,7 +12,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import com.colen.tempora.rendering.RenderUtils;
 import net.minecraft.block.Block;
+import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.Container;
@@ -36,6 +38,7 @@ import com.gtnewhorizons.modularui.common.internal.wrapper.ModularUIContainer;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import org.lwjgl.opengl.GL11;
 
 // Todo fix drag and drop not logging correctly.
 public class InventoryLogger extends GenericPositionalLogger<InventoryQueueElement> {
@@ -48,7 +51,25 @@ public class InventoryLogger extends GenericPositionalLogger<InventoryQueueEleme
     @Override
     @SideOnly(Side.CLIENT)
     public void renderEventsInWorld(RenderWorldLastEvent e) {
+        List<InventoryQueueElement> sortedList = getSortedLatestEventsByDistance(eventsToRenderInWorld, e);
 
+        Minecraft mc = Minecraft.getMinecraft();
+
+        double px = mc.thePlayer.lastTickPosX + (mc.thePlayer.posX - mc.thePlayer.lastTickPosX) * e.partialTicks;
+        double py = mc.thePlayer.lastTickPosY + (mc.thePlayer.posY - mc.thePlayer.lastTickPosY) * e.partialTicks;
+        double pz = mc.thePlayer.lastTickPosZ + (mc.thePlayer.posZ - mc.thePlayer.lastTickPosZ) * e.partialTicks;
+
+        GL11.glPushMatrix();
+        GL11.glTranslated(-px, -py, -pz);
+
+        for (InventoryQueueElement iqe : sortedList) {
+            GL11.glPushMatrix();
+            GL11.glTranslated(iqe.x, iqe.y, iqe.z);
+            RenderUtils.renderRegion(0, 0, 0, 1, 1, 1, 0.655, 0.125, 0.8);
+            GL11.glPopMatrix();
+        }
+
+        GL11.glPopMatrix();
     }
 
     // This only exists so debug breakpoints can be used, as we are no longer inside of the mixin itself.
