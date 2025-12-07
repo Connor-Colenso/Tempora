@@ -45,6 +45,7 @@ import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.config.Configuration;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+// todo look into logging world gen and marking that separately, such that you can use a useful regen command to restore the state of the world.
 public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueElement> implements ISupportsUndo {
 
     private boolean globalBlockChangeLogging;

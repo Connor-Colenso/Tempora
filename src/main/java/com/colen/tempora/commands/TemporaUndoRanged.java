@@ -60,6 +60,11 @@ public class TemporaUndoRanged extends CommandBase {
         int radius = parseInt(sender, args[0]);
         long seconds = TimeUtils.convertToSeconds(args[1].toLowerCase());
 
+        if (radius < 0) {
+            player.addChatMessage(new ChatComponentTranslation("tempora.range.negative"));
+            return;
+        }
+
         // Compute timestamp cutoff
         Timestamp cutoff = new Timestamp(System.currentTimeMillis() - seconds * 1000L);
 
@@ -113,16 +118,28 @@ public class TemporaUndoRanged extends CommandBase {
             ResultSet rs = ps.executeQuery();
             List<GenericQueueElement> results = genericLogger.generateQueryResults(rs);
 
+            if (results.isEmpty()) {
+                sender.addChatMessage(new ChatComponentTranslation("tempora.command.undo.nothing", loggerName));
+                return;
+            }
+
             long start = System.currentTimeMillis();
 
             // Undo events
             supportsUndo.undoEvents(results);
 
+            // Record outcome to player who executed undo.
             long end = System.currentTimeMillis();
-            System.out.println("Time taken: " + (end - start) + " ms");
-            player.addChatMessage(new ChatComponentText("Took " + (end - start) + " ms"));
+            long duration = end - start;
+            TimeUtils.DurationParts p = TimeUtils.formatShortDuration(duration);
 
-            sender.addChatMessage(new ChatComponentTranslation("tempora.undo.success"));
+            sender.addChatMessage(new ChatComponentTranslation(
+                "tempora.undo.success.ranged",
+                // todo fix that some events count as "undone" even when they threw an error or such. Probably need a true/false for success, but then requires a pair etc. Something to think about.
+                results.size(), // Todo format number for larger sizes i.e. 1000+. Need to move formatting to NHLib...
+                p.value,
+                new ChatComponentTranslation(p.unitKey)
+            ));
 
         } catch (Exception e) {
             e.printStackTrace();

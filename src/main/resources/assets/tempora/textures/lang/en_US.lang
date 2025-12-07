@@ -70,12 +70,12 @@ event.command.executed=%s executed
 
 tile.renderingErrorBlock.name=Tempora Rendering Error
 tooltip.temporasRenderingBlockError=If you are seeing this, something has likely gone wrong with Temporas event rendering. Please report it to Colen. Thanks!
+tempora.range.negative=Range cannot be negative, stop trying to break me!
 
 # === Tempora Undo Messages ===
 tempora.cannot.block.break.undo.nbt.logging.disabled=Cannot undo, the block had NBT data, but NBT logging was disabled when it was saved.
 tempora.cannot.block.break.undo.block.not.found=Cannot undo, the block no longer exists.
 tempora.undo.block.break.unknown.error=An unknown error occurred while undoing the block break event. See log.
-tempora.undo.success=Successfully undid the event.
 
 tempora.undo.query.display=[UNDO]
 tempora.undo.query.hover=Clicking this will revert the events effect on the world.
@@ -83,8 +83,15 @@ tempora.undo.query.hover=Clicking this will revert the events effect on the worl
 tempora.command.undo.not_undoable=The event type %s does not support undo operations.
 tempora.command.undo.wrong.logger=The event type %s does not exist.
 tempora.event.not.found=No event with the ID %s could be found in %s.
-tempora.undo.success=Completed undo successfully.
+tempora.undo.success=Undo completed successfully.
+tempora.undo.success.ranged=Undo completed successfully. %s events reverted in %s%s.
+tempora.command.undo.nothing=No events found within the range and time specified for %s.
 tempora.undo.failed=Undo failed: %s
+time.unit.milliseconds=ms
+time.unit.seconds=s
+time.unit.minutes=mins
+time.unit.hours=hrs
+time.unit.days=days
 
 message.block_change=The block at %s was set from %s (%d:%d) to %s (%d:%d) (%s). Closest player: %s (%s blocks away).
 
