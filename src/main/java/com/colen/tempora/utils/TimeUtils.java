@@ -213,4 +213,45 @@ public class TimeUtils {
         };
     }
 
+    public static class DurationParts {
+        public final String value;
+        public final String unitKey;
+        public DurationParts(String value, String unitKey) {
+            this.value = value;
+            this.unitKey = unitKey;
+        }
+    }
+
+    public static DurationParts formatShortDuration(long millis) {
+        if (millis < 1000) {
+            return new DurationParts(Long.toString(millis), "time.unit.milliseconds");
+        }
+
+        double seconds = millis / 1000.0;
+        if (seconds < 60) {
+            return new DurationParts(trim(seconds), "time.unit.seconds");
+        }
+
+        double minutes = seconds / 60.0;
+        if (minutes < 60) {
+            return new DurationParts(trim(minutes), "time.unit.minutes");
+        }
+
+        double hours = minutes / 60.0;
+        if (hours < 24) {
+            return new DurationParts(trim(hours), "time.unit.hours");
+        }
+
+        double days = hours / 24.0;
+        return new DurationParts(trim(days), "time.unit.days");
+    }
+
+    private static String trim(double value) {
+        long whole = (long) value;
+        if (value == whole) {
+            return Long.toString(whole);
+        }
+        return String.format(Locale.ROOT, "%.1f", value);
+    }
+
 }
