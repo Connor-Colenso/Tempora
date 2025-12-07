@@ -15,11 +15,11 @@ public class MixinChunkProviderGenerate {
 
     @Inject(method = "populate", at = @At("HEAD"))
     private void tempora$startPopulate(IChunkProvider provider, int chunkX, int chunkZ, CallbackInfo ci) {
-        WorldGenPhaseTracker.IN_WORLD_GEN = true;
+        WorldGenPhaseTracker.enter(WorldGenPhaseTracker.Phase.BASE_TERRAIN);
     }
 
-    @Inject(method = "populate", at = @At("RETURN"))
+    @Inject(method = "populate", at = @At("TAIL"))
     private void tempora$endPopulate(IChunkProvider provider, int chunkX, int chunkZ, CallbackInfo ci) {
-        WorldGenPhaseTracker.IN_WORLD_GEN = false;
+        WorldGenPhaseTracker.exit();
     }
 }
