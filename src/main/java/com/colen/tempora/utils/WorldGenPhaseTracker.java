@@ -1,12 +1,48 @@
 package com.colen.tempora.utils;
 
-public class WorldGenPhaseTracker {
-    // TODO determine if needed?
-    // public static final ThreadLocal<Boolean> IN_WORLD_GEN = ThreadLocal.withInitial(() -> false);
+public final class WorldGenPhaseTracker {
 
-    public static boolean IN_WORLD_GEN = false;
+    public enum Phase {
+        NONE,
+        BASE_TERRAIN,   // ChunkProviderGenerate.populate
+//        DECORATION,     // BiomeDecorator.decorate / similar
+        MOD_FEATURES    // GameRegistry.generateWorld (mod hooks)
+    }
 
-    public static boolean isInWorldGen() {
-        return IN_WORLD_GEN;
+    // Per-thread nesting depth
+    private static final ThreadLocal<Integer> DEPTH =
+        ThreadLocal.withInitial(() -> 0);
+
+    private static final ThreadLocal<Phase> CURRENT_PHASE =
+        ThreadLocal.withInitial(() -> Phase.NONE);
+
+    private WorldGenPhaseTracker() {}
+
+    public static void enter(Phase phase) {
+        int depth = DEPTH.get();
+        DEPTH.set(depth + 1);
+
+        // Only set phase on outermost entry
+        if (depth == 0) {
+            CURRENT_PHASE.set(phase);
+        }
+    }
+
+    public static void exit() {
+        int depth = DEPTH.get();
+        if (depth <= 1) {
+            DEPTH.set(0);
+            CURRENT_PHASE.set(Phase.NONE);
+        } else {
+            DEPTH.set(depth - 1);
+        }
+    }
+
+    public static boolean isWorldGen() {
+        return DEPTH.get() > 0;
+    }
+
+    public static Phase currentPhase() {
+        return CURRENT_PHASE.get();
     }
 }
