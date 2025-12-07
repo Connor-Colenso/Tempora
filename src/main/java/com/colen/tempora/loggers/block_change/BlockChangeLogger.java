@@ -17,6 +17,7 @@ import java.util.Deque;
 import java.util.List;
 import java.util.UUID;
 
+import com.colen.tempora.utils.BlockUtils;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
@@ -199,8 +200,8 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
         currentEventInfo.beforeBlockID = Block.getIdFromBlock(provider.worldObj.getBlock(x, y, z));
         currentEventInfo.beforeMeta = provider.worldObj.getBlockMetadata(x, y, z);
 
-        // Pick block info.
-        ItemStack pickStack = getPickBlockSafe(blockIn, provider.worldObj, x, y, z);
+        // Pick block info. // todo use this in other logs.
+        ItemStack pickStack = provider.worldObj.getBlock(x, y, z).getPickBlock(null, provider.worldObj, x, y, z);
         if (pickStack != null && pickStack.getItem() != null) {
             currentEventInfo.beforePickBlockID = Item.getIdFromItem(pickStack.getItem());
             currentEventInfo.beforePickBlockMeta = pickStack.getItemDamage();
@@ -244,8 +245,8 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
         currentEventInfo.afterBlockID = Block.getIdFromBlock(provider.worldObj.getBlock(x, y, z));
         currentEventInfo.afterMeta = provider.worldObj.getBlockMetadata(x, y, z);
 
-        // Pick block info.
-        ItemStack pickStack = getPickBlockSafe(blockIn, provider.worldObj, x, y, z);
+        // Pick block info. // todo use this in other logs.
+        ItemStack pickStack = provider.worldObj.getBlock(x, y, z).getPickBlock(null, provider.worldObj, x, y, z);
         if (pickStack != null && pickStack.getItem() != null) {
             currentEventInfo.afterPickBlockID = Item.getIdFromItem(pickStack.getItem());
             currentEventInfo.afterPickBlockMeta = pickStack.getItemDamage();
@@ -337,36 +338,49 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
 
     @Override
     public IChatComponent undoEvent(GenericQueueElement queueElement) {
-        if (!(queueElement instanceof BlockChangeQueueElement)) return new ChatComponentTranslation("error");
+        if (!(queueElement instanceof BlockChangeQueueElement))
+            return new ChatComponentTranslation("error");
 
         BlockChangeQueueElement bcqe = (BlockChangeQueueElement) queueElement;
 
-        // NBT existed but was not logged, it is not safe to undo this event.
         if (bcqe.beforeEncodedNBT.equals(NBT_DISABLED))
             return new ChatComponentTranslation("tempora.cannot.block.break.undo.nbt.logging.disabled");
 
-        World w = MinecraftServer.getServer()
-            .worldServerForDimension(queueElement.dimensionId);
-
+        World w = MinecraftServer.getServer().worldServerForDimension(queueElement.dimensionId);
         Block block = Block.getBlockById(bcqe.beforeBlockID);
-        if (block == null) return new ChatComponentTranslation("tempora.cannot.block.break.undo.block.not.found");
+        if (block == null)
+            return new ChatComponentTranslation("tempora.cannot.block.break.undo.block.not.found");
 
-        w.setBlock((int) bcqe.x, (int) bcqe.y, (int) bcqe.z, block, bcqe.beforeMetadata, 2);
-        // Just to ensure meta is being set right, stops blocks interfering.
-        w.setBlockMetadataWithNotify((int) bcqe.x, (int) bcqe.y, (int) bcqe.z, bcqe.beforeMetadata, 2);
-        // Block had no NBT.
-        if (bcqe.beforeEncodedNBT.equals(NO_NBT)) return new ChatComponentTranslation("tempora.undo.success");
+        int x = (int) bcqe.x;
+        int y = (int) bcqe.y;
+        int z = (int) bcqe.z;
+        int meta = bcqe.beforeMetadata;
 
-        try {
-            TileEntity tileEntity = TileEntity.createAndLoadEntity(NBTUtils.decodeFromString(bcqe.beforeEncodedNBT));
-            w.setTileEntity((int) bcqe.x, (int) bcqe.y, (int) bcqe.z, tileEntity);
-        } catch (Exception e) {
-            // Erase the block. Try stop world state having issues.
-            w.setBlockToAir((int) bcqe.x, (int) bcqe.y, (int) bcqe.z);
+        // Place silently (no physics or callbacks)
+        BlockUtils.setBlockNoUpdate(w, x, y, z, block, meta); // todo use this in other undos.
 
-            e.printStackTrace();
-            return new ChatComponentTranslation("tempora.undo.block.break.unknown.error");
+        if (!bcqe.beforeEncodedNBT.equals(NO_NBT)) {
+            try {
+                TileEntity te = TileEntity.createAndLoadEntity(
+                    NBTUtils.decodeFromString(bcqe.beforeEncodedNBT));
+                if (te != null) {
+                    te.setWorldObj(w);
+                    te.xCoord = x;
+                    te.yCoord = y;
+                    te.zCoord = z;
+                    te.validate();
+                    w.setTileEntity(x, y, z, te);
+                }
+            } catch (Exception e) {
+                w.setBlockToAir(x, y, z);
+                w.removeTileEntity(x, y, z);
+                e.printStackTrace();
+                return new ChatComponentTranslation("tempora.undo.block.break.unknown.error");
+            }
         }
+
+        // Client visual + light refresh now that TE is correct
+        w.markBlockForUpdate(x, y, z);
 
         return new ChatComponentTranslation("tempora.undo.success");
     }
