@@ -1,5 +1,6 @@
 package com.colen.tempora.utils;
 
+import static com.colen.tempora.Tempora.LOG;
 import static com.colen.tempora.utils.nbt.NBTUtils.NBT_DISABLED;
 import static com.colen.tempora.utils.nbt.NBTUtils.NO_NBT;
 
@@ -14,8 +15,6 @@ import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.rendering.RenderUtils;
 import com.colen.tempora.utils.nbt.NBTUtils;
-
-import cpw.mods.fml.common.FMLLog;
 
 public class RenderingUtils {
 
@@ -38,26 +37,30 @@ public class RenderingUtils {
                 loggerType);
         } catch (Exception exception) {
             // Render an error block here instead, if something went critically wrong.
-            FMLLog.warning(
-                "[Tempora] Failed to render %s event (eventID=%s) at (%.1f, %.1f, %.1f) in dim %d. "
-                    + "BlockID=%d:%d Player=%s NBT=%s Timestamp=%d | Exception: %s: %s",
+            String truncatedNBT = (encodedNBT != null && !encodedNBT.isEmpty()
+                ? encodedNBT.substring(0, Math.min(encodedNBT.length(), 64)) + "..."
+                : "none");
+
+            String sx = String.format("%.1f", queueElement.x);
+            String sy = String.format("%.1f", queueElement.y);
+            String sz = String.format("%.1f", queueElement.z);
+
+            LOG.warn(
+                "Failed to render {} event (eventID={}) at ({}, {}, {}) in dim {}. BlockID={}:{} Player={} NBT={} Timestamp={} | Exception: {}: {}",
                 loggerType,
                 queueElement.eventID,
-                queueElement.x,
-                queueElement.y,
-                queueElement.z,
+                sx,
+                sy,
+                sz,
                 queueElement.dimensionId,
                 blockID,
-                metadata, // Block ID + metadata
-                playerUUID, // Player UUID
-                (encodedNBT != null && !encodedNBT.isEmpty()
-                    ? encodedNBT.substring(0, Math.min(encodedNBT.length(), 64)) + "..."
-                    : "none"), // Safe truncated NBT preview
+                metadata,
+                playerUUID,
+                truncatedNBT,
                 queueElement.timestamp,
                 exception.getClass()
-                    .getSimpleName(), // Exception type
-                exception.getMessage() // Exception message
-            );
+                    .getSimpleName(),
+                exception.getMessage());
 
             // Optionally print full stack trace to console for devs
             exception.printStackTrace();

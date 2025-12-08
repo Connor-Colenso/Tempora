@@ -1,5 +1,6 @@
 package com.colen.tempora.commands;
 
+import static com.colen.tempora.Tempora.LOG;
 import static com.colen.tempora.loggers.generic.GenericQueueElement.generateTeleportChatComponent;
 
 import java.sql.Connection;
@@ -19,8 +20,6 @@ import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.utils.PlayerUtils;
 import com.colen.tempora.utils.TimeUtils;
-
-import cpw.mods.fml.common.FMLLog;
 
 /**
  * /homechunk <player> [<look‑back>] [<dim>]
@@ -179,8 +178,7 @@ public class HomeChunkCommand extends CommandBase {
             }
 
         } catch (SQLException e) {
-            FMLLog.severe("HomeChunkCommand SQL failed: %s", e.getMessage());
-            e.printStackTrace();
+            LOG.error("HomeChunkCommand SQL failed: {}. With stack trace: {}", e.getMessage(), e);
             sender.addChatMessage(new ChatComponentTranslation("tempora.command.averagehome.sql_error"));
         }
     }

@@ -1,5 +1,6 @@
 package com.colen.tempora.items;
 
+import static com.colen.tempora.Tempora.LOG;
 import static com.colen.tempora.loggers.generic.GenericQueueElement.generateTeleportChatComponent;
 
 import net.minecraft.creativetab.CreativeTabs;
@@ -16,8 +17,6 @@ import com.colen.tempora.TemporaUtils;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.utils.PlayerUtils;
-
-import cpw.mods.fml.common.FMLLog;
 
 public class TemporaWand extends Item {
 
@@ -62,8 +61,8 @@ public class TemporaWand extends Item {
     private static void checkSpot(EntityPlayer player, int x, int y, int z) {
         if (!PlayerUtils.isPlayerOp(player)) {
             PlayerUtils.sendMessageToOps("player.tempora.wand.unauthorised", player.getDisplayName());
-            FMLLog.warning(
-                "[TemporaWand] Unauthorised use attempt by player '%s' at (%d, %d, %d) in dimension %d.",
+            LOG.warn(
+                "[TemporaWand] Unauthorised use attempt by player '{}' at ({}, {}, {}) in dimension {}.",
                 player.getDisplayName(),
                 x,
                 y,

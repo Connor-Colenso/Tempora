@@ -4,17 +4,15 @@ public final class WorldGenPhaseTracker {
 
     public enum Phase {
         NONE,
-        BASE_TERRAIN,   // ChunkProviderGenerate.populate
-//        DECORATION,     // BiomeDecorator.decorate / similar
-        MOD_FEATURES    // GameRegistry.generateWorld (mod hooks)
+        BASE_TERRAIN, // ChunkProviderGenerate.populate
+        // DECORATION, // BiomeDecorator.decorate / similar
+        MOD_FEATURES // GameRegistry.generateWorld (mod hooks)
     }
 
     // Per-thread nesting depth
-    private static final ThreadLocal<Integer> DEPTH =
-        ThreadLocal.withInitial(() -> 0);
+    private static final ThreadLocal<Integer> DEPTH = ThreadLocal.withInitial(() -> 0);
 
-    private static final ThreadLocal<Phase> CURRENT_PHASE =
-        ThreadLocal.withInitial(() -> Phase.NONE);
+    private static final ThreadLocal<Phase> CURRENT_PHASE = ThreadLocal.withInitial(() -> Phase.NONE);
 
     private WorldGenPhaseTracker() {}
 

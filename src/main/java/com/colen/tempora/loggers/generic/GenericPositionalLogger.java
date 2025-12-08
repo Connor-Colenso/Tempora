@@ -1,5 +1,6 @@
 package com.colen.tempora.loggers.generic;
 
+import static com.colen.tempora.Tempora.LOG;
 import static com.colen.tempora.TemporaUtils.deleteLoggerDatabase;
 import static com.colen.tempora.utils.GenericUtils.parseSizeStringToBytes;
 
@@ -46,7 +47,6 @@ import com.colen.tempora.utils.GenericUtils;
 import com.colen.tempora.utils.TimeUtils;
 
 import cpw.mods.fml.common.FMLCommonHandler;
-import cpw.mods.fml.common.FMLLog;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
@@ -69,7 +69,8 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
     private String oldestDataCutoff;
     private long largestDatabaseSizeInBytes;
 
-    public GenericPositionalLogger() {
+    public GenericPositionalLogger(ExecutorService executor) {
+        this.executor = executor;
         loggerList.add(this);
     }
 
@@ -255,7 +256,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
             // Execute the update
             pstmt.executeUpdate();
         } catch (SQLException e) {
-            System.err.println("SQL error could not erase old data: " + e.getMessage());
+            LOG.error("SQL error, could not erase old data.", e);
         }
     }
 
@@ -263,14 +264,13 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
         try {
             eraseAllDataBeforeTime(System.currentTimeMillis() - TimeUtils.convertToSeconds(oldestDataCutoff) * 1000);
         } catch (Exception e) {
-            System.err.println(
-                "An error occurred while erasing old data in " + getSQLTableName()
-                    + " are you sure you spelt the oldest data setting correctly ("
-                    + oldestDataCutoff
-                    + ")? Check your tempora config.");
+            LOG.error(
+                "An error occurred while erasing old data in table '{}' — oldestDataCutoff={} (check Tempora config).",
+                getSQLTableName(),
+                oldestDataCutoff,
+                e);
 
-            e.printStackTrace();
-            throw new RuntimeException("Database cleanup failed");
+            throw new RuntimeException("Database cleanup failed: " + getSQLTableName(), e);
         }
     }
 
@@ -296,8 +296,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
         Thread t = new Thread(() -> queueLoop(sqlTableName), "Tempora-" + sqlTableName);
         t.setDaemon(false);
         t.setUncaughtExceptionHandler((thr, ex) -> {
-            FMLLog.severe("Tempora queue‑worker '%s' crashed – halting JVM!", thr.getName());
-            ex.printStackTrace();
+            LOG.error("Tempora queue-worker '{}' crashed – halting JVM!", thr.getName(), ex);
             FMLCommonHandler.instance()
                 .exitJava(-1, false);
         });
@@ -314,7 +313,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
                 if (event == null) continue;
 
                 if (eventQueue.size() > LARGE_QUEUE_THRESHOLD) {
-                    FMLLog.warning("%s has %,d elements waiting…", sqlTableName, eventQueue.size());
+                    LOG.warn("{} has {} elements waiting…", sqlTableName, eventQueue.size());
                 }
 
                 buffer.add(event);
@@ -642,19 +641,23 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
             + " ORDER BY timestamp ASC LIMIT ?)";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setLong(1, rowsToDelete);
-            int deleted = ps.executeUpdate();
-            System.out.printf("[Tempora] Deleted %,d rows from %s%n", deleted, getSQLTableName());
+            ps.executeUpdate();
+            LOG.info("Deleted {} rows from {} database.", getSQLTableName(), rowsToDelete);
         }
 
         conn.commit();
 
         checkpointAndVacuum();
 
-        System.out.printf(
-            "[Tempora] %s DB is now %.2f MB (limit %.2f MB)%n",
+        double sizeMb = physicalDbBytes(conn) / 1_048_576.0;
+        double limitMb = largestDatabaseSizeInBytes / 1_048_576.0;
+
+        LOG.info(
+            "{} database is now {} MB (Config limit is {} MB).",
             getSQLTableName(),
-            physicalDbBytes(conn) / 1_048_576.0,
-            largestDatabaseSizeInBytes / 1_048_576.0);
+            String.format("%.2f", sizeMb),
+            String.format("%.2f", limitMb));
+
     }
 
     /* ---------- helpers ---------- */
@@ -705,8 +708,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
             }
 
         } catch (Exception e) {
-            System.err.println("Error closing resources:");
-            e.printStackTrace();
+            LOG.error("Error closing resources.", e);
         } finally {
             // Just to ensure that we are not carrying data over to a new world opening.
             for (GenericPositionalLogger<?> logger : loggerList) {
@@ -726,7 +728,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
             } else {
                 // Wait up to 10 seconds, then force shutdown if needed.
                 if (!executor.awaitTermination(30, TimeUnit.SECONDS)) {
-                    System.err.println("Executor timeout. Forcing shutdown.");
+                    LOG.error("Executor timeout. Forcing shutdown.");
                     executor.shutdownNow();
                 }
             }
@@ -752,7 +754,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
             .format("CREATE INDEX IF NOT EXISTS idx_%s_timestamp ON %s (timestamp DESC);", tableName, tableName);
         stmt.execute(createTimestampIndex);
 
-        FMLLog.info("Created indexes for table: " + tableName);
+        LOG.info("Created indexes for Tempora database: {}", tableName);
     }
 
     // Use the fastest durability mode: may lose or corrupt the DB on sudden power loss.

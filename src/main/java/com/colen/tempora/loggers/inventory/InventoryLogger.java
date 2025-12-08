@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import com.colen.tempora.rendering.RenderUtils;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
@@ -27,18 +26,20 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 
+import org.lwjgl.opengl.GL11;
+
 import com.colen.tempora.Tempora;
 import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.loggers.generic.ColumnDef;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
+import com.colen.tempora.rendering.RenderUtils;
 import com.colen.tempora.utils.EventLoggingHelper;
 import com.colen.tempora.utils.LastInvPos;
 import com.gtnewhorizons.modularui.common.internal.wrapper.ModularUIContainer;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import org.lwjgl.opengl.GL11;
 
 // Todo fix drag and drop not logging correctly.
 public class InventoryLogger extends GenericPositionalLogger<InventoryQueueElement> {

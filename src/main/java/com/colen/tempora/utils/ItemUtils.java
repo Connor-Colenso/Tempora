@@ -1,5 +1,7 @@
 package com.colen.tempora.utils;
 
+import static com.colen.tempora.Tempora.LOG;
+
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 
@@ -9,7 +11,7 @@ public class ItemUtils {
         Item item = Item.getItemById(id);
         if (item == null) {
             String errorItemName = "[ERROR UNKNOWN ITEM (" + id + ":" + meta + ")]";
-            System.err.println(errorItemName);
+            LOG.error(errorItemName);
             return errorItemName;
         }
         ItemStack itemStack = new ItemStack(item, 1, meta);
