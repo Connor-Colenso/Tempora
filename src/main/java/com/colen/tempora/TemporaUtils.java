@@ -1,5 +1,7 @@
 package com.colen.tempora;
 
+import static com.colen.tempora.Tempora.LOG;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -9,7 +11,6 @@ import net.minecraftforge.common.DimensionManager;
 import com.colen.tempora.config.Config;
 
 import cpw.mods.fml.common.FMLCommonHandler;
-import cpw.mods.fml.common.FMLLog;
 import cpw.mods.fml.relauncher.Side;
 
 public class TemporaUtils {
@@ -36,13 +37,12 @@ public class TemporaUtils {
         try {
             if (Files.exists(dbPath)) {
                 Files.delete(dbPath);
-                FMLLog.info("Deleted Tempora database: %s", dbPath.toString());
+                LOG.info("Deleted Tempora database: {}", dbPath.toString());
             } else {
-                FMLLog.warning("Database file does not exist: %s", dbPath.toString());
+                LOG.warn("Database file does not exist: {}", dbPath.toString());
             }
         } catch (IOException e) {
-            e.printStackTrace();
-            FMLLog.severe("Failed to delete Tempora database: %s", dbPath.toString());
+            LOG.error("Failed to delete Tempora database: {}", dbPath.toString(), e);
             throw new RuntimeException("Unable to delete database file: " + dbPath, e);
         }
     }

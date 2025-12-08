@@ -11,7 +11,6 @@ import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatComponentTranslation;
 
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
@@ -133,13 +132,15 @@ public class TemporaUndoRanged extends CommandBase {
             long duration = end - start;
             TimeUtils.DurationParts p = TimeUtils.formatShortDuration(duration);
 
-            sender.addChatMessage(new ChatComponentTranslation(
-                "tempora.undo.success.ranged",
-                // todo fix that some events count as "undone" even when they threw an error or such. Probably need a true/false for success, but then requires a pair etc. Something to think about.
-                results.size(), // Todo format number for larger sizes i.e. 1000+. Need to move formatting to NHLib...
-                p.value,
-                new ChatComponentTranslation(p.unitKey)
-            ));
+            sender.addChatMessage(
+                new ChatComponentTranslation(
+                    "tempora.undo.success.ranged",
+                    // todo fix that some events count as "undone" even when they threw an error or such. Probably need
+                    // a true/false for success, but then requires a pair etc. Something to think about.
+                    results.size(), // Todo format number for larger sizes i.e. 1000+. Need to move formatting to
+                                    // NHLib...
+                    p.value,
+                    new ChatComponentTranslation(p.unitKey)));
 
         } catch (Exception e) {
             e.printStackTrace();

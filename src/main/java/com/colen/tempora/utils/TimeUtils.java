@@ -214,8 +214,10 @@ public class TimeUtils {
     }
 
     public static class DurationParts {
+
         public final String value;
         public final String unitKey;
+
         public DurationParts(String value, String unitKey) {
             this.value = value;
             this.unitKey = unitKey;

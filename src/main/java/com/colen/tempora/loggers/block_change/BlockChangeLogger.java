@@ -1,7 +1,7 @@
 package com.colen.tempora.loggers.block_change;
 
+import static com.colen.tempora.Tempora.LOG;
 import static com.colen.tempora.TemporaUtils.UNKNOWN_PLAYER_NAME;
-import static com.colen.tempora.utils.BlockUtils.getPickBlockSafe;
 import static com.colen.tempora.utils.DatabaseUtils.MISSING_STRING_DATA;
 import static com.colen.tempora.utils.nbt.NBTUtils.NBT_DISABLED;
 import static com.colen.tempora.utils.nbt.NBTUtils.NO_NBT;
@@ -14,6 +14,20 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+
+import net.minecraft.block.Block;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.IChatComponent;
+import net.minecraft.world.World;
+import net.minecraftforge.client.event.RenderWorldLastEvent;
+import net.minecraftforge.common.config.Configuration;
+
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import com.colen.tempora.Tempora;
 import com.colen.tempora.enums.LoggerEnum;
@@ -29,23 +43,11 @@ import com.colen.tempora.utils.RenderingUtils;
 import com.colen.tempora.utils.WorldGenPhaseTracker;
 import com.colen.tempora.utils.nbt.NBTUtils;
 
-import cpw.mods.fml.common.FMLLog;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import net.minecraft.block.Block;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ChatComponentTranslation;
-import net.minecraft.util.IChatComponent;
-import net.minecraft.world.World;
-import net.minecraftforge.client.event.RenderWorldLastEvent;
-import net.minecraftforge.common.config.Configuration;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-// todo look into logging world gen and marking that separately, such that you can use a useful regen command to restore the state of the world.
+// todo look into logging world gen and marking that separately, such that you can use a useful regen command to restore
+// the state of the world.
 public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueElement> implements ISupportsUndo {
 
     private boolean globalBlockChangeLogging;
@@ -60,11 +62,9 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
      * Track nested block writes per thread.
      * We only log when depth goes from 0 -> 1 -> 0.
      */
-    private static final ThreadLocal<Integer> depth =
-        ThreadLocal.withInitial(() -> 0);
+    private static final ThreadLocal<Integer> depth = ThreadLocal.withInitial(() -> 0);
 
-    private static final ThreadLocal<SetBlockEventInfo> currentEvent =
-        new ThreadLocal<>();
+    private static final ThreadLocal<SetBlockEventInfo> currentEvent = new ThreadLocal<>();
 
     @Override
     public LoggerEnum getLoggerType() {
@@ -216,7 +216,8 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
         currentEventInfo.beforeMeta = world.getBlockMetadata(x, y, z);
 
         // Pick block info.
-        ItemStack pickStack = world.getBlock(x, y, z).getPickBlock(null, world, x, y, z);
+        ItemStack pickStack = world.getBlock(x, y, z)
+            .getPickBlock(null, world, x, y, z);
         if (pickStack != null && pickStack.getItem() != null) {
             currentEventInfo.beforePickBlockID = Item.getIdFromItem(pickStack.getItem());
             currentEventInfo.beforePickBlockMeta = pickStack.getItemDamage();
@@ -240,8 +241,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
     /**
      * Called at RETURN of Chunk.func_150807_a
      */
-    public void onSetBlockReturn(int x, int y, int z, World world,
-                                 CallbackInfoReturnable<Boolean> cir) {
+    public void onSetBlockReturn(int x, int y, int z, World world, CallbackInfoReturnable<Boolean> cir) {
 
         int d = depth.get() - 1;
         depth.set(d);
@@ -255,12 +255,12 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
         currentEvent.remove();
 
         if (currentEventInfo == null) {
-            FMLLog.severe(
-                "[TEMPORA BLOCK LOGGER CRITICAL ERROR]\n"
-                    + "SetBlock return hook encountered a null SetBlockEventInfo at outermost depth!\n"
-                    + "This indicates that onSetBlockReturn was called without a matching onSetBlockHead,\n"
-                    + "or that the event tracking has become desynchronised.\n");
-            new IllegalStateException("Tempora SetBlockEventInfo missing at outermost depth").printStackTrace();
+            LOG.error("""
+                [BLOCK LOGGER CRITICAL ERROR]
+                SetBlock return hook encountered a null SetBlockEventInfo at outermost depth!
+                This indicates that onSetBlockReturn was called without a matching onSetBlockHead,
+                or that the event tracking has become de-synchronised.
+                """, new Exception("SetBlock hook desync detected"));
             return;
         }
 
@@ -273,7 +273,8 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
         currentEventInfo.afterMeta = world.getBlockMetadata(x, y, z);
 
         // Pick block info.
-        ItemStack pickStack = world.getBlock(x, y, z).getPickBlock(null, world, x, y, z);
+        ItemStack pickStack = world.getBlock(x, y, z)
+            .getPickBlock(null, world, x, y, z);
         if (pickStack != null && pickStack.getItem() != null) {
             currentEventInfo.afterPickBlockID = Item.getIdFromItem(pickStack.getItem());
             currentEventInfo.afterPickBlockMeta = pickStack.getItemDamage();
@@ -284,12 +285,14 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
         }
 
         // Log NBT.
-        currentEventInfo.afterEncodedNBT = getEncodedTileEntityNBT(
-            world,
-            x,
-            y,
-            z,
-            BlockChangeLogger.isLogNBTEnabled()); // todo investigate chest breaking and not saving nbt.
+        currentEventInfo.afterEncodedNBT = getEncodedTileEntityNBT(world, x, y, z, BlockChangeLogger.isLogNBTEnabled()); // todo
+                                                                                                                         // investigate
+                                                                                                                         // chest
+                                                                                                                         // breaking
+                                                                                                                         // and
+                                                                                                                         // not
+                                                                                                                         // saving
+                                                                                                                         // nbt.
 
         // Ignore no-ops (same block and metadata)
         if (currentEventInfo.isNoOp()) return;
@@ -298,14 +301,16 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
         if (currentEventInfo.worldTick == world.getTotalWorldTime()) {
             Tempora.blockChangeLogger.recordSetBlock(x, y, z, currentEventInfo, world);
         } else {
-            FMLLog.severe(
-                "[TEMPORA BLOCK LOGGER CRITICAL ERROR]\n"
-                    + "World tick mismatch detected during setBlock logging!\n"
-                    + "Expected tick: %d | Actual tick: %d\n"
-                    + "Dim ID: %d | Pos: (%d,%d,%d)\n"
-                    + "Before: %s:%d | After: %s:%d\n"
-                    + "This should NEVER occur.\n"
-                    + "Please report this with full logs immediately.",
+            LOG.error(
+                """
+                    [BLOCK LOGGER CRITICAL ERROR]
+                    World tick mismatch detected during setBlock logging!
+                    Expected tick: {} | Actual tick: {}
+                    Dim ID: {} | Pos: ({},{},{})
+                    Before: {}:{} | After: {}:{}
+                    This should NEVER occur.
+                    Please report this with full logs immediately.
+                    """,
                 currentEventInfo.worldTick,
                 world.getTotalWorldTime(),
                 world.provider.dimensionId,
@@ -327,7 +332,8 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
         }
 
         final BlockChangeQueueElement queueElement = new BlockChangeQueueElement();
-        queueElement.eventID = UUID.randomUUID().toString();
+        queueElement.eventID = UUID.randomUUID()
+            .toString();
         queueElement.x = x;
         queueElement.y = y;
         queueElement.z = z;
@@ -355,9 +361,8 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
             closestDistance = closestPlayer.getDistance(x, y, z);
         }
 
-        queueElement.closestPlayerUUID = closestPlayer != null
-            ? closestPlayer.getUniqueID().toString()
-            : UNKNOWN_PLAYER_NAME;
+        queueElement.closestPlayerUUID = closestPlayer != null ? closestPlayer.getUniqueID()
+            .toString() : UNKNOWN_PLAYER_NAME;
         queueElement.closestPlayerDistance = closestDistance;
 
         queueEvent(queueElement);
@@ -365,18 +370,17 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
 
     @Override
     public IChatComponent undoEvent(GenericQueueElement queueElement) {
-        if (!(queueElement instanceof BlockChangeQueueElement))
-            return new ChatComponentTranslation("error");
+        if (!(queueElement instanceof BlockChangeQueueElement)) return new ChatComponentTranslation("error");
 
         BlockChangeQueueElement bcqe = (BlockChangeQueueElement) queueElement;
 
         if (bcqe.beforeEncodedNBT.equals(NBT_DISABLED))
             return new ChatComponentTranslation("tempora.cannot.block.break.undo.nbt.logging.disabled");
 
-        World w = MinecraftServer.getServer().worldServerForDimension(queueElement.dimensionId);
+        World w = MinecraftServer.getServer()
+            .worldServerForDimension(queueElement.dimensionId);
         Block block = Block.getBlockById(bcqe.beforeBlockID);
-        if (block == null)
-            return new ChatComponentTranslation("tempora.cannot.block.break.undo.block.not.found");
+        if (block == null) return new ChatComponentTranslation("tempora.cannot.block.break.undo.block.not.found");
 
         int x = (int) bcqe.x;
         int y = (int) bcqe.y;
@@ -388,8 +392,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
 
         if (!bcqe.beforeEncodedNBT.equals(NO_NBT)) {
             try {
-                TileEntity te = TileEntity.createAndLoadEntity(
-                    NBTUtils.decodeFromString(bcqe.beforeEncodedNBT));
+                TileEntity te = TileEntity.createAndLoadEntity(NBTUtils.decodeFromString(bcqe.beforeEncodedNBT));
                 if (te != null) {
                     te.setWorldObj(w);
                     te.xCoord = x;
