@@ -294,10 +294,9 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
         // Ignore no-ops (same block and metadata)
         if (currentEventInfo.isNoOp()) return;
 
-        // Todo: more safety checks like compare x y z.
-        // Todo: get mod ID.
+        // Todo: more safety checks needed like compare x y z?
         if (currentEventInfo.worldTick == world.getTotalWorldTime()) {
-            Tempora.blockChangeLogger.recordSetBlock(x, y, z, currentEventInfo, world, "mod");
+            Tempora.blockChangeLogger.recordSetBlock(x, y, z, currentEventInfo, world);
         } else {
             FMLLog.severe(
                 "[TEMPORA BLOCK LOGGER CRITICAL ERROR]\n"
@@ -320,8 +319,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
         }
     }
 
-    private void recordSetBlock(int x, int y, int z, SetBlockEventInfo setBlockEventInfo, World world,
-                        String modID) {
+    private void recordSetBlock(int x, int y, int z, SetBlockEventInfo setBlockEventInfo, World world) {
 
         // Only log changes if (x, y, z) is inside a defined region
         if (!globalBlockChangeLogging && !RegionRegistry.containsBlock(world.provider.dimensionId, x, y, z)) {
@@ -336,7 +334,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
         queueElement.dimensionId = world.provider.dimensionId;
         queueElement.timestamp = System.currentTimeMillis();
 
-        queueElement.stackTrace = modID + " : " + GenericUtils.getCallingClassChain();
+        queueElement.stackTrace = GenericUtils.getCallingClassChain();
 
         queueElement.beforeBlockID = setBlockEventInfo.beforeBlockID;
         queueElement.beforeMetadata = setBlockEventInfo.beforeMeta;
