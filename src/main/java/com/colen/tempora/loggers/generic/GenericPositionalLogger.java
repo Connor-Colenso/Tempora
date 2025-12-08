@@ -22,7 +22,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
@@ -40,7 +39,6 @@ import org.jetbrains.annotations.NotNull;
 import org.sqlite.SQLiteConfig;
 
 import com.colen.tempora.TemporaUtils;
-import com.colen.tempora.config.Config;
 import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.utils.DatabaseUtils;
 import com.colen.tempora.utils.GenericUtils;
@@ -56,7 +54,6 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
     private static final int MAX_DATA_ROWS_PER_DB = 5;
     public static final long SECONDS_RENDERING_DURATION = 10;
 
-    private ExecutorService executor;
     private static volatile boolean running = true;
     private Connection positionalLoggerDBConnection;
 
@@ -69,8 +66,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
     private String oldestDataCutoff;
     private long largestDatabaseSizeInBytes;
 
-    public GenericPositionalLogger(ExecutorService executor) {
-        this.executor = executor;
+    public GenericPositionalLogger() {
         loggerList.add(this);
     }
 
@@ -696,9 +692,6 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
             running = false; // Signal worker to stop
 
             for (GenericPositionalLogger<?> logger : loggerList) {
-                // Shut down each executor.
-                logger.shutdownExecutor();
-
                 // Shut down each db.
                 if (logger.getDBConn() != null && !logger.getDBConn()
                     .isClosed()) {
@@ -713,24 +706,6 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
             // Just to ensure that we are not carrying data over to a new world opening.
             for (GenericPositionalLogger<?> logger : loggerList) {
                 logger.clearEvents();
-            }
-        }
-    }
-
-    @SuppressWarnings("ResultOfMethodCallIgnored")
-    private void shutdownExecutor() throws InterruptedException {
-        if (executor != null && !executor.isShutdown()) {
-            executor.shutdown();
-
-            if (Config.shouldTemporaAlwaysWait) {
-                // Wait indefinitely until tasks finish.
-                executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
-            } else {
-                // Wait up to 10 seconds, then force shutdown if needed.
-                if (!executor.awaitTermination(30, TimeUnit.SECONDS)) {
-                    LOG.error("Executor timeout. Forcing shutdown.");
-                    executor.shutdownNow();
-                }
             }
         }
     }
