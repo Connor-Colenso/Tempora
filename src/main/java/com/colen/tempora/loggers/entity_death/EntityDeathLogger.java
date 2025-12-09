@@ -33,6 +33,7 @@ import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import org.jetbrains.annotations.NotNull;
 
 public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueElement> {
 
@@ -102,7 +103,7 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueE
     }
 
     @Override
-    public List<GenericQueueElement> generateQueryResults(ResultSet resultSet) throws SQLException {
+    public @NotNull List<GenericQueueElement> generateQueryResults(ResultSet resultSet) throws SQLException {
         ArrayList<GenericQueueElement> eventList = new ArrayList<>();
 
         while (resultSet.next()) {

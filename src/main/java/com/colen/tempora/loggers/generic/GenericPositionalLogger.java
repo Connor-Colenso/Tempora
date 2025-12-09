@@ -133,7 +133,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
     public abstract void threadedSaveEvents(List<EventToLog> event) throws SQLException;
 
-    public abstract List<GenericQueueElement> generateQueryResults(ResultSet rs) throws SQLException;
+    public abstract @NotNull List<GenericQueueElement> generateQueryResults(ResultSet rs) throws SQLException;
 
     public abstract LoggerEnum getLoggerType();
 

@@ -26,6 +26,7 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 
+import org.jetbrains.annotations.NotNull;
 import org.lwjgl.opengl.GL11;
 
 import com.colen.tempora.Tempora;
@@ -129,7 +130,7 @@ public class InventoryLogger extends GenericPositionalLogger<InventoryQueueEleme
     }
 
     @Override
-    public List<GenericQueueElement> generateQueryResults(ResultSet resultSet) throws SQLException {
+    public @NotNull List<GenericQueueElement> generateQueryResults(ResultSet resultSet) throws SQLException {
         ArrayList<GenericQueueElement> eventList = new ArrayList<>();
         while (resultSet.next()) {
             InventoryQueueElement queueElement = new InventoryQueueElement();
