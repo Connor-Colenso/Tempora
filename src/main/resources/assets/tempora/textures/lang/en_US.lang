@@ -76,6 +76,7 @@ tempora.range.negative=Range cannot be negative, stop trying to break me!
 tempora.cannot.block.break.undo.nbt.logging.disabled=Cannot undo, the block had NBT data, but NBT logging was disabled when it was saved.
 tempora.cannot.block.break.undo.block.not.found=Cannot undo, the block no longer exists.
 tempora.undo.block.break.unknown.error=An unknown error occurred while undoing the block break event. See log.
+tempora.event.not.found.undo.ranged=Could not find event group. Has the server restarted?
 
 tempora.undo.query.display=[UNDO]
 tempora.undo.query.hover=Clicking this will revert the events effect on the world.

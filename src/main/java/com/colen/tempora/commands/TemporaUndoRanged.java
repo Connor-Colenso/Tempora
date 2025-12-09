@@ -7,8 +7,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
@@ -17,16 +17,21 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.event.ClickEvent;
 import net.minecraft.event.HoverEvent;
 import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.ChatStyle;
+import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.IChatComponent;
 
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.loggers.optional.ISupportsUndo;
 import com.colen.tempora.utils.TimeUtils;
-import net.minecraft.util.ChatStyle;
-import net.minecraft.util.EnumChatFormatting;
-import net.minecraft.util.IChatComponent;
 
 public class TemporaUndoRanged extends CommandBase {
+
+    private static final Map<String, List<GenericQueueElement>> PENDING_UNDOS =
+        new ConcurrentHashMap<>();
+    private static final Map<String, String> PENDING_UNDOS_LOGGER_NAMES =
+        new ConcurrentHashMap<>();
 
     @Override
     public String getCommandName() {
@@ -35,7 +40,7 @@ public class TemporaUndoRanged extends CommandBase {
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/tempora_undo_ranged <radius> <time> <logger_name> [-confirm]";
+        return "/tempora_undo_ranged <radius> <time> <logger_name>";
     }
 
     @Override
@@ -45,157 +50,160 @@ public class TemporaUndoRanged extends CommandBase {
 
     @Override
     public void processCommand(ICommandSender sender, String[] args) {
-        if (args.length < 3) throw new WrongUsageException(getCommandUsage(sender));
 
         if (!(sender instanceof EntityPlayerMP player)) {
             sender.addChatMessage(new ChatComponentTranslation("This command may only be used by a player in-game."));
             return;
         }
 
-        boolean undoConfirmed = args.length >= 4 && args[args.length - 1].equalsIgnoreCase("-confirm");
+        if (args.length < 1)
+            throw new WrongUsageException(getCommandUsage(sender));
 
-        String loggerName = args[2];
-        GenericPositionalLogger<?> genericLogger = GenericPositionalLogger.getLogger(loggerName);
-
-        if (genericLogger == null) {
-            throw new WrongUsageException("tempora.command.undo.wrong.logger", loggerName);
+        // ==== Confirmation path ====
+        if (args[0].equalsIgnoreCase("confirm")) {
+            handleConfirmation(player, args);
+            return;
         }
 
-        if (!(genericLogger instanceof ISupportsUndo supportsUndo)) {
+        // ==== Preview path ====
+        if (args.length != 3)
+            throw new WrongUsageException(getCommandUsage(sender));
+
+        int radius = parseInt(sender, args[0]);
+        long seconds = TimeUtils.convertToSeconds(args[1]);
+        String loggerName = args[2];
+
+        if (radius < 0) {
+            sender.addChatMessage(new ChatComponentTranslation("tempora.range.negative"));
+            return;
+        }
+
+        GenericPositionalLogger<?> logger = GenericPositionalLogger.getLogger(loggerName);
+        if (logger == null) {
+            sender.addChatMessage(new ChatComponentTranslation("tempora.command.undo.wrong.logger", loggerName));
+            return;
+        }
+
+        if (!(logger instanceof ISupportsUndo)) {
             sender.addChatMessage(new ChatComponentTranslation("tempora.command.undo.not_undoable", loggerName));
             return;
         }
 
-        // Parse numeric arguments
-        int radius = parseInt(sender, args[0]);
-        long seconds = TimeUtils.convertToSeconds(args[1].toLowerCase());
-
-        if (radius < 0) {
-            player.addChatMessage(new ChatComponentTranslation("tempora.range.negative"));
-            return;
-        }
-
-        // Compute timestamp cutoff
         Timestamp cutoff = new Timestamp(System.currentTimeMillis() - seconds * 1000L);
+        String table = logger.getSQLTableName();
 
-        // Table name
-        String table = genericLogger.getSQLTableName();
+        // Optimised SQL query
+        String sql = "SELECT t.* FROM " + table + " t " +
+            "JOIN (SELECT x,y,z,MIN(timestamp) ts FROM " + table +
+            " WHERE x BETWEEN ?-? AND ?+? AND y BETWEEN ?-? AND ?+? " +
+            " AND z BETWEEN ?-? AND ?+? AND dimensionID=? AND timestamp>=? " +
+            " GROUP BY x,y,z) oldest " +
+            "ON t.x=oldest.x AND t.y=oldest.y AND t.z=oldest.z AND t.timestamp=oldest.ts " +
+            "ORDER BY t.timestamp ASC";
 
-        // Optimised SQL: RANGE instead of ABS, avoids full scan
-        String sql = String.format("""
-                SELECT t.*
-                FROM %s t
-                JOIN (
-                    SELECT x, y, z, MIN(timestamp) AS ts
-                    FROM %s
-                    WHERE x BETWEEN ? - ? AND ? + ?
-                      AND y BETWEEN ? - ? AND ? + ?
-                      AND z BETWEEN ? - ? AND ? + ?
-                      AND dimensionID = ?
-                      AND timestamp >= ?
-                    GROUP BY x, y, z
-                ) oldest
-                  ON t.x = oldest.x
-                 AND t.y = oldest.y
-                 AND t.z = oldest.z
-                 AND t.timestamp = oldest.ts
-                ORDER BY t.timestamp ASC;
-            """, table, table);
+        List<GenericQueueElement> results;
 
-        try (Connection conn = genericLogger.getReadOnlyConnection();
-            PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = logger.getReadOnlyConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            // Bind parameters (range conditions)
-            ps.setDouble(1, player.posX);
-            ps.setInt(2, radius);
-            ps.setDouble(3, player.posX);
-            ps.setInt(4, radius);
+            ps.setInt(1, (int) player.posX); ps.setInt(2, radius);
+            ps.setInt(3, (int) player.posX); ps.setInt(4, radius);
 
-            ps.setDouble(5, player.posY);
-            ps.setInt(6, radius);
-            ps.setDouble(7, player.posY);
-            ps.setInt(8, radius);
+            ps.setInt(5, (int) player.posY); ps.setInt(6, radius);
+            ps.setInt(7, (int) player.posY); ps.setInt(8, radius);
 
-            ps.setDouble(9, player.posZ);
-            ps.setInt(10, radius);
-            ps.setDouble(11, player.posZ);
-            ps.setInt(12, radius);
+            ps.setInt(9, (int) player.posZ); ps.setInt(10, radius);
+            ps.setInt(11, (int) player.posZ); ps.setInt(12, radius);
 
             ps.setInt(13, player.dimension);
             ps.setTimestamp(14, cutoff);
 
-            // Execute
-            List<GenericQueueElement> results;
             try (ResultSet rs = ps.executeQuery()) {
-                results = genericLogger.generateQueryResults(rs);
-            }
-
-            if (results.isEmpty()) {
-                sender.addChatMessage(new ChatComponentTranslation("tempora.command.undo.nothing", loggerName));
-                return;
-            }
-
-            if (! undoConfirmed) {
-                for (GenericQueueElement result : results) {
-                    NETWORK.sendTo(result, player);
-                }
-
-                IChatComponent clickToUndo = new ChatComponentTranslation("tempora.undo.preview.confirm")
-                    .setChatStyle(new ChatStyle()
-                        .setColor(EnumChatFormatting.AQUA)
-                        .setUnderlined(true)
-                        .setChatHoverEvent(new HoverEvent(
-                            HoverEvent.Action.SHOW_TEXT,
-                            new ChatComponentTranslation("tempora.undo.preview")
-                        ))
-                        .setChatClickEvent(new ClickEvent(
-                            ClickEvent.Action.RUN_COMMAND,
-                            "/tempora_undo_ranged " + args[0] + " " + args[1] + " " + args[2] + " -confirm"
-                        ))
-                    );
-
-                sender.addChatMessage(new ChatComponentTranslation("tempora.undo.preview", clickToUndo));
-            } else {
-                long start = System.currentTimeMillis();
-
-                // Undo events
-                supportsUndo.undoEvents(results);
-
-                // Record outcome to player who executed undo.
-                long end = System.currentTimeMillis();
-                long duration = end - start;
-                TimeUtils.DurationParts p = TimeUtils.formatShortDuration(duration);
-
-                sender.addChatMessage(
-                    new ChatComponentTranslation(
-                        "tempora.undo.success.ranged",
-                        // todo fix that some events count as "undone" even when they threw an error or such. Probably need
-                        // a true/false for success, but then requires a pair etc. Something to think about.
-                        results.size(), // Todo format number for larger sizes i.e. 1000+. Need to move formatting to
-                        // NHLib...
-                        p.value,
-                        new ChatComponentTranslation(p.unitKey)));
+                results = logger.generateQueryResults(rs);
             }
         } catch (Exception e) {
-            LOG.error(e);
+            LOG.error("Undo preview DB error", e);
             sender.addChatMessage(new ChatComponentTranslation("tempora.undo.failed", e.getMessage()));
+            return;
         }
+
+        if (results.isEmpty()) {
+            sender.addChatMessage(new ChatComponentTranslation("tempora.command.undo.nothing", loggerName));
+            return;
+        }
+
+        // Send preview markers
+        for (GenericQueueElement event : results) {
+            NETWORK.sendTo(event, player);
+        }
+
+        // Store preview results
+        String uuid = UUID.randomUUID().toString();
+        PENDING_UNDOS.put(uuid, results);
+        PENDING_UNDOS_LOGGER_NAMES.put(uuid, loggerName);
+
+        IChatComponent click = new ChatComponentTranslation("tempora.undo.preview.confirm")
+            .setChatStyle(new ChatStyle()
+                .setColor(EnumChatFormatting.AQUA)
+                .setUnderlined(true)
+                .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
+                    new ChatComponentTranslation("tempora.undo.preview")))
+                .setChatClickEvent(new ClickEvent(
+                    ClickEvent.Action.RUN_COMMAND,
+                    "/tempora_undo_ranged confirm " + uuid
+                ))
+            );
+
+        sender.addChatMessage(new ChatComponentTranslation("tempora.undo.preview", click));
+    }
+
+    private void handleConfirmation(EntityPlayerMP sender, String[] args) {
+        if (args.length != 2)
+            throw new WrongUsageException(getCommandUsage(sender));
+
+        String uuid = args[1];
+
+        List<GenericQueueElement> stored = PENDING_UNDOS.remove(uuid);
+        String loggerName = PENDING_UNDOS_LOGGER_NAMES.remove(uuid);
+
+        if (stored == null || loggerName == null) {
+            sender.addChatMessage(new ChatComponentTranslation("tempora.event.not.found.undo.ranged", uuid));
+            return;
+        }
+
+        GenericPositionalLogger<?> logger = GenericPositionalLogger.getLogger(loggerName);
+
+        if (!(logger instanceof ISupportsUndo supportsUndo)) {
+            sender.addChatMessage(new ChatComponentTranslation("tempora.command.undo.not_undoable", loggerName));
+            return;
+        }
+
+        long start = System.currentTimeMillis();
+        supportsUndo.undoEvents(stored);
+        long duration = System.currentTimeMillis() - start;
+
+        TimeUtils.DurationParts p = TimeUtils.formatShortDuration(duration);
+
+        sender.addChatMessage(new ChatComponentTranslation(
+            "tempora.undo.success.ranged",
+            stored.size(),
+            p.value,
+            new ChatComponentTranslation(p.unitKey)
+        ));
     }
 
     @Override
     public List<String> addTabCompletionOptions(ICommandSender sender, String[] args) {
         if (args.length == 3) {
-            String partialFilter = args[2].toLowerCase();
-            List<String> matchingOptions = new ArrayList<>();
-            for (String option : GenericPositionalLogger.getAllLoggerNames()) {
-                if (option.toLowerCase()
-                    .startsWith(partialFilter)) {
-                    matchingOptions.add(option);
+            String partial = args[2].toLowerCase();
+            List<String> options = new ArrayList<>();
+            for (String name : GenericPositionalLogger.getAllLoggerNames()) {
+                if (name.toLowerCase().startsWith(partial)) {
+                    options.add(name);
                 }
             }
-            return matchingOptions;
+            return options;
         }
-        return null; // Return null when there are no matches.
+        return null;
     }
-
 }
