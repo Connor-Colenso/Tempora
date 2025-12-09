@@ -98,7 +98,7 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
     }
 
     @Override
-    public List<GenericQueueElement> generateQueryResults(ResultSet resultSet) throws SQLException {
+    public @NotNull List<GenericQueueElement> generateQueryResults(ResultSet resultSet) throws SQLException {
 
         try {
             ArrayList<GenericQueueElement> eventList = new ArrayList<>();

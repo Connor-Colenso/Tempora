@@ -47,7 +47,7 @@ public class ItemUseLogger extends GenericPositionalLogger<ItemUseQueueElement> 
     }
 
     @Override
-    public List<GenericQueueElement> generateQueryResults(ResultSet resultSet) throws SQLException {
+    public @NotNull List<GenericQueueElement> generateQueryResults(ResultSet resultSet) throws SQLException {
         ArrayList<GenericQueueElement> eventList = new ArrayList<>();
 
         while (resultSet.next()) {

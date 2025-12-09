@@ -1,5 +1,8 @@
 package com.colen.tempora.commands;
 
+import static com.colen.tempora.Tempora.LOG;
+import static com.colen.tempora.Tempora.NETWORK;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -11,12 +14,17 @@ import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.event.ClickEvent;
+import net.minecraft.event.HoverEvent;
 import net.minecraft.util.ChatComponentTranslation;
 
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.loggers.optional.ISupportsUndo;
 import com.colen.tempora.utils.TimeUtils;
+import net.minecraft.util.ChatStyle;
+import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.IChatComponent;
 
 public class TemporaUndoRanged extends CommandBase {
 
@@ -27,7 +35,7 @@ public class TemporaUndoRanged extends CommandBase {
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/tempora_undo_ranged <radius> <time> <logger_name>";
+        return "/tempora_undo_ranged <radius> <time> <logger_name> [-confirm]";
     }
 
     @Override
@@ -37,11 +45,14 @@ public class TemporaUndoRanged extends CommandBase {
 
     @Override
     public void processCommand(ICommandSender sender, String[] args) {
-        if (args.length != 3) throw new WrongUsageException(getCommandUsage(sender));
+        if (args.length < 3) throw new WrongUsageException(getCommandUsage(sender));
 
-        if (!(sender instanceof EntityPlayerMP)) return; // Not a player, nothing to do
+        if (!(sender instanceof EntityPlayerMP player)) {
+            sender.addChatMessage(new ChatComponentTranslation("This command may only be used by a player in-game."));
+            return;
+        }
 
-        EntityPlayerMP player = (EntityPlayerMP) sender;
+        boolean undoConfirmed = args.length >= 4 && args[args.length - 1].equalsIgnoreCase("-confirm");
 
         String loggerName = args[2];
         GenericPositionalLogger<?> genericLogger = GenericPositionalLogger.getLogger(loggerName);
@@ -114,36 +125,59 @@ public class TemporaUndoRanged extends CommandBase {
             ps.setTimestamp(14, cutoff);
 
             // Execute
-            ResultSet rs = ps.executeQuery();
-            List<GenericQueueElement> results = genericLogger.generateQueryResults(rs);
+            List<GenericQueueElement> results;
+            try (ResultSet rs = ps.executeQuery()) {
+                results = genericLogger.generateQueryResults(rs);
+            }
 
             if (results.isEmpty()) {
                 sender.addChatMessage(new ChatComponentTranslation("tempora.command.undo.nothing", loggerName));
                 return;
             }
 
-            long start = System.currentTimeMillis();
+            if (! undoConfirmed) {
+                for (GenericQueueElement result : results) {
+                    NETWORK.sendTo(result, player);
+                }
 
-            // Undo events
-            supportsUndo.undoEvents(results);
+                IChatComponent clickToUndo = new ChatComponentTranslation("tempora.undo.preview.confirm")
+                    .setChatStyle(new ChatStyle()
+                        .setColor(EnumChatFormatting.AQUA)
+                        .setUnderlined(true)
+                        .setChatHoverEvent(new HoverEvent(
+                            HoverEvent.Action.SHOW_TEXT,
+                            new ChatComponentTranslation("tempora.undo.preview")
+                        ))
+                        .setChatClickEvent(new ClickEvent(
+                            ClickEvent.Action.RUN_COMMAND,
+                            "/tempora_undo_ranged " + args[0] + " " + args[1] + " " + args[2] + " -confirm"
+                        ))
+                    );
 
-            // Record outcome to player who executed undo.
-            long end = System.currentTimeMillis();
-            long duration = end - start;
-            TimeUtils.DurationParts p = TimeUtils.formatShortDuration(duration);
+                sender.addChatMessage(new ChatComponentTranslation("tempora.undo.preview", clickToUndo));
+            } else {
+                long start = System.currentTimeMillis();
 
-            sender.addChatMessage(
-                new ChatComponentTranslation(
-                    "tempora.undo.success.ranged",
-                    // todo fix that some events count as "undone" even when they threw an error or such. Probably need
-                    // a true/false for success, but then requires a pair etc. Something to think about.
-                    results.size(), // Todo format number for larger sizes i.e. 1000+. Need to move formatting to
-                                    // NHLib...
-                    p.value,
-                    new ChatComponentTranslation(p.unitKey)));
+                // Undo events
+                supportsUndo.undoEvents(results);
 
+                // Record outcome to player who executed undo.
+                long end = System.currentTimeMillis();
+                long duration = end - start;
+                TimeUtils.DurationParts p = TimeUtils.formatShortDuration(duration);
+
+                sender.addChatMessage(
+                    new ChatComponentTranslation(
+                        "tempora.undo.success.ranged",
+                        // todo fix that some events count as "undone" even when they threw an error or such. Probably need
+                        // a true/false for success, but then requires a pair etc. Something to think about.
+                        results.size(), // Todo format number for larger sizes i.e. 1000+. Need to move formatting to
+                        // NHLib...
+                        p.value,
+                        new ChatComponentTranslation(p.unitKey)));
+            }
         } catch (Exception e) {
-            e.printStackTrace();
+            LOG.error(e);
             sender.addChatMessage(new ChatComponentTranslation("tempora.undo.failed", e.getMessage()));
         }
     }
