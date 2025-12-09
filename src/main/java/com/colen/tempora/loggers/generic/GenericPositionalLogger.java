@@ -48,6 +48,7 @@ import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
+@SuppressWarnings("SqlDialectInspection")
 public abstract class GenericPositionalLogger<EventToLog extends GenericQueueElement> {
 
     private static final String OLDEST_DATA_DEFAULT = "4months";
@@ -517,9 +518,9 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
         synchronized (GenericPositionalLogger.class) {
 
-            String sql = "SELECT * FROM " + getSQLTableName() + " WHERE eventID == ? LIMIT 1";
+            String sqlQuery = "SELECT * FROM " + getSQLTableName() + " WHERE eventID == ? LIMIT 1";
 
-            try (PreparedStatement ps = getReadOnlyConnection().prepareStatement(sql)) {
+            try (PreparedStatement ps = getReadOnlyConnection().prepareStatement(sqlQuery)) {
 
                 ps.setString(1, eventID);
 
@@ -530,7 +531,12 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
                 return packets.get(0);
 
             } catch (Exception e) {
-                e.printStackTrace();
+                LOG.error(
+                    "SQL query failed for table '{}' by eventID={}. Query: {}",
+                    getSQLTableName(),
+                    eventID,
+                    sqlQuery,
+                    e);
             }
         }
 
@@ -538,7 +544,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
     }
 
     public static void onServerStart() {
-        System.out.println("Opening Tempora DBs...");
+        LOG.info("Opening Tempora databases.");
 
         for (GenericPositionalLogger<?> logger : loggerList) {
             initialiseLogger(logger);
@@ -559,6 +565,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
                 // Check for corruption
                 if (DatabaseUtils.isDatabaseCorrupted(conn)) {
 
+                    // Todo handle SP equivalent with UI perhaps?
                     boolean erase = GenericUtils.askTerminalYesNo(
                         "Tempora has detected db corruption in " + loggerName
                             + ". Would you like to erase the database and create a new one?");
@@ -754,6 +761,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
             return conn;
         } catch (Exception e) {
+            LOG.error("Could not establish readonly connection to {} database.", getSQLTableName(), e);
             return null;
         }
     }
