@@ -107,7 +107,6 @@ public abstract class RenderUtils {
         // Save state
         float prevBrightnessX = OpenGlHelper.lastBrightnessX;
         float prevBrightnessY = OpenGlHelper.lastBrightnessY;
-        int prevActiveTex = GL11.glGetInteger(GL13.GL_ACTIVE_TEXTURE);
 
         GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
         GL11.glPushMatrix();
