@@ -28,6 +28,7 @@ import com.colen.tempora.utils.TimeUtils;
 
 public class TemporaUndoRanged extends CommandBase {
 
+    // Todo clear on world exit.
     private static final Map<String, List<GenericQueueElement>> PENDING_UNDOS =
         new ConcurrentHashMap<>();
     private static final Map<String, String> PENDING_UNDOS_LOGGER_NAMES =
@@ -145,9 +146,8 @@ public class TemporaUndoRanged extends CommandBase {
         IChatComponent click = new ChatComponentTranslation("tempora.undo.preview.confirm")
             .setChatStyle(new ChatStyle()
                 .setColor(EnumChatFormatting.AQUA)
-                .setUnderlined(true)
                 .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-                    new ChatComponentTranslation("tempora.undo.preview")))
+                    new ChatComponentTranslation("tempora.undo.preview.highlight")))
                 .setChatClickEvent(new ClickEvent(
                     ClickEvent.Action.RUN_COMMAND,
                     "/tempora_undo_ranged confirm " + uuid
@@ -163,8 +163,8 @@ public class TemporaUndoRanged extends CommandBase {
 
         String uuid = args[1];
 
-        List<GenericQueueElement> stored = PENDING_UNDOS.remove(uuid);
-        String loggerName = PENDING_UNDOS_LOGGER_NAMES.remove(uuid);
+        List<GenericQueueElement> stored = PENDING_UNDOS.get(uuid);
+        String loggerName = PENDING_UNDOS_LOGGER_NAMES.get(uuid);
 
         if (stored == null || loggerName == null) {
             sender.addChatMessage(new ChatComponentTranslation("tempora.event.not.found.undo.ranged", uuid));

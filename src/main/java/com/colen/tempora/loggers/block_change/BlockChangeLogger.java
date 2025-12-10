@@ -78,7 +78,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
         List<BlockChangeQueueElement> sortedList = getSortedLatestEventsByDistance(eventsToRenderInWorld, e);
 
         for (BlockChangeQueueElement bcqe : sortedList) {
-            RenderingUtils.renderBlockWithLogging(
+            RenderingUtils.quickRenderBlockWithHighlightAndChecks(
                 e,
                 bcqe,
                 bcqe.beforeBlockID,

@@ -1,5 +1,6 @@
 package com.colen.tempora;
 
+import com.colen.tempora.utils.RenderingUtils;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.common.MinecraftForge;
 
@@ -33,5 +34,13 @@ public class ClientProxy extends CommonProxy {
     public void postInit(FMLPostInitializationEvent event) {
         super.postInit(event);
         API.hideItem(new ItemStack(Tempora.renderingErrorBlock));
+
+        RenderingUtils.CLIENT_EVENT_RENDER_DISTANCE = Tempora.config.getInt(
+            "Client event render distance",
+            "Client Rendering",
+            10,
+            4,
+            256,
+            "This is the maximum range at which events will render for you, be warned, setting this to a high number may cause stability issues when previewing undo operations due to the large number of events inside.");
     }
 }

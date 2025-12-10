@@ -65,7 +65,7 @@ public class PlayerBlockPlaceLogger extends GenericPositionalLogger<PlayerBlockP
         List<PlayerBlockPlaceQueueElement> sortedList = getSortedLatestEventsByDistance(eventsToRenderInWorld, e);
 
         for (PlayerBlockPlaceQueueElement pbbqe : sortedList) {
-            RenderingUtils.renderBlockWithLogging(
+            RenderingUtils.quickRenderBlockWithHighlightAndChecks(
                 e,
                 pbbqe,
                 pbbqe.blockID,
