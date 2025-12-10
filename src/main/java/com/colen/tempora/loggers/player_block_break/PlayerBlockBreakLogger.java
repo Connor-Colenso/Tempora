@@ -62,7 +62,7 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
 
         for (GenericQueueElement element : sortedList) {
             if (element instanceof PlayerBlockBreakQueueElement pbbqe) {
-                RenderingUtils.renderBlockWithLogging(
+                RenderingUtils.quickRenderBlockWithHighlightAndChecks(
                     e,
                     element,
                     pbbqe.blockID,
