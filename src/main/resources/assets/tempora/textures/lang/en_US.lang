@@ -91,6 +91,8 @@ tempora.undo.failed=Undo failed: %s
 tempora.undo.preview=Previewing undo operation, click %s to undo events.
 tempora.undo.preview.highlight=WARNING: This operation is irreversible.
 tempora.undo.preview.confirm=[HERE]
+tempora.undo.range.too_large=Server config limits undo range to %s. Your requested range has been capped.
+
 time.unit.milliseconds=ms
 time.unit.seconds=s
 time.unit.minutes=mins

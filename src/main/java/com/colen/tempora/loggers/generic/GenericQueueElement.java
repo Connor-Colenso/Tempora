@@ -66,6 +66,10 @@ public abstract class GenericQueueElement implements IMessage {
         ByteBufUtils.writeUTF8String(buf, eventID);
     }
 
+    public boolean needsTransparencyToRender() {
+        return false;
+    }
+
     public abstract LoggerEnum getLoggerType();
 
     // How the x y z should be shown in chat and in the /tp command.

@@ -3,6 +3,7 @@ package com.colen.tempora.loggers.block_change;
 import static com.colen.tempora.Tempora.LOG;
 import static com.colen.tempora.TemporaUtils.UNKNOWN_PLAYER_NAME;
 import static com.colen.tempora.utils.DatabaseUtils.MISSING_STRING_DATA;
+import static com.colen.tempora.utils.RenderingUtils.CLIENT_EVENT_RENDER_DISTANCE;
 import static com.colen.tempora.utils.nbt.NBTUtils.NBT_DISABLED;
 import static com.colen.tempora.utils.nbt.NBTUtils.NO_NBT;
 import static com.colen.tempora.utils.nbt.NBTUtils.getEncodedTileEntityNBT;
@@ -16,6 +17,8 @@ import java.util.List;
 import java.util.UUID;
 
 import net.minecraft.block.Block;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -72,22 +75,56 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
         return LoggerEnum.BlockChangeLogger;
     }
 
+    @SideOnly(Side.CLIENT)
+    ArrayList<BlockChangeQueueElement> filteredNonTransparentBuffer = new ArrayList<>();
+
+    @SideOnly(Side.CLIENT)
+    ArrayList<BlockChangeQueueElement> filteredTransparentBuffer = new ArrayList<>();
+
     @Override
     @SideOnly(Side.CLIENT)
     public void renderEventsInWorld(RenderWorldLastEvent e) {
-        List<BlockChangeQueueElement> sortedList = getSortedLatestEventsByDistance(eventsToRenderInWorld, e);
+        Minecraft mc = Minecraft.getMinecraft();
+        EntityPlayerSP player = mc.thePlayer;
 
-        for (BlockChangeQueueElement bcqe : sortedList) {
+        if (player == null) return;
+
+        double maxDistSq = CLIENT_EVENT_RENDER_DISTANCE * CLIENT_EVENT_RENDER_DISTANCE;
+
+        // Clear and pre-size buffers
+        filteredNonTransparentBuffer.clear();
+        filteredTransparentBuffer.clear();
+
+        filteredNonTransparentBuffer.ensureCapacity(nonTransparentEventsToRenderInWorld.size());
+        filteredTransparentBuffer.ensureCapacity(transparentEventsToRenderInWorld.size());
+
+        // --- NON-TRANSPARENT ---
+        for (BlockChangeQueueElement event : nonTransparentEventsToRenderInWorld) {
+            if (event.dimensionId != player.dimension) continue;
+            if (player.getDistanceSq(event.x, event.y, event.z) > maxDistSq) continue;
+            filteredNonTransparentBuffer.add(event);
+        }
+
+        for (BlockChangeQueueElement bcqe : filteredNonTransparentBuffer) {
             RenderingUtils.quickRenderBlockWithHighlightAndChecks(
-                e,
-                bcqe,
-                bcqe.beforeBlockID,
-                bcqe.beforeMetadata,
-                bcqe.beforeEncodedNBT,
-                bcqe.closestPlayerUUID,
-                getLoggerType());
+                e, bcqe, bcqe.beforeBlockID, bcqe.beforeMetadata,
+                bcqe.beforeEncodedNBT, bcqe.closestPlayerUUID, getLoggerType());
+        }
+
+        // --- TRANSPARENT ---
+        for (BlockChangeQueueElement event : transparentEventsToRenderInWorld) {
+            if (event.dimensionId != player.dimension) continue;
+            if (player.getDistanceSq(event.x, event.y, event.z) > maxDistSq) continue;
+            filteredTransparentBuffer.add(event);
+        }
+
+        for (BlockChangeQueueElement bcqe : getSortedLatestEventsByDistance(filteredTransparentBuffer, e)) {
+            RenderingUtils.quickRenderBlockWithHighlightAndChecks(
+                e, bcqe, bcqe.beforeBlockID, bcqe.beforeMetadata,
+                bcqe.beforeEncodedNBT, bcqe.closestPlayerUUID, getLoggerType());
         }
     }
+
 
     @Override
     public List<ColumnDef> getCustomTableColumns() {

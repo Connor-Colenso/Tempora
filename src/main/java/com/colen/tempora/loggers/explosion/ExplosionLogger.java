@@ -2,7 +2,6 @@ package com.colen.tempora.loggers.explosion;
 
 import static com.colen.tempora.TemporaUtils.isClientSide;
 import static com.colen.tempora.utils.DatabaseUtils.MISSING_STRING_DATA;
-import static micdoodle8.mods.galacticraft.core.proxy.ClientProxyCore.mc;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -53,7 +52,7 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionQueueEleme
     @SideOnly(Side.CLIENT)
     public void renderEventsInWorld(RenderWorldLastEvent e) {
 
-        List<ExplosionQueueElement> sortedList = getSortedLatestEventsByDistance(eventsToRenderInWorld, e);
+        List<ExplosionQueueElement> sortedList = getSortedLatestEventsByDistance(transparentEventsToRenderInWorld, e);
         Tessellator tessellator = Tessellator.instance;
         Minecraft mc = Minecraft.getMinecraft();
         EntityPlayerSP player = mc.thePlayer;

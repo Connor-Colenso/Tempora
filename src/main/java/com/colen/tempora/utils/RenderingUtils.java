@@ -23,9 +23,6 @@ public class RenderingUtils {
 
     public static void quickRenderBlockWithHighlightAndChecks(RenderWorldLastEvent e, GenericQueueElement queueElement, int blockID,
                                                               int metadata, String encodedNBT, String playerUUID, LoggerEnum loggerType) {
-        // Check we are within configured range for player.
-        if (Minecraft.getMinecraft().thePlayer.getDistanceSq(queueElement.x, queueElement.y, queueElement.z) > CLIENT_EVENT_RENDER_DISTANCE * CLIENT_EVENT_RENDER_DISTANCE) return;
-
         try {
             NBTTagCompound nbt = null;
             if (!Objects.equals(encodedNBT, NO_NBT) && !Objects.equals(encodedNBT, NBT_DISABLED)) {

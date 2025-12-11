@@ -60,7 +60,8 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
     private final LinkedBlockingQueue<EventToLog> eventQueue = new LinkedBlockingQueue<>();
     private static final Set<GenericPositionalLogger<?>> loggerList = new HashSet<>();
-    protected List<EventToLog> eventsToRenderInWorld = new ArrayList<>();
+    protected List<EventToLog> transparentEventsToRenderInWorld = new ArrayList<>();
+    protected List<EventToLog> nonTransparentEventsToRenderInWorld = new ArrayList<>();
     private LogWriteSafety durabilityMode;
 
     private boolean isEnabled;
@@ -73,7 +74,12 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
     public void addEventToRender(EventToLog event) {
         event.eventRenderCreationTime = System.currentTimeMillis();
-        eventsToRenderInWorld.add(event);
+
+        if (event.needsTransparencyToRender()) {
+            transparentEventsToRenderInWorld.add(event);
+        } else {
+            nonTransparentEventsToRenderInWorld.add(event);
+        }
     }
 
     public static GenericPositionalLogger<?> getLogger(String playerMovementLogger) {
@@ -768,6 +774,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
     public void clearOldEventsToRender() {
         double expiryCutoff = System.currentTimeMillis() - SECONDS_RENDERING_DURATION * 1000L;
-        eventsToRenderInWorld.removeIf(eventPosition -> eventPosition.eventRenderCreationTime < expiryCutoff);
+        transparentEventsToRenderInWorld.removeIf(eventPosition -> eventPosition.eventRenderCreationTime < expiryCutoff);
+        nonTransparentEventsToRenderInWorld.removeIf(eventPosition -> eventPosition.eventRenderCreationTime < expiryCutoff);
     }
 }
