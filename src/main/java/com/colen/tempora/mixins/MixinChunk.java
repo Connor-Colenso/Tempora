@@ -52,7 +52,7 @@ public abstract class MixinChunk {
      */
     @Inject(method = "setBlockMetadata", at = @At("HEAD"), remap = false)
     private void tempora$metaWriteStart(int localX, int y, int localZ, int newMeta,
-                                        CallbackInfoReturnable<Boolean> cir) {
+        CallbackInfoReturnable<Boolean> cir) {
 
         int globalX = (this.xPosition << 4) + localX;
         int globalZ = (this.zPosition << 4) + localZ;
@@ -61,8 +61,7 @@ public abstract class MixinChunk {
     }
 
     @Inject(method = "setBlockMetadata", at = @At("RETURN"), remap = false)
-    private void tempora$metaWriteEnd(int localX, int y, int localZ, int newMeta,
-                                      CallbackInfoReturnable<Boolean> cir) {
+    private void tempora$metaWriteEnd(int localX, int y, int localZ, int newMeta, CallbackInfoReturnable<Boolean> cir) {
 
         int globalX = (this.xPosition << 4) + localX;
         int globalZ = (this.zPosition << 4) + localZ;

@@ -107,8 +107,13 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
 
         for (BlockChangeQueueElement bcqe : filteredNonTransparentBuffer) {
             RenderingUtils.quickRenderBlockWithHighlightAndChecks(
-                e, bcqe, bcqe.beforeBlockID, bcqe.beforeMetadata,
-                bcqe.beforeEncodedNBT, bcqe.closestPlayerUUID, getLoggerType());
+                e,
+                bcqe,
+                bcqe.beforeBlockID,
+                bcqe.beforeMetadata,
+                bcqe.beforeEncodedNBT,
+                bcqe.closestPlayerUUID,
+                getLoggerType());
         }
 
         // --- TRANSPARENT ---
@@ -120,11 +125,15 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
 
         for (BlockChangeQueueElement bcqe : getSortedLatestEventsByDistance(filteredTransparentBuffer, e)) {
             RenderingUtils.quickRenderBlockWithHighlightAndChecks(
-                e, bcqe, bcqe.beforeBlockID, bcqe.beforeMetadata,
-                bcqe.beforeEncodedNBT, bcqe.closestPlayerUUID, getLoggerType());
+                e,
+                bcqe,
+                bcqe.beforeBlockID,
+                bcqe.beforeMetadata,
+                bcqe.beforeEncodedNBT,
+                bcqe.closestPlayerUUID,
+                getLoggerType());
         }
     }
-
 
     @Override
     public List<ColumnDef> getCustomTableColumns() {

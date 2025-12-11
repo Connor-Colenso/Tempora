@@ -4,10 +4,10 @@ import static com.colen.tempora.Tempora.NETWORK;
 import static com.colen.tempora.Tempora.renderingErrorBlock;
 import static com.colen.tempora.config.Config.synchronizeConfiguration;
 
-import com.colen.tempora.commands.TemporaUndoRanged;
 import net.minecraftforge.common.config.Configuration;
 
 import com.colen.tempora.blocks.RenderingErrorItemBlock;
+import com.colen.tempora.commands.TemporaUndoRanged;
 import com.colen.tempora.items.TemporaWand;
 import com.colen.tempora.loggers.block_change.BlockChangeLogger;
 import com.colen.tempora.loggers.block_change.BlockChangePacketHandler;

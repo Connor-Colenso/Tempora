@@ -1,12 +1,12 @@
 package com.colen.tempora;
 
-import com.colen.tempora.utils.RenderingUtils;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.common.MinecraftForge;
 
 import com.colen.tempora.events.PlayerLogin;
 import com.colen.tempora.rendering.RenderEventsInWorld;
 import com.colen.tempora.rendering.RenderRegionsInWorld;
+import com.colen.tempora.utils.RenderingUtils;
 
 import codechicken.nei.api.API;
 import cpw.mods.fml.common.event.FMLInitializationEvent;

@@ -29,10 +29,8 @@ import com.colen.tempora.utils.TimeUtils;
 public class TemporaUndoRanged extends CommandBase {
 
     // Todo clear on world exit.
-    private static final Map<String, List<GenericQueueElement>> PENDING_UNDOS =
-        new ConcurrentHashMap<>();
-    private static final Map<String, String> PENDING_UNDOS_LOGGER_NAMES =
-        new ConcurrentHashMap<>();
+    private static final Map<String, List<GenericQueueElement>> PENDING_UNDOS = new ConcurrentHashMap<>();
+    private static final Map<String, String> PENDING_UNDOS_LOGGER_NAMES = new ConcurrentHashMap<>();
 
     public static int MAX_RANGE;
 
@@ -59,8 +57,7 @@ public class TemporaUndoRanged extends CommandBase {
             return;
         }
 
-        if (args.length < 1)
-            throw new WrongUsageException(getCommandUsage(sender));
+        if (args.length < 1) throw new WrongUsageException(getCommandUsage(sender));
 
         // ==== Confirmation path ====
         if (args[0].equalsIgnoreCase("confirm")) {
@@ -69,8 +66,7 @@ public class TemporaUndoRanged extends CommandBase {
         }
 
         // ==== Preview path ====
-        if (args.length != 3)
-            throw new WrongUsageException(getCommandUsage(sender));
+        if (args.length != 3) throw new WrongUsageException(getCommandUsage(sender));
 
         int radius = parseInt(sender, args[0]);
         long seconds = TimeUtils.convertToSeconds(args[1]);
@@ -101,27 +97,34 @@ public class TemporaUndoRanged extends CommandBase {
         String table = logger.getSQLTableName();
 
         // Optimised SQL query
-        String sql = "SELECT t.* FROM " + table + " t " +
-            "JOIN (SELECT x,y,z,MIN(timestamp) ts FROM " + table +
-            " WHERE x BETWEEN ?-? AND ?+? AND y BETWEEN ?-? AND ?+? " +
-            " AND z BETWEEN ?-? AND ?+? AND dimensionID=? AND timestamp>=? " +
-            " GROUP BY x,y,z) oldest " +
-            "ON t.x=oldest.x AND t.y=oldest.y AND t.z=oldest.z AND t.timestamp=oldest.ts " +
-            "ORDER BY t.timestamp ASC";
+        String sql = "SELECT t.* FROM " + table
+            + " t "
+            + "JOIN (SELECT x,y,z,MIN(timestamp) ts FROM "
+            + table
+            + " WHERE x BETWEEN ?-? AND ?+? AND y BETWEEN ?-? AND ?+? "
+            + " AND z BETWEEN ?-? AND ?+? AND dimensionID=? AND timestamp>=? "
+            + " GROUP BY x,y,z) oldest "
+            + "ON t.x=oldest.x AND t.y=oldest.y AND t.z=oldest.z AND t.timestamp=oldest.ts "
+            + "ORDER BY t.timestamp ASC";
 
         List<GenericQueueElement> results;
 
-        try (Connection conn = logger.getReadOnlyConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = logger.getReadOnlyConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            ps.setInt(1, (int) player.posX); ps.setInt(2, radius);
-            ps.setInt(3, (int) player.posX); ps.setInt(4, radius);
+            ps.setInt(1, (int) player.posX);
+            ps.setInt(2, radius);
+            ps.setInt(3, (int) player.posX);
+            ps.setInt(4, radius);
 
-            ps.setInt(5, (int) player.posY); ps.setInt(6, radius);
-            ps.setInt(7, (int) player.posY); ps.setInt(8, radius);
+            ps.setInt(5, (int) player.posY);
+            ps.setInt(6, radius);
+            ps.setInt(7, (int) player.posY);
+            ps.setInt(8, radius);
 
-            ps.setInt(9, (int) player.posZ); ps.setInt(10, radius);
-            ps.setInt(11, (int) player.posZ); ps.setInt(12, radius);
+            ps.setInt(9, (int) player.posZ);
+            ps.setInt(10, radius);
+            ps.setInt(11, (int) player.posZ);
+            ps.setInt(12, radius);
 
             ps.setInt(13, player.dimension);
             ps.setTimestamp(14, cutoff);
@@ -146,27 +149,25 @@ public class TemporaUndoRanged extends CommandBase {
         }
 
         // Store preview results
-        String uuid = UUID.randomUUID().toString();
+        String uuid = UUID.randomUUID()
+            .toString();
         PENDING_UNDOS.put(uuid, results);
         PENDING_UNDOS_LOGGER_NAMES.put(uuid, loggerName);
 
-        IChatComponent click = new ChatComponentTranslation("tempora.undo.preview.confirm")
-            .setChatStyle(new ChatStyle()
-                .setColor(EnumChatFormatting.AQUA)
-                .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-                    new ChatComponentTranslation("tempora.undo.preview.highlight")))
-                .setChatClickEvent(new ClickEvent(
-                    ClickEvent.Action.RUN_COMMAND,
-                    "/tempora_undo_ranged confirm " + uuid
-                ))
-            );
+        IChatComponent click = new ChatComponentTranslation("tempora.undo.preview.confirm").setChatStyle(
+            new ChatStyle().setColor(EnumChatFormatting.AQUA)
+                .setChatHoverEvent(
+                    new HoverEvent(
+                        HoverEvent.Action.SHOW_TEXT,
+                        new ChatComponentTranslation("tempora.undo.preview.highlight")))
+                .setChatClickEvent(
+                    new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/tempora_undo_ranged confirm " + uuid)));
 
         sender.addChatMessage(new ChatComponentTranslation("tempora.undo.preview", click));
     }
 
     private void handleConfirmation(EntityPlayerMP sender, String[] args) {
-        if (args.length != 2)
-            throw new WrongUsageException(getCommandUsage(sender));
+        if (args.length != 2) throw new WrongUsageException(getCommandUsage(sender));
 
         String uuid = args[1];
 
@@ -191,12 +192,12 @@ public class TemporaUndoRanged extends CommandBase {
 
         TimeUtils.DurationParts p = TimeUtils.formatShortDuration(duration);
 
-        sender.addChatMessage(new ChatComponentTranslation(
-            "tempora.undo.success.ranged",
-            stored.size(),
-            p.value,
-            new ChatComponentTranslation(p.unitKey)
-        ));
+        sender.addChatMessage(
+            new ChatComponentTranslation(
+                "tempora.undo.success.ranged",
+                stored.size(),
+                p.value,
+                new ChatComponentTranslation(p.unitKey)));
     }
 
     @Override
@@ -205,7 +206,8 @@ public class TemporaUndoRanged extends CommandBase {
             String partial = args[2].toLowerCase();
             List<String> options = new ArrayList<>();
             for (String name : GenericPositionalLogger.getAllLoggerNames()) {
-                if (name.toLowerCase().startsWith(partial)) {
+                if (name.toLowerCase()
+                    .startsWith(partial)) {
                     options.add(name);
                 }
             }

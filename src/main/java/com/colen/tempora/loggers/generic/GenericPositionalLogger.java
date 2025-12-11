@@ -774,7 +774,9 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
     public void clearOldEventsToRender() {
         double expiryCutoff = System.currentTimeMillis() - SECONDS_RENDERING_DURATION * 1000L;
-        transparentEventsToRenderInWorld.removeIf(eventPosition -> eventPosition.eventRenderCreationTime < expiryCutoff);
-        nonTransparentEventsToRenderInWorld.removeIf(eventPosition -> eventPosition.eventRenderCreationTime < expiryCutoff);
+        transparentEventsToRenderInWorld
+            .removeIf(eventPosition -> eventPosition.eventRenderCreationTime < expiryCutoff);
+        nonTransparentEventsToRenderInWorld
+            .removeIf(eventPosition -> eventPosition.eventRenderCreationTime < expiryCutoff);
     }
 }

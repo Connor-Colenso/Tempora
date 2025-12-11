@@ -7,7 +7,6 @@ import static com.colen.tempora.utils.nbt.NBTUtils.NO_NBT;
 import java.util.Objects;
 
 import net.minecraft.block.Block;
-import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 
@@ -21,8 +20,8 @@ public class RenderingUtils {
 
     public static int CLIENT_EVENT_RENDER_DISTANCE;
 
-    public static void quickRenderBlockWithHighlightAndChecks(RenderWorldLastEvent e, GenericQueueElement queueElement, int blockID,
-                                                              int metadata, String encodedNBT, String playerUUID, LoggerEnum loggerType) {
+    public static void quickRenderBlockWithHighlightAndChecks(RenderWorldLastEvent e, GenericQueueElement queueElement,
+        int blockID, int metadata, String encodedNBT, String playerUUID, LoggerEnum loggerType) {
         try {
             NBTTagCompound nbt = null;
             if (!Objects.equals(encodedNBT, NO_NBT) && !Objects.equals(encodedNBT, NBT_DISABLED)) {
