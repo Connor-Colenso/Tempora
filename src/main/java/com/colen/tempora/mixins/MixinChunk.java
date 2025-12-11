@@ -45,4 +45,29 @@ public abstract class MixinChunk {
 
         Tempora.blockChangeLogger.onSetBlockReturn(globalX, y, globalZ, this.worldObj, cir);
     }
+
+    /**
+     * Metadata-only write entry point:
+     * boolean setBlockMetadata(int localX, int y, int localZ, int newMeta)
+     */
+    @Inject(method = "setBlockMetadata", at = @At("HEAD"), remap = false)
+    private void tempora$metaWriteStart(int localX, int y, int localZ, int newMeta,
+                                        CallbackInfoReturnable<Boolean> cir) {
+
+        int globalX = (this.xPosition << 4) + localX;
+        int globalZ = (this.zPosition << 4) + localZ;
+
+        Tempora.blockChangeLogger.onSetBlockHead(globalX, y, globalZ, this.worldObj);
+    }
+
+    @Inject(method = "setBlockMetadata", at = @At("RETURN"), remap = false)
+    private void tempora$metaWriteEnd(int localX, int y, int localZ, int newMeta,
+                                      CallbackInfoReturnable<Boolean> cir) {
+
+        int globalX = (this.xPosition << 4) + localX;
+        int globalZ = (this.zPosition << 4) + localZ;
+
+        Tempora.blockChangeLogger.onSetBlockReturn(globalX, y, globalZ, this.worldObj, cir);
+    }
+
 }
