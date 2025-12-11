@@ -1,5 +1,6 @@
 package com.colen.tempora.loggers.block_change;
 
+import net.minecraft.block.Block;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 
@@ -112,5 +113,10 @@ public class BlockChangeQueueElement extends GenericQueueElement {
     @Override
     public LoggerEnum getLoggerType() {
         return LoggerEnum.BlockChangeLogger;
+    }
+
+    @Override
+    public boolean needsTransparencyToRender() {
+        return ! Block.getBlockById(beforePickBlockID).isOpaqueCube();
     }
 }

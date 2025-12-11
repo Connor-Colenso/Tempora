@@ -34,6 +34,8 @@ public class TemporaUndoRanged extends CommandBase {
     private static final Map<String, String> PENDING_UNDOS_LOGGER_NAMES =
         new ConcurrentHashMap<>();
 
+    public static int MAX_RANGE;
+
     @Override
     public String getCommandName() {
         return "tempora_undo_ranged";
@@ -77,6 +79,11 @@ public class TemporaUndoRanged extends CommandBase {
         if (radius < 0) {
             sender.addChatMessage(new ChatComponentTranslation("tempora.range.negative"));
             return;
+        }
+
+        if (radius > MAX_RANGE) {
+            sender.addChatMessage(new ChatComponentTranslation("tempora.undo.range.too_large", MAX_RANGE));
+            radius = MAX_RANGE;
         }
 
         GenericPositionalLogger<?> logger = GenericPositionalLogger.getLogger(loggerName);

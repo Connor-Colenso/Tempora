@@ -4,6 +4,7 @@ import static com.colen.tempora.Tempora.NETWORK;
 import static com.colen.tempora.Tempora.renderingErrorBlock;
 import static com.colen.tempora.config.Config.synchronizeConfiguration;
 
+import com.colen.tempora.commands.TemporaUndoRanged;
 import net.minecraftforge.common.config.Configuration;
 
 import com.colen.tempora.blocks.RenderingErrorItemBlock;
@@ -49,6 +50,15 @@ public class CommonProxy {
     }
 
     public void init(FMLInitializationEvent event) {
+
+        TemporaUndoRanged.MAX_RANGE = Tempora.config.getInt(
+            "Command Config",
+            "Undo ranged max distance",
+            64,
+            5,
+            Integer.MAX_VALUE,
+            "Tempora undo max range, in blocks. Recommended to keep low, as this will get exponentially more expensive, the wider the range.");
+
         NETWORK.registerMessage(PacketTimeZone.Handler.class, PacketTimeZone.class, 0, Side.SERVER);
         NETWORK.registerMessage(
             PacketShowRegionInWorld.RegionMsg.Handler.class,

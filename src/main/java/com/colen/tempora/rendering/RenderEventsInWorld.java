@@ -11,6 +11,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 @SideOnly(Side.CLIENT)
 public final class RenderEventsInWorld {
 
+    @SuppressWarnings("unused")
     @SubscribeEvent
     public void onRender(RenderWorldLastEvent e) {
         for (GenericPositionalLogger<?> positionalLogger : GenericPositionalLogger.getLoggerList()) {
@@ -18,5 +19,4 @@ public final class RenderEventsInWorld {
             positionalLogger.clearOldEventsToRender();
         }
     }
-
 }

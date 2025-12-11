@@ -58,7 +58,7 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
     @Override
     @SideOnly(Side.CLIENT)
     public void renderEventsInWorld(RenderWorldLastEvent e) {
-        List<PlayerBlockBreakQueueElement> sortedList = getSortedLatestEventsByDistance(eventsToRenderInWorld, e);
+        List<PlayerBlockBreakQueueElement> sortedList = getSortedLatestEventsByDistance(transparentEventsToRenderInWorld, e);
 
         for (GenericQueueElement element : sortedList) {
             if (element instanceof PlayerBlockBreakQueueElement pbbqe) {
