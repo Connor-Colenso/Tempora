@@ -437,10 +437,16 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
                 if (tableName != null && !logger.getSQLTableName()
                     .equals(tableName)) continue;
 
-                String sql = "SELECT * FROM " + logger.getSQLTableName()
-                    + " WHERE ABS(x - ?) <= ?  AND ABS(y - ?) <= ?  AND ABS(z - ?) <= ? "
-                    + "   AND dimensionID = ? AND timestamp >= ? "
-                    + " ORDER BY timestamp DESC LIMIT ?";
+                String sql = String.format("""
+                    SELECT * FROM %s
+                    WHERE ABS(x - ?) <= ?
+                      AND ABS(y - ?) <= ?
+                      AND ABS(z - ?) <= ?
+                      AND dimensionID = ?
+                      AND timestamp >= ?
+                    ORDER BY timestamp DESC
+                    LIMIT ?;
+                    """, logger.getSQLTableName());
 
                 try (PreparedStatement ps = logger.getReadOnlyConnection()
                     .prepareStatement(sql)) {
