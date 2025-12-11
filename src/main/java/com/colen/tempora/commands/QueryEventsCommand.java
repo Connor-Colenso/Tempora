@@ -13,6 +13,7 @@ import net.minecraft.util.ChatComponentText;
 
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.utils.TimeUtils;
+import net.minecraft.util.ChatComponentTranslation;
 
 public class QueryEventsCommand extends CommandBase {
 
@@ -41,6 +42,11 @@ public class QueryEventsCommand extends CommandBase {
 
         int radius = parseInt(sender, args[0]);
         long seconds = TimeUtils.convertToSeconds(args[1].toLowerCase());
+
+        if (radius < 0) {
+            sender.addChatMessage(new ChatComponentTranslation("tempora.range.negative"));
+            return;
+        }
 
         String tableName = args.length == 3 ? validateFilter(args[2]) : null;
 
