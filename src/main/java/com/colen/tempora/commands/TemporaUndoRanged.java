@@ -24,6 +24,7 @@ import net.minecraft.util.IChatComponent;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.loggers.optional.ISupportsUndo;
+import com.colen.tempora.utils.CommandUtils;
 import com.colen.tempora.utils.TimeUtils;
 
 public class TemporaUndoRanged extends CommandBase {
@@ -203,15 +204,7 @@ public class TemporaUndoRanged extends CommandBase {
     @Override
     public List<String> addTabCompletionOptions(ICommandSender sender, String[] args) {
         if (args.length == 3) {
-            String partial = args[2].toLowerCase();
-            List<String> options = new ArrayList<>();
-            for (String name : GenericPositionalLogger.getAllLoggerNames()) {
-                if (name.toLowerCase()
-                    .startsWith(partial)) {
-                    options.add(name);
-                }
-            }
-            return options;
+            return CommandUtils.completeLoggerNames(args);
         }
         return null;
     }
