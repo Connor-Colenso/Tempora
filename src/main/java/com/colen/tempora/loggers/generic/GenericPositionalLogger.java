@@ -173,7 +173,8 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
             new ColumnDef("y", "INTEGER", "NOT NULL DEFAULT " + Integer.MIN_VALUE),
             new ColumnDef("z", "INTEGER", "NOT NULL DEFAULT " + Integer.MIN_VALUE),
             new ColumnDef("timestamp", "DATETIME", "NOT NULL DEFAULT 0"),
-            new ColumnDef("dimensionID", "INTEGER", "NOT NULL DEFAULT " + Integer.MIN_VALUE));
+            new ColumnDef("dimensionID", "INTEGER", "NOT NULL DEFAULT " + Integer.MIN_VALUE),
+            new ColumnDef("versionID", "INTEGER", "NOT NULL DEFAULT " + Integer.MIN_VALUE));
     }
 
     private void enableHighRiskFastMode() throws SQLException {

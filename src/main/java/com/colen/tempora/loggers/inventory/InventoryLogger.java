@@ -35,7 +35,7 @@ import com.colen.tempora.loggers.generic.ColumnDef;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.rendering.RenderUtils;
-import com.colen.tempora.utils.EventLoggingHelper;
+import com.colen.tempora.utils.DatabaseUtils;
 import com.colen.tempora.utils.LastInvPos;
 import com.gtnewhorizons.modularui.common.internal.wrapper.ModularUIContainer;
 
@@ -152,8 +152,8 @@ public class InventoryLogger extends GenericPositionalLogger<InventoryQueueEleme
         if (queueElements == null || queueElements.isEmpty()) return;
 
         final String sql = "INSERT INTO " + getSQLTableName()
-            + " (containerName, interactionType, itemId, itemMetadata, playerUUID, stacksize, eventID, x, y, z, dimensionID, timestamp) "
-            + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            + " (containerName, interactionType, itemId, itemMetadata, playerUUID, stacksize, eventID, x, y, z, dimensionID, timestamp, versionID) "
+            + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         int index;
         try (PreparedStatement pstmt = getDBConn().prepareStatement(sql)) {
@@ -166,7 +166,7 @@ public class InventoryLogger extends GenericPositionalLogger<InventoryQueueEleme
                 pstmt.setInt(index++, queueElement.itemMetadata);
                 pstmt.setString(index++, queueElement.playerUUID);
                 pstmt.setInt(index++, queueElement.stackSize);
-                EventLoggingHelper.defaultColumnEntries(queueElement, pstmt, index);
+                DatabaseUtils.defaultColumnEntries(queueElement, pstmt, index);
 
                 pstmt.addBatch();
             }

@@ -21,7 +21,7 @@ import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.loggers.generic.ColumnDef;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
-import com.colen.tempora.utils.EventLoggingHelper;
+import com.colen.tempora.utils.DatabaseUtils;
 import com.colen.tempora.utils.PlayerUtils;
 
 import cpw.mods.fml.common.FMLCommonHandler;
@@ -96,7 +96,7 @@ public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovement
         if (queueElements == null || queueElements.isEmpty()) return;
 
         final String sql = "INSERT INTO " + getSQLTableName()
-            + " (playerUUID, eventID, x, y, z, dimensionID, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?)";
+            + " (playerUUID, eventID, x, y, z, dimensionID, timestamp, versionID) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
         int index;
         try (PreparedStatement pstmt = getDBConn().prepareStatement(sql)) {
@@ -104,7 +104,7 @@ public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovement
                 index = 1;
 
                 pstmt.setString(index++, queueElement.playerUUID);
-                EventLoggingHelper.defaultColumnEntries(queueElement, pstmt, index);
+                DatabaseUtils.defaultColumnEntries(queueElement, pstmt, index);
 
                 pstmt.addBatch();
             }

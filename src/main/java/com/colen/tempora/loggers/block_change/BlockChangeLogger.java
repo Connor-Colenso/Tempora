@@ -41,7 +41,7 @@ import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.loggers.optional.ISupportsUndo;
 import com.colen.tempora.utils.BlockUtils;
-import com.colen.tempora.utils.EventLoggingHelper;
+import com.colen.tempora.utils.DatabaseUtils;
 import com.colen.tempora.utils.GenericUtils;
 import com.colen.tempora.utils.PlayerUtils;
 import com.colen.tempora.utils.RenderingUtils;
@@ -178,8 +178,8 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
         if (queueElements == null || queueElements.isEmpty()) return;
 
         final String sql = "INSERT INTO " + getSQLTableName()
-            + " (beforeBlockID, beforeMetadata, beforePickBlockID, beforePickBlockMeta, beforeEncodedNBT, afterBlockID, afterMetadata, afterPickBlockID, afterPickBlockMeta, afterEncodedNBT, stackTrace, closestPlayerUUID, closestPlayerDistance, eventID, x, y, z, dimensionID, timestamp) "
-            + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            + " (beforeBlockID, beforeMetadata, beforePickBlockID, beforePickBlockMeta, beforeEncodedNBT, afterBlockID, afterMetadata, afterPickBlockID, afterPickBlockMeta, afterEncodedNBT, stackTrace, closestPlayerUUID, closestPlayerDistance, eventID, x, y, z, dimensionID, timestamp, versionID) "
+            + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         int index;
         try (PreparedStatement pstmt = getDBConn().prepareStatement(sql)) {
@@ -202,7 +202,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
                 pstmt.setString(index++, queueElement.closestPlayerUUID);
                 pstmt.setDouble(index++, queueElement.closestPlayerDistance);
 
-                EventLoggingHelper.defaultColumnEntries(queueElement, pstmt, index);
+                DatabaseUtils.defaultColumnEntries(queueElement, pstmt, index);
 
                 pstmt.addBatch();
             }

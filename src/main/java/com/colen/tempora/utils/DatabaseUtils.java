@@ -1,15 +1,34 @@
 package com.colen.tempora.utils;
 
 import static com.colen.tempora.Tempora.LOG;
+import static com.colen.tempora.loggers.generic.ModpackVersionData.CURRENT_VERSION;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
+
+import com.colen.tempora.loggers.generic.GenericQueueElement;
 
 public class DatabaseUtils {
 
     public static final String MISSING_STRING_DATA = "MISSING_DATA";
+
+    public static void defaultColumnEntries(GenericQueueElement queueElement, PreparedStatement pstmt, int index)
+        throws SQLException {
+        pstmt.setString(index++, queueElement.eventID);
+        pstmt.setDouble(index++, queueElement.x);
+        pstmt.setDouble(index++, queueElement.y);
+        pstmt.setDouble(index++, queueElement.z);
+        pstmt.setInt(index++, queueElement.dimensionId);
+        pstmt.setTimestamp(index++, new Timestamp(queueElement.timestamp));
+
+        // This is a static and unchanging int that corresponds to a modpack version. It can only shift on server
+        // restart to indicate the modding environment has changed.
+        pstmt.setInt(index, CURRENT_VERSION);
+    }
 
     @SuppressWarnings("LoggingSimilarMessage")
     public static boolean isDatabaseCorrupted(Connection conn) {
