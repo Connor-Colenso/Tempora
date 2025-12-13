@@ -164,6 +164,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
         return positionalLoggerDBConnection;
     }
 
+    // TODO Default version hash, and then if undoing events across versions, issue warning.
     // These should really, never be missing, so even though the defaults are a bit clunky, it's alright.
     public static List<ColumnDef> getDefaultColumns() {
         return Arrays.asList(

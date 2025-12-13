@@ -214,7 +214,8 @@ public abstract class RenderUtils {
 
     public static void renderFloatingText(List<String> textLines, double x, double y, double z) {
         RenderManager renderManager = RenderManager.instance;
-        FontRenderer fontrenderer = RenderManager.instance.getFontRenderer();
+        FontRenderer fontrenderer = Minecraft.getMinecraft().fontRenderer;
+        if (fontrenderer == null) return;
 
         GlStateManager.pushMatrix();
         GlStateManager.translate(x, y, z);

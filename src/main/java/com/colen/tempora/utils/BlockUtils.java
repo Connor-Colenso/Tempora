@@ -57,7 +57,7 @@ public class BlockUtils {
      * no block updates, no onBlockAdded, no neighbor notifications.
      *
      * Does NOT touch TileEntities. If you are changing a TE block, handle
-     * TE creation/removal separately.
+     * TE creation/removal separately. THIS WILL CORRUPT WORLDS IF IGNORED!
      */
     public static boolean setBlockNoUpdate(World world, int x, int y, int z, Block block, int meta) {
         if (block == null) {

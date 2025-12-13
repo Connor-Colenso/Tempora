@@ -13,8 +13,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Deque;
 import java.util.List;
 import java.util.UUID;
+import java.util.ArrayDeque;
+import java.util.Deque;
 
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
@@ -229,168 +232,117 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
         return events;
     }
 
+    private static final ThreadLocal<Deque<BlockChangeQueueElement>> BLOCK_STACK =
+        ThreadLocal.withInitial(ArrayDeque::new);
+
+    private static final ThreadLocal<Boolean> DISCARD_STACK =
+        ThreadLocal.withInitial(() -> false);
+
+
     /**
      * Called at HEAD of Chunk.func_150807_a
      */
     public void onSetBlockHead(int x, int y, int z, World world) {
 
-        int d = depth.get();
-        depth.set(d + 1);
+        Deque<BlockChangeQueueElement> stack = BLOCK_STACK.get();
 
-        // Only capture info for the outermost mutation in this call stack
-        if (d != 0) {
+        BlockChangeQueueElement e = new BlockChangeQueueElement();
+        e.eventID = UUID.randomUUID().toString();
+        e.timestamp = System.currentTimeMillis();
+        e.stackTrace = GenericUtils.getCallingClassChain();
+        stack.push(e);
+
+        // GenericQueueElement fields
+        e.x = x;
+        e.y = y;
+        e.z = z;
+        e.dimensionId = world.provider.dimensionId;
+        e.timestamp = world.getTotalWorldTime();
+
+        // World-gen poisoning: discard the *entire* stack
+        if (WorldGenPhaseTracker.isWorldGen()) {
+            DISCARD_STACK.set(true);
             return;
         }
 
-        SetBlockEventInfo currentEventInfo = new SetBlockEventInfo();
-        currentEvent.set(currentEventInfo);
+        // BEFORE state
+        Block before = world.getBlock(x, y, z);
+        e.beforeBlockID = Block.getIdFromBlock(before);
+        e.beforeMetadata = world.getBlockMetadata(x, y, z);
 
-        currentEventInfo.isWorldGen = WorldGenPhaseTracker.isWorldGen();
-        if (currentEventInfo.isWorldGen) {
-            return;
-        }
-
-        currentEventInfo.beforeBlockID = Block.getIdFromBlock(world.getBlock(x, y, z));
-        currentEventInfo.beforeMeta = world.getBlockMetadata(x, y, z);
-
-        // Pick block info.
-        ItemStack pickStack = world.getBlock(x, y, z)
-            .getPickBlock(null, world, x, y, z);
-        if (pickStack != null && pickStack.getItem() != null) {
-            currentEventInfo.beforePickBlockID = Item.getIdFromItem(pickStack.getItem());
-            currentEventInfo.beforePickBlockMeta = pickStack.getItemDamage();
+        ItemStack pick = before.getPickBlock(null, world, x, y, z);
+        if (pick != null && pick.getItem() != null) {
+            e.beforePickBlockID = Item.getIdFromItem(pick.getItem());
+            e.beforePickBlockMeta = pick.getItemDamage();
         } else {
-            // Fallback to the raw place-block data
-            currentEventInfo.beforePickBlockID = currentEventInfo.beforeBlockID;
-            currentEventInfo.beforePickBlockMeta = currentEventInfo.beforeMeta;
+            e.beforePickBlockID = e.beforeBlockID;
+            e.beforePickBlockMeta = e.beforeMetadata;
         }
 
-        // Log NBT.
-        currentEventInfo.beforeEncodedNBT = getEncodedTileEntityNBT(
-            world,
-            x,
-            y,
-            z,
-            BlockChangeLogger.isLogNBTEnabled());
-
-        currentEventInfo.worldTick = world.getTotalWorldTime();
+        e.beforeEncodedNBT = getEncodedTileEntityNBT(
+            world, x, y, z, BlockChangeLogger.isLogNBTEnabled());
     }
 
     /**
      * Called at RETURN of Chunk.func_150807_a
      */
-    public void onSetBlockReturn(int x, int y, int z, World world, CallbackInfoReturnable<Boolean> cir) {
+    public void onSetBlockReturn(int x, int y, int z, World world,
+                                 CallbackInfoReturnable<Boolean> cir) {
 
-        int d = depth.get() - 1;
-        depth.set(d);
+        Deque<BlockChangeQueueElement> stack = BLOCK_STACK.get();
 
-        // Only act when unwinding the outermost call
-        if (d != 0) {
-            return;
-        }
-
-        SetBlockEventInfo currentEventInfo = currentEvent.get();
-        currentEvent.remove();
-
-        if (currentEventInfo == null) {
-            LOG.error("""
-                [BLOCK LOGGER CRITICAL ERROR]
-                SetBlock return hook encountered a null SetBlockEventInfo at outermost depth!
-                This indicates that onSetBlockReturn was called without a matching onSetBlockHead,
-                or that the event tracking has become de-synchronised.
-                """, new Exception("SetBlock hook desync detected"));
-            return;
-        }
-
-        // Block placement failed for some reason. So do not log.
-        if (!cir.getReturnValue()) return;
-        // We do not log world gen, as it is mostly meaningless.
-        if (currentEventInfo.isWorldGen) return;
-
-        currentEventInfo.afterBlockID = Block.getIdFromBlock(world.getBlock(x, y, z));
-        currentEventInfo.afterMeta = world.getBlockMetadata(x, y, z);
-
-        // Pick block info.
-        ItemStack pickStack = world.getBlock(x, y, z)
-            .getPickBlock(null, world, x, y, z);
-        if (pickStack != null && pickStack.getItem() != null) {
-            currentEventInfo.afterPickBlockID = Item.getIdFromItem(pickStack.getItem());
-            currentEventInfo.afterPickBlockMeta = pickStack.getItemDamage();
-        } else {
-            // Fallback to the raw place-block data
-            currentEventInfo.afterPickBlockID = currentEventInfo.afterBlockID;
-            currentEventInfo.afterPickBlockMeta = currentEventInfo.afterMeta;
-        }
-
-        // Log NBT.
-        currentEventInfo.afterEncodedNBT = getEncodedTileEntityNBT(world, x, y, z, BlockChangeLogger.isLogNBTEnabled()); // todo
-                                                                                                                         // investigate
-                                                                                                                         // chest
-                                                                                                                         // breaking
-                                                                                                                         // and
-                                                                                                                         // not
-                                                                                                                         // saving
-                                                                                                                         // nbt.
-
-        // Ignore no-ops (same block and metadata)
-        if (currentEventInfo.isNoOp()) return;
-
-        // Todo: more safety checks needed like compare x y z?
-        if (currentEventInfo.worldTick == world.getTotalWorldTime()) {
-            Tempora.blockChangeLogger.recordSetBlock(x, y, z, currentEventInfo, world);
-        } else {
+        if (stack.isEmpty()) {
             LOG.error(
-                """
-                    [BLOCK LOGGER CRITICAL ERROR]
-                    World tick mismatch detected during setBlock logging!
-                    Expected tick: {} | Actual tick: {}
-                    Dim ID: {} | Pos: ({},{},{})
-                    Before: {}:{} | After: {}:{}
-                    This should NEVER occur.
-                    Please report this with full logs immediately.
-                    """,
-                currentEventInfo.worldTick,
-                world.getTotalWorldTime(),
-                world.provider.dimensionId,
-                x,
-                y,
-                z,
-                currentEventInfo.beforeBlockID,
-                currentEventInfo.beforeMeta,
-                currentEventInfo.afterBlockID,
-                currentEventInfo.afterMeta);
+                "[BLOCK LOGGER CRITICAL ERROR] RETURN without matching HEAD",
+                new Exception("Block stack underflow"));
+            return;
+        }
+
+        BlockChangeQueueElement e = stack.pop();
+
+        // If placement failed, mark as no-op and move on
+        if (!cir.getReturnValue()) {
+            return;
+        }
+
+        // AFTER state
+        Block after = world.getBlock(x, y, z);
+        e.afterBlockID = Block.getIdFromBlock(after);
+        e.afterMetadata = world.getBlockMetadata(x, y, z);
+
+        ItemStack pick = after.getPickBlock(null, world, x, y, z);
+        if (pick != null && pick.getItem() != null) {
+            e.afterPickBlockID = Item.getIdFromItem(pick.getItem());
+            e.afterPickBlockMeta = pick.getItemDamage();
+        } else {
+            e.afterPickBlockID = e.afterBlockID;
+            e.afterPickBlockMeta = e.afterMetadata;
+        }
+
+        e.afterEncodedNBT = getEncodedTileEntityNBT(
+            world, x, y, z, BlockChangeLogger.isLogNBTEnabled());
+
+        // If this was the last frame, commit or discard
+        if (stack.isEmpty()) {
+
+            boolean discard = DISCARD_STACK.get();
+            DISCARD_STACK.remove();
+
+            if (!discard) {
+                recordSetBlock(e.x, e.y, e.z, e, world);
+            }
+
+            BLOCK_STACK.remove();
         }
     }
 
-    private void recordSetBlock(int x, int y, int z, SetBlockEventInfo setBlockEventInfo, World world) {
 
-        // Only log changes if (x, y, z) is inside a defined region
-        if (!globalBlockChangeLogging && !RegionRegistry.containsBlock(world.provider.dimensionId, x, y, z)) {
+    private void recordSetBlock(double x, double y, double z, BlockChangeQueueElement queueElement, World world) {
+
+        // Only log changes if (x, y, z) is inside a defined region. Unless config has entire world logging on.
+        if (!globalBlockChangeLogging && !RegionRegistry.containsBlock(world.provider.dimensionId, (int) x, (int) y, (int) z)) {
             return;
         }
-
-        final BlockChangeQueueElement queueElement = new BlockChangeQueueElement();
-        queueElement.eventID = UUID.randomUUID()
-            .toString();
-        queueElement.x = x;
-        queueElement.y = y;
-        queueElement.z = z;
-        queueElement.dimensionId = world.provider.dimensionId;
-        queueElement.timestamp = System.currentTimeMillis();
-
-        queueElement.stackTrace = GenericUtils.getCallingClassChain();
-
-        queueElement.beforeBlockID = setBlockEventInfo.beforeBlockID;
-        queueElement.beforeMetadata = setBlockEventInfo.beforeMeta;
-        queueElement.beforePickBlockID = setBlockEventInfo.beforePickBlockID;
-        queueElement.beforePickBlockMeta = setBlockEventInfo.beforePickBlockMeta;
-        queueElement.beforeEncodedNBT = setBlockEventInfo.beforeEncodedNBT;
-
-        queueElement.afterBlockID = setBlockEventInfo.afterBlockID;
-        queueElement.afterMetadata = setBlockEventInfo.afterMeta;
-        queueElement.afterPickBlockID = setBlockEventInfo.afterPickBlockID;
-        queueElement.afterPickBlockMeta = setBlockEventInfo.afterPickBlockMeta;
-        queueElement.afterEncodedNBT = setBlockEventInfo.afterEncodedNBT;
 
         EntityPlayer closestPlayer = world.getClosestPlayer(x, y, z, -1);
         double closestDistance = -1;

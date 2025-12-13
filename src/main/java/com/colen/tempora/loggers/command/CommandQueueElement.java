@@ -37,6 +37,11 @@ public class CommandQueueElement extends GenericQueueElement {
     }
 
     @Override
+    public boolean needsTransparencyToRender() {
+        return true;
+    }
+
+    @Override
     public IChatComponent localiseText(String uuid) {
         // Relative time (as chat component with hover info)
         IChatComponent timeAgo = TimeUtils.formatTime(timestamp, uuid);
