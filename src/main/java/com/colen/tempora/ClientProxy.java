@@ -1,5 +1,6 @@
 package com.colen.tempora;
 
+import com.colen.tempora.rendering.RenderIDsInWorld;
 import com.colen.tempora.utils.RenderingUtils;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.common.MinecraftForge;
@@ -27,6 +28,7 @@ public class ClientProxy extends CommonProxy {
 
         MinecraftForge.EVENT_BUS.register(new PlayerLogin());
         MinecraftForge.EVENT_BUS.register(new RenderEventsInWorld());
+        MinecraftForge.EVENT_BUS.register(new RenderIDsInWorld());
         MinecraftForge.EVENT_BUS.register(new RenderRegionsInWorld());
     }
 
