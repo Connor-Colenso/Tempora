@@ -31,6 +31,8 @@ public class BlockChangeQueueElement extends GenericQueueElement {
     public String closestPlayerUUID;
     public double closestPlayerDistance;
 
+    public boolean isWorldGen;
+
     @Override
     public IChatComponent localiseText(String uuid) {
         // Block names

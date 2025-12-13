@@ -29,6 +29,7 @@ public abstract class MixinChunk {
     @Inject(method = "func_150807_a", at = @At("HEAD"), remap = false)
     private void tempora$blockWriteStart(int localX, int y, int localZ, Block newBlock, int newMeta,
         CallbackInfoReturnable<Boolean> cir) {
+        if (worldObj.isRemote) return;
 
         int globalX = (this.xPosition << 4) + localX;
         int globalZ = (this.zPosition << 4) + localZ;
@@ -39,6 +40,7 @@ public abstract class MixinChunk {
     @Inject(method = "func_150807_a", at = @At("RETURN"), remap = false)
     private void tempora$blockWriteEnd(int localX, int y, int localZ, Block newBlock, int newMeta,
         CallbackInfoReturnable<Boolean> cir) {
+        if (worldObj.isRemote) return;
 
         int globalX = (this.xPosition << 4) + localX;
         int globalZ = (this.zPosition << 4) + localZ;
@@ -53,6 +55,7 @@ public abstract class MixinChunk {
     @Inject(method = "setBlockMetadata", at = @At("HEAD"), remap = false)
     private void tempora$metaWriteStart(int localX, int y, int localZ, int newMeta,
                                         CallbackInfoReturnable<Boolean> cir) {
+        if (worldObj.isRemote) return;
 
         int globalX = (this.xPosition << 4) + localX;
         int globalZ = (this.zPosition << 4) + localZ;
@@ -63,6 +66,7 @@ public abstract class MixinChunk {
     @Inject(method = "setBlockMetadata", at = @At("RETURN"), remap = false)
     private void tempora$metaWriteEnd(int localX, int y, int localZ, int newMeta,
                                       CallbackInfoReturnable<Boolean> cir) {
+        if (worldObj.isRemote) return;
 
         int globalX = (this.xPosition << 4) + localX;
         int globalZ = (this.zPosition << 4) + localZ;
