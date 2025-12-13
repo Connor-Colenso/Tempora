@@ -11,13 +11,12 @@ import static com.colen.tempora.utils.nbt.NBTUtils.getEncodedTileEntityNBT;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Deque;
 import java.util.List;
 import java.util.UUID;
-import java.util.ArrayDeque;
-import java.util.Deque;
 
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
@@ -36,7 +35,6 @@ import net.minecraftforge.common.config.Configuration;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import com.colen.tempora.Tempora;
 import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.loggers.generic.ColumnDef;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
@@ -242,15 +240,16 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
     }
 
     // Not convinced multithreaded safety is needed here.
-    private static final ThreadLocal<Deque<BlockChangeQueueElement>> BLOCK_STACK =
-        ThreadLocal.withInitial(ArrayDeque::new);
+    private static final ThreadLocal<Deque<BlockChangeQueueElement>> BLOCK_STACK = ThreadLocal
+        .withInitial(ArrayDeque::new);
 
     public void onSetBlockHead(int x, int y, int z, World world) {
 
         Deque<BlockChangeQueueElement> stack = BLOCK_STACK.get();
 
         BlockChangeQueueElement e = new BlockChangeQueueElement();
-        e.eventID = UUID.randomUUID().toString();
+        e.eventID = UUID.randomUUID()
+            .toString();
         e.timestamp = System.currentTimeMillis();
         e.stackTrace = GenericUtils.getCallingClassChain();
         stack.push(e);
@@ -277,19 +276,15 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
             e.beforePickBlockMeta = e.beforeMetadata;
         }
 
-        e.beforeEncodedNBT = getEncodedTileEntityNBT(
-            world, x, y, z, BlockChangeLogger.isLogNBTEnabled());
+        e.beforeEncodedNBT = getEncodedTileEntityNBT(world, x, y, z, BlockChangeLogger.isLogNBTEnabled());
     }
 
-    public void onSetBlockReturn(int x, int y, int z, World world,
-                                 CallbackInfoReturnable<Boolean> cir) {
+    public void onSetBlockReturn(int x, int y, int z, World world, CallbackInfoReturnable<Boolean> cir) {
 
         Deque<BlockChangeQueueElement> stack = BLOCK_STACK.get();
 
         if (stack.isEmpty()) {
-            LOG.error(
-                "[BLOCK CHANGE LOGGER CRITICAL ERROR] RETURN without matching HEAD",
-                new Exception());
+            LOG.error("[BLOCK CHANGE LOGGER CRITICAL ERROR] RETURN without matching HEAD", new Exception());
             return;
         }
 
@@ -314,8 +309,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
             e.afterPickBlockMeta = e.afterMetadata;
         }
 
-        e.afterEncodedNBT = getEncodedTileEntityNBT(
-            world, x, y, z, BlockChangeLogger.isLogNBTEnabled());
+        e.afterEncodedNBT = getEncodedTileEntityNBT(world, x, y, z, BlockChangeLogger.isLogNBTEnabled());
 
         recordSetBlock(e.x, e.y, e.z, e, world);
     }
@@ -323,7 +317,8 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
     private void recordSetBlock(double x, double y, double z, BlockChangeQueueElement queueElement, World world) {
 
         // Only log changes if (x, y, z) is inside a defined region. Unless config has entire world logging on.
-        if (!globalBlockChangeLogging && !RegionRegistry.containsBlock(world.provider.dimensionId, (int) x, (int) y, (int) z)) {
+        if (!globalBlockChangeLogging
+            && !RegionRegistry.containsBlock(world.provider.dimensionId, (int) x, (int) y, (int) z)) {
             return;
         }
 

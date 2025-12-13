@@ -2,16 +2,16 @@ package com.colen.tempora.rendering;
 
 import java.util.Collections;
 
-import com.colen.tempora.utils.RenderingUtils;
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
+
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 
 @SideOnly(Side.CLIENT)
 public final class RenderIDsInWorld {
@@ -28,12 +28,9 @@ public final class RenderIDsInWorld {
         if (player == null || world == null) return;
 
         // Interpolated camera position
-        double camX = player.lastTickPosX +
-            (player.posX - player.lastTickPosX) * e.partialTicks;
-        double camY = player.lastTickPosY +
-            (player.posY - player.lastTickPosY) * e.partialTicks;
-        double camZ = player.lastTickPosZ +
-            (player.posZ - player.lastTickPosZ) * e.partialTicks;
+        double camX = player.lastTickPosX + (player.posX - player.lastTickPosX) * e.partialTicks;
+        double camY = player.lastTickPosY + (player.posY - player.lastTickPosY) * e.partialTicks;
+        double camZ = player.lastTickPosZ + (player.posZ - player.lastTickPosZ) * e.partialTicks;
 
         int px = MathHelper.floor_double(player.posX);
         int py = MathHelper.floor_double(player.posY);
@@ -60,10 +57,7 @@ public final class RenderIDsInWorld {
                     double ry = y + 0.5D - camY;
                     double rz = z + 0.5D - camZ;
 
-                    RenderUtils.renderFloatingText(
-                        Collections.singletonList(text),
-                        rx, ry, rz
-                    );
+                    RenderUtils.renderFloatingText(Collections.singletonList(text), rx, ry, rz);
                 }
             }
         }
