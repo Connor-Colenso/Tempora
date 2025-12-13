@@ -119,6 +119,7 @@ public class BlockChangeQueueElement extends GenericQueueElement {
 
     @Override
     public boolean needsTransparencyToRender() {
-        return ! Block.getBlockById(beforePickBlockID).isOpaqueCube();
+        return !Block.getBlockById(beforePickBlockID)
+            .isOpaqueCube();
     }
 }

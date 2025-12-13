@@ -438,10 +438,16 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
                 if (tableName != null && !logger.getSQLTableName()
                     .equals(tableName)) continue;
 
-                String sql = "SELECT * FROM " + logger.getSQLTableName()
-                    + " WHERE ABS(x - ?) <= ?  AND ABS(y - ?) <= ?  AND ABS(z - ?) <= ? "
-                    + "   AND dimensionID = ? AND timestamp >= ? "
-                    + " ORDER BY timestamp DESC LIMIT ?";
+                String sql = String.format("""
+                    SELECT * FROM %s
+                    WHERE ABS(x - ?) <= ?
+                      AND ABS(y - ?) <= ?
+                      AND ABS(z - ?) <= ?
+                      AND dimensionID = ?
+                      AND timestamp >= ?
+                    ORDER BY timestamp DESC
+                    LIMIT ?;
+                    """, logger.getSQLTableName());
 
                 try (PreparedStatement ps = logger.getReadOnlyConnection()
                     .prepareStatement(sql)) {
@@ -775,7 +781,9 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
     public void clearOldEventsToRender() {
         double expiryCutoff = System.currentTimeMillis() - SECONDS_RENDERING_DURATION * 1000L;
-        transparentEventsToRenderInWorld.removeIf(eventPosition -> eventPosition.eventRenderCreationTime < expiryCutoff);
-        nonTransparentEventsToRenderInWorld.removeIf(eventPosition -> eventPosition.eventRenderCreationTime < expiryCutoff);
+        transparentEventsToRenderInWorld
+            .removeIf(eventPosition -> eventPosition.eventRenderCreationTime < expiryCutoff);
+        nonTransparentEventsToRenderInWorld
+            .removeIf(eventPosition -> eventPosition.eventRenderCreationTime < expiryCutoff);
     }
 }
