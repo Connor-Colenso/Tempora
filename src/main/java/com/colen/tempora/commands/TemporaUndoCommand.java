@@ -1,6 +1,5 @@
 package com.colen.tempora.commands;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import net.minecraft.command.CommandBase;
@@ -11,6 +10,7 @@ import net.minecraft.util.IChatComponent;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.loggers.optional.ISupportsUndo;
+import com.colen.tempora.utils.CommandUtils;
 
 public class TemporaUndoCommand extends CommandBase {
 
@@ -48,20 +48,11 @@ public class TemporaUndoCommand extends CommandBase {
         }
     }
 
-    // Todo reduce code duplication here across multiple classes.
     @Override
     public List<String> addTabCompletionOptions(ICommandSender sender, String[] args) {
-        if (args.length == 1) {
-            String partialFilter = args[0].toLowerCase();
-            List<String> matchingOptions = new ArrayList<>();
-            for (String option : GenericPositionalLogger.getAllLoggerNames()) {
-                if (option.toLowerCase()
-                    .startsWith(partialFilter)) {
-                    matchingOptions.add(option);
-                }
-            }
-            return matchingOptions;
+        if (args.length == 3) {
+            return CommandUtils.completeLoggerNames(args);
         }
-        return null; // Return null when there are no matches.
+        return null;
     }
 }

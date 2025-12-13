@@ -2,7 +2,6 @@ package com.colen.tempora.commands;
 
 import static com.colen.tempora.commands.CommandConstants.ONLY_IN_GAME;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import net.minecraft.command.CommandBase;
@@ -10,8 +9,10 @@ import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.ChatComponentTranslation;
 
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
+import com.colen.tempora.utils.CommandUtils;
 import com.colen.tempora.utils.TimeUtils;
 
 public class QueryEventsCommand extends CommandBase {
@@ -42,7 +43,12 @@ public class QueryEventsCommand extends CommandBase {
         int radius = parseInt(sender, args[0]);
         long seconds = TimeUtils.convertToSeconds(args[1].toLowerCase());
 
-        String tableName = args.length == 3 ? validateFilter(args[2]) : null;
+        if (radius < 0) {
+            sender.addChatMessage(new ChatComponentTranslation("tempora.range.negative"));
+            return;
+        }
+
+        String tableName = args.length == 3 ? validateLoggerName(args[2]) : null;
 
         int x = (int) Math.round(entityPlayerMP.posX);
         int y = (int) Math.round(entityPlayerMP.posY);
@@ -52,8 +58,8 @@ public class QueryEventsCommand extends CommandBase {
             .queryEventByCoordinate(sender, x, y, z, radius, seconds, tableName, entityPlayerMP.dimension);
     }
 
-    private String validateFilter(String input) {
-        for (String option : getFilterOptions()) {
+    private String validateLoggerName(String input) {
+        for (String option : GenericPositionalLogger.getAllLoggerNames()) {
             if (option.equalsIgnoreCase(input)) {
                 return option;
             }
@@ -69,24 +75,8 @@ public class QueryEventsCommand extends CommandBase {
     @Override
     public List<String> addTabCompletionOptions(ICommandSender sender, String[] args) {
         if (args.length == 3) {
-            String partialFilter = args[2].toLowerCase();
-            List<String> matchingOptions = new ArrayList<>();
-            for (String option : getFilterOptions()) {
-                if (option.toLowerCase()
-                    .startsWith(partialFilter)) {
-                    matchingOptions.add(option);
-                }
-            }
-            return matchingOptions;
+            return CommandUtils.completeLoggerNames(args);
         }
         return null; // Return null when there are no matches.
-    }
-
-    private List<String> getFilterOptions() {
-        List<String> options = new ArrayList<>();
-        for (GenericPositionalLogger<?> logger : GenericPositionalLogger.getLoggerList()) {
-            options.add(logger.getSQLTableName());
-        }
-        return options;
     }
 }
