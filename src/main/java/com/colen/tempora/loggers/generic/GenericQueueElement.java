@@ -26,8 +26,10 @@ public abstract class GenericQueueElement implements IMessage {
     public int dimensionId;
     public long timestamp;
     public String eventID;
+    public int versionID;
 
-    // This field purely dictates when an event was made, so we know when to stop rendering it in world. It is only
+    // This field purely dictates when an event was made when received by the client, so we know when to stop rendering
+    // it in world. It is only
     // relevant on the client.
     public long eventRenderCreationTime;
 
@@ -40,6 +42,7 @@ public abstract class GenericQueueElement implements IMessage {
         dimensionId = resultSet.getInt("dimensionID");
         timestamp = resultSet.getLong("timestamp");
         eventID = resultSet.getString("eventID");
+        versionID = resultSet.getInt("versionID");
     }
 
     public void sendEventToClientForRendering(EntityPlayerMP player) {
@@ -54,6 +57,7 @@ public abstract class GenericQueueElement implements IMessage {
         dimensionId = buf.readInt();
         timestamp = buf.readLong();
         eventID = ByteBufUtils.readUTF8String(buf);
+        // versionID Not applicable for client.
     }
 
     @Override
@@ -64,6 +68,7 @@ public abstract class GenericQueueElement implements IMessage {
         buf.writeInt(dimensionId);
         buf.writeLong(timestamp);
         ByteBufUtils.writeUTF8String(buf, eventID);
+        // versionID Not applicable for client.
     }
 
     public boolean needsTransparencyToRender() {

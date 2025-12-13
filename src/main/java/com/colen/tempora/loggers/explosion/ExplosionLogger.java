@@ -33,7 +33,7 @@ import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.rendering.RenderUtils;
 import com.colen.tempora.utils.ChunkPositionUtils;
-import com.colen.tempora.utils.EventLoggingHelper;
+import com.colen.tempora.utils.DatabaseUtils;
 import com.colen.tempora.utils.PlayerUtils;
 
 import cpw.mods.fml.common.eventhandler.EventPriority;
@@ -166,8 +166,8 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionQueueEleme
         if (queueElements == null || queueElements.isEmpty()) return;
 
         final String sql = "INSERT INTO " + getSQLTableName()
-            + " (strength, exploderUUID, closestPlayerUUID, closestPlayerDistance, affectedBlockCoordinates, eventID, x, y, z, dimensionID, timestamp) "
-            + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            + " (strength, exploderUUID, closestPlayerUUID, closestPlayerDistance, affectedBlockCoordinates, eventID, x, y, z, dimensionID, timestamp, versionID) "
+            + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         int index;
         try (PreparedStatement pstmt = getDBConn().prepareStatement(sql)) {
@@ -179,7 +179,7 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionQueueEleme
                 pstmt.setString(index++, queueElement.closestPlayerUUID);
                 pstmt.setDouble(index++, queueElement.closestPlayerDistance);
                 pstmt.setString(index++, queueElement.affectedBlockCoordinates);
-                EventLoggingHelper.defaultColumnEntries(queueElement, pstmt, index);
+                DatabaseUtils.defaultColumnEntries(queueElement, pstmt, index);
 
                 pstmt.addBatch();
             }

@@ -4,6 +4,8 @@ import static com.colen.tempora.Tempora.NETWORK;
 import static com.colen.tempora.Tempora.renderingErrorBlock;
 import static com.colen.tempora.config.Config.synchronizeConfiguration;
 
+import com.colen.tempora.events.OnWorldLoad;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
 
 import com.colen.tempora.blocks.RenderingErrorItemBlock;
@@ -102,6 +104,8 @@ public class CommonProxy {
         if (Tempora.config.hasChanged()) {
             Tempora.config.save();
         }
+
+        MinecraftForge.EVENT_BUS.register(new OnWorldLoad());
 
         synchronizeConfiguration(Tempora.config);
     }
