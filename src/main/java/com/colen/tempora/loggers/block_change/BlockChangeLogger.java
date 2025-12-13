@@ -232,16 +232,10 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
         return events;
     }
 
+    // Not convinced multithreaded safety is needed here.
     private static final ThreadLocal<Deque<BlockChangeQueueElement>> BLOCK_STACK =
         ThreadLocal.withInitial(ArrayDeque::new);
 
-    private static final ThreadLocal<Boolean> DISCARD_STACK =
-        ThreadLocal.withInitial(() -> false);
-
-
-    /**
-     * Called at HEAD of Chunk.func_150807_a
-     */
     public void onSetBlockHead(int x, int y, int z, World world) {
 
         Deque<BlockChangeQueueElement> stack = BLOCK_STACK.get();
@@ -257,13 +251,8 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
         e.y = y;
         e.z = z;
         e.dimensionId = world.provider.dimensionId;
-        e.timestamp = world.getTotalWorldTime();
 
-        // World-gen poisoning: discard the *entire* stack
-        if (WorldGenPhaseTracker.isWorldGen()) {
-            DISCARD_STACK.set(true);
-            return;
-        }
+        e.isWorldGen = WorldGenPhaseTracker.isWorldGen();
 
         // BEFORE state
         Block before = world.getBlock(x, y, z);
@@ -283,9 +272,6 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
             world, x, y, z, BlockChangeLogger.isLogNBTEnabled());
     }
 
-    /**
-     * Called at RETURN of Chunk.func_150807_a
-     */
     public void onSetBlockReturn(int x, int y, int z, World world,
                                  CallbackInfoReturnable<Boolean> cir) {
 
@@ -293,8 +279,8 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
 
         if (stack.isEmpty()) {
             LOG.error(
-                "[BLOCK LOGGER CRITICAL ERROR] RETURN without matching HEAD",
-                new Exception("Block stack underflow"));
+                "[BLOCK CHANGE LOGGER CRITICAL ERROR] RETURN without matching HEAD",
+                new Exception());
             return;
         }
 
@@ -322,20 +308,8 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
         e.afterEncodedNBT = getEncodedTileEntityNBT(
             world, x, y, z, BlockChangeLogger.isLogNBTEnabled());
 
-        // If this was the last frame, commit or discard
-        if (stack.isEmpty()) {
-
-            boolean discard = DISCARD_STACK.get();
-            DISCARD_STACK.remove();
-
-            if (!discard) {
-                recordSetBlock(e.x, e.y, e.z, e, world);
-            }
-
-            BLOCK_STACK.remove();
-        }
+        recordSetBlock(e.x, e.y, e.z, e, world);
     }
-
 
     private void recordSetBlock(double x, double y, double z, BlockChangeQueueElement queueElement, World world) {
 
