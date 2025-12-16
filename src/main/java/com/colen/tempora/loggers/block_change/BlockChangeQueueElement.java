@@ -66,7 +66,8 @@ public class BlockChangeQueueElement extends GenericQueueElement {
             afterMetadata, // %d: block after metadata
             timeAgo, // %s: time ago
             closestPlayerName, // %s: closest player
-            closestPlayerDist // %s: distance
+            closestPlayerDist, // %s: distance
+            generateUndoCommand(getLoggerType(), eventID) // %s: Undo operation.
         );
     }
 

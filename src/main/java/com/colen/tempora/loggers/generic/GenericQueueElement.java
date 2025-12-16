@@ -5,6 +5,7 @@ import static com.colen.tempora.Tempora.NETWORK;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import com.colen.tempora.commands.TemporaUndoCommand;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.event.ClickEvent;
 import net.minecraft.event.HoverEvent;
@@ -151,8 +152,7 @@ public abstract class GenericQueueElement implements IMessage {
         // Translation‑driven teleport options.
         IChatComponent display = new ChatComponentTranslation("tempora.undo.query.display");
 
-        // Todo link to command file, using a constant
-        String cmd = "/tempora_undo " + loggerName + " " + eventID;
+        String cmd = "/" + new TemporaUndoCommand().getCommandName() + " " + loggerName + " " + eventID;
 
         IChatComponent hoverText = new ChatComponentTranslation("tempora.undo.query.hover");
         hoverText.getChatStyle()
