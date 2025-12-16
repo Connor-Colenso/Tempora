@@ -99,7 +99,7 @@ time.unit.minutes=mins
 time.unit.hours=hrs
 time.unit.days=days
 
-message.block_change=The block at %s was set from %s (%d:%d) to %s (%d:%d) (%s). Closest player: %s (%s blocks away).
+message.block_change=The block at %s was set from %s (%d:%d) to %s (%d:%d) (%s). Closest player %s (%s blocks away). %s.
 
 # This does not exist in vanilla MC sadly.
 tile.air.name=Air
