@@ -1,35 +1,28 @@
 package com.colen.tempora.loggers.block_change;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.io.File;
+import java.util.*;
 
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.world.World;
-import net.minecraft.world.WorldSavedData;
+import net.minecraft.world.storage.ISaveHandler;
+import net.minecraft.nbt.CompressedStreamTools;
 
-public class RegionRegistry extends WorldSavedData {
+public final class RegionRegistry {
 
-    // Avoid changing at all costs.
-    private static final String KEY = "TemporaRegions_v1";
+    private static final String DIR_NAME = "tempora";
+    private static final String FILE_NAME = "tempora_blockchange_regions.dat";
+
+    private boolean loaded = false;
+
     private static RegionRegistry instance;
 
     private final Map<Integer, List<BlockChangeRecordingRegion>> byDim = new HashMap<>();
+    private boolean dirty = false;
 
-    public RegionRegistry() {
-        super(KEY);
-    }
+    // Public API.
 
-    public RegionRegistry(String name) {
-        super(name);
-    }
-
-    // static API
     public static void add(BlockChangeRecordingRegion r) {
         get().addRegion(r);
     }
@@ -46,32 +39,53 @@ public class RegionRegistry extends WorldSavedData {
         return get().allRegions();
     }
 
-    // instance logic
+    // Called on server shutdown.
+    public static void saveIfDirty() {
+        if (instance != null && instance.dirty) {
+            instance.save();
+        }
+    }
+
+    // Call on server startup.
+    public static void loadNow() {
+        RegionRegistry r = get();
+        if (!r.loaded) {
+            r.load();
+            r.loaded = true;
+        }
+    }
+
+
+    // Internal logic.
+
     private void addRegion(BlockChangeRecordingRegion r) {
-        byDim.computeIfAbsent(r.dim, d -> new ArrayList<>())
-            .add(r);
-        markDirty();
+        byDim.computeIfAbsent(r.dim, d -> new ArrayList<>()).add(r);
+        dirty = true;
     }
 
     private boolean contains(int dim, int x, int y, int z) {
         List<BlockChangeRecordingRegion> list = byDim.get(dim);
         if (list == null) return false;
-        for (BlockChangeRecordingRegion r : list) if (r.contains(dim, x, y, z)) return true;
+
+        for (BlockChangeRecordingRegion r : list) {
+            if (r.contains(dim, x, y, z)) return true;
+        }
         return false;
     }
 
     private int removeContaining(int dim, double x, double y, double z) {
         List<BlockChangeRecordingRegion> list = byDim.get(dim);
         if (list == null) return 0;
+
         int removed = 0;
         for (Iterator<BlockChangeRecordingRegion> it = list.iterator(); it.hasNext();) {
-            if (it.next()
-                .contains(dim, x, y, z)) {
+            if (it.next().contains(dim, x, y, z)) {
                 it.remove();
                 removed++;
             }
         }
-        if (removed > 0) markDirty();
+
+        if (removed > 0) dirty = true;
         return removed;
     }
 
@@ -79,42 +93,80 @@ public class RegionRegistry extends WorldSavedData {
         List<BlockChangeRecordingRegion> out = new ArrayList<>();
         List<Integer> dims = new ArrayList<>(byDim.keySet());
         Collections.sort(dims);
-        for (Integer d : dims) out.addAll(byDim.get(d));
+
+        for (Integer d : dims) {
+            out.addAll(byDim.get(d));
+        }
         return out;
     }
 
-    @Override
-    public void readFromNBT(NBTTagCompound tag) {
-        byDim.clear();
-        NBTTagList list = tag.getTagList("regions", 10);
-        for (int i = 0; i < list.tagCount(); i++) {
-            BlockChangeRecordingRegion r = BlockChangeRecordingRegion.readNBT(list.getCompoundTagAt(i));
-            byDim.computeIfAbsent(r.dim, d -> new ArrayList<>())
-                .add(r);
+    // Persistence mechanism.
+
+    private void load() {
+        File file = getSaveFile();
+        if (!file.exists()) return;
+
+        try {
+            NBTTagCompound root = CompressedStreamTools.read(file);
+            readFromNBT(root);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to load RegionRegistry", e);
         }
     }
 
-    @Override
-    public void writeToNBT(NBTTagCompound tag) {
+    private void save() {
+        try {
+            File file = getSaveFile();
+            file.getParentFile().mkdirs();
+
+            NBTTagCompound root = new NBTTagCompound();
+            writeToNBT(root);
+            CompressedStreamTools.write(root, file);
+
+            dirty = false;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to save RegionRegistry", e);
+        }
+    }
+
+    private void readFromNBT(NBTTagCompound tag) {
+        byDim.clear();
+
+        NBTTagList list = tag.getTagList("regions", 10);
+        for (int i = 0; i < list.tagCount(); i++) {
+            BlockChangeRecordingRegion r =
+                BlockChangeRecordingRegion.readNBT(list.getCompoundTagAt(i));
+            byDim.computeIfAbsent(r.dim, d -> new ArrayList<>()).add(r);
+        }
+    }
+
+    private void writeToNBT(NBTTagCompound tag) {
         NBTTagList list = new NBTTagList();
-        for (List<BlockChangeRecordingRegion> l : byDim.values())
-            for (BlockChangeRecordingRegion r : l) list.appendTag(r.writeNBT());
+
+        for (List<BlockChangeRecordingRegion> regions : byDim.values()) {
+            for (BlockChangeRecordingRegion r : regions) {
+                list.appendTag(r.writeNBT());
+            }
+        }
+
         tag.setTag("regions", list);
     }
 
     // Singleton access
+
     private static RegionRegistry get() {
         if (instance == null) {
-            // Hard code to dim 0, so we can store all info in one dim, even know each has dim int data. This makes data
-            // retrieval much easier programmatically.
-            World overworld = MinecraftServer.getServer()
-                .worldServerForDimension(0);
-            instance = (RegionRegistry) overworld.perWorldStorage.loadData(RegionRegistry.class, KEY);
-            if (instance == null) {
-                instance = new RegionRegistry();
-                overworld.perWorldStorage.setData(KEY, instance);
-            }
+            instance = new RegionRegistry();
         }
         return instance;
     }
+
+    private static File getSaveFile() {
+        MinecraftServer server = MinecraftServer.getServer();
+        ISaveHandler handler = server.getEntityWorld().getSaveHandler();
+
+        File root = handler.getWorldDirectory();
+        return new File(new File(root, DIR_NAME), FILE_NAME);
+    }
+
 }
