@@ -149,7 +149,7 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueE
     public void threadedSaveEvents(List<EntityDeathQueueElement> queueElements) throws SQLException {
         if (queueElements == null || queueElements.isEmpty()) return;
 
-        final String sql = "INSERT INTO " + getSQLTableName()
+        final String sql = "INSERT INTO " + getLoggerName()
             + " (entityName, entityUUID, killedBy, rotationYaw, rotationPitch, eventID, x, y, z, dimensionID, timestamp, versionID) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         int index;

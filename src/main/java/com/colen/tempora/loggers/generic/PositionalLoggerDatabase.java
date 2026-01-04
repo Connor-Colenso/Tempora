@@ -206,7 +206,7 @@ public class PositionalLoggerDatabase {
                       AND timestamp >= ?
                     ORDER BY timestamp DESC
                     LIMIT ?;
-                    """, genericPositionalLogger.getSQLTableName());
+                    """, genericPositionalLogger.getLoggerName());
 
             try (PreparedStatement ps = getReadOnlyConnection().prepareStatement(sql)) {
 
@@ -233,7 +233,7 @@ public class PositionalLoggerDatabase {
                     if (packets.isEmpty()) {
                         IChatComponent noResults = new ChatComponentTranslation(
                             "message.queryevents.no_results",
-                            genericPositionalLogger.getSQLTableName());
+                            genericPositionalLogger.getLoggerName());
                         noResults.getChatStyle()
                             .setColor(EnumChatFormatting.GRAY);
                         sender.addChatMessage(noResults);
@@ -242,7 +242,7 @@ public class PositionalLoggerDatabase {
                         IChatComponent showingResults = new ChatComponentTranslation(
                             "message.queryevents.showing_results",
                             packets.size(),
-                            genericPositionalLogger.getSQLTableName());
+                            genericPositionalLogger.getLoggerName());
                         showingResults.getChatStyle()
                             .setColor(EnumChatFormatting.GRAY);
                         sender.addChatMessage(showingResults);
@@ -276,7 +276,7 @@ public class PositionalLoggerDatabase {
                 sender.addChatMessage(
                     new ChatComponentTranslation(
                         "message.queryevents.query_failed",
-                        genericPositionalLogger.getSQLTableName(),
+                        genericPositionalLogger.getLoggerName(),
                         e.getMessage()));
             }
         }

@@ -78,7 +78,7 @@ public class ItemUseLogger extends GenericPositionalLogger<ItemUseQueueElement> 
     public void threadedSaveEvents(List<ItemUseQueueElement> queueElements) throws SQLException {
         if (queueElements == null || queueElements.isEmpty()) return;
 
-        final String sql = "INSERT INTO " + getSQLTableName()
+        final String sql = "INSERT INTO " + getLoggerName()
             + " (playerUUID, itemID, itemMetadata, eventID, x, y, z, dimensionID, timestamp, versionID) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         int index;

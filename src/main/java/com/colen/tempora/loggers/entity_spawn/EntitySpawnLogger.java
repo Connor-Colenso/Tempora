@@ -131,7 +131,7 @@ public class EntitySpawnLogger extends GenericPositionalLogger<EntitySpawnQueueE
     public void threadedSaveEvents(List<EntitySpawnQueueElement> queueElements) throws SQLException {
         if (queueElements == null || queueElements.isEmpty()) return;
 
-        final String sql = "INSERT INTO " + getSQLTableName()
+        final String sql = "INSERT INTO " + getLoggerName()
             + " (entityName, entityUUID, rotationYaw, rotationPitch, eventID, x, y, z, dimensionID, timestamp, versionID) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         int index;

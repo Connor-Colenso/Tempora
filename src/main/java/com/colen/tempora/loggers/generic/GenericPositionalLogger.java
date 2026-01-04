@@ -2,49 +2,30 @@ package com.colen.tempora.loggers.generic;
 
 import static com.colen.tempora.Tempora.LOG;
 import static com.colen.tempora.TemporaUtils.deleteLoggerDatabase;
-import static com.colen.tempora.utils.GenericUtils.parseSizeStringToBytes;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
-import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import com.colen.tempora.TemporaLoggerManager;
 import com.colen.tempora.enums.LoggerEventType;
 import net.minecraft.client.Minecraft;
-import net.minecraft.command.ICommandSender;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.util.ChatComponentTranslation;
-import net.minecraft.util.EnumChatFormatting;
-import net.minecraft.util.IChatComponent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.sqlite.SQLiteConfig;
 
-import com.colen.tempora.TemporaUtils;
 import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.utils.DatabaseUtils;
 import com.colen.tempora.utils.GenericUtils;
-import com.colen.tempora.utils.TimeUtils;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.relauncher.Side;
@@ -60,13 +41,11 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
     private static volatile boolean running = true;
 
     private final LinkedBlockingQueue<EventToLog> eventQueue = new LinkedBlockingQueue<>();
-    private static final Map<String, GenericPositionalLogger<?>> loggerMap = new HashMap<>();
     protected List<EventToLog> transparentEventsToRenderInWorld = new ArrayList<>();
     protected List<EventToLog> nonTransparentEventsToRenderInWorld = new ArrayList<>();
-
+    private String loggerName;
 
     private boolean isEnabled;
-
 
     public void addEventToRender(EventToLog event) {
         event.eventRenderCreationTime = System.currentTimeMillis();
@@ -76,10 +55,6 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
         } else {
             nonTransparentEventsToRenderInWorld.add(event);
         }
-    }
-
-    public static @Nullable GenericPositionalLogger<?> getLogger(String playerMovementLogger) {
-        return loggerMap.get(playerMovementLogger);
     }
 
     @SideOnly(Side.CLIENT)
@@ -137,13 +112,10 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
     public abstract void renderEventsInWorld(RenderWorldLastEvent e);
 
-    public final String getSQLTableName() {
-        return getLoggerType().toString();
-    }
-
     // Add your own custom columns for each logger with this, we append the default x y z etc with getAllTableColumns
     public abstract List<ColumnDef> getCustomTableColumns();
 
+    // Logger name is also the SQL table name.
     public String getLoggerName() {
         return getLoggerType().name();
     }
@@ -217,7 +189,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
     }
 
     public final void genericConfig(@NotNull Configuration config) {
-        isEnabled = config.getBoolean("isEnabled", getSQLTableName(), loggerEnabledByDefault(), "Enables this logger.");
+        isEnabled = config.getBoolean("isEnabled", getLoggerName(), loggerEnabledByDefault(), "Enables this logger.");
 
         db.genericConfig(config);
     }
@@ -226,42 +198,22 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
     // Static methods
     // --------------------------------------
 
-    public static void registerLogger(GenericPositionalLogger<?> logger) {
-        loggerMap.put(logger.getSQLTableName(), logger);
-    }
-
-    public static Collection<GenericPositionalLogger<?>> getLoggerList() {
-        return Collections.unmodifiableCollection(loggerMap.values());
-    }
-
-    public static List<String> getAllLoggerNames() {
-        List<String> loggerNames = new ArrayList<>();
-
-        for (GenericPositionalLogger<?> logger : getLoggerList()) {
-            loggerNames.add(logger.getSQLTableName());
-        }
-
-        return loggerNames;
-    }
-
     public static void onServerStart() {
         LOG.info("Opening Tempora databases.");
 
-        for (GenericPositionalLogger<?> logger : getLoggerList()) {
-            initialiseLogger(logger);
+        for (GenericPositionalLogger<?> logger : TemporaLoggerManager.getLoggerList()) {
+            logger.initialiseLogger();
         }
     }
 
-    private static void initialiseLogger(GenericPositionalLogger<?> logger) {
-        String loggerName = logger.getLoggerType()
-            .name();
+    private void initialiseLogger() {
 
         while (true) {
             try {
                 // Clear events and initialise connection
-                logger.clearEvents();
-                logger.db.initDbConnection();
-                Connection conn = logger.db.getDBConn();
+                clearEvents();
+                db.initDbConnection();
+                Connection conn = db.getDBConn();
 
                 // Check for corruption
                 if (DatabaseUtils.isDatabaseCorrupted(conn)) {
@@ -272,7 +224,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
                             + ". Would you like to erase the database and create a new one?");
 
                     if (erase) {
-                        logger.db.closeDbConnection();
+                        db.closeDbConnection();
                         deleteLoggerDatabase(loggerName);
                         continue;
                     } else {
@@ -285,18 +237,18 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
                 }
 
                 // Normal initialisation logic
-                if (logger.db.isHighRiskModeEnabled()) {
-                    logger.db.enableHighRiskFastMode();
+                if (db.isHighRiskModeEnabled()) {
+                    db.enableHighRiskFastMode();
                 }
 
                 conn.setAutoCommit(false);
 
-                logger.db.initTable();
-                logger.db.createAllIndexes();
-                logger.db.removeOldDatabaseData();
-                logger.db.trimOversizedDatabase();
+                db.initTable();
+                db.createAllIndexes();
+                db.removeOldDatabaseData();
+                db.trimOversizedDatabase();
 
-                logger.startQueueWorker(logger.getSQLTableName());
+                startQueueWorker(getLoggerName());
 
                 // Success! exit loop
                 break;
@@ -321,7 +273,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
         try {
             running = false; // Signal worker to stop
 
-            for (GenericPositionalLogger<?> logger : getLoggerList()) {
+            for (GenericPositionalLogger<?> logger : TemporaLoggerManager.getLoggerList()) {
                 // Shut down each db.
                 if (logger.db.getDBConn() != null && !logger.db.getDBConn().isClosed()) {
                     ;
@@ -333,7 +285,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
             LOG.error("Error closing resources.", e);
         } finally {
             // Just to ensure that we are not carrying data over to a new world opening.
-            for (GenericPositionalLogger<?> logger : getLoggerList()) {
+            for (GenericPositionalLogger<?> logger : TemporaLoggerManager.getLoggerList()) {
                 logger.clearEvents();
             }
         }
@@ -349,5 +301,9 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
             .removeIf(eventPosition -> eventPosition.eventRenderCreationTime < expiryCutoff);
         nonTransparentEventsToRenderInWorld
             .removeIf(eventPosition -> eventPosition.eventRenderCreationTime < expiryCutoff);
+    }
+
+    public void setName(String loggerName) {
+        this.loggerName = loggerName;
     }
 }

@@ -159,14 +159,14 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
 
     @Override
     public void handleCustomLoggerConfig(Configuration config) {
-        globalBlockChangeLogging = config.getBoolean("globalBlockChangeLogging", getSQLTableName(), false, """
+        globalBlockChangeLogging = config.getBoolean("globalBlockChangeLogging", getLoggerName(), false, """
             If true, overrides all custom regions and logs every setBlock call across the entire world.
             WARNING: This will generate an enormous number of events and rapidly bloat your database.
             """);
 
         logNBT = config.getBoolean(
             "logNBT",
-            getSQLTableName(),
+            getLoggerName(),
             false,
             """
                 If true, it will log the NBT of all blocks changes which interact with this event. This improves rendering of events and gives a better history.
@@ -178,7 +178,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
     public void threadedSaveEvents(List<BlockChangeQueueElement> queueElements) throws SQLException {
         if (queueElements == null || queueElements.isEmpty()) return;
 
-        final String sql = "INSERT INTO " + getSQLTableName()
+        final String sql = "INSERT INTO " + getLoggerName()
             + " (beforeBlockID, beforeMetadata, beforePickBlockID, beforePickBlockMeta, beforeEncodedNBT, afterBlockID, afterMetadata, afterPickBlockID, afterPickBlockMeta, afterEncodedNBT, stackTrace, closestPlayerUUID, closestPlayerDistance, eventID, x, y, z, dimensionID, timestamp, versionID) "
             + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 

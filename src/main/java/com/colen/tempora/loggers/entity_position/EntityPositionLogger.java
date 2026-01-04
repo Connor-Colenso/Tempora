@@ -65,7 +65,7 @@ public class EntityPositionLogger extends GenericPositionalLogger<EntityPosition
     public void handleCustomLoggerConfig(Configuration config) {
         entityMovementLoggingInterval = config.getInt(
             "entity_position_logging_interval",
-            getSQLTableName(),
+            getLoggerName(),
             500,
             1,
             Integer.MAX_VALUE,
@@ -104,7 +104,7 @@ public class EntityPositionLogger extends GenericPositionalLogger<EntityPosition
     public void threadedSaveEvents(List<EntityPositionQueueElement> queueElements) throws SQLException {
         if (queueElements == null || queueElements.isEmpty()) return;
 
-        final String sql = "INSERT INTO " + getSQLTableName()
+        final String sql = "INSERT INTO " + getLoggerName()
             + " (entityName, entityUUID, rotationYaw, rotationPitch, eventID, x, y, z, dimensionID, timestamp, versionID) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         int index;

@@ -64,7 +64,7 @@ public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovement
     public void handleCustomLoggerConfig(Configuration config) {
         playerMovementLoggingInterval = config.getInt(
             "playerMovementLoggingInterval",
-            getSQLTableName(),
+            getLoggerName(),
             200,
             1,
             Integer.MAX_VALUE,
@@ -96,7 +96,7 @@ public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovement
     public void threadedSaveEvents(List<PlayerMovementQueueElement> queueElements) throws SQLException {
         if (queueElements == null || queueElements.isEmpty()) return;
 
-        final String sql = "INSERT INTO " + getSQLTableName()
+        final String sql = "INSERT INTO " + getLoggerName()
             + " (playerUUID, eventID, x, y, z, dimensionID, timestamp, versionID) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
         int index;

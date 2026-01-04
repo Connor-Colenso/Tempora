@@ -4,6 +4,8 @@ import static com.colen.tempora.Tempora.NETWORK;
 
 import com.colen.tempora.Tempora;
 
+import com.colen.tempora.TemporaEvents;
+import com.colen.tempora.TemporaLoggerManager;
 import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import cpw.mods.fml.common.network.simpleimpl.IMessageHandler;
 import cpw.mods.fml.common.network.simpleimpl.MessageContext;
@@ -13,7 +15,7 @@ public class PlayerBlockBreakPacketHandler implements IMessageHandler<PlayerBloc
 
     @Override
     public IMessage onMessage(final PlayerBlockBreakQueueElement message, MessageContext ctx) {
-        Tempora.playerBlockBreakLogger.addEventToRender(message);
+        TemporaLoggerManager.getTypedLogger(TemporaEvents.PLAYER_BLOCK_BREAK).addEventToRender(message);
         return null;
     }
 

@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.regex.Pattern;
 
+import com.colen.tempora.TemporaLoggerManager;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -56,8 +57,8 @@ public class QuerySQLCommand extends CommandBase {
 
         // Find logger by name.
         GenericPositionalLogger<?> targetLogger = null;
-        for (GenericPositionalLogger<?> logger : GenericPositionalLogger.getLoggerList()) {
-            if (rawQuery.contains(logger.getSQLTableName())) {
+        for (GenericPositionalLogger<?> logger : TemporaLoggerManager.getLoggerList()) {
+            if (rawQuery.contains(logger.getLoggerName())) {
                 targetLogger = logger;
                 break;
             }
@@ -65,8 +66,7 @@ public class QuerySQLCommand extends CommandBase {
 
         if (targetLogger == null) {
             ChatComponentTranslation msg = new ChatComponentTranslation(
-                "tempora.command.querysql.invalid_table",
-                GenericPositionalLogger.getAllLoggerNames());
+                "tempora.command.querysql.invalid_table", TemporaLoggerManager.getAllLoggerNames());
             msg.getChatStyle()
                 .setColor(EnumChatFormatting.RED);
             sender.addChatMessage(msg);
@@ -127,7 +127,7 @@ public class QuerySQLCommand extends CommandBase {
             if (output.isEmpty()) {
                 ChatComponentTranslation noResultsMsg = new ChatComponentTranslation(
                     "tempora.command.querysql.no_results_in",
-                    targetLogger.getSQLTableName());
+                    targetLogger.getLoggerName());
                 noResultsMsg.getChatStyle()
                     .setColor(EnumChatFormatting.GRAY);
                 sender.addChatMessage(noResultsMsg);

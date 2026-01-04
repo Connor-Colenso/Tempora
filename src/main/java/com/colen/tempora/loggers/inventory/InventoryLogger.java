@@ -131,10 +131,6 @@ public class InventoryLogger extends GenericPositionalLogger<InventoryQueueEleme
             new ColumnDef("stacksize", "INTEGER", "NOT NULL DEFAULT -1"));
     }
 
-    public InventoryLogger() {
-        registerLogger(this);
-    }
-
     @Override
     public @NotNull List<GenericQueueElement> generateQueryResults(ResultSet resultSet) throws SQLException {
         ArrayList<GenericQueueElement> eventList = new ArrayList<>();
@@ -157,7 +153,7 @@ public class InventoryLogger extends GenericPositionalLogger<InventoryQueueEleme
     public void threadedSaveEvents(List<InventoryQueueElement> queueElements) throws SQLException {
         if (queueElements == null || queueElements.isEmpty()) return;
 
-        final String sql = "INSERT INTO " + getSQLTableName()
+        final String sql = "INSERT INTO " + getLoggerName()
             + " (containerName, interactionType, itemId, itemMetadata, playerUUID, stacksize, eventID, x, y, z, dimensionID, timestamp, versionID) "
             + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 

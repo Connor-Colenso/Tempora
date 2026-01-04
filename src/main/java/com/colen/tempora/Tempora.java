@@ -57,15 +57,6 @@ public class Tempora {
 
     public static InventoryLogger inventoryLogger;
     public static BlockChangeLogger blockChangeLogger;
-    public static PlayerBlockBreakLogger playerBlockBreakLogger;
-    public static PlayerBlockPlaceLogger playerBlockPlaceLogger;
-    public static ExplosionLogger explosionLogger;
-    public static ItemUseLogger itemUseLogger;
-    public static PlayerMovementLogger playerMovementLogger;
-    public static CommandLogger commandLogger;
-    public static EntityPositionLogger entityPositionLogger;
-    public static EntityDeathLogger entityDeathLogger;
-    public static EntitySpawnLogger entitySpawnLogger;
 
     public static Block renderingErrorBlock = new RenderingErrorBlock();
 
@@ -87,7 +78,7 @@ public class Tempora {
     @Mod.EventHandler
     public void serverInit(FMLServerStartingEvent event) {
         if (TemporaUtils.shouldTemporaRun()) {
-            for (GenericPositionalLogger<?> logger : GenericPositionalLogger.getLoggerList()) {
+            for (GenericPositionalLogger<?> logger : TemporaLoggerManager.getLoggerList()) {
                 logger.registerEvent();
             }
         }

@@ -4,6 +4,7 @@ import static com.colen.tempora.commands.CommandConstants.ONLY_IN_GAME;
 
 import java.util.List;
 
+import com.colen.tempora.TemporaLoggerManager;
 import com.colen.tempora.loggers.generic.PositionalLoggerDatabase;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
@@ -56,11 +57,11 @@ public class QueryEventsCommand extends CommandBase {
         int y = (int) Math.round(entityPlayerMP.posY);
         int z = (int) Math.round(entityPlayerMP.posZ);
 
-        GenericPositionalLogger.getLogger(tableName).db.queryEventByCoordinate(sender, x, y, z, radius, seconds, entityPlayerMP.dimension);
+        TemporaLoggerManager.getLogger(tableName).db.queryEventByCoordinate(sender, x, y, z, radius, seconds, entityPlayerMP.dimension);
     }
 
     private String validateLoggerName(String input) {
-        for (String option : GenericPositionalLogger.getAllLoggerNames()) {
+        for (String option : TemporaLoggerManager.getAllLoggerNames()) {
             if (option.equalsIgnoreCase(input)) {
                 return option;
             }

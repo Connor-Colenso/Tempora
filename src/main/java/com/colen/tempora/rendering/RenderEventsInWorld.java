@@ -1,5 +1,6 @@
 package com.colen.tempora.rendering;
 
+import com.colen.tempora.TemporaLoggerManager;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
@@ -14,7 +15,7 @@ public final class RenderEventsInWorld {
     @SuppressWarnings("unused")
     @SubscribeEvent
     public void onRender(RenderWorldLastEvent e) {
-        for (GenericPositionalLogger<?> positionalLogger : GenericPositionalLogger.getLoggerList()) {
+        for (GenericPositionalLogger<?> positionalLogger : TemporaLoggerManager.getLoggerList()) {
             positionalLogger.renderEventsInWorld(e);
             positionalLogger.clearOldEventsToRender();
         }

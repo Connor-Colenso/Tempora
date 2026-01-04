@@ -4,6 +4,8 @@ import static com.colen.tempora.Tempora.NETWORK;
 
 import com.colen.tempora.Tempora;
 
+import com.colen.tempora.TemporaEvents;
+import com.colen.tempora.TemporaLoggerManager;
 import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import cpw.mods.fml.common.network.simpleimpl.IMessageHandler;
 import cpw.mods.fml.common.network.simpleimpl.MessageContext;
@@ -13,7 +15,7 @@ public class PlayerMovementPacketHandler implements IMessageHandler<PlayerMoveme
 
     @Override
     public IMessage onMessage(final PlayerMovementQueueElement message, MessageContext ctx) {
-        Tempora.playerMovementLogger.addEventToRender(message);
+        TemporaLoggerManager.getTypedLogger(TemporaEvents.PLAYER_MOVEMENT).addEventToRender(message);
         return null;
     }
 

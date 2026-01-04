@@ -166,7 +166,7 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionQueueEleme
     public void threadedSaveEvents(List<ExplosionQueueElement> queueElements) throws SQLException {
         if (queueElements == null || queueElements.isEmpty()) return;
 
-        final String sql = "INSERT INTO " + getSQLTableName()
+        final String sql = "INSERT INTO " + getLoggerName()
             + " (strength, exploderUUID, closestPlayerUUID, closestPlayerDistance, affectedBlockCoordinates, eventID, x, y, z, dimensionID, timestamp, versionID) "
             + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
