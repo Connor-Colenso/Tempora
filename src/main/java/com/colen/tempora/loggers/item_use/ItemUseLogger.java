@@ -82,7 +82,7 @@ public class ItemUseLogger extends GenericPositionalLogger<ItemUseQueueElement> 
             + " (playerUUID, itemID, itemMetadata, eventID, x, y, z, dimensionID, timestamp, versionID) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         int index;
-        try (PreparedStatement pstmt = getDBConn().prepareStatement(sql)) {
+        try (PreparedStatement pstmt = db.getDBConn().prepareStatement(sql)) {
             for (ItemUseQueueElement queueElement : queueElements) {
                 index = 1;
 

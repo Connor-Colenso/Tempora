@@ -86,11 +86,11 @@ public class HomeChunkCommand extends CommandBase {
 
         // Get read only db conn
         GenericPositionalLogger<?> movementLogger = GenericPositionalLogger.getLogger("PlayerMovementLogger");
-        if (movementLogger == null || movementLogger.getReadOnlyConnection() == null) {
+        if (movementLogger == null || movementLogger.db.getReadOnlyConnection() == null) {
             sender.addChatMessage(new ChatComponentTranslation("tempora.command.averagehome.no_db"));
             return;
         }
-        Connection conn = movementLogger.getReadOnlyConnection();
+        Connection conn = movementLogger.db.getReadOnlyConnection();
 
         // This query finds the player's most visited chunk (home chunk)
         // First, we group all movement logs by chunk (x >> 4, z >> 4) and dimension

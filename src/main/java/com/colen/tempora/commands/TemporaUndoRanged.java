@@ -110,7 +110,7 @@ public class TemporaUndoRanged extends CommandBase {
 
         List<GenericQueueElement> results;
 
-        try (Connection conn = logger.getReadOnlyConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = logger.db.getReadOnlyConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setInt(1, (int) player.posX);
             ps.setInt(2, radius);

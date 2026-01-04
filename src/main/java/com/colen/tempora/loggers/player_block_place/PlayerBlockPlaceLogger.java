@@ -121,7 +121,7 @@ public class PlayerBlockPlaceLogger extends GenericPositionalLogger<PlayerBlockP
             + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         int index;
-        try (PreparedStatement pstmt = getDBConn().prepareStatement(sql)) {
+        try (PreparedStatement pstmt = db.getDBConn().prepareStatement(sql)) {
             for (PlayerBlockPlaceQueueElement queueElement : queueElements) {
                 index = 1;
 

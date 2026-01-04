@@ -104,7 +104,7 @@ public class CommandLogger extends GenericPositionalLogger<CommandQueueElement> 
             + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         int index;
-        try (PreparedStatement pstmt = getDBConn().prepareStatement(sql)) {
+        try (PreparedStatement pstmt = db.getDBConn().prepareStatement(sql)) {
             for (CommandQueueElement commandQueueElement : commandQueueElements) {
                 index = 1;
 

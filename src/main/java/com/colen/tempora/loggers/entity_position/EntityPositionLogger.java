@@ -108,7 +108,7 @@ public class EntityPositionLogger extends GenericPositionalLogger<EntityPosition
             + " (entityName, entityUUID, rotationYaw, rotationPitch, eventID, x, y, z, dimensionID, timestamp, versionID) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         int index;
-        try (PreparedStatement pstmt = getDBConn().prepareStatement(sql)) {
+        try (PreparedStatement pstmt = db.getDBConn().prepareStatement(sql)) {
             for (EntityPositionQueueElement queueElement : queueElements) {
                 index = 1;
 

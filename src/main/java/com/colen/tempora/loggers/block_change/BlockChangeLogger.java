@@ -183,7 +183,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
             + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         int index;
-        try (PreparedStatement pstmt = getDBConn().prepareStatement(sql)) {
+        try (PreparedStatement pstmt = db.getDBConn().prepareStatement(sql)) {
             for (BlockChangeQueueElement queueElement : queueElements) {
                 index = 1;
 

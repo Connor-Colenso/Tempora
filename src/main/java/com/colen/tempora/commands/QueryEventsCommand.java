@@ -4,6 +4,7 @@ import static com.colen.tempora.commands.CommandConstants.ONLY_IN_GAME;
 
 import java.util.List;
 
+import com.colen.tempora.loggers.generic.PositionalLoggerDatabase;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
@@ -49,13 +50,13 @@ public class QueryEventsCommand extends CommandBase {
         }
 
         String tableName = args.length == 3 ? validateLoggerName(args[2]) : null;
+        if (tableName == null) return;
 
         int x = (int) Math.round(entityPlayerMP.posX);
         int y = (int) Math.round(entityPlayerMP.posY);
         int z = (int) Math.round(entityPlayerMP.posZ);
 
-        GenericPositionalLogger
-            .queryEventByCoordinate(sender, x, y, z, radius, seconds, tableName, entityPlayerMP.dimension);
+        GenericPositionalLogger.getLogger(tableName).db.queryEventByCoordinate(sender, x, y, z, radius, seconds, entityPlayerMP.dimension);
     }
 
     private String validateLoggerName(String input) {

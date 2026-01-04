@@ -162,7 +162,7 @@ public class InventoryLogger extends GenericPositionalLogger<InventoryQueueEleme
             + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         int index;
-        try (PreparedStatement pstmt = getDBConn().prepareStatement(sql)) {
+        try (PreparedStatement pstmt = db.getDBConn().prepareStatement(sql)) {
             for (InventoryQueueElement queueElement : queueElements) {
                 index = 1;
 
