@@ -99,7 +99,7 @@ public class CommandLogger extends GenericPositionalLogger<CommandQueueElement> 
     public void threadedSaveEvents(List<CommandQueueElement> commandQueueElements) throws SQLException {
         if (commandQueueElements == null || commandQueueElements.isEmpty()) return;
 
-        final String sql = "INSERT INTO " + getSQLTableName()
+        final String sql = "INSERT INTO " + getLoggerName()
             + " (playerUUID, command, arguments, eventID, x, y, z, dimensionID, timestamp, versionID) "
             + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 

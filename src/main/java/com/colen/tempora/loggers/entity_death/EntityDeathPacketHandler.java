@@ -4,6 +4,8 @@ import static com.colen.tempora.Tempora.NETWORK;
 
 import com.colen.tempora.Tempora;
 
+import com.colen.tempora.TemporaEvents;
+import com.colen.tempora.TemporaLoggerManager;
 import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import cpw.mods.fml.common.network.simpleimpl.IMessageHandler;
 import cpw.mods.fml.common.network.simpleimpl.MessageContext;
@@ -13,7 +15,7 @@ public class EntityDeathPacketHandler implements IMessageHandler<EntityDeathQueu
 
     @Override
     public IMessage onMessage(final EntityDeathQueueElement message, MessageContext ctx) {
-        Tempora.entityDeathLogger.addEventToRender(message);
+        TemporaLoggerManager.getTypedLogger(TemporaEvents.ENTITY_DEATH).addEventToRender(message);
         return null;
     }
 

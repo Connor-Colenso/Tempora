@@ -4,6 +4,8 @@ import static com.colen.tempora.Tempora.NETWORK;
 
 import com.colen.tempora.Tempora;
 
+import com.colen.tempora.TemporaEvents;
+import com.colen.tempora.TemporaLoggerManager;
 import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import cpw.mods.fml.common.network.simpleimpl.IMessageHandler;
 import cpw.mods.fml.common.network.simpleimpl.MessageContext;
@@ -13,7 +15,7 @@ public class EntityPositionPacketHandler implements IMessageHandler<EntityPositi
 
     @Override
     public IMessage onMessage(final EntityPositionQueueElement message, MessageContext ctx) {
-        Tempora.entityPositionLogger.addEventToRender(message);
+        TemporaLoggerManager.getTypedLogger(TemporaEvents.ENTITY_POSITION).addEventToRender(message);
         return null;
     }
 

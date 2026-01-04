@@ -47,7 +47,7 @@ public class PlayerBlockPlaceLogger extends GenericPositionalLogger<PlayerBlockP
     public void handleCustomLoggerConfig(Configuration config) {
         logNBT = config.getBoolean(
             "logNBT",
-            getSQLTableName(),
+            getLoggerName(),
             true,
             """
                 If true, it will log the NBT of all blocks changes which interact with this event. This improves rendering of events and gives a better history.
@@ -116,7 +116,7 @@ public class PlayerBlockPlaceLogger extends GenericPositionalLogger<PlayerBlockP
     public void threadedSaveEvents(List<PlayerBlockPlaceQueueElement> queueElements) throws SQLException {
         if (queueElements == null || queueElements.isEmpty()) return;
 
-        final String sql = "INSERT INTO " + getSQLTableName()
+        final String sql = "INSERT INTO " + getLoggerName()
             + " (playerUUID, encodedNBT, blockId, metadata, pickBlockId, pickBlockMeta, eventID, x, y, z, dimensionID, timestamp, versionID) "
             + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 

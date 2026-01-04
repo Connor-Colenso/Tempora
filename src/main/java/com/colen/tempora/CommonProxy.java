@@ -1,6 +1,8 @@
 package com.colen.tempora;
 
 import static com.colen.tempora.Tempora.NETWORK;
+import static com.colen.tempora.Tempora.blockChangeLogger;
+import static com.colen.tempora.Tempora.inventoryLogger;
 import static com.colen.tempora.Tempora.renderingErrorBlock;
 import static com.colen.tempora.config.Config.synchronizeConfiguration;
 
@@ -68,34 +70,10 @@ public class CommonProxy {
             1,
             Side.CLIENT);
 
-        BlockChangePacketHandler.initPackets();
-        CommandPacketHandler.initPackets();
-        EntityDeathPacketHandler.initPackets();
-        EntityPositionPacketHandler.initPackets();
-        EntitySpawnPacketHandler.initPackets();
-        ExplosionPacketHandler.initPackets();
-        InventoryPacketHandler.initPackets();
-        ItemUsePacketHandler.initPackets();
-        PlayerBlockBreakPacketHandler.initPackets();
-        PlayerBlockPlacePacketHandler.initPackets();
-        PlayerMovementPacketHandler.initPackets();
-
-        // We always instantiate the classes, as otherwise the logger may be null when trying to get events from the
-        // server.
-        Tempora.playerBlockBreakLogger = new PlayerBlockBreakLogger();
-        Tempora.playerBlockPlaceLogger = new PlayerBlockPlaceLogger();
-        Tempora.explosionLogger = new ExplosionLogger();
-        Tempora.itemUseLogger = new ItemUseLogger();
-        Tempora.playerMovementLogger = new PlayerMovementLogger();
-        Tempora.inventoryLogger = new InventoryLogger();
-        Tempora.blockChangeLogger = new BlockChangeLogger();
-        Tempora.commandLogger = new CommandLogger();
-        Tempora.entityPositionLogger = new EntityPositionLogger();
-        Tempora.entityDeathLogger = new EntityDeathLogger();
-        Tempora.entitySpawnLogger = new EntitySpawnLogger();
+        TemporaEvents.registerAll();
 
         // Each logger handles their own config settings.
-        for (GenericPositionalLogger<?> logger : GenericPositionalLogger.getLoggerList()) {
+        for (GenericPositionalLogger<?> logger : TemporaLoggerManager.getLoggerList()) {
             logger.handleCustomLoggerConfig(Tempora.config);
             logger.genericConfig(Tempora.config);
         }

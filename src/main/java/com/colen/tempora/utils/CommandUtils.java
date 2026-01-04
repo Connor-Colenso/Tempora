@@ -1,7 +1,10 @@
 package com.colen.tempora.utils;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import com.colen.tempora.TemporaLoggerManager;
 import net.minecraft.command.CommandBase;
 
 import org.jetbrains.annotations.NotNull;
@@ -14,7 +17,8 @@ public class CommandUtils {
     public static List<String> completeLoggerNames(String[] args) {
         return CommandBase.getListOfStringsMatchingLastWord(
             args,
-            GenericPositionalLogger.getAllLoggerNames()
-                .toArray(new String[0]));
+            TemporaLoggerManager.getAllLoggerNames().toArray(new String[0])
+        );
     }
+
 }

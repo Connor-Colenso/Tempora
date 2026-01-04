@@ -1,6 +1,7 @@
 package com.colen.tempora.commands;
 
 import static com.colen.tempora.Tempora.LOG;
+import static com.colen.tempora.TemporaEvents.PLAYER_MOVEMENT;
 import static com.colen.tempora.loggers.generic.GenericQueueElement.generateTeleportChatComponent;
 
 import java.sql.Connection;
@@ -10,6 +11,9 @@ import java.sql.SQLException;
 import java.util.Collections;
 import java.util.List;
 
+import com.colen.tempora.CommonProxy;
+import com.colen.tempora.TemporaLoggerManager;
+import com.colen.tempora.loggers.player_movement.PlayerMovementLogger;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
@@ -85,7 +89,7 @@ public class HomeChunkCommand extends CommandBase {
         }
 
         // Get read only db conn
-        GenericPositionalLogger<?> movementLogger = GenericPositionalLogger.getLogger("PlayerMovementLogger");
+        GenericPositionalLogger<?> movementLogger = TemporaLoggerManager.getLogger(PLAYER_MOVEMENT);
         if (movementLogger == null || movementLogger.db.getReadOnlyConnection() == null) {
             sender.addChatMessage(new ChatComponentTranslation("tempora.command.averagehome.no_db"));
             return;
@@ -111,7 +115,7 @@ public class HomeChunkCommand extends CommandBase {
         // - only include recent data (lookbackCutoffEpoch)
         //
         // The player's UUID is passed in twice, once for each part of the query
-        final String tbl = movementLogger.getSQLTableName();
+        final String tbl = movementLogger.getLoggerName();
         StringBuilder sql = new StringBuilder().append("WITH hot AS (")
             .append("  SELECT (x>>4) AS cx, (z>>4) AS cz, dimensionID, COUNT(*) AS hits ")
             .append("  FROM ")

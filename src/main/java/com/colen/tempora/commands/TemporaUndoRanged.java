@@ -10,6 +10,7 @@ import java.sql.Timestamp;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.colen.tempora.TemporaLoggerManager;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
@@ -83,7 +84,7 @@ public class TemporaUndoRanged extends CommandBase {
             radius = MAX_RANGE;
         }
 
-        GenericPositionalLogger<?> logger = GenericPositionalLogger.getLogger(loggerName);
+        GenericPositionalLogger<?> logger = TemporaLoggerManager.getLogger(loggerName);
         if (logger == null) {
             sender.addChatMessage(new ChatComponentTranslation("tempora.command.undo.wrong.logger", loggerName));
             return;
@@ -95,7 +96,7 @@ public class TemporaUndoRanged extends CommandBase {
         }
 
         Timestamp cutoff = new Timestamp(System.currentTimeMillis() - seconds * 1000L);
-        String table = logger.getSQLTableName();
+        String table = logger.getLoggerName();
 
         // Optimised SQL query
         String sql = "SELECT t.* FROM " + table
@@ -180,7 +181,7 @@ public class TemporaUndoRanged extends CommandBase {
             return;
         }
 
-        GenericPositionalLogger<?> logger = GenericPositionalLogger.getLogger(loggerName);
+        GenericPositionalLogger<?> logger = TemporaLoggerManager.getLogger(loggerName);
 
         if (!(logger instanceof ISupportsUndo supportsUndo)) {
             sender.addChatMessage(new ChatComponentTranslation("tempora.command.undo.not_undoable", loggerName));
