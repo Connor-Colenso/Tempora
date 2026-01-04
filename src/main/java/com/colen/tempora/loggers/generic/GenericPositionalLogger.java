@@ -36,6 +36,7 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.sqlite.SQLiteConfig;
 
 import com.colen.tempora.TemporaUtils;
@@ -59,7 +60,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
     private Connection positionalLoggerDBConnection;
 
     private final LinkedBlockingQueue<EventToLog> eventQueue = new LinkedBlockingQueue<>();
-    private static final Set<GenericPositionalLogger<?>> loggerList = new HashSet<>();
+    private static final Map<String, GenericPositionalLogger<?>> loggerMap = new HashMap<>();
     protected List<EventToLog> transparentEventsToRenderInWorld = new ArrayList<>();
     protected List<EventToLog> nonTransparentEventsToRenderInWorld = new ArrayList<>();
     private LogWriteSafety durabilityMode;
@@ -67,10 +68,6 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
     private boolean isEnabled;
     private String oldestDataCutoff;
     private long largestDatabaseSizeInBytes;
-
-    public GenericPositionalLogger() {
-        loggerList.add(this);
-    }
 
     public void addEventToRender(EventToLog event) {
         event.eventRenderCreationTime = System.currentTimeMillis();
@@ -82,14 +79,8 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
         }
     }
 
-    public static GenericPositionalLogger<?> getLogger(String playerMovementLogger) {
-        for (GenericPositionalLogger<?> logger : loggerList) {
-            if (playerMovementLogger.equals(logger.getSQLTableName())) {
-                return logger;
-            }
-        }
-
-        return null;
+    public static @Nullable GenericPositionalLogger<?> getLogger(String playerMovementLogger) {
+        return loggerMap.get(playerMovementLogger);
     }
 
     @SideOnly(Side.CLIENT)
@@ -404,17 +395,17 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
     // --------------------------------------
 
     public static void registerLogger(GenericPositionalLogger<?> logger) {
-        loggerList.add(logger);
+        loggerMap.put(logger.getSQLTableName(), logger);
     }
 
-    public static Set<GenericPositionalLogger<?>> getLoggerList() {
-        return Collections.unmodifiableSet(loggerList);
+    public static Collection<GenericPositionalLogger<?>> getLoggerList() {
+        return Collections.unmodifiableCollection(loggerMap.values());
     }
 
     public static List<String> getAllLoggerNames() {
         List<String> loggerNames = new ArrayList<>();
 
-        for (GenericPositionalLogger<?> logger : loggerList) {
+        for (GenericPositionalLogger<?> logger : getLoggerList()) {
             loggerNames.add(logger.getSQLTableName());
         }
 
@@ -435,7 +426,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
         long seconds, String tableName, int dimensionId) {
 
         synchronized (GenericPositionalLogger.class) {
-            for (GenericPositionalLogger<?> logger : loggerList) {
+            for (GenericPositionalLogger<?> logger : getLoggerList()) {
                 if (tableName != null && !logger.getSQLTableName()
                     .equals(tableName)) continue;
 
@@ -560,7 +551,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
     public static void onServerStart() {
         LOG.info("Opening Tempora databases.");
 
-        for (GenericPositionalLogger<?> logger : loggerList) {
+        for (GenericPositionalLogger<?> logger : getLoggerList()) {
             initialiseLogger(logger);
         }
     }
@@ -712,7 +703,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
         try {
             running = false; // Signal worker to stop
 
-            for (GenericPositionalLogger<?> logger : loggerList) {
+            for (GenericPositionalLogger<?> logger : getLoggerList()) {
                 // Shut down each db.
                 if (logger.getDBConn() != null && !logger.getDBConn()
                     .isClosed()) {
@@ -725,7 +716,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
             LOG.error("Error closing resources.", e);
         } finally {
             // Just to ensure that we are not carrying data over to a new world opening.
-            for (GenericPositionalLogger<?> logger : loggerList) {
+            for (GenericPositionalLogger<?> logger : getLoggerList()) {
                 logger.clearEvents();
             }
         }
