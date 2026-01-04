@@ -18,6 +18,7 @@ import java.util.Deque;
 import java.util.List;
 import java.util.UUID;
 
+import com.colen.tempora.enums.LoggerEventType;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
@@ -209,6 +210,11 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
 
             pstmt.executeBatch();
         }
+    }
+
+    @Override
+    public @NotNull LoggerEventType getLoggerEventType() {
+        return LoggerEventType.None;
     }
 
     @Override

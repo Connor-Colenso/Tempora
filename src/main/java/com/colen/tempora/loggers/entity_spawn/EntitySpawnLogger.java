@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
+import com.colen.tempora.enums.LoggerEventType;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
@@ -65,6 +66,11 @@ public class EntitySpawnLogger extends GenericPositionalLogger<EntitySpawnQueueE
             new ColumnDef("entityUUID", "TEXT", "NOT NULL DEFAULT " + MISSING_STRING_DATA),
             new ColumnDef("rotationYaw", "REAL", "NOT NULL DEFAULT 0"),
             new ColumnDef("rotationPitch", "REAL", "NOT NULL DEFAULT 0"));
+    }
+
+    @Override
+    public @NotNull LoggerEventType getLoggerEventType() {
+        return LoggerEventType.ForgeEvent;
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)

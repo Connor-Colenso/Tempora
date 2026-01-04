@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
+import com.colen.tempora.enums.LoggerEventType;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -94,6 +95,11 @@ public class ItemUseLogger extends GenericPositionalLogger<ItemUseQueueElement> 
             }
             pstmt.executeBatch();
         }
+    }
+
+    @Override
+    public @NotNull LoggerEventType getLoggerEventType() {
+        return LoggerEventType.ForgeEvent;
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)

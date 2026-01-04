@@ -25,6 +25,7 @@ import java.util.Set;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import com.colen.tempora.enums.LoggerEventType;
 import net.minecraft.client.Minecraft;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -129,6 +130,8 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
     }
 
     public abstract void threadedSaveEvents(List<EventToLog> event) throws SQLException;
+
+    public abstract @NotNull LoggerEventType getLoggerEventType();
 
     public abstract @NotNull List<GenericQueueElement> generateQueryResults(ResultSet rs) throws SQLException;
 
@@ -271,13 +274,15 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
     }
 
     public final void registerEvent() {
-        // Lazy but genuinely not sure how else to approach this generically without a big switch list.
+        if (!getLoggerEventType().shouldRegister()) return;
 
-        MinecraftForge.EVENT_BUS.register(this);
-
-        FMLCommonHandler.instance()
-            .bus()
-            .register(this);
+        switch (getLoggerEventType()) {
+            case ForgeEvent -> MinecraftForge.EVENT_BUS.register(this);
+            case MinecraftEvent -> FMLCommonHandler.instance().bus().register(this);
+            default -> throw new IllegalStateException(
+                "Unknown LoggerEventType: " + getLoggerEventType()
+            );
+        }
     }
 
     public final void queueEvent(EventToLog event) {

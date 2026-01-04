@@ -12,6 +12,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
+import com.colen.tempora.enums.LoggerEventType;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
@@ -57,6 +58,11 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueE
             // Render bounding box (optional, matches location)
             RenderUtils.renderEntityAABBInWorld(entity, bcqe.x, bcqe.y, bcqe.z, 1.0, 0, 0);
         }
+    }
+
+    @Override
+    public @NotNull LoggerEventType getLoggerEventType() {
+        return LoggerEventType.ForgeEvent;
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)

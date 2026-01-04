@@ -14,6 +14,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
+import com.colen.tempora.enums.LoggerEventType;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
@@ -137,6 +138,11 @@ public class PlayerBlockPlaceLogger extends GenericPositionalLogger<PlayerBlockP
 
             pstmt.executeBatch();
         }
+    }
+
+    @Override
+    public @NotNull LoggerEventType getLoggerEventType() {
+        return LoggerEventType.ForgeEvent;
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)

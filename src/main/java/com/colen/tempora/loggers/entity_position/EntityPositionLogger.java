@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
+import com.colen.tempora.enums.LoggerEventType;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
@@ -122,6 +123,11 @@ public class EntityPositionLogger extends GenericPositionalLogger<EntityPosition
 
             pstmt.executeBatch();
         }
+    }
+
+    @Override
+    public @NotNull LoggerEventType getLoggerEventType() {
+        return LoggerEventType.ForgeEvent;
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
