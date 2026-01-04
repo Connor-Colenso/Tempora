@@ -100,7 +100,7 @@ public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovement
             + " (playerUUID, eventID, x, y, z, dimensionID, timestamp, versionID) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
         int index;
-        try (PreparedStatement pstmt = getDBConn().prepareStatement(sql)) {
+        try (PreparedStatement pstmt = db.getDBConn().prepareStatement(sql)) {
             for (PlayerMovementQueueElement queueElement : queueElements) {
                 index = 1;
 

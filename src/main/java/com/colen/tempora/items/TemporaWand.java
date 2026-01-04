@@ -82,7 +82,7 @@ public class TemporaWand extends Item {
                     player.dimension).setChatStyle(new ChatStyle().setColor(EnumChatFormatting.RED)));
 
             for (GenericPositionalLogger<?> logger : GenericPositionalLogger.getLoggerList()) {
-                GenericPositionalLogger.queryEventsAtPosAndTime(player, x, y, z, -1, logger.getSQLTableName());
+                logger.db.queryEventsAtPosAndTime(player, x, y, z, -1);
             }
         }
     }

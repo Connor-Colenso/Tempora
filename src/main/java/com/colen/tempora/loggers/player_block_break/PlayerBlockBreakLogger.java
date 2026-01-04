@@ -134,7 +134,7 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
             + " (playerUUID, blockID, metadata, pickBlockID, pickBlockMeta, encodedNBT, eventID, x, y, z, dimensionID, timestamp, versionID) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         int index;
-        try (PreparedStatement pstmt = getDBConn().prepareStatement(sql)) {
+        try (PreparedStatement pstmt = db.getDBConn().prepareStatement(sql)) {
             for (PlayerBlockBreakQueueElement queueElement : queueElements) {
                 index = 1;
 

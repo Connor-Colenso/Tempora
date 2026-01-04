@@ -193,7 +193,7 @@ public class QuerySQLCommand extends CommandBase {
     private List<GenericQueueElement> executeReadOnlyQuery(GenericPositionalLogger<?> logger, String sql)
         throws SQLException {
 
-        try (Connection roConn = logger.getReadOnlyConnection();
+        try (Connection roConn = logger.db.getReadOnlyConnection();
             PreparedStatement stmt = roConn.prepareStatement(sql);
             ResultSet rs = stmt.executeQuery()) {
 

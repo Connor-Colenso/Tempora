@@ -38,7 +38,7 @@ public class TemporaUndoCommand extends CommandBase {
 
         GenericPositionalLogger<?> genericLogger = GenericPositionalLogger.getLogger(loggerName);
         if (genericLogger instanceof ISupportsUndo supportsUndo) {
-            GenericQueueElement queueElement = genericLogger.queryEventByEventID(eventID);
+            GenericQueueElement queueElement = genericLogger.db.queryEventByEventID(eventID);
             IChatComponent chatMessage = supportsUndo.undoEvent(queueElement);
             sender.addChatMessage(chatMessage);
         } else if (genericLogger == null) {

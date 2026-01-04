@@ -135,7 +135,7 @@ public class EntitySpawnLogger extends GenericPositionalLogger<EntitySpawnQueueE
             + " (entityName, entityUUID, rotationYaw, rotationPitch, eventID, x, y, z, dimensionID, timestamp, versionID) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         int index;
-        try (PreparedStatement pstmt = getDBConn().prepareStatement(sql)) {
+        try (PreparedStatement pstmt = db.getDBConn().prepareStatement(sql)) {
             for (EntitySpawnQueueElement queueElement : queueElements) {
                 index = 1;
 
