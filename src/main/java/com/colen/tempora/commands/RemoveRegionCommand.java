@@ -1,5 +1,6 @@
 package com.colen.tempora.commands;
 
+import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
@@ -60,7 +61,7 @@ public class RemoveRegionCommand extends CommandBase {
             String key = removed == 1 ? "command.tempora.removeregion.removed.single"
                 : "command.tempora.removeregion.removed.plural";
 
-            msg = new ChatComponentTranslation(key, removed);
+            msg = new ChatComponentTranslation(key, new ChatComponentNumber(removed));
             msg.getChatStyle()
                 .setColor(EnumChatFormatting.GREEN);
             sender.addChatMessage(msg);

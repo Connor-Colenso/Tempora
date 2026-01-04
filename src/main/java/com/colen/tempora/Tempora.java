@@ -1,5 +1,6 @@
 package com.colen.tempora;
 
+import com.colen.tempora.loggers.block_change.RegionRegistry;
 import net.minecraft.block.Block;
 import net.minecraftforge.common.config.Configuration;
 
@@ -99,6 +100,8 @@ public class Tempora {
         if (TemporaUtils.shouldTemporaRun() && TemporaUtils.isServerSide()) {
             GenericPositionalLogger.onServerStart();
         }
+
+        RegionRegistry.loadNow();
     }
 
     private void registerNewCommands(FMLServerStartingEvent event) {
@@ -118,6 +121,7 @@ public class Tempora {
     public void serverStopping(FMLServerStoppingEvent event) {
         if (TemporaUtils.isServerSide()) {
             GenericPositionalLogger.onServerClose();
+            RegionRegistry.saveIfDirty();
         }
     }
 }
