@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import com.colen.tempora.enums.LoggerEventType;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
@@ -44,6 +45,11 @@ import cpw.mods.fml.relauncher.SideOnly;
 
 // Todo fix drag and drop not logging correctly.
 public class InventoryLogger extends GenericPositionalLogger<InventoryQueueElement> {
+
+    @Override
+    public @NotNull LoggerEventType getLoggerEventType() {
+        return LoggerEventType.None;
+    }
 
     @Override
     public LoggerEnum getLoggerType() {
