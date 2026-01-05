@@ -47,7 +47,13 @@ public class CommandQueueElement extends GenericQueueElement {
         IChatComponent timeAgo = TimeUtils.formatTime(timestamp, uuid);
 
         // Clickable coordinates with limited float precision
-        IChatComponent coords = generateTeleportChatComponent(x, y, z, dimensionId, PlayerUtils.UUIDToName(uuid));
+        IChatComponent coords = generateTeleportChatComponent(
+            x,
+            y,
+            z,
+            dimensionId,
+            PlayerUtils.UUIDToName(uuid),
+            CoordFormat.FLOAT_1DP);
 
         return new ChatComponentTranslation(
             "message.command_issued",
