@@ -40,7 +40,13 @@ public class BlockChangeQueueElement extends GenericQueueElement {
         IChatComponent afterBlockName = BlockUtils.getUnlocalisedChatComponent(afterPickBlockID, afterPickBlockMeta);
 
         // Coordinates component
-        IChatComponent coords = generateTeleportChatComponent(x, y, z, dimensionId, PlayerUtils.UUIDToName(uuid));
+        IChatComponent coords = generateTeleportChatComponent(
+            x,
+            y,
+            z,
+            dimensionId,
+            PlayerUtils.UUIDToName(uuid),
+            CoordFormat.INT);
 
         // Time ago
         IChatComponent timeAgo = TimeUtils.formatTime(timestamp, uuid);

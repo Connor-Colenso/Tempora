@@ -39,7 +39,13 @@ public class EntityPositionQueueElement extends GenericQueueElement {
 
     @Override
     public IChatComponent localiseText(String uuid) {
-        IChatComponent coords = generateTeleportChatComponent(x, y, z, dimensionId, PlayerUtils.UUIDToName(uuid));
+        IChatComponent coords = generateTeleportChatComponent(
+            x,
+            y,
+            z,
+            dimensionId,
+            PlayerUtils.UUIDToName(uuid),
+            CoordFormat.FLOAT_1DP);
         IChatComponent timeAgo = TimeUtils.formatTime(timestamp, uuid);
 
         IChatComponent clickToCopy = new ChatComponentTranslation("tempora.click.to.copy.uuid");
