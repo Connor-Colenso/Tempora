@@ -19,7 +19,6 @@ import net.minecraft.util.IChatComponent;
 
 import com.colen.tempora.TemporaLoggerManager;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
-import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.utils.PlayerUtils;
 import com.colen.tempora.utils.TimeUtils;
 
@@ -163,13 +162,7 @@ public class HomeChunkCommand extends CommandBase {
                 double homeZ = rs.getDouble("home_z");
                 int dim = rs.getInt("dimensionID");
 
-                IChatComponent tpLink = generateTeleportChatComponent(
-                    homeX,
-                    homeY,
-                    homeZ,
-                    dim,
-                    args[0],
-                    GenericQueueElement.CoordFormat.FLOAT_1DP);
+                IChatComponent tpLink = generateTeleportChatComponent(homeX, homeY, homeZ, dim, args[0]);
 
                 sender.addChatMessage(
                     new ChatComponentTranslation(

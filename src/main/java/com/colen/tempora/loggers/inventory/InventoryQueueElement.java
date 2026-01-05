@@ -53,13 +53,7 @@ public class InventoryQueueElement extends GenericQueueElement {
         ItemStack itemStack = new ItemStack(Item.getItemById(itemId), stackSize, itemMetadata);
         IChatComponent itemDetails = new ChatComponentTranslation(itemStack.getDisplayName());
 
-        IChatComponent coords = generateTeleportChatComponent(
-            x,
-            y,
-            z,
-            dimensionId,
-            PlayerUtils.UUIDToName(uuid),
-            CoordFormat.INT);
+        IChatComponent coords = generateTeleportChatComponent(x, y, z, dimensionId, PlayerUtils.UUIDToName(uuid));
 
         InventoryLogger.Direction dir = InventoryLogger.Direction.fromOrdinal(interactionType);
 
