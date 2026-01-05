@@ -32,6 +32,8 @@ public final class PacketShowRegionInWorld {
 
         private List<BlockChangeRecordingRegion> list = new ArrayList<>();
 
+        // Empty constructor required to instantiate from reflection later.
+        @SuppressWarnings("unused")
         public RegionMsg() {}
 
         public RegionMsg(List<BlockChangeRecordingRegion> list) {
