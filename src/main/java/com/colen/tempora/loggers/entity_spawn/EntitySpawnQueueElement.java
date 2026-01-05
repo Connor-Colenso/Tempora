@@ -43,7 +43,7 @@ public class EntitySpawnQueueElement extends GenericQueueElement {
             dimensionId,
             PlayerUtils.UUIDToName(uuid),
             CoordFormat.FLOAT_1DP);
-        IChatComponent timeAgo = TimeUtils.formatTime(timestamp, uuid);
+        IChatComponent timeAgo = TimeUtils.formatTime(timestamp);
         IChatComponent uuidChatComponent = entityUUIDChatComponent(entityUUID);
 
         return new ChatComponentTranslation(

@@ -29,7 +29,7 @@ public class PlayerMovementQueueElement extends GenericQueueElement {
 
     @Override
     public IChatComponent localiseText(String uuid) {
-        IChatComponent formattedTime = TimeUtils.formatTime(timestamp, uuid);
+        IChatComponent formattedTime = TimeUtils.formatTime(timestamp);
         IChatComponent coords = generateTeleportChatComponent(
             x,
             y,

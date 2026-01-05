@@ -49,7 +49,7 @@ public class BlockChangeQueueElement extends GenericQueueElement {
             CoordFormat.INT);
 
         // Time ago
-        IChatComponent timeAgo = TimeUtils.formatTime(timestamp, uuid);
+        IChatComponent timeAgo = TimeUtils.formatTime(timestamp);
 
         // Closest player info
         String closestPlayerName = closestPlayerUUID != null ? PlayerUtils.UUIDToName(closestPlayerUUID) : "Unknown";
