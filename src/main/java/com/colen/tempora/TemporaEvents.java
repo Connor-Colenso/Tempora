@@ -1,8 +1,5 @@
 package com.colen.tempora;
 
-import static com.colen.tempora.Tempora.blockChangeLogger;
-import static com.colen.tempora.Tempora.inventoryLogger;
-
 import com.colen.tempora.loggers.block_change.BlockChangeLogger;
 import com.colen.tempora.loggers.block_change.BlockChangeQueueElement;
 import com.colen.tempora.loggers.command.CommandLogger;
@@ -28,6 +25,10 @@ import com.colen.tempora.loggers.player_movement.PlayerMovementQueueElement;
 
 public class TemporaEvents {
 
+    // We keep these references they need external access from mixins to log.
+    public static InventoryLogger inventoryLogger = new InventoryLogger();
+    public static BlockChangeLogger blockChangeLogger = new BlockChangeLogger();
+
     // Logger names.
     public static final String BLOCK_CHANGE = "BlockChangeLogger";
     public static final String COMMAND = "CommandLogger";
@@ -42,10 +43,6 @@ public class TemporaEvents {
     public static final String PLAYER_MOVEMENT = "PlayerMovementLogger";
 
     public static void registerAll() {
-
-        // We reference these from mixins, as they do not rely on events for logging.
-        inventoryLogger = new InventoryLogger();
-        blockChangeLogger = new BlockChangeLogger();
 
         TemporaLoggerManager.register(BLOCK_CHANGE, blockChangeLogger, BlockChangeQueueElement::new);
         TemporaLoggerManager.register(COMMAND, new CommandLogger(), CommandQueueElement::new);

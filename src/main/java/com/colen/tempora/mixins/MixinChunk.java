@@ -10,7 +10,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import com.colen.tempora.Tempora;
+import com.colen.tempora.TemporaEvents;
 
 @Mixin(Chunk.class)
 public abstract class MixinChunk {
@@ -34,7 +34,7 @@ public abstract class MixinChunk {
         int globalX = (this.xPosition << 4) + localX;
         int globalZ = (this.zPosition << 4) + localZ;
 
-        Tempora.blockChangeLogger.onSetBlockHead(globalX, y, globalZ, this.worldObj);
+        TemporaEvents.blockChangeLogger.onSetBlockHead(globalX, y, globalZ, this.worldObj);
     }
 
     @Inject(method = "func_150807_a", at = @At("RETURN"), remap = false)
@@ -45,7 +45,7 @@ public abstract class MixinChunk {
         int globalX = (this.xPosition << 4) + localX;
         int globalZ = (this.zPosition << 4) + localZ;
 
-        Tempora.blockChangeLogger.onSetBlockReturn(globalX, y, globalZ, this.worldObj, cir);
+        TemporaEvents.blockChangeLogger.onSetBlockReturn(globalX, y, globalZ, this.worldObj, cir);
     }
 
     /**
@@ -60,7 +60,7 @@ public abstract class MixinChunk {
         int globalX = (this.xPosition << 4) + localX;
         int globalZ = (this.zPosition << 4) + localZ;
 
-        Tempora.blockChangeLogger.onSetBlockHead(globalX, y, globalZ, this.worldObj);
+        TemporaEvents.blockChangeLogger.onSetBlockHead(globalX, y, globalZ, this.worldObj);
     }
 
     @Inject(method = "setBlockMetadata", at = @At("RETURN"), remap = false)
@@ -70,7 +70,7 @@ public abstract class MixinChunk {
         int globalX = (this.xPosition << 4) + localX;
         int globalZ = (this.zPosition << 4) + localZ;
 
-        Tempora.blockChangeLogger.onSetBlockReturn(globalX, y, globalZ, this.worldObj, cir);
+        TemporaEvents.blockChangeLogger.onSetBlockReturn(globalX, y, globalZ, this.worldObj, cir);
     }
 
 }

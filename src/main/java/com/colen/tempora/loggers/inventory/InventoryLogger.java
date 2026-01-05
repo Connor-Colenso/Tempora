@@ -29,7 +29,7 @@ import net.minecraftforge.client.event.RenderWorldLastEvent;
 import org.jetbrains.annotations.NotNull;
 import org.lwjgl.opengl.GL11;
 
-import com.colen.tempora.Tempora;
+import com.colen.tempora.TemporaEvents;
 import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.enums.LoggerEventType;
 import com.colen.tempora.loggers.generic.ColumnDef;
@@ -97,7 +97,7 @@ public class InventoryLogger extends GenericPositionalLogger<InventoryQueueEleme
                     : (delta > 0 ? Direction.IN_TO_CONTAINER : Direction.OUT_OF_CONTAINER);
 
                 if (s.inventory instanceof TileEntity tileEntity) {
-                    Tempora.inventoryLogger.playerInteractedWithInventory(
+                    TemporaEvents.inventoryLogger.playerInteractedWithInventory(
                         player,
                         delta,
                         after == null ? before : after,
@@ -106,7 +106,7 @@ public class InventoryLogger extends GenericPositionalLogger<InventoryQueueEleme
                         s.inventory,
                         container);
                 } else {
-                    Tempora.inventoryLogger.playerInteractedWithInventory(
+                    TemporaEvents.inventoryLogger.playerInteractedWithInventory(
                         player,
                         delta,
                         after == null ? before : after,
