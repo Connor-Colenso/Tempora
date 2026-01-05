@@ -7,7 +7,9 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Timestamp;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import net.minecraft.command.CommandBase;
@@ -27,6 +29,7 @@ import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.loggers.optional.ISupportsUndo;
 import com.colen.tempora.utils.CommandUtils;
 import com.colen.tempora.utils.TimeUtils;
+import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 
 public class TemporaUndoRanged extends CommandBase {
 
@@ -192,14 +195,14 @@ public class TemporaUndoRanged extends CommandBase {
         supportsUndo.undoEvents(stored);
         long duration = System.currentTimeMillis() - start;
 
-        TimeUtils.DurationParts p = TimeUtils.formatShortDuration(duration);
+        TimeUtils.DurationParts p = TimeUtils.relativeTimeAgoFormatter(duration);
 
         sender.addChatMessage(
             new ChatComponentTranslation(
                 "tempora.undo.success.ranged",
                 stored.size(),
-                p.value,
-                new ChatComponentTranslation(p.unitKey)));
+                new ChatComponentNumber(p.time),
+                new ChatComponentTranslation(p.translationKey)));
     }
 
     @Override

@@ -44,7 +44,7 @@ public class CommandQueueElement extends GenericQueueElement {
     @Override
     public IChatComponent localiseText(String uuid) {
         // Relative time (as chat component with hover info)
-        IChatComponent timeAgo = TimeUtils.formatTime(timestamp, uuid);
+        IChatComponent timeAgo = TimeUtils.formatTime(timestamp);
 
         // Clickable coordinates with limited float precision
         IChatComponent coords = generateTeleportChatComponent(

@@ -59,7 +59,7 @@ public class PlayerBlockPlaceQueueElement extends GenericQueueElement {
             CoordFormat.INT);
 
         // Relative time component
-        IChatComponent timeAgo = TimeUtils.formatTime(timestamp, uuid);
+        IChatComponent timeAgo = TimeUtils.formatTime(timestamp);
 
         // Create translation with playerName, block, raw blockID:metadata, coords, and timeAgo
         return new ChatComponentTranslation(
