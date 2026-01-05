@@ -3,6 +3,7 @@ package com.colen.tempora.loggers.generic;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 import net.minecraft.event.ClickEvent;
 import net.minecraft.event.HoverEvent;
 import net.minecraft.util.ChatComponentTranslation;
@@ -108,9 +109,9 @@ public abstract class GenericQueueElement implements IMessage {
         // Translation‑driven teleport options.
         IChatComponent display = new ChatComponentTranslation(
             "tempora.teleport.display",
-            fmt.display(x),
-            fmt.display(y),
-            fmt.display(z));
+            new ChatComponentNumber(x),
+            new ChatComponentNumber(y),
+            new ChatComponentNumber(z));
 
         String cmd = "/cofh tpx " + playerName
             + " "
@@ -124,9 +125,9 @@ public abstract class GenericQueueElement implements IMessage {
 
         IChatComponent hoverText = new ChatComponentTranslation(
             "tempora.teleport.hover",
-            fmt.display(x),
-            fmt.display(y),
-            fmt.display(z),
+            new ChatComponentNumber(x),
+            new ChatComponentNumber(y),
+            new ChatComponentNumber(z),
             dimId);
         hoverText.getChatStyle()
             .setColor(EnumChatFormatting.GRAY);
