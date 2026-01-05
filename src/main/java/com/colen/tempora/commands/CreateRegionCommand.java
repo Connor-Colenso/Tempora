@@ -1,5 +1,6 @@
 package com.colen.tempora.commands;
 
+import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
@@ -61,12 +62,12 @@ public class CreateRegionCommand extends CommandBase {
 
         ChatComponentTranslation msg = new ChatComponentTranslation(
             "command.tempora.region.created",
-            x1,
-            y1,
-            z1, // first corner
-            x2,
-            y2,
-            z2, // second corner
+            new ChatComponentNumber(x1),
+            new ChatComponentNumber(y1),
+            new ChatComponentNumber(z1), // first corner
+            new ChatComponentNumber(x2),
+            new ChatComponentNumber(y2),
+            new ChatComponentNumber(z2), // second corner
             dim); // dimension ID
 
         msg.getChatStyle()
