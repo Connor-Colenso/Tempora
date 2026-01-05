@@ -19,6 +19,7 @@ time.ago.days=%s days ago
 time.ago.hours=%s hours ago
 time.ago.minutes=%s minutes ago
 time.ago.seconds=%s seconds ago
+time.ago.milliseconds=%s milliseconds ago
 
 # Usage / help
 tempora.command.querysql.usage=Usage: %s.

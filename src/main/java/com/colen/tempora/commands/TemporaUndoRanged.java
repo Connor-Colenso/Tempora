@@ -195,13 +195,13 @@ public class TemporaUndoRanged extends CommandBase {
         supportsUndo.undoEvents(stored);
         long duration = System.currentTimeMillis() - start;
 
-        TimeUtils.DurationParts p = TimeUtils.formatShortDuration(duration);
+        TimeUtils.DurationParts p = TimeUtils.relativeTimeAgoFormatter(duration);
 
         sender.addChatMessage(
             new ChatComponentTranslation(
                 "tempora.undo.success.ranged",
                 stored.size(),
-                new ChatComponentNumber(p.value),
+                new ChatComponentNumber(p.time),
                 new ChatComponentTranslation(p.translationKey)));
     }
 
