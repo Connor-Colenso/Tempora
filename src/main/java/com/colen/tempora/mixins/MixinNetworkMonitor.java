@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import com.colen.tempora.Tempora;
+import com.colen.tempora.TemporaEvents;
 import com.colen.tempora.loggers.inventory.InventoryLogger;
 
 import appeng.api.config.Actionable;
@@ -23,12 +23,11 @@ import appeng.api.storage.data.IAEItemStack;
 import appeng.api.storage.data.IAEStack;
 import appeng.me.cache.NetworkMonitor;
 
+// Todo rev
 @Mixin(value = NetworkMonitor.class, remap = false)
 public abstract class MixinNetworkMonitor<T extends IAEStack<T>> {
 
-    /* ======================================================== */
-    /* Injection points – now one‑liners that forward */
-    /* ======================================================== */
+    // Injection points
 
     @Inject(method = "injectItems", at = @At("HEAD"))
     private void onInject(T input, Actionable mode, BaseActionSource src, CallbackInfoReturnable<T> cir) {
@@ -40,9 +39,7 @@ public abstract class MixinNetworkMonitor<T extends IAEStack<T>> {
         handleTransfer(InventoryLogger.Direction.OUT_OF_CONTAINER, request, mode, src, cir.getReturnValue());
     }
 
-    /* ======================================================== */
-    /* Core logic – shared by both paths */
-    /* ======================================================== */
+    // Core logic
 
     @Unique
     private void handleTransfer(InventoryLogger.Direction dir, T stackRaw, Actionable mode, BaseActionSource src,
@@ -68,7 +65,7 @@ public abstract class MixinNetworkMonitor<T extends IAEStack<T>> {
 
         /* -- Log ---------------------------------------------- */
         if (tileEntity != null) {
-            Tempora.inventoryLogger.specialAELogInv(
+            TemporaEvents.inventoryLogger.specialAELogInv(
                 dir,
                 ps.player,
                 moved,
@@ -78,7 +75,7 @@ public abstract class MixinNetworkMonitor<T extends IAEStack<T>> {
                 tileEntity.zCoord,
                 tileEntity.getWorldObj().provider.dimensionId);
         } else {
-            Tempora.inventoryLogger.specialAELogInv(
+            TemporaEvents.inventoryLogger.specialAELogInv(
                 dir,
                 ps.player,
                 moved,
@@ -90,9 +87,7 @@ public abstract class MixinNetworkMonitor<T extends IAEStack<T>> {
         }
     }
 
-    /* ======================================================== */
-    /* Helpers */
-    /* ======================================================== */
+    // Helper
 
     @Unique
     private static String resolveContainerName(Object via) {

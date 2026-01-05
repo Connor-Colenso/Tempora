@@ -10,6 +10,8 @@ import cpw.mods.fml.common.network.simpleimpl.IMessageHandler;
 import cpw.mods.fml.common.network.simpleimpl.MessageContext;
 import io.netty.buffer.ByteBuf;
 
+// Todo look into redundancy of this system, now that we have access to custom chat components.
+// Unix epoch time in -> formatted date out?
 public class PacketTimeZone implements IMessage {
 
     private String timezoneId;
