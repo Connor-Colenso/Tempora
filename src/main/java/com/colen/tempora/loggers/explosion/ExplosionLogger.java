@@ -11,7 +11,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
-import com.colen.tempora.enums.LoggerEventType;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
@@ -29,6 +28,7 @@ import org.lwjgl.opengl.GL11;
 
 import com.colen.tempora.TemporaUtils;
 import com.colen.tempora.enums.LoggerEnum;
+import com.colen.tempora.enums.LoggerEventType;
 import com.colen.tempora.loggers.generic.ColumnDef;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
@@ -171,7 +171,8 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionQueueEleme
             + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         int index;
-        try (PreparedStatement pstmt = db.getDBConn().prepareStatement(sql)) {
+        try (PreparedStatement pstmt = db.getDBConn()
+            .prepareStatement(sql)) {
             for (ExplosionQueueElement queueElement : queueElements) {
                 index = 1;
 

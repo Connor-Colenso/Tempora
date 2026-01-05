@@ -12,8 +12,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.regex.Pattern;
 
-import com.colen.tempora.TemporaLoggerManager;
-import com.colen.tempora.loggers.generic.RenderEventPacket;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -21,9 +19,11 @@ import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 
+import com.colen.tempora.TemporaLoggerManager;
 import com.colen.tempora.loggers.generic.ColumnDef;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
+import com.colen.tempora.loggers.generic.RenderEventPacket;
 import com.colen.tempora.utils.CommandUtils;
 
 public class QuerySQLCommand extends CommandBase {
@@ -67,7 +67,8 @@ public class QuerySQLCommand extends CommandBase {
 
         if (targetLogger == null) {
             ChatComponentTranslation msg = new ChatComponentTranslation(
-                "tempora.command.querysql.invalid_table", TemporaLoggerManager.getAllLoggerNames());
+                "tempora.command.querysql.invalid_table",
+                TemporaLoggerManager.getAllLoggerNames());
             msg.getChatStyle()
                 .setColor(EnumChatFormatting.RED);
             sender.addChatMessage(msg);

@@ -1,5 +1,8 @@
 package com.colen.tempora;
 
+import static com.colen.tempora.Tempora.blockChangeLogger;
+import static com.colen.tempora.Tempora.inventoryLogger;
+
 import com.colen.tempora.loggers.block_change.BlockChangeLogger;
 import com.colen.tempora.loggers.block_change.BlockChangeQueueElement;
 import com.colen.tempora.loggers.command.CommandLogger;
@@ -22,9 +25,6 @@ import com.colen.tempora.loggers.player_block_place.PlayerBlockPlaceLogger;
 import com.colen.tempora.loggers.player_block_place.PlayerBlockPlaceQueueElement;
 import com.colen.tempora.loggers.player_movement.PlayerMovementLogger;
 import com.colen.tempora.loggers.player_movement.PlayerMovementQueueElement;
-
-import static com.colen.tempora.Tempora.blockChangeLogger;
-import static com.colen.tempora.Tempora.inventoryLogger;
 
 public class TemporaEvents {
 
@@ -55,8 +55,10 @@ public class TemporaEvents {
         TemporaLoggerManager.register(EXPLOSION, new ExplosionLogger(), ExplosionQueueElement::new);
         TemporaLoggerManager.register(INVENTORY, inventoryLogger, InventoryQueueElement::new);
         TemporaLoggerManager.register(ITEM_USE, new ItemUseLogger(), ItemUseQueueElement::new);
-        TemporaLoggerManager.register(PLAYER_BLOCK_BREAK, new PlayerBlockBreakLogger(), PlayerBlockBreakQueueElement::new);
-        TemporaLoggerManager.register(PLAYER_BLOCK_PLACE, new PlayerBlockPlaceLogger(), PlayerBlockPlaceQueueElement::new);
+        TemporaLoggerManager
+            .register(PLAYER_BLOCK_BREAK, new PlayerBlockBreakLogger(), PlayerBlockBreakQueueElement::new);
+        TemporaLoggerManager
+            .register(PLAYER_BLOCK_PLACE, new PlayerBlockPlaceLogger(), PlayerBlockPlaceQueueElement::new);
         TemporaLoggerManager.register(PLAYER_MOVEMENT, new PlayerMovementLogger(), PlayerMovementQueueElement::new);
     }
 }

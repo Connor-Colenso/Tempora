@@ -1,11 +1,13 @@
 package com.colen.tempora.loggers.generic;
 
-import com.colen.tempora.TemporaLoggerManager;
-import cpw.mods.fml.common.network.simpleimpl.IMessage;
-import io.netty.buffer.ByteBuf;
+import static com.colen.tempora.Tempora.NETWORK;
+
 import net.minecraft.entity.player.EntityPlayerMP;
 
-import static com.colen.tempora.Tempora.NETWORK;
+import com.colen.tempora.TemporaLoggerManager;
+
+import cpw.mods.fml.common.network.simpleimpl.IMessage;
+import io.netty.buffer.ByteBuf;
 
 public class RenderEventPacket implements IMessage {
 

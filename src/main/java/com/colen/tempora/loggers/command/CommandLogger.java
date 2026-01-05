@@ -12,7 +12,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
-import com.colen.tempora.enums.LoggerEventType;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.command.ICommand;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -23,6 +22,7 @@ import net.minecraftforge.event.CommandEvent;
 import org.jetbrains.annotations.NotNull;
 
 import com.colen.tempora.enums.LoggerEnum;
+import com.colen.tempora.enums.LoggerEventType;
 import com.colen.tempora.loggers.generic.ColumnDef;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
@@ -104,7 +104,8 @@ public class CommandLogger extends GenericPositionalLogger<CommandQueueElement> 
             + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         int index;
-        try (PreparedStatement pstmt = db.getDBConn().prepareStatement(sql)) {
+        try (PreparedStatement pstmt = db.getDBConn()
+            .prepareStatement(sql)) {
             for (CommandQueueElement commandQueueElement : commandQueueElements) {
                 index = 1;
 

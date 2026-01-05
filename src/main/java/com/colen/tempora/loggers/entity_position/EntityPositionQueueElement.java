@@ -1,7 +1,5 @@
 package com.colen.tempora.loggers.entity_position;
 
-import com.colen.tempora.TemporaEvents;
-import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import net.minecraft.event.ClickEvent;
 import net.minecraft.event.HoverEvent;
 import net.minecraft.util.ChatComponentText;
@@ -10,7 +8,7 @@ import net.minecraft.util.ChatStyle;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
-import com.colen.tempora.enums.LoggerEnum;
+import com.colen.tempora.TemporaEvents;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.utils.PlayerUtils;
 import com.colen.tempora.utils.TimeUtils;

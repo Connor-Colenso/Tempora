@@ -1,19 +1,15 @@
 package com.colen.tempora.loggers.generic;
 
-import static com.colen.tempora.Tempora.NETWORK;
-
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import com.colen.tempora.commands.TemporaUndoCommand;
-import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.event.ClickEvent;
 import net.minecraft.event.HoverEvent;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
-import com.colen.tempora.enums.LoggerEnum;
+import com.colen.tempora.commands.TemporaUndoCommand;
 
 import cpw.mods.fml.common.network.ByteBufUtils;
 import cpw.mods.fml.common.network.simpleimpl.IMessage;

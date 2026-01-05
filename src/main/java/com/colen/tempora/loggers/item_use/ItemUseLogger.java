@@ -11,7 +11,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
-import com.colen.tempora.enums.LoggerEventType;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -23,6 +22,7 @@ import net.minecraftforge.event.entity.player.PlayerUseItemEvent;
 import org.jetbrains.annotations.NotNull;
 
 import com.colen.tempora.enums.LoggerEnum;
+import com.colen.tempora.enums.LoggerEventType;
 import com.colen.tempora.loggers.generic.ColumnDef;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
@@ -82,7 +82,8 @@ public class ItemUseLogger extends GenericPositionalLogger<ItemUseQueueElement> 
             + " (playerUUID, itemID, itemMetadata, eventID, x, y, z, dimensionID, timestamp, versionID) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         int index;
-        try (PreparedStatement pstmt = db.getDBConn().prepareStatement(sql)) {
+        try (PreparedStatement pstmt = db.getDBConn()
+            .prepareStatement(sql)) {
             for (ItemUseQueueElement queueElement : queueElements) {
                 index = 1;
 

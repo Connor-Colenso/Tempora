@@ -3,11 +3,11 @@ package com.colen.tempora.loggers.block_change;
 import java.io.File;
 import java.util.*;
 
+import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.storage.ISaveHandler;
-import net.minecraft.nbt.CompressedStreamTools;
 
 public final class RegionRegistry {
 
@@ -55,11 +55,11 @@ public final class RegionRegistry {
         }
     }
 
-
     // Internal logic.
 
     private void addRegion(BlockChangeRecordingRegion r) {
-        byDim.computeIfAbsent(r.dim, d -> new ArrayList<>()).add(r);
+        byDim.computeIfAbsent(r.dim, d -> new ArrayList<>())
+            .add(r);
         dirty = true;
     }
 
@@ -79,7 +79,8 @@ public final class RegionRegistry {
 
         int removed = 0;
         for (Iterator<BlockChangeRecordingRegion> it = list.iterator(); it.hasNext();) {
-            if (it.next().contains(dim, x, y, z)) {
+            if (it.next()
+                .contains(dim, x, y, z)) {
                 it.remove();
                 removed++;
             }
@@ -117,7 +118,8 @@ public final class RegionRegistry {
     private void save() {
         try {
             File file = getSaveFile();
-            file.getParentFile().mkdirs();
+            file.getParentFile()
+                .mkdirs();
 
             NBTTagCompound root = new NBTTagCompound();
             writeToNBT(root);
@@ -134,9 +136,9 @@ public final class RegionRegistry {
 
         NBTTagList list = tag.getTagList("regions", 10);
         for (int i = 0; i < list.tagCount(); i++) {
-            BlockChangeRecordingRegion r =
-                BlockChangeRecordingRegion.readNBT(list.getCompoundTagAt(i));
-            byDim.computeIfAbsent(r.dim, d -> new ArrayList<>()).add(r);
+            BlockChangeRecordingRegion r = BlockChangeRecordingRegion.readNBT(list.getCompoundTagAt(i));
+            byDim.computeIfAbsent(r.dim, d -> new ArrayList<>())
+                .add(r);
         }
     }
 
@@ -163,7 +165,8 @@ public final class RegionRegistry {
 
     private static File getSaveFile() {
         MinecraftServer server = MinecraftServer.getServer();
-        ISaveHandler handler = server.getEntityWorld().getSaveHandler();
+        ISaveHandler handler = server.getEntityWorld()
+            .getSaveHandler();
 
         File root = handler.getWorldDirectory();
         return new File(new File(root, DIR_NAME), FILE_NAME);

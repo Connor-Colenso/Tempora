@@ -1,6 +1,7 @@
 package com.colen.tempora.enums;
 
 public enum LoggerEventType {
+
     ForgeEvent,
     MinecraftEvent,
     None;

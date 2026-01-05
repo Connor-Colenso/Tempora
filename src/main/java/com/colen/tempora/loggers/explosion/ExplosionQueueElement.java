@@ -4,13 +4,12 @@ import static cpw.mods.fml.common.network.ByteBufUtils.readVarInt;
 import static cpw.mods.fml.common.network.ByteBufUtils.varIntByteCount;
 import static cpw.mods.fml.common.network.ByteBufUtils.writeVarInt;
 
-import com.colen.tempora.TemporaEvents;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 
 import org.apache.commons.lang3.Validate;
 
-import com.colen.tempora.enums.LoggerEnum;
+import com.colen.tempora.TemporaEvents;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.utils.PlayerUtils;
 import com.colen.tempora.utils.TimeUtils;

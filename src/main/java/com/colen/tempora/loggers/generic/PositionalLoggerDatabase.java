@@ -1,15 +1,7 @@
 package com.colen.tempora.loggers.generic;
 
-import com.colen.tempora.TemporaUtils;
-import com.colen.tempora.utils.TimeUtils;
-import net.minecraft.command.ICommandSender;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.util.ChatComponentTranslation;
-import net.minecraft.util.EnumChatFormatting;
-import net.minecraft.util.IChatComponent;
-import net.minecraftforge.common.config.Configuration;
-import org.jetbrains.annotations.NotNull;
-import org.sqlite.SQLiteConfig;
+import static com.colen.tempora.Tempora.LOG;
+import static com.colen.tempora.utils.GenericUtils.parseSizeStringToBytes;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -26,8 +18,18 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static com.colen.tempora.Tempora.LOG;
-import static com.colen.tempora.utils.GenericUtils.parseSizeStringToBytes;
+import net.minecraft.command.ICommandSender;
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.IChatComponent;
+import net.minecraftforge.common.config.Configuration;
+
+import org.jetbrains.annotations.NotNull;
+import org.sqlite.SQLiteConfig;
+
+import com.colen.tempora.TemporaUtils;
+import com.colen.tempora.utils.TimeUtils;
 
 public class PositionalLoggerDatabase {
 
@@ -147,7 +149,6 @@ public class PositionalLoggerDatabase {
         st.execute("PRAGMA wal_autocheckpoint=10000;");
     }
 
-
     public Connection getDBConn() {
         return positionalLoggerDBConnection;
     }
@@ -177,14 +178,16 @@ public class PositionalLoggerDatabase {
 
             return conn;
         } catch (Exception e) {
-            LOG.error("Could not establish readonly connection to {} database.", genericPositionalLogger.getLoggerName(), e);
+            LOG.error(
+                "Could not establish readonly connection to {} database.",
+                genericPositionalLogger.getLoggerName(),
+                e);
             return null;
         }
     }
 
     // -1 passed into seconds, equates to, find any event that occurred here, no matter how long ago.
-    public void queryEventsAtPosAndTime(ICommandSender sender, int centreX, int centreY, int centreZ,
-                                               long seconds) {
+    public void queryEventsAtPosAndTime(ICommandSender sender, int centreX, int centreY, int centreZ, long seconds) {
         if (!(sender instanceof EntityPlayerMP player)) return;
 
         // radius 0 means an exact match – the SQL below
@@ -193,20 +196,20 @@ public class PositionalLoggerDatabase {
     }
 
     public void queryEventByCoordinate(ICommandSender sender, int centreX, int centreY, int centreZ, int radius,
-                                              long seconds, int dimensionId) {
+        long seconds, int dimensionId) {
 
         synchronized (GenericPositionalLogger.class) {
 
-                String sql = String.format("""
-                    SELECT * FROM %s
-                    WHERE ABS(x - ?) <= ?
-                      AND ABS(y - ?) <= ?
-                      AND ABS(z - ?) <= ?
-                      AND dimensionID = ?
-                      AND timestamp >= ?
-                    ORDER BY timestamp DESC
-                    LIMIT ?;
-                    """, genericPositionalLogger.getLoggerName());
+            String sql = String.format("""
+                SELECT * FROM %s
+                WHERE ABS(x - ?) <= ?
+                  AND ABS(y - ?) <= ?
+                  AND ABS(z - ?) <= ?
+                  AND dimensionID = ?
+                  AND timestamp >= ?
+                ORDER BY timestamp DESC
+                LIMIT ?;
+                """, genericPositionalLogger.getLoggerName());
 
             try (PreparedStatement ps = getReadOnlyConnection().prepareStatement(sql)) {
 
@@ -246,10 +249,12 @@ public class PositionalLoggerDatabase {
                         showingResults.getChatStyle()
                             .setColor(EnumChatFormatting.GRAY);
                         sender.addChatMessage(showingResults);
-                        if (genericPositionalLogger.getEventQueue().size() > 100) {
+                        if (genericPositionalLogger.getEventQueue()
+                            .size() > 100) {
                             IChatComponent tooMany = new ChatComponentTranslation(
                                 "message.queryevents.too_many_pending",
-                                genericPositionalLogger.getEventQueue().size());
+                                genericPositionalLogger.getEventQueue()
+                                    .size());
                             tooMany.getChatStyle()
                                 .setColor(EnumChatFormatting.RED);
                             sender.addChatMessage(tooMany);
@@ -286,7 +291,8 @@ public class PositionalLoggerDatabase {
 
         synchronized (GenericPositionalLogger.class) {
 
-            String sqlQuery = "SELECT * FROM " + genericPositionalLogger.getLoggerName() + " WHERE eventID == ? LIMIT 1";
+            String sqlQuery = "SELECT * FROM " + genericPositionalLogger.getLoggerName()
+                + " WHERE eventID == ? LIMIT 1";
 
             try (PreparedStatement ps = getReadOnlyConnection().prepareStatement(sqlQuery)) {
 
@@ -402,13 +408,15 @@ public class PositionalLoggerDatabase {
 
     private long countRows() throws SQLException {
         String sql = "SELECT COUNT(*) FROM " + genericPositionalLogger.getLoggerName();
-        try (PreparedStatement ps = positionalLoggerDBConnection.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+        try (PreparedStatement ps = positionalLoggerDBConnection.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery()) {
             return rs.next() ? rs.getLong(1) : 0L;
         }
     }
 
     private long pragmaLong(String pragma) throws SQLException {
-        try (Statement st = positionalLoggerDBConnection.createStatement(); ResultSet rs = st.executeQuery("PRAGMA " + pragma)) {
+        try (Statement st = positionalLoggerDBConnection.createStatement();
+            ResultSet rs = st.executeQuery("PRAGMA " + pragma)) {
             return rs.next() ? rs.getLong(1) : 0L;
         }
     }
@@ -418,7 +426,8 @@ public class PositionalLoggerDatabase {
             .get(
                 genericPositionalLogger.getLoggerName(),
                 "LogWriteSafety",
-                genericPositionalLogger.defaultLogWriteSafetyMode().name(),
+                genericPositionalLogger.defaultLogWriteSafetyMode()
+                    .name(),
                 """
                     NORMAL – Safer, but slower
                       • Best for long-term stability.

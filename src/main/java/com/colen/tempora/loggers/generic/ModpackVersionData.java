@@ -6,13 +6,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import cpw.mods.fml.common.Loader;
-import cpw.mods.fml.common.ModContainer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldSavedData;
 import net.minecraft.world.storage.MapStorage;
+
+import cpw.mods.fml.common.Loader;
+import cpw.mods.fml.common.ModContainer;
 
 /**
  * World-global modpack/environment version registry.
@@ -105,7 +106,8 @@ public final class ModpackVersionData extends WorldSavedData {
 
         List<String> entries = new ArrayList<>();
 
-        for (ModContainer mod : Loader.instance().getActiveModList()) {
+        for (ModContainer mod : Loader.instance()
+            .getActiveModList()) {
             entries.add(mod.getModId() + ":" + mod.getVersion());
         }
 
@@ -115,7 +117,8 @@ public final class ModpackVersionData extends WorldSavedData {
         // Join with an unambiguous delimiter
         StringBuilder sb = new StringBuilder();
         for (String entry : entries) {
-            sb.append(entry).append('|');
+            sb.append(entry)
+                .append('|');
         }
 
         return sb.toString();
