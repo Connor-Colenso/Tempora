@@ -15,7 +15,6 @@ import net.minecraft.util.EnumChatFormatting;
 
 import com.colen.tempora.loggers.block_change.BlockChangeRecordingRegion;
 import com.colen.tempora.loggers.block_change.RegionRegistry;
-import com.colen.tempora.loggers.generic.GenericQueueElement.CoordFormat;
 import com.colen.tempora.networking.PacketShowRegionInWorld;
 
 /**
@@ -83,15 +82,14 @@ public class ListRegionsCommand extends CommandBase {
                 cy,
                 cz,
                 r.dim,
-                playerName,
-                CoordFormat.INT);
+                playerName);
 
             /* Whole entry line */
             ChatComponentTranslation line = new ChatComponentTranslation(
                 "tempora.command.listregions.entry",
                 idx++,
-                generateTeleportChatComponent(r.minX, r.minY, r.minZ, r.dim, playerName, CoordFormat.INT),
-                generateTeleportChatComponent(r.maxX, r.maxY, r.maxZ, r.dim, playerName, CoordFormat.INT),
+                generateTeleportChatComponent(r.minX, r.minY, r.minZ, r.dim, playerName),
+                generateTeleportChatComponent(r.maxX, r.maxY, r.maxZ, r.dim, playerName),
                 r.dim,
                 tp);
 

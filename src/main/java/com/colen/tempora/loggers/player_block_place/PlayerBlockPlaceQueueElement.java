@@ -50,13 +50,7 @@ public class PlayerBlockPlaceQueueElement extends GenericQueueElement {
         IChatComponent block = BlockUtils.getUnlocalisedChatComponent(pickBlockID, pickBlockMeta);
 
         // Clickable coords component
-        IChatComponent coords = generateTeleportChatComponent(
-            x,
-            y,
-            z,
-            dimensionId,
-            PlayerUtils.UUIDToName(uuid),
-            CoordFormat.INT);
+        IChatComponent coords = generateTeleportChatComponent(x, y, z, dimensionId, PlayerUtils.UUIDToName(uuid));
 
         // Relative time component
         IChatComponent timeAgo = TimeUtils.formatTime(timestamp, uuid);
