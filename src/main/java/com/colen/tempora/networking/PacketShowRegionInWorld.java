@@ -16,7 +16,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
 
-/** Region list sync → client */
+/** Region list sync -> client */
 public final class PacketShowRegionInWorld {
 
     @SideOnly(Side.CLIENT)

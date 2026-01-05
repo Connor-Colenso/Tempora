@@ -8,12 +8,12 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
 
 import com.colen.tempora.blocks.RenderingErrorItemBlock;
+import com.colen.tempora.chat.TemporaChatRegistry;
 import com.colen.tempora.commands.TemporaUndoRanged;
 import com.colen.tempora.events.OnWorldLoad;
 import com.colen.tempora.items.TemporaWand;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.networking.PacketShowRegionInWorld;
-import com.colen.tempora.networking.PacketTimeZone;
 
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
@@ -27,6 +27,8 @@ public class CommonProxy {
         Tempora.config = new Configuration(event.getSuggestedConfigurationFile());
         GameRegistry.registerItem(new TemporaWand(), "admin_wand");
         GameRegistry.registerBlock(renderingErrorBlock, RenderingErrorItemBlock.class, "renderingErrorBlock");
+
+        TemporaChatRegistry.register();
     }
 
     public void init(FMLInitializationEvent event) {
@@ -39,7 +41,6 @@ public class CommonProxy {
             Integer.MAX_VALUE,
             "Tempora undo max range, in blocks. Recommended to keep low, as this will get exponentially more expensive, the wider the range.");
 
-        NETWORK.registerMessage(PacketTimeZone.Handler.class, PacketTimeZone.class, 0, Side.SERVER);
         NETWORK.registerMessage(
             PacketShowRegionInWorld.RegionMsg.Handler.class,
             PacketShowRegionInWorld.RegionMsg.class,

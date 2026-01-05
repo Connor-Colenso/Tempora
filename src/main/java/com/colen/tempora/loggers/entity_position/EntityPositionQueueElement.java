@@ -46,7 +46,7 @@ public class EntityPositionQueueElement extends GenericQueueElement {
             dimensionId,
             PlayerUtils.UUIDToName(uuid),
             CoordFormat.FLOAT_1DP);
-        IChatComponent timeAgo = TimeUtils.formatTime(timestamp, uuid);
+        IChatComponent timeAgo = TimeUtils.formatTime(timestamp);
 
         IChatComponent clickToCopy = new ChatComponentTranslation("tempora.click.to.copy.uuid");
         clickToCopy.getChatStyle()
