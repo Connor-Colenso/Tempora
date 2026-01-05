@@ -1,8 +1,6 @@
 package com.colen.tempora;
 
 import static com.colen.tempora.Tempora.NETWORK;
-import static com.colen.tempora.Tempora.blockChangeLogger;
-import static com.colen.tempora.Tempora.inventoryLogger;
 import static com.colen.tempora.Tempora.renderingErrorBlock;
 import static com.colen.tempora.config.Config.synchronizeConfiguration;
 
@@ -13,29 +11,7 @@ import net.minecraftforge.common.config.Configuration;
 import com.colen.tempora.blocks.RenderingErrorItemBlock;
 import com.colen.tempora.commands.TemporaUndoRanged;
 import com.colen.tempora.items.TemporaWand;
-import com.colen.tempora.loggers.block_change.BlockChangeLogger;
-import com.colen.tempora.loggers.block_change.BlockChangePacketHandler;
-import com.colen.tempora.loggers.command.CommandLogger;
-import com.colen.tempora.loggers.command.CommandPacketHandler;
-import com.colen.tempora.loggers.entity_death.EntityDeathLogger;
-import com.colen.tempora.loggers.entity_death.EntityDeathPacketHandler;
-import com.colen.tempora.loggers.entity_position.EntityPositionLogger;
-import com.colen.tempora.loggers.entity_position.EntityPositionPacketHandler;
-import com.colen.tempora.loggers.entity_spawn.EntitySpawnLogger;
-import com.colen.tempora.loggers.entity_spawn.EntitySpawnPacketHandler;
-import com.colen.tempora.loggers.explosion.ExplosionLogger;
-import com.colen.tempora.loggers.explosion.ExplosionPacketHandler;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
-import com.colen.tempora.loggers.inventory.InventoryLogger;
-import com.colen.tempora.loggers.inventory.InventoryPacketHandler;
-import com.colen.tempora.loggers.item_use.ItemUseLogger;
-import com.colen.tempora.loggers.item_use.ItemUsePacketHandler;
-import com.colen.tempora.loggers.player_block_break.PlayerBlockBreakLogger;
-import com.colen.tempora.loggers.player_block_break.PlayerBlockBreakPacketHandler;
-import com.colen.tempora.loggers.player_block_place.PlayerBlockPlaceLogger;
-import com.colen.tempora.loggers.player_block_place.PlayerBlockPlacePacketHandler;
-import com.colen.tempora.loggers.player_movement.PlayerMovementLogger;
-import com.colen.tempora.loggers.player_movement.PlayerMovementPacketHandler;
 import com.colen.tempora.networking.PacketShowRegionInWorld;
 import com.colen.tempora.networking.PacketTimeZone;
 

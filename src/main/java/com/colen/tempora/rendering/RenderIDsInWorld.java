@@ -21,6 +21,7 @@ public final class RenderIDsInWorld {
 
     @SubscribeEvent
     public void onRender(RenderWorldLastEvent e) {
+        if (true) return;
         Minecraft mc = Minecraft.getMinecraft();
         EntityPlayerSP player = mc.thePlayer;
         World world = mc.theWorld;

@@ -2,6 +2,7 @@ package com.colen.tempora.loggers.entity_death;
 
 import static com.colen.tempora.utils.GenericUtils.entityUUIDChatComponent;
 
+import com.colen.tempora.TemporaEvents;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 
@@ -64,7 +65,7 @@ public class EntityDeathQueueElement extends GenericQueueElement {
     }
 
     @Override
-    public LoggerEnum getLoggerType() {
-        return LoggerEnum.EntityDeathLogger;
+    public String getLoggerName() {
+        return TemporaEvents.ENTITY_DEATH;
     }
 }

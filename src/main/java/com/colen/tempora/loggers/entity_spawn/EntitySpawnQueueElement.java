@@ -2,6 +2,7 @@ package com.colen.tempora.loggers.entity_spawn;
 
 import static com.colen.tempora.utils.GenericUtils.entityUUIDChatComponent;
 
+import com.colen.tempora.TemporaEvents;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 
@@ -55,7 +56,7 @@ public class EntitySpawnQueueElement extends GenericQueueElement {
     }
 
     @Override
-    public LoggerEnum getLoggerType() {
-        return LoggerEnum.EntitySpawnLogger;
+    public String getLoggerName() {
+        return TemporaEvents.ENTITY_SPAWN;
     }
 }

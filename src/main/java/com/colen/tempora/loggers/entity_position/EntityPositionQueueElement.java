@@ -1,5 +1,7 @@
 package com.colen.tempora.loggers.entity_position;
 
+import com.colen.tempora.TemporaEvents;
+import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import net.minecraft.event.ClickEvent;
 import net.minecraft.event.HoverEvent;
 import net.minecraft.util.ChatComponentText;
@@ -66,7 +68,7 @@ public class EntityPositionQueueElement extends GenericQueueElement {
     }
 
     @Override
-    public LoggerEnum getLoggerType() {
-        return LoggerEnum.EntityPositionLogger;
+    public String getLoggerName() {
+        return TemporaEvents.ENTITY_POSITION;
     }
 }

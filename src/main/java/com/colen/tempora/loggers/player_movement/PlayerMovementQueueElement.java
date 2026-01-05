@@ -1,5 +1,6 @@
 package com.colen.tempora.loggers.player_movement;
 
+import com.colen.tempora.TemporaEvents;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 
@@ -42,7 +43,7 @@ public class PlayerMovementQueueElement extends GenericQueueElement {
     }
 
     @Override
-    public LoggerEnum getLoggerType() {
-        return LoggerEnum.PlayerMovementLogger;
+    public String getLoggerName() {
+        return TemporaEvents.PLAYER_MOVEMENT;
     }
 }

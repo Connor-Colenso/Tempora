@@ -1,5 +1,6 @@
 package com.colen.tempora.loggers.block_change;
 
+import com.colen.tempora.TemporaEvents;
 import net.minecraft.block.Block;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
@@ -67,7 +68,7 @@ public class BlockChangeQueueElement extends GenericQueueElement {
             timeAgo, // %s: time ago
             closestPlayerName, // %s: closest player
             closestPlayerDist, // %s: distance
-            generateUndoCommand(getLoggerType(), eventID) // %s: Undo operation.
+            generateUndoCommand(getLoggerName(), eventID) // %s: Undo operation.
         );
     }
 
@@ -114,8 +115,8 @@ public class BlockChangeQueueElement extends GenericQueueElement {
     }
 
     @Override
-    public LoggerEnum getLoggerType() {
-        return LoggerEnum.BlockChangeLogger;
+    public String getLoggerName() {
+        return TemporaEvents.BLOCK_CHANGE;
     }
 
     @Override

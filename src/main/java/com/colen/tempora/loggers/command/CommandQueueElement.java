@@ -1,5 +1,6 @@
 package com.colen.tempora.loggers.command;
 
+import com.colen.tempora.TemporaEvents;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 
@@ -65,7 +66,7 @@ public class CommandQueueElement extends GenericQueueElement {
     }
 
     @Override
-    public LoggerEnum getLoggerType() {
-        return LoggerEnum.CommandLogger;
+    public String getLoggerName() {
+        return TemporaEvents.COMMAND;
     }
 }
