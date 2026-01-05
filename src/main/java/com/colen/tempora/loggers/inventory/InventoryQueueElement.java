@@ -46,7 +46,7 @@ public class InventoryQueueElement extends GenericQueueElement {
 
     @Override
     public IChatComponent localiseText(String uuid) {
-        IChatComponent formattedTime = TimeUtils.formatTime(timestamp, uuid);
+        IChatComponent formattedTime = TimeUtils.formatTime(timestamp);
         String playerName = PlayerUtils.UUIDToName(playerUUID);
 
         // Try localise the item name...

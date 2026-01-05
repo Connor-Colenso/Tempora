@@ -55,7 +55,7 @@ public class PlayerBlockBreakQueueElement extends GenericQueueElement {
             PlayerUtils.UUIDToName(playerUUID),
             CoordFormat.INT);
 
-        IChatComponent timeAgo = TimeUtils.formatTime(timestamp, playerUUID);
+        IChatComponent timeAgo = TimeUtils.formatTime(timestamp);
 
         return new ChatComponentTranslation(
             "message.block_break",

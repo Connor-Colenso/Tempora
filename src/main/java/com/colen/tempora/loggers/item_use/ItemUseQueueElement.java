@@ -44,7 +44,7 @@ public class ItemUseQueueElement extends GenericQueueElement {
             dimensionId,
             PlayerUtils.UUIDToName(uuid),
             CoordFormat.FLOAT_1DP);
-        IChatComponent timeAgo = TimeUtils.formatTime(timestamp, uuid);
+        IChatComponent timeAgo = TimeUtils.formatTime(timestamp);
 
         return new ChatComponentTranslation(
             "message.item_use",

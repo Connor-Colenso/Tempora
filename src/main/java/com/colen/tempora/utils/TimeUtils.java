@@ -1,193 +1,46 @@
 package com.colen.tempora.utils;
 
-import java.time.DateTimeException;
-import java.time.Duration;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
-
-import javax.annotation.Nullable;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import net.minecraft.command.CommandException;
 import net.minecraft.event.HoverEvent;
-import net.minecraft.util.ChatComponentTranslation;
-import net.minecraft.util.ChatStyle;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
-import it.unimi.dsi.fastutil.Pair;
-import it.unimi.dsi.fastutil.objects.ObjectObjectImmutablePair;
+import com.colen.tempora.chat.ChatComponentTimeAbsolute;
+import com.colen.tempora.chat.ChatComponentTimeRelative;
 
 public class TimeUtils {
 
-    public static @Nullable String getTimeZone(String uuid) {
-        return UUIDtoTimeZone.getOrDefault(uuid, null);
-    }
-
-    public static void setTimeZone(String uuid, String timezone) {
-        UUIDtoTimeZone.put(uuid, timezone);
-    }
-
-    public static HashMap<String, String> UUIDtoTimeZone = new HashMap<>();
-
     /**
-     * Formats a given timestamp (in milliseconds) to a string based on the default system timezone.
+     * Formats a given timestamp (in milliseconds) to a string saying how long ago it was, e.g. 1 hour ago.
+     * Hovering over it will reveal string based on the default system timezone.
      * The format used is "yyyy-MM-dd HH:mm:ss".
      *
-     * @param epochMillis The timestamp to format, in milliseconds.
+     * @param epochMillis The unix epoch timestamp to format, in milliseconds.
      * @return A formatted date-time string.
      */
-    public static IChatComponent formatTime(long epochMillis, String uuid) {
-        return getRelativeTimeFromUnix(epochMillis, getTimeZone(uuid));
-    }
+    public static IChatComponent formatTime(long epochMillis) {
+        ChatComponentTimeRelative text = new ChatComponentTimeRelative(epochMillis);
 
-    public static String getExactTimeStampFromUnix(long pastTimestamp) {
-        // Convert epoch time to an Instant
-        Instant instant = Instant.ofEpochMilli(pastTimestamp);
-
-        // Get the system default time zone
-        ZoneId zoneId = ZoneId.systemDefault();
-
-        // Convert Instant to ZonedDateTime in the default timezone
-        ZonedDateTime zonedDateTime = instant.atZone(zoneId);
-
-        // Create a formatter (this can be customized as needed)
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z")
-            .withLocale(Locale.getDefault())
-            .withZone(zoneId);
-
-        // Format the ZonedDateTime to a string
-        return zonedDateTime.format(formatter);
-    }
-
-    public static Pair<String, String> getRelativeTimeKeyAndValue(long pastTimestamp) {
-        Instant now = Instant.now();
-        Instant past = Instant.ofEpochMilli(pastTimestamp);
-        Duration duration = Duration.between(past, now);
-
-        double seconds = duration.toMillis() / 1000.0;
-        double minutes = seconds / 60.0;
-        double hours = minutes / 60.0;
-        double days = hours / 24.0;
-        double years = days / 365.0;
-        double decades = years / 10.0;
-
-        String formattedValue;
-        String key;
-
-        if (decades >= 1) {
-            key = "time.ago.decades";
-            formattedValue = String.format("%.1f", decades);
-        } else if (years >= 1) {
-            key = "time.ago.years";
-            formattedValue = String.format("%.1f", years);
-        } else if (days >= 1) {
-            key = "time.ago.days";
-            formattedValue = String.format("%.1f", days);
-        } else if (hours >= 1) {
-            key = "time.ago.hours";
-            formattedValue = String.format("%.1f", hours);
-        } else if (minutes >= 1) {
-            key = "time.ago.minutes";
-            formattedValue = String.format("%.1f", minutes);
-        } else {
-            key = "time.ago.seconds";
-            formattedValue = String.format("%.1f", seconds);
-        }
-
-        return new ObjectObjectImmutablePair<>(key, formattedValue);
-    }
-
-    public static IChatComponent getRelativeTimeFromUnix(long pastTimestamp, String timezoneId) {
-        Pair<String, String> timePair = getRelativeTimeKeyAndValue(pastTimestamp);
-
-        // This code remains unchanged (except fallback if you want):
-        Instant past = Instant.ofEpochMilli(pastTimestamp);
-        ZoneId zoneId;
-        try {
-            zoneId = ZoneId.of(timezoneId);
-        } catch (DateTimeException e) {
-            zoneId = ZoneOffset.UTC;
-        }
-
-        ZonedDateTime localDateTime = ZonedDateTime.ofInstant(past, zoneId);
-        String formattedTime = localDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z"));
-
-        // Main display (replace with translation key if you want):
-        ChatComponentTranslation text = new ChatComponentTranslation(timePair.first(), timePair.second());
-
-        ChatComponentTranslation hoverText = new ChatComponentTranslation(formattedTime);
+        ChatComponentTimeAbsolute hoverText = new ChatComponentTimeAbsolute(epochMillis);
         hoverText.getChatStyle()
             .setColor(EnumChatFormatting.GRAY);
 
         // Add hover
-        text.setChatStyle(new ChatStyle().setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hoverText)));
+        text.getChatStyle()
+            .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hoverText));
 
         return text;
     }
 
-    // --------------------------------------------------------------------
-    // Alias → canonical (all lower‑case, no trailing whitespace)
-    // --------------------------------------------------------------------
-    private static final Map<String, String> UNIT_ALIASES = new HashMap<>();
-    static {
-        // seconds
-        UNIT_ALIASES.put("s", "second");
-        UNIT_ALIASES.put("sec", "second");
-        UNIT_ALIASES.put("secs", "second");
-        UNIT_ALIASES.put("second", "second");
-        UNIT_ALIASES.put("seconds", "second");
-
-        // minutes
-        UNIT_ALIASES.put("m", "minute");
-        UNIT_ALIASES.put("min", "minute");
-        UNIT_ALIASES.put("mins", "minute");
-        UNIT_ALIASES.put("minute", "minute");
-        UNIT_ALIASES.put("minutes", "minute");
-
-        // hours
-        UNIT_ALIASES.put("h", "hour");
-        UNIT_ALIASES.put("hr", "hour");
-        UNIT_ALIASES.put("hrs", "hour");
-        UNIT_ALIASES.put("hour", "hour");
-        UNIT_ALIASES.put("hours", "hour");
-
-        // days
-        UNIT_ALIASES.put("d", "day");
-        UNIT_ALIASES.put("day", "day");
-        UNIT_ALIASES.put("days", "day");
-
-        // weeks
-        UNIT_ALIASES.put("w", "week");
-        UNIT_ALIASES.put("wk", "week");
-        UNIT_ALIASES.put("wks", "week");
-        UNIT_ALIASES.put("week", "week");
-        UNIT_ALIASES.put("weeks", "week");
-
-        // months
-        UNIT_ALIASES.put("mo", "month");
-        UNIT_ALIASES.put("month", "month");
-        UNIT_ALIASES.put("months", "month");
-
-        // years
-        UNIT_ALIASES.put("y", "year");
-        UNIT_ALIASES.put("yr", "year");
-        UNIT_ALIASES.put("yrs", "year");
-        UNIT_ALIASES.put("year", "year");
-        UNIT_ALIASES.put("years", "year");
-
-        // decades
-        UNIT_ALIASES.put("decade", "decade");
-        UNIT_ALIASES.put("decades", "decade");
-    }
-
+    // E.g. 1hour, 2days, 1d etc
     public static long convertToSeconds(String timeDescription) {
-        java.util.regex.Matcher matcher = java.util.regex.Pattern.compile("(\\d+)\\s*([a-zA-Z]+)")
+        Matcher matcher = Pattern.compile("(\\d+)\\s*([a-zA-Z]+)")
             .matcher(timeDescription);
         if (!matcher.matches()) {
             throw new CommandException("Invalid time description. Expected e.g. '1week' or '5months' etc.");
@@ -197,8 +50,12 @@ public class TimeUtils {
         String raw = matcher.group(2)
             .toLowerCase(Locale.ROOT);
 
-        // Map abbreviation/plural to canonical singular (or fall back to raw)
-        String unit = UNIT_ALIASES.getOrDefault(raw, raw);
+        // Map abbreviation to canonical.
+        String unit = UNIT_ALIASES.get(raw);
+
+        if (unit == null) {
+            throw new CommandException("Invalid time description. Unsupported unit: " + raw);
+        }
 
         return switch (unit) {
             case "second" -> number;
@@ -209,51 +66,63 @@ public class TimeUtils {
             case "month" -> number * 2_592_000L;
             case "year" -> number * 31_557_600L;
             case "decade" -> number * 315_576_000L;
-            default -> throw new CommandException("Unsupported time unit. Allowed: s, m, h, d, w, mo, y, decade.");
+            default -> throw new IllegalStateException("Unexpected value: " + unit);
         };
     }
 
-    public static class DurationParts {
-
-        public final String value;
-        public final String unitKey;
-
-        public DurationParts(String value, String unitKey) {
-            this.value = value;
-            this.unitKey = unitKey;
-        }
-    }
-
-    public static DurationParts formatShortDuration(long millis) {
+    public static DurationParts relativeTimeAgoFormatter(long millis) {
         if (millis < 1000) {
-            return new DurationParts(Long.toString(millis), "time.unit.milliseconds");
+            return new DurationParts(millis, "time.unit.milliseconds");
         }
 
         double seconds = millis / 1000.0;
         if (seconds < 60) {
-            return new DurationParts(trim(seconds), "time.unit.seconds");
+            return new DurationParts(seconds, "time.unit.seconds");
         }
 
         double minutes = seconds / 60.0;
         if (minutes < 60) {
-            return new DurationParts(trim(minutes), "time.unit.minutes");
+            return new DurationParts(minutes, "time.unit.minutes");
         }
 
         double hours = minutes / 60.0;
         if (hours < 24) {
-            return new DurationParts(trim(hours), "time.unit.hours");
+            return new DurationParts(hours, "time.unit.hours");
         }
 
         double days = hours / 24.0;
-        return new DurationParts(trim(days), "time.unit.days");
+        return new DurationParts(days, "time.unit.days");
     }
 
-    private static String trim(double value) {
-        long whole = (long) value;
-        if (value == whole) {
-            return Long.toString(whole);
+    // Utility class
+    public static class DurationParts {
+
+        public final double time;
+        public final String translationKey;
+
+        public DurationParts(double time, String translationKey) {
+            this.time = time;
+            this.translationKey = translationKey;
         }
-        return String.format(Locale.ROOT, "%.1f", value);
+    }
+
+    // Conversion map for all our units.
+    private static final Map<String, String> UNIT_ALIASES = new HashMap<>();
+    static {
+        add("second", "s", "sec", "secs", "second", "seconds");
+        add("minute", "m", "min", "mins", "minute", "minutes");
+        add("hour", "h", "hr", "hrs", "hour", "hours");
+        add("day", "d", "day", "days");
+        add("week", "w", "wk", "wks", "week", "weeks");
+        add("month", "mo", "month", "months");
+        add("year", "y", "yr", "yrs", "year", "years");
+        add("decade", "de", "decade", "decades");
+    }
+
+    private static void add(String canonical, String... aliases) {
+        for (String alias : aliases) {
+            UNIT_ALIASES.put(alias, canonical);
+        }
     }
 
 }
