@@ -1,6 +1,5 @@
 package com.colen.tempora.commands;
 
-import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
@@ -10,6 +9,7 @@ import net.minecraft.world.World;
 
 import com.colen.tempora.loggers.block_change.BlockChangeRecordingRegion;
 import com.colen.tempora.loggers.block_change.RegionRegistry;
+import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 
 /**
  * /createregion <x1> <y1> <z1> <x2> <y2> <z2>
