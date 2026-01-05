@@ -3,7 +3,6 @@ package com.colen.tempora.items;
 import static com.colen.tempora.Tempora.LOG;
 import static com.colen.tempora.loggers.generic.GenericQueueElement.generateTeleportChatComponent;
 
-import com.colen.tempora.TemporaLoggerManager;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
@@ -14,6 +13,7 @@ import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.Facing;
 import net.minecraft.world.World;
 
+import com.colen.tempora.TemporaLoggerManager;
 import com.colen.tempora.TemporaUtils;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.GenericQueueElement;

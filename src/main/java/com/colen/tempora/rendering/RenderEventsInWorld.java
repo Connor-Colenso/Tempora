@@ -1,8 +1,8 @@
 package com.colen.tempora.rendering;
 
-import com.colen.tempora.TemporaLoggerManager;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 
+import com.colen.tempora.TemporaLoggerManager;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;

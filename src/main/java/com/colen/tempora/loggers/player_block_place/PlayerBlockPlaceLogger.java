@@ -14,7 +14,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
-import com.colen.tempora.enums.LoggerEventType;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
@@ -27,6 +26,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.colen.tempora.TemporaUtils;
 import com.colen.tempora.enums.LoggerEnum;
+import com.colen.tempora.enums.LoggerEventType;
 import com.colen.tempora.loggers.generic.ColumnDef;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
@@ -63,7 +63,9 @@ public class PlayerBlockPlaceLogger extends GenericPositionalLogger<PlayerBlockP
     @Override
     @SideOnly(Side.CLIENT)
     public void renderEventsInWorld(RenderWorldLastEvent e) {
-        List<PlayerBlockPlaceQueueElement> sortedList = getSortedLatestEventsByDistance(transparentEventsToRenderInWorld, e);
+        List<PlayerBlockPlaceQueueElement> sortedList = getSortedLatestEventsByDistance(
+            transparentEventsToRenderInWorld,
+            e);
 
         for (PlayerBlockPlaceQueueElement pbbqe : sortedList) {
             RenderingUtils.quickRenderBlockWithHighlightAndChecks(
@@ -130,7 +132,8 @@ public class PlayerBlockPlaceLogger extends GenericPositionalLogger<PlayerBlockP
             + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         int index;
-        try (PreparedStatement pstmt = db.getDBConn().prepareStatement(sql)) {
+        try (PreparedStatement pstmt = db.getDBConn()
+            .prepareStatement(sql)) {
             for (PlayerBlockPlaceQueueElement queueElement : queueElements) {
                 index = 1;
 

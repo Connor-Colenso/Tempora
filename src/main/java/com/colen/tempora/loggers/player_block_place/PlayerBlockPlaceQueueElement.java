@@ -1,11 +1,10 @@
 package com.colen.tempora.loggers.player_block_place;
 
-import com.colen.tempora.TemporaEvents;
 import net.minecraft.block.Block;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 
-import com.colen.tempora.enums.LoggerEnum;
+import com.colen.tempora.TemporaEvents;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.utils.BlockUtils;
 import com.colen.tempora.utils.PlayerUtils;

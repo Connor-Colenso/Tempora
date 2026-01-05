@@ -11,7 +11,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
-import com.colen.tempora.enums.LoggerEventType;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
@@ -25,6 +24,7 @@ import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
 import org.jetbrains.annotations.NotNull;
 
 import com.colen.tempora.enums.LoggerEnum;
+import com.colen.tempora.enums.LoggerEventType;
 import com.colen.tempora.loggers.generic.ColumnDef;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
@@ -108,7 +108,8 @@ public class EntityPositionLogger extends GenericPositionalLogger<EntityPosition
             + " (entityName, entityUUID, rotationYaw, rotationPitch, eventID, x, y, z, dimensionID, timestamp, versionID) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         int index;
-        try (PreparedStatement pstmt = db.getDBConn().prepareStatement(sql)) {
+        try (PreparedStatement pstmt = db.getDBConn()
+            .prepareStatement(sql)) {
             for (EntityPositionQueueElement queueElement : queueElements) {
                 index = 1;
 

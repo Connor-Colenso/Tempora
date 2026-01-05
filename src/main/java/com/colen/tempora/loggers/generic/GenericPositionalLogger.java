@@ -14,8 +14,6 @@ import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-import com.colen.tempora.TemporaLoggerManager;
-import com.colen.tempora.enums.LoggerEventType;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.MinecraftForge;
@@ -23,7 +21,9 @@ import net.minecraftforge.common.config.Configuration;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.colen.tempora.TemporaLoggerManager;
 import com.colen.tempora.enums.LoggerEnum;
+import com.colen.tempora.enums.LoggerEventType;
 import com.colen.tempora.utils.DatabaseUtils;
 import com.colen.tempora.utils.GenericUtils;
 
@@ -133,10 +133,10 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
         switch (getLoggerEventType()) {
             case ForgeEvent -> MinecraftForge.EVENT_BUS.register(this);
-            case MinecraftEvent -> FMLCommonHandler.instance().bus().register(this);
-            default -> throw new IllegalStateException(
-                "Unknown LoggerEventType: " + getLoggerEventType()
-            );
+            case MinecraftEvent -> FMLCommonHandler.instance()
+                .bus()
+                .register(this);
+            default -> throw new IllegalStateException("Unknown LoggerEventType: " + getLoggerEventType());
         }
     }
 
@@ -176,7 +176,8 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
                 eventQueue.drainTo(buffer);
 
                 threadedSaveEvents(buffer);
-                db.getDBConn().commit();
+                db.getDBConn()
+                    .commit();
                 buffer.clear();
             } catch (Exception x) {
                 throw new RuntimeException("DB failure in " + sqlTableName, x);
@@ -275,7 +276,8 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
             for (GenericPositionalLogger<?> logger : TemporaLoggerManager.getLoggerList()) {
                 // Shut down each db.
-                if (logger.db.getDBConn() != null && !logger.db.getDBConn().isClosed()) {
+                if (logger.db.getDBConn() != null && !logger.db.getDBConn()
+                    .isClosed()) {
                     ;
                     logger.db.closeDbConnection();
                 }

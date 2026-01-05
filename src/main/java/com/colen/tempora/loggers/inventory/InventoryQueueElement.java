@@ -1,12 +1,11 @@
 package com.colen.tempora.loggers.inventory;
 
-import com.colen.tempora.TemporaEvents;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 
-import com.colen.tempora.enums.LoggerEnum;
+import com.colen.tempora.TemporaEvents;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.utils.PlayerUtils;
 import com.colen.tempora.utils.TimeUtils;

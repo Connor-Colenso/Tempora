@@ -2,11 +2,10 @@ package com.colen.tempora.loggers.entity_death;
 
 import static com.colen.tempora.utils.GenericUtils.entityUUIDChatComponent;
 
-import com.colen.tempora.TemporaEvents;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 
-import com.colen.tempora.enums.LoggerEnum;
+import com.colen.tempora.TemporaEvents;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.utils.PlayerUtils;
 import com.colen.tempora.utils.TimeUtils;

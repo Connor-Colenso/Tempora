@@ -1,6 +1,5 @@
 package com.colen.tempora;
 
-import com.colen.tempora.loggers.block_change.RegionRegistry;
 import net.minecraft.block.Block;
 import net.minecraftforge.common.config.Configuration;
 
@@ -17,17 +16,9 @@ import com.colen.tempora.commands.RemoveRegionCommand;
 import com.colen.tempora.commands.TemporaUndoCommand;
 import com.colen.tempora.commands.TemporaUndoRanged;
 import com.colen.tempora.loggers.block_change.BlockChangeLogger;
-import com.colen.tempora.loggers.command.CommandLogger;
-import com.colen.tempora.loggers.entity_death.EntityDeathLogger;
-import com.colen.tempora.loggers.entity_position.EntityPositionLogger;
-import com.colen.tempora.loggers.entity_spawn.EntitySpawnLogger;
-import com.colen.tempora.loggers.explosion.ExplosionLogger;
+import com.colen.tempora.loggers.block_change.RegionRegistry;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.inventory.InventoryLogger;
-import com.colen.tempora.loggers.item_use.ItemUseLogger;
-import com.colen.tempora.loggers.player_block_break.PlayerBlockBreakLogger;
-import com.colen.tempora.loggers.player_block_place.PlayerBlockPlaceLogger;
-import com.colen.tempora.loggers.player_movement.PlayerMovementLogger;
 
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.SidedProxy;

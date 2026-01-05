@@ -1,11 +1,6 @@
 package com.colen.tempora;
 
-import com.colen.tempora.loggers.generic.GenericPositionalLogger;
-import com.colen.tempora.loggers.generic.GenericQueueElement;
-import com.colen.tempora.loggers.generic.GenericRenderEventPacketHandler;
-import com.colen.tempora.loggers.generic.RenderEventPacket;
-import cpw.mods.fml.relauncher.Side;
-import org.jetbrains.annotations.NotNull;
+import static com.colen.tempora.Tempora.NETWORK;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -15,7 +10,14 @@ import java.util.Map;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import static com.colen.tempora.Tempora.NETWORK;
+import org.jetbrains.annotations.NotNull;
+
+import com.colen.tempora.loggers.generic.GenericPositionalLogger;
+import com.colen.tempora.loggers.generic.GenericQueueElement;
+import com.colen.tempora.loggers.generic.GenericRenderEventPacketHandler;
+import com.colen.tempora.loggers.generic.RenderEventPacket;
+
+import cpw.mods.fml.relauncher.Side;
 
 public final class TemporaLoggerManager {
 
@@ -36,22 +38,18 @@ public final class TemporaLoggerManager {
     private static boolean packetsRegistered = false;
 
     @SuppressWarnings("unchecked")
-    public static <T extends GenericQueueElement> void register(
-        String loggerName,
-        GenericPositionalLogger<T> logger,
-        Supplier<T> factory
-    ) {
+    public static <T extends GenericQueueElement> void register(String loggerName, GenericPositionalLogger<T> logger,
+        Supplier<T> factory) {
         if (LOGGERS.containsKey(loggerName)) {
             throw new IllegalStateException("Logger already registered: " + loggerName);
         }
 
         // Little messy, but works...
-        Class<T> queueElementClass = (Class<T>) factory.get().getClass();
+        Class<T> queueElementClass = (Class<T>) factory.get()
+            .getClass();
 
         if (CLASS_TO_ID.containsKey(queueElementClass)) {
-            throw new IllegalStateException(
-                "QueueElement already registered: " + queueElementClass.getName()
-            );
+            throw new IllegalStateException("QueueElement already registered: " + queueElementClass.getName());
         }
 
         // Assign ID
@@ -68,19 +66,12 @@ public final class TemporaLoggerManager {
         // Sanity check: logger ↔ queue element consistency
         T probe = factory.get();
         if (!loggerName.equals(probe.getLoggerName())) {
-            throw new IllegalStateException(
-                "Logger name mismatch: " + loggerName + " vs " + probe.getLoggerName()
-            );
+            throw new IllegalStateException("Logger name mismatch: " + loggerName + " vs " + probe.getLoggerName());
         }
 
         // Register packet exactly once
         if (!packetsRegistered) {
-            NETWORK.registerMessage(
-                GenericRenderEventPacketHandler.class,
-                RenderEventPacket.class,
-                1000,
-                Side.CLIENT
-            );
+            NETWORK.registerMessage(GenericRenderEventPacketHandler.class, RenderEventPacket.class, 1000, Side.CLIENT);
             packetsRegistered = true;
         }
     }
@@ -91,8 +82,8 @@ public final class TemporaLoggerManager {
         Byte id = CLASS_TO_ID.get(element.getClass());
         if (id == null) {
             throw new IllegalStateException(
-                "Unregistered QueueElement: " + element.getClass().getName()
-            );
+                "Unregistered QueueElement: " + element.getClass()
+                    .getName());
         }
         return id;
     }
@@ -116,8 +107,7 @@ public final class TemporaLoggerManager {
     }
 
     @SuppressWarnings("unchecked")
-    public static <T extends GenericQueueElement>
-    GenericPositionalLogger<T> getTypedLogger(String loggerName) {
+    public static <T extends GenericQueueElement> GenericPositionalLogger<T> getTypedLogger(String loggerName) {
         return (GenericPositionalLogger<T>) LOGGERS.get(loggerName);
     }
 

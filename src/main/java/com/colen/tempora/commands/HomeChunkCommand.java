@@ -11,15 +11,13 @@ import java.sql.SQLException;
 import java.util.Collections;
 import java.util.List;
 
-import com.colen.tempora.CommonProxy;
-import com.colen.tempora.TemporaLoggerManager;
-import com.colen.tempora.loggers.player_movement.PlayerMovementLogger;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 
+import com.colen.tempora.TemporaLoggerManager;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.utils.PlayerUtils;
