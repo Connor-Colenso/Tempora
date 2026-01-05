@@ -46,10 +46,6 @@ public abstract class GenericQueueElement implements IMessage {
         versionID = resultSet.getInt("versionID");
     }
 
-    public void sendEventToClientForRendering(EntityPlayerMP player) {
-        NETWORK.sendTo(this, player);
-    }
-
     @Override
     public void fromBytes(ByteBuf buf) {
         x = buf.readDouble();
@@ -76,7 +72,7 @@ public abstract class GenericQueueElement implements IMessage {
         return false;
     }
 
-    public abstract LoggerEnum getLoggerType();
+    public abstract String getLoggerName();
 
     // How the x y z should be shown in chat and in the /tp command.
     public enum CoordFormat {
@@ -147,7 +143,7 @@ public abstract class GenericQueueElement implements IMessage {
         return display;
     }
 
-    public static IChatComponent generateUndoCommand(LoggerEnum loggerName, String eventID) {
+    public static IChatComponent generateUndoCommand(String loggerName, String eventID) {
 
         // Translation‑driven teleport options.
         IChatComponent display = new ChatComponentTranslation("tempora.undo.query.display");

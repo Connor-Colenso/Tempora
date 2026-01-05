@@ -1,5 +1,6 @@
 package com.colen.tempora.loggers.inventory;
 
+import com.colen.tempora.TemporaEvents;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ChatComponentTranslation;
@@ -83,7 +84,7 @@ public class InventoryQueueElement extends GenericQueueElement {
     }
 
     @Override
-    public LoggerEnum getLoggerType() {
-        return LoggerEnum.InventoryLogger;
+    public String getLoggerName() {
+        return TemporaEvents.INVENTORY;
     }
 }

@@ -1,5 +1,7 @@
 package com.colen.tempora.loggers.player_block_place;
 
+import com.colen.tempora.TemporaEvents;
+import net.minecraft.block.Block;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 
@@ -72,7 +74,13 @@ public class PlayerBlockPlaceQueueElement extends GenericQueueElement {
     }
 
     @Override
-    public LoggerEnum getLoggerType() {
-        return LoggerEnum.PlayerBlockPlaceLogger;
+    public String getLoggerName() {
+        return TemporaEvents.PLAYER_BLOCK_PLACE;
+    }
+
+    @Override
+    public boolean needsTransparencyToRender() {
+        return !Block.getBlockById(blockID)
+            .isOpaqueCube();
     }
 }

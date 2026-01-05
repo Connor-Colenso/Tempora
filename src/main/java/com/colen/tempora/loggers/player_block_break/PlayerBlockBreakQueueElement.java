@@ -1,5 +1,7 @@
 package com.colen.tempora.loggers.player_block_break;
 
+import com.colen.tempora.TemporaEvents;
+import net.minecraft.block.Block;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 
@@ -64,11 +66,17 @@ public class PlayerBlockBreakQueueElement extends GenericQueueElement {
             metadata, // metadata
             coords, // clickable coordinates
             timeAgo, // localized relative time
-            generateUndoCommand(getLoggerType(), eventID));
+            generateUndoCommand(getLoggerName(), eventID));
     }
 
     @Override
-    public LoggerEnum getLoggerType() {
-        return LoggerEnum.PlayerBlockBreakLogger;
+    public String getLoggerName() {
+        return TemporaEvents.PLAYER_BLOCK_BREAK;
+    }
+
+    @Override
+    public boolean needsTransparencyToRender() {
+        return !Block.getBlockById(blockID)
+            .isOpaqueCube();
     }
 }

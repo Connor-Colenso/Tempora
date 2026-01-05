@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.UUID;
 
 import com.colen.tempora.enums.LoggerEventType;
+import com.colen.tempora.loggers.player_block_place.PlayerBlockPlaceQueueElement;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
@@ -59,21 +60,28 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
     @Override
     @SideOnly(Side.CLIENT)
     public void renderEventsInWorld(RenderWorldLastEvent e) {
-        List<PlayerBlockBreakQueueElement> sortedList = getSortedLatestEventsByDistance(
-            transparentEventsToRenderInWorld,
-            e);
+        List<PlayerBlockBreakQueueElement> sortedList = getSortedLatestEventsByDistance(transparentEventsToRenderInWorld, e);
 
-        for (GenericQueueElement element : sortedList) {
-            if (element instanceof PlayerBlockBreakQueueElement pbbqe) {
-                RenderingUtils.quickRenderBlockWithHighlightAndChecks(
-                    e,
-                    element,
-                    pbbqe.blockID,
-                    pbbqe.metadata,
-                    pbbqe.encodedNBT,
-                    pbbqe.playerUUIDWhoBrokeBlock,
-                    getLoggerType());
-            }
+        for (PlayerBlockBreakQueueElement pbbqe : sortedList) {
+            RenderingUtils.quickRenderBlockWithHighlightAndChecks(
+                e,
+                pbbqe,
+                pbbqe.blockID,
+                pbbqe.metadata,
+                pbbqe.encodedNBT,
+                pbbqe.playerUUIDWhoBrokeBlock,
+                getLoggerType());
+        }
+
+        for (PlayerBlockBreakQueueElement pbbqe : nonTransparentEventsToRenderInWorld) {
+            RenderingUtils.quickRenderBlockWithHighlightAndChecks(
+                e,
+                pbbqe,
+                pbbqe.blockID,
+                pbbqe.metadata,
+                pbbqe.encodedNBT,
+                pbbqe.playerUUIDWhoBrokeBlock,
+                getLoggerType());
         }
     }
 

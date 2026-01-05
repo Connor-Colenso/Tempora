@@ -13,6 +13,7 @@ import java.util.Locale;
 import java.util.regex.Pattern;
 
 import com.colen.tempora.TemporaLoggerManager;
+import com.colen.tempora.loggers.generic.RenderEventPacket;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -115,7 +116,7 @@ public class QuerySQLCommand extends CommandBase {
                             .toString()));
 
                 // Render info.
-                queueElement.sendEventToClientForRendering(entityPlayerMP);
+                new RenderEventPacket(queueElement).sendEventToClientForRendering(entityPlayerMP);
             }
 
             ChatComponentTranslation queryFeedbackMsg = new ChatComponentTranslation(

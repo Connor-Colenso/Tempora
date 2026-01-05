@@ -4,6 +4,7 @@ import static cpw.mods.fml.common.network.ByteBufUtils.readVarInt;
 import static cpw.mods.fml.common.network.ByteBufUtils.varIntByteCount;
 import static cpw.mods.fml.common.network.ByteBufUtils.writeVarInt;
 
+import com.colen.tempora.TemporaEvents;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 
@@ -85,7 +86,7 @@ public class ExplosionQueueElement extends GenericQueueElement {
     }
 
     @Override
-    public LoggerEnum getLoggerType() {
-        return LoggerEnum.ExplosionLogger;
+    public String getLoggerName() {
+        return TemporaEvents.EXPLOSION;
     }
 }

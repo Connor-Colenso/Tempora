@@ -268,7 +268,7 @@ public class PositionalLoggerDatabase {
 
                         // This tells the client what to render in world, as it needs this info.
                         for (GenericQueueElement packet : packets) {
-                            packet.sendEventToClientForRendering(player);
+                            new RenderEventPacket(packet).sendEventToClientForRendering(player);
                         }
                     }
                 }
