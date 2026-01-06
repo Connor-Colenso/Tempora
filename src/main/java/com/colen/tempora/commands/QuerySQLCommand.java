@@ -87,7 +87,8 @@ public class QuerySQLCommand extends CommandBase {
         // Execute the query read-only
         try {
             // Ensure the user has all the columns needed
-            List<ColumnDef> columns = targetLogger.getAllTableColumns();
+            List<ColumnDef> columns = targetLogger.getDatabaseManager()
+                .getAllTableColumns();
 
             List<String> missing = findMissingColumns(rawQuery, columns);
             if (!missing.isEmpty()) {
@@ -195,9 +196,10 @@ public class QuerySQLCommand extends CommandBase {
     private List<GenericQueueElement> executeReadOnlyQuery(GenericPositionalLogger<?> logger, String sql)
         throws SQLException {
 
-        try (Connection roConn = logger.getDatabaseManager().getReadOnlyConnection();
-             PreparedStatement stmt = roConn.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
+        try (Connection roConn = logger.getDatabaseManager()
+            .getReadOnlyConnection();
+            PreparedStatement stmt = roConn.prepareStatement(sql);
+            ResultSet rs = stmt.executeQuery()) {
 
             stmt.setMaxRows(MAX_RESULTS_TO_SHOW);
 

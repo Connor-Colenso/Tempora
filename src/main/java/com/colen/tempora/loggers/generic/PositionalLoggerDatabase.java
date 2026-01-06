@@ -1,6 +1,7 @@
 package com.colen.tempora.loggers.generic;
 
 import static com.colen.tempora.Tempora.LOG;
+import static com.colen.tempora.TemporaUtils.deleteLoggerDatabase;
 import static com.colen.tempora.utils.GenericUtils.parseSizeStringToBytes;
 
 import java.nio.file.Files;
@@ -12,11 +13,13 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -29,6 +32,8 @@ import org.jetbrains.annotations.NotNull;
 import org.sqlite.SQLiteConfig;
 
 import com.colen.tempora.TemporaUtils;
+import com.colen.tempora.utils.DatabaseUtils;
+import com.colen.tempora.utils.GenericUtils;
 import com.colen.tempora.utils.TimeUtils;
 
 public class PositionalLoggerDatabase {
@@ -47,7 +52,47 @@ public class PositionalLoggerDatabase {
         genericPositionalLogger = eventToLogGenericPositionalLogger;
     }
 
-    public void initDbConnection() throws SQLException {
+    public void initialiseDatabase() throws SQLException {
+        initDbConnection();
+
+        // Check for corruption
+        if (DatabaseUtils.isDatabaseCorrupted(positionalLoggerDBConnection)) {
+
+            String loggerName = genericPositionalLogger.getLoggerName();
+
+            // Todo handle SP equivalent with UI perhaps?
+            boolean erase = GenericUtils.askTerminalYesNo(
+                "Tempora has detected db corruption in " + loggerName
+                    + ". Would you like to erase the database and create a new one?");
+
+            if (erase) {
+                closeDbConnection();
+                deleteLoggerDatabase(loggerName);
+            } else {
+                throw new RuntimeException(
+                    "Tempora database " + loggerName
+                        + ".db is corrupted. "
+                        + "Please disable database, fix the corruption manually or delete the database "
+                        + "and let Tempora generate a new clean version.");
+            }
+        }
+
+        // Normal initialisation logic
+        if (isHighRiskModeEnabled()) {
+            enableHighRiskFastMode();
+        }
+
+        positionalLoggerDBConnection.setAutoCommit(false);
+
+        initTable();
+        createAllIndexes();
+
+        // Handles data beyond the configs oldest limit or if oversized.
+        removeOldDatabaseData();
+        trimOversizedDatabase();
+    }
+
+    private void initDbConnection() throws SQLException {
         String dbUrl = TemporaUtils.jdbcUrl(genericPositionalLogger.getLoggerName() + ".db");
         positionalLoggerDBConnection = DriverManager.getConnection(dbUrl);
     }
@@ -56,34 +101,41 @@ public class PositionalLoggerDatabase {
         positionalLoggerDBConnection.close();
     }
 
-    public void initTable() throws SQLException {
+    private void initTable() throws SQLException {
         String tableName = genericPositionalLogger.getLoggerName();
-        List<ColumnDef> columns = genericPositionalLogger.getAllTableColumns();
+        List<ColumnDef> columns = getAllTableColumns();
 
-        // Step 1: CREATE TABLE IF NOT EXISTS
-        StringBuilder createSQL = new StringBuilder("CREATE TABLE IF NOT EXISTS ").append(tableName)
+        // Create the table, if it doesn't exist.
+        StringBuilder createSQL = new StringBuilder();
+        createSQL.append("CREATE TABLE IF NOT EXISTS ")
+            .append(tableName)
             .append(" (");
 
-        for (int i = 0; i < columns.size(); i++) {
-            ColumnDef col = columns.get(i);
-            if (i > 0) createSQL.append(", ");
-            createSQL.append(col.name)
-                .append(" ")
-                .append(col.type);
-            if (col.extraCondition != null && !col.extraCondition.isEmpty()) {
-                createSQL.append(" ")
-                    .append(col.extraCondition);
-            }
+        // Build column definitions
+        String columnsSQL = columns.stream()
+            .map(col -> {
+                String sql = col.name + " " + col.type;
+                if (!col.extraCondition.isEmpty()) {
+                    sql += " " + col.extraCondition;
+                }
+                return sql;
+            })
+            .collect(Collectors.joining(", "));
+
+        createSQL.append(columnsSQL)
+            .append(");");
+
+        // Execute statement
+        try (PreparedStatement stmt = positionalLoggerDBConnection.prepareStatement(createSQL.toString())) {
+            stmt.execute();
         }
 
-        createSQL.append(");");
-
-        getDBConn().prepareStatement(createSQL.toString())
+        positionalLoggerDBConnection.prepareStatement(createSQL.toString())
             .execute();
 
         // Step 2: Check existing columns
         Set<String> existingColumns = new HashSet<>();
-        PreparedStatement stmt = getDBConn().prepareStatement("PRAGMA table_info(" + tableName + ");");
+        PreparedStatement stmt = positionalLoggerDBConnection.prepareStatement("PRAGMA table_info(" + tableName + ");");
         ResultSet rs = stmt.executeQuery();
         while (rs.next()) {
             existingColumns.add(rs.getString("name"));
@@ -127,7 +179,7 @@ public class PositionalLoggerDatabase {
         }
     }
 
-    public void removeOldDatabaseData() {
+    private void removeOldDatabaseData() {
         try {
             eraseAllDataBeforeTime(System.currentTimeMillis() - TimeUtils.convertToSeconds(oldestDataCutoff) * 1000);
         } catch (Exception e) {
@@ -141,7 +193,7 @@ public class PositionalLoggerDatabase {
         }
     }
 
-    public void enableHighRiskFastMode() throws SQLException {
+    private void enableHighRiskFastMode() throws SQLException {
         Connection conn = getDBConn();
 
         Statement st = conn.createStatement();
@@ -317,7 +369,7 @@ public class PositionalLoggerDatabase {
         return null;
     }
 
-    public void createAllIndexes() throws SQLException {
+    private void createAllIndexes() throws SQLException {
 
         Statement stmt = positionalLoggerDBConnection.createStatement();
 
@@ -480,6 +532,12 @@ public class PositionalLoggerDatabase {
         } else {
             largestDatabaseSizeInBytes = parseSizeStringToBytes(maxDbSizeString);
         }
+    }
+
+    public final List<ColumnDef> getAllTableColumns() {
+        List<ColumnDef> columns = new ArrayList<>(genericPositionalLogger.getCustomTableColumns());
+        columns.addAll(PositionalLoggerDatabase.getDefaultColumns());
+        return columns;
     }
 
     // Use the fastest durability mode: may lose or corrupt the DB on sudden power loss.

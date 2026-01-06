@@ -1,9 +1,7 @@
 package com.colen.tempora.loggers.generic;
 
 import static com.colen.tempora.Tempora.LOG;
-import static com.colen.tempora.TemporaUtils.deleteLoggerDatabase;
 
-import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -24,8 +22,6 @@ import org.jetbrains.annotations.NotNull;
 import com.colen.tempora.TemporaLoggerManager;
 import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.enums.LoggerEventType;
-import com.colen.tempora.utils.DatabaseUtils;
-import com.colen.tempora.utils.GenericUtils;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.relauncher.Side;
@@ -124,12 +120,6 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
         return getLoggerType().name();
     }
 
-    public final List<ColumnDef> getAllTableColumns() {
-        List<ColumnDef> columns = new ArrayList<>(getCustomTableColumns());
-        columns.addAll(PositionalLoggerDatabase.getDefaultColumns());
-        return columns;
-    }
-
     public void handleCustomLoggerConfig(Configuration config) {}
 
     public final void registerEvent() {
@@ -199,6 +189,26 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
         databaseManager.genericConfig(config);
     }
 
+    private void initialiseLogger() {
+        try {
+            // Clear events and initialise connection
+            clearEvents();
+            databaseManager.initialiseDatabase();
+            startQueueWorker(getLoggerName());
+
+        } catch (SQLException e) {
+            throw new RuntimeException("[Tempora] Failed to initialise database for logger " + loggerName, e);
+        }
+    }
+
+    public final LinkedBlockingQueue<EventToLog> getEventQueue() {
+        return eventQueue;
+    }
+
+    private void clearEvents() {
+        eventQueue.clear();
+    }
+
     // --------------------------------------
     // Static methods
     // --------------------------------------
@@ -211,69 +221,6 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
         }
     }
 
-    private void initialiseLogger() {
-
-        while (true) {
-            try {
-                // Clear events and initialise connection
-                clearEvents();
-                databaseManager.initDbConnection();
-                Connection conn = databaseManager.getDBConn();
-
-                // Check for corruption
-                if (DatabaseUtils.isDatabaseCorrupted(conn)) {
-
-                    // Todo handle SP equivalent with UI perhaps?
-                    boolean erase = GenericUtils.askTerminalYesNo(
-                        "Tempora has detected db corruption in " + loggerName
-                            + ". Would you like to erase the database and create a new one?");
-
-                    if (erase) {
-                        databaseManager.closeDbConnection();
-                        deleteLoggerDatabase(loggerName);
-                        continue;
-                    } else {
-                        throw new RuntimeException(
-                            "Tempora database " + loggerName
-                                + ".db is corrupted. "
-                                + "Please disable database, fix the corruption manually or delete the database "
-                                + "and let Tempora generate a new clean version.");
-                    }
-                }
-
-                // Normal initialisation logic
-                if (databaseManager.isHighRiskModeEnabled()) {
-                    databaseManager.enableHighRiskFastMode();
-                }
-
-                conn.setAutoCommit(false);
-
-                databaseManager.initTable();
-                databaseManager.createAllIndexes();
-                databaseManager.removeOldDatabaseData();
-                databaseManager.trimOversizedDatabase();
-
-                startQueueWorker(getLoggerName());
-
-                // Success! exit loop
-                break;
-
-            } catch (SQLException e) {
-                throw new RuntimeException("[Tempora] Failed to initialise database for logger " + loggerName, e);
-            }
-        }
-    }
-
-    public final LinkedBlockingQueue<EventToLog> getEventQueue() {
-        return eventQueue;
-    }
-
-    private void clearEvents() {
-        eventQueue.clear();
-    }
-
-    /* ---------- helpers ---------- */
-
     public static void onServerClose() {
         try {
             running = false; // Signal worker to stop
@@ -282,7 +229,6 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
                 // Shut down each db.
                 if (logger.databaseManager.getDBConn() != null && !logger.databaseManager.getDBConn()
                     .isClosed()) {
-                    ;
                     logger.databaseManager.closeDbConnection();
                 }
             }
