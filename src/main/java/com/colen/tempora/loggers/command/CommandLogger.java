@@ -2,6 +2,7 @@ package com.colen.tempora.loggers.command;
 
 import static com.colen.tempora.TemporaUtils.isClientSide;
 import static com.colen.tempora.rendering.RenderUtils.renderFloatingText;
+import static com.colen.tempora.utils.ChatUtils.ONE_DP;
 import static com.colen.tempora.utils.DatabaseUtils.MISSING_STRING_DATA;
 
 import java.sql.PreparedStatement;
@@ -21,7 +22,6 @@ import net.minecraftforge.event.CommandEvent;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.colen.tempora.chat.ChatComponentTimeRelative;
 import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.enums.LoggerEventType;
 import com.colen.tempora.loggers.generic.ColumnDef;
@@ -29,6 +29,8 @@ import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.utils.DatabaseUtils;
 import com.colen.tempora.utils.PlayerUtils;
+import com.colen.tempora.utils.TimeUtils;
+import com.gtnewhorizon.gtnhlib.util.numberformatting.NumberFormatUtil;
 
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
@@ -57,7 +59,12 @@ public class CommandLogger extends GenericPositionalLogger<CommandQueueElement> 
             toRender.add(StatCollector.translateToLocalFormatted("event.command.executed", cqe.truePlayerName));
             toRender.add("/" + cqe.commandName + " " + cqe.arguments);
 
-            toRender.add(new ChatComponentTimeRelative(cqe.timestamp).getFormattedText());
+            TimeUtils.DurationParts formattedTime = TimeUtils.relativeTimeAgoFormatter(cqe.timestamp);
+
+            toRender.add(
+                StatCollector.translateToLocalFormatted(
+                    formattedTime.translationKey,
+                    NumberFormatUtil.formatNumber(formattedTime.time, ONE_DP)));
 
             renderFloatingText(toRender, x, y, z);
         }

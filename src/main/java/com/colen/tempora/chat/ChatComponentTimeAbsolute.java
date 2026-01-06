@@ -2,9 +2,7 @@ package com.colen.tempora.chat;
 
 import java.time.Instant;
 import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.TimeZone;
 
 import com.gtnewhorizon.gtnhlib.chat.AbstractChatComponentCustom;
 import com.gtnewhorizon.gtnhlib.chat.customcomponents.AbstractChatComponentNumber;
@@ -19,16 +17,9 @@ public class ChatComponentTimeAbsolute extends AbstractChatComponentNumber {
 
     @Override
     protected String formatNumber(Number value) {
-
-        long pastTimestamp = value.longValue();
-
-        Instant past = Instant.ofEpochMilli(pastTimestamp);
-        ZoneId zoneId = TimeZone.getDefault()
-            .toZoneId();
-
-        ZonedDateTime localDateTime = ZonedDateTime.ofInstant(past, zoneId);
-
-        return localDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z"));
+        return Instant.ofEpochMilli(value.longValue())
+            .atZone(ZoneId.systemDefault())
+            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z"));
     }
 
     @Override
@@ -38,6 +29,6 @@ public class ChatComponentTimeAbsolute extends AbstractChatComponentNumber {
 
     @Override
     protected AbstractChatComponentCustom copySelf() {
-        return new ChatComponentTimeAbsolute();
+        return new ChatComponentTimeAbsolute(number);
     }
 }

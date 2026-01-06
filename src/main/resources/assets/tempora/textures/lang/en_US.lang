@@ -19,7 +19,6 @@ time.ago.days=%s days ago
 time.ago.hours=%s hours ago
 time.ago.minutes=%s minutes ago
 time.ago.seconds=%s seconds ago
-time.ago.milliseconds=%s milliseconds ago
 
 # Usage / help
 tempora.command.querysql.usage=Usage: %s.
@@ -94,7 +93,6 @@ tempora.undo.preview.highlight=WARNING: This operation is irreversible.
 tempora.undo.preview.confirm=[HERE]
 tempora.undo.range.too_large=Server config limits undo range to %s. Your requested range has been capped.
 
-time.unit.milliseconds=ms
 time.unit.seconds=s
 time.unit.minutes=mins
 time.unit.hours=hrs
