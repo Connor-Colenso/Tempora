@@ -1,5 +1,6 @@
 package com.colen.tempora.utils;
 
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -19,7 +20,7 @@ public class TimeUtils {
     /**
      * Formats a given timestamp (in milliseconds) to a string saying how long ago it was, e.g. 1 hour ago.
      * Hovering over it will reveal string based on the default system timezone.
-     * The format used is "yyyy-MM-dd HH:mm:ss".
+     * The format used is "yyyy-MM-dd HH:mm:ss z".
      *
      * @param epochMillis The unix epoch timestamp to format, in milliseconds.
      * @return A formatted date-time string.
@@ -70,28 +71,26 @@ public class TimeUtils {
         };
     }
 
-    public static DurationParts relativeTimeAgoFormatter(long millis) {
-        if (millis < 1000) {
-            return new DurationParts(millis, "time.unit.milliseconds");
-        }
+    public static DurationParts relativeTimeAgoFormatter(long pastUnixEpochTimestampMillis) {
 
-        double seconds = millis / 1000.0;
+        double seconds = (Instant.now()
+            .toEpochMilli() - pastUnixEpochTimestampMillis) / 1000.0;
         if (seconds < 60) {
-            return new DurationParts(seconds, "time.unit.seconds");
+            return new DurationParts(seconds, "time.ago.seconds");
         }
 
         double minutes = seconds / 60.0;
         if (minutes < 60) {
-            return new DurationParts(minutes, "time.unit.minutes");
+            return new DurationParts(minutes, "time.ago.minutes");
         }
 
         double hours = minutes / 60.0;
         if (hours < 24) {
-            return new DurationParts(hours, "time.unit.hours");
+            return new DurationParts(hours, "time.ago.hours");
         }
 
         double days = hours / 24.0;
-        return new DurationParts(days, "time.unit.days");
+        return new DurationParts(days, "time.ago.days");
     }
 
     // Utility class
