@@ -195,9 +195,9 @@ public class QuerySQLCommand extends CommandBase {
     private List<GenericQueueElement> executeReadOnlyQuery(GenericPositionalLogger<?> logger, String sql)
         throws SQLException {
 
-        try (Connection roConn = logger.db.getReadOnlyConnection();
-            PreparedStatement stmt = roConn.prepareStatement(sql);
-            ResultSet rs = stmt.executeQuery()) {
+        try (Connection roConn = logger.getDatabaseManager().getReadOnlyConnection();
+             PreparedStatement stmt = roConn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
 
             stmt.setMaxRows(MAX_RESULTS_TO_SHOW);
 

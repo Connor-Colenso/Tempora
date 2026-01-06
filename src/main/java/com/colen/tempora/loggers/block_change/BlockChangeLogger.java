@@ -64,14 +64,6 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
 
     private static boolean logNBT;
 
-    /**
-     * Track nested block writes per thread.
-     * We only log when depth goes from 0 -> 1 -> 0.
-     */
-    private static final ThreadLocal<Integer> depth = ThreadLocal.withInitial(() -> 0);
-
-    private static final ThreadLocal<SetBlockEventInfo> currentEvent = new ThreadLocal<>();
-
     @Override
     public LoggerEnum getLoggerType() {
         return LoggerEnum.BlockChangeLogger;
@@ -183,7 +175,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
             + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         int index;
-        try (PreparedStatement pstmt = db.getDBConn()
+        try (PreparedStatement pstmt = databaseManager.getDBConn()
             .prepareStatement(sql)) {
             for (BlockChangeQueueElement queueElement : queueElements) {
                 index = 1;

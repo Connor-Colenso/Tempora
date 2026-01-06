@@ -153,7 +153,7 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueE
             + " (entityName, entityUUID, killedBy, rotationYaw, rotationPitch, eventID, x, y, z, dimensionID, timestamp, versionID) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         int index;
-        try (PreparedStatement pstmt = db.getDBConn()
+        try (PreparedStatement pstmt = databaseManager.getDBConn()
             .prepareStatement(sql)) {
             for (EntityDeathQueueElement queueElement : queueElements) {
                 index = 1;

@@ -171,7 +171,7 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionQueueEleme
             + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         int index;
-        try (PreparedStatement pstmt = db.getDBConn()
+        try (PreparedStatement pstmt = databaseManager.getDBConn()
             .prepareStatement(sql)) {
             for (ExplosionQueueElement queueElement : queueElements) {
                 index = 1;
