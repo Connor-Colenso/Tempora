@@ -55,7 +55,7 @@ public class QueryEventsCommand extends CommandBase {
         int y = (int) Math.round(entityPlayerMP.posY);
         int z = (int) Math.round(entityPlayerMP.posZ);
 
-        TemporaLoggerManager.getLogger(tableName).db
+        TemporaLoggerManager.getLogger(tableName).getDatabaseManager()
             .queryEventByCoordinate(sender, x, y, z, radius, seconds, entityPlayerMP.dimension);
     }
 

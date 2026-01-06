@@ -36,7 +36,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
     public static final long SECONDS_RENDERING_DURATION = 10;
 
-    public final PositionalLoggerDatabase db = new PositionalLoggerDatabase(this);
+    protected final PositionalLoggerDatabase databaseManager = new PositionalLoggerDatabase(this);
 
     private static volatile boolean running = true;
 
@@ -100,6 +100,10 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
     protected LogWriteSafety defaultLogWriteSafetyMode() {
         return LogWriteSafety.NORMAL;
+    }
+
+    public PositionalLoggerDatabase getDatabaseManager() {
+        return databaseManager;
     }
 
     public abstract void threadedSaveEvents(List<EventToLog> event) throws SQLException;
@@ -176,7 +180,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
                 eventQueue.drainTo(buffer);
 
                 threadedSaveEvents(buffer);
-                db.getDBConn()
+                databaseManager.getDBConn()
                     .commit();
                 buffer.clear();
             } catch (Exception x) {
@@ -192,7 +196,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
     public final void genericConfig(@NotNull Configuration config) {
         isEnabled = config.getBoolean("isEnabled", getLoggerName(), loggerEnabledByDefault(), "Enables this logger.");
 
-        db.genericConfig(config);
+        databaseManager.genericConfig(config);
     }
 
     // --------------------------------------
@@ -213,8 +217,8 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
             try {
                 // Clear events and initialise connection
                 clearEvents();
-                db.initDbConnection();
-                Connection conn = db.getDBConn();
+                databaseManager.initDbConnection();
+                Connection conn = databaseManager.getDBConn();
 
                 // Check for corruption
                 if (DatabaseUtils.isDatabaseCorrupted(conn)) {
@@ -225,7 +229,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
                             + ". Would you like to erase the database and create a new one?");
 
                     if (erase) {
-                        db.closeDbConnection();
+                        databaseManager.closeDbConnection();
                         deleteLoggerDatabase(loggerName);
                         continue;
                     } else {
@@ -238,16 +242,16 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
                 }
 
                 // Normal initialisation logic
-                if (db.isHighRiskModeEnabled()) {
-                    db.enableHighRiskFastMode();
+                if (databaseManager.isHighRiskModeEnabled()) {
+                    databaseManager.enableHighRiskFastMode();
                 }
 
                 conn.setAutoCommit(false);
 
-                db.initTable();
-                db.createAllIndexes();
-                db.removeOldDatabaseData();
-                db.trimOversizedDatabase();
+                databaseManager.initTable();
+                databaseManager.createAllIndexes();
+                databaseManager.removeOldDatabaseData();
+                databaseManager.trimOversizedDatabase();
 
                 startQueueWorker(getLoggerName());
 
@@ -276,10 +280,10 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
             for (GenericPositionalLogger<?> logger : TemporaLoggerManager.getLoggerList()) {
                 // Shut down each db.
-                if (logger.db.getDBConn() != null && !logger.db.getDBConn()
+                if (logger.databaseManager.getDBConn() != null && !logger.databaseManager.getDBConn()
                     .isClosed()) {
                     ;
-                    logger.db.closeDbConnection();
+                    logger.databaseManager.closeDbConnection();
                 }
             }
 
