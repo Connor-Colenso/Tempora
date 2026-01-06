@@ -135,10 +135,12 @@ public class PositionalLoggerDatabase {
 
         // Step 2: Check existing columns
         Set<String> existingColumns = new HashSet<>();
-        PreparedStatement stmt = positionalLoggerDBConnection.prepareStatement("PRAGMA table_info(" + tableName + ");");
-        ResultSet rs = stmt.executeQuery();
-        while (rs.next()) {
-            existingColumns.add(rs.getString("name"));
+        try (PreparedStatement stmt = positionalLoggerDBConnection.prepareStatement("PRAGMA table_info(" + tableName + ");")) {
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                existingColumns.add(rs.getString("name"));
+            }
         }
 
         // Step 3: ALTER TABLE to add missing columns
@@ -150,13 +152,13 @@ public class PositionalLoggerDatabase {
                     .append(" ")
                     .append(col.type);
 
-                if (col.extraCondition != null && !col.extraCondition.isEmpty()) {
+                if (!col.extraCondition.isEmpty()) {
                     alterSQL.append(" ")
                         .append(col.extraCondition);
                 }
 
                 alterSQL.append(";");
-                getDBConn().prepareStatement(alterSQL.toString())
+                positionalLoggerDBConnection.prepareStatement(alterSQL.toString())
                     .execute();
             }
         }
@@ -168,7 +170,7 @@ public class PositionalLoggerDatabase {
         // Prepare SQL statement with the safe table name
         String sql = "DELETE FROM " + genericPositionalLogger.getLoggerName() + " WHERE timestamp < ?";
 
-        try (PreparedStatement pstmt = getDBConn().prepareStatement(sql)) {
+        try (PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(sql)) {
             // Set the parameter for the PreparedStatement
             pstmt.setLong(1, time);
 
@@ -194,7 +196,7 @@ public class PositionalLoggerDatabase {
     }
 
     private void enableHighRiskFastMode() throws SQLException {
-        Connection conn = getDBConn();
+        Connection conn = positionalLoggerDBConnection;
 
         Statement st = conn.createStatement();
         st.execute("PRAGMA synchronous=OFF;");
