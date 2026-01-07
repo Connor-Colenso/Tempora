@@ -110,6 +110,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
         return databaseManager;
     }
 
+    // This is responsible for logging the actual events
     private void threadedSaveEvents(List<EventToLog> queueElements) throws SQLException {
         if (queueElements == null || queueElements.isEmpty()) return;
 
@@ -314,7 +315,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
                 if (event == null) continue;
 
                 if (eventQueue.size() > LARGE_QUEUE_THRESHOLD) {
-                    LOG.warn("{} has {} elements waiting…", sqlTableName, eventQueue.size());
+                    LOG.warn("{} has {} elements waiting to be logged, this may indicate server slowdown.", sqlTableName, eventQueue.size());
                 }
 
                 buffer.add(event);

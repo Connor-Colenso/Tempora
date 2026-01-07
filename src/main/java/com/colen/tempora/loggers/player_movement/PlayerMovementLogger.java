@@ -70,10 +70,6 @@ public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovement
             "How often player location is recorded by Tempora. Measured in ticks (20/second).");
     }
 
-    public PlayerMovementLogger() {
-        super();
-    }
-
     @Override
     public @NotNull LoggerEventType getLoggerEventType() {
         return LoggerEventType.ForgeEvent;
