@@ -1,17 +1,16 @@
 package com.colen.tempora.loggers.entity_death;
 
 import static com.colen.tempora.TemporaUtils.isClientSide;
-import static com.colen.tempora.utils.DatabaseUtils.MISSING_STRING_DATA;
 import static com.colen.tempora.utils.PlayerUtils.isUUID;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
+import com.colen.tempora.loggers.block_change.BlockChangeQueueElement;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
@@ -25,7 +24,6 @@ import org.jetbrains.annotations.NotNull;
 
 import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.enums.LoggerEventType;
-import com.colen.tempora.loggers.generic.ColumnDef;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.rendering.RenderUtils;
@@ -40,6 +38,11 @@ import cpw.mods.fml.relauncher.SideOnly;
 public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueElement> {
 
     @Override
+    public @NotNull EntityDeathQueueElement getQueueElementInstance() {
+        return new EntityDeathQueueElement();
+    }
+
+    @Override
     public LoggerEnum getLoggerType() {
         return LoggerEnum.EntityDeathLogger;
     }
@@ -50,7 +53,7 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueE
         sortByDistanceDescending(transparentEventsToRenderInWorld, e);
 
         for (EntityDeathQueueElement bcqe : transparentEventsToRenderInWorld) {
-            Entity entity = EntityList.createEntityByName(bcqe.nameOfDeadMob, Minecraft.getMinecraft().theWorld);
+            Entity entity = EntityList.createEntityByName(bcqe.nameOfDeadEntity, Minecraft.getMinecraft().theWorld);
 
             // Render mob
             RenderUtils.renderEntityInWorld(entity, bcqe.x, bcqe.y, bcqe.z, bcqe.rotationYaw, bcqe.rotationPitch);
@@ -83,7 +86,7 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueE
         queueElement.dimensionID = event.entity.dimension;
         queueElement.timestamp = System.currentTimeMillis();
 
-        queueElement.nameOfDeadMob = EntityList.getEntityString(event.entityLiving);
+        queueElement.nameOfDeadEntity = EntityList.getEntityString(event.entityLiving);
         queueElement.entityUUID = event.entityLiving.getUniqueID()
             .toString();
 
@@ -107,59 +110,6 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueE
         }
 
         queueEvent(queueElement);
-    }
-
-    @Override
-    public @NotNull List<GenericQueueElement> generateQueryResults(ResultSet resultSet) throws SQLException {
-        ArrayList<GenericQueueElement> eventList = new ArrayList<>();
-
-        while (resultSet.next()) {
-            EntityDeathQueueElement queueElement = new EntityDeathQueueElement();
-            queueElement.populateDefaultFieldsFromResultSet(resultSet);
-
-            String killedBy = resultSet.getString("killedBy");
-            if (isUUID(killedBy)) {
-                queueElement.killedBy = PlayerUtils.UUIDToName(killedBy);
-            } else {
-                queueElement.killedBy = killedBy;
-            }
-
-            queueElement.nameOfDeadMob = resultSet.getString("entityName");
-            queueElement.entityUUID = resultSet.getString("entityUUID");
-            queueElement.rotationYaw = resultSet.getFloat("rotationYaw");
-            queueElement.rotationPitch = resultSet.getFloat("rotationPitch");
-
-            eventList.add(queueElement);
-        }
-
-        return eventList;
-    }
-
-    @Override
-    public void threadedSaveEvents(List<EntityDeathQueueElement> queueElements) throws SQLException {
-        if (queueElements == null || queueElements.isEmpty()) return;
-
-        final String sql = "INSERT INTO " + getLoggerName()
-            + " (entityName, entityUUID, killedBy, rotationYaw, rotationPitch, eventID, x, y, z, dimensionID, timestamp, versionID) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
-        int index;
-        try (PreparedStatement pstmt = databaseManager.getDBConn()
-            .prepareStatement(sql)) {
-            for (EntityDeathQueueElement queueElement : queueElements) {
-                index = 1;
-
-                pstmt.setString(index++, queueElement.nameOfDeadMob);
-                pstmt.setString(index++, queueElement.entityUUID);
-                pstmt.setString(index++, queueElement.killedBy);
-                pstmt.setFloat(index++, queueElement.rotationYaw);
-                pstmt.setFloat(index++, queueElement.rotationPitch);
-
-                DatabaseUtils.defaultColumnEntries(queueElement, pstmt, index);
-                pstmt.addBatch();
-            }
-
-            pstmt.executeBatch();
-        }
     }
 
 }

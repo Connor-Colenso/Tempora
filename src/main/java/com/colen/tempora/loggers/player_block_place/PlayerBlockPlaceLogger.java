@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import com.colen.tempora.loggers.block_change.BlockChangeQueueElement;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
@@ -36,6 +37,11 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
 public class PlayerBlockPlaceLogger extends GenericPositionalLogger<PlayerBlockPlaceQueueElement> {
+
+    @Override
+    public @NotNull PlayerBlockPlaceQueueElement getQueueElementInstance() {
+        return new PlayerBlockPlaceQueueElement();
+    }
 
     private boolean logNBT;
 
@@ -83,57 +89,6 @@ public class PlayerBlockPlaceLogger extends GenericPositionalLogger<PlayerBlockP
                 pbbqe.encodedNBT,
                 pbbqe.playerUUID,
                 getLoggerType());
-        }
-    }
-
-    @Override
-    public @NotNull List<GenericQueueElement> generateQueryResults(ResultSet resultSet) throws SQLException {
-        ArrayList<GenericQueueElement> eventList = new ArrayList<>();
-
-        while (resultSet.next()) {
-
-            PlayerBlockPlaceQueueElement queueElement = new PlayerBlockPlaceQueueElement();
-            queueElement.populateDefaultFieldsFromResultSet(resultSet);
-
-            queueElement.playerUUID = PlayerUtils.UUIDToName(resultSet.getString("playerUUID"));
-            queueElement.encodedNBT = resultSet.getString("encodedNBT");
-            queueElement.blockID = resultSet.getInt("blockID");
-            queueElement.metadata = resultSet.getInt("metadata");
-            queueElement.pickBlockID = resultSet.getInt("pickBlockID");
-            queueElement.pickBlockMeta = resultSet.getInt("pickBlockMeta");
-
-            eventList.add(queueElement);
-        }
-
-        return eventList;
-    }
-
-    @Override
-    public void threadedSaveEvents(List<PlayerBlockPlaceQueueElement> queueElements) throws SQLException {
-        if (queueElements == null || queueElements.isEmpty()) return;
-
-        final String sql = "INSERT INTO " + getLoggerName()
-            + " (playerUUID, encodedNBT, blockId, metadata, pickBlockId, pickBlockMeta, eventID, x, y, z, dimensionID, timestamp, versionID) "
-            + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
-        int index;
-        try (PreparedStatement pstmt = databaseManager.getDBConn()
-            .prepareStatement(sql)) {
-            for (PlayerBlockPlaceQueueElement queueElement : queueElements) {
-                index = 1;
-
-                pstmt.setString(index++, queueElement.playerUUID);
-                pstmt.setString(index++, queueElement.encodedNBT);
-                pstmt.setInt(index++, queueElement.blockID);
-                pstmt.setInt(index++, queueElement.metadata);
-                pstmt.setInt(index++, queueElement.pickBlockID);
-                pstmt.setInt(index++, queueElement.pickBlockMeta);
-                DatabaseUtils.defaultColumnEntries(queueElement, pstmt, index);
-
-                pstmt.addBatch();
-            }
-
-            pstmt.executeBatch();
         }
     }
 

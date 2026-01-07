@@ -10,7 +10,7 @@ public interface ISupportsUndo {
 
     IChatComponent undoEvent(GenericQueueElement queueElement);
 
-    default void undoEvents(List<GenericQueueElement> results) {
+    default void undoEvents(List<? extends GenericQueueElement> results) {
         for (GenericQueueElement element : results) {
             undoEvent(element);
         }

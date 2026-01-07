@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import com.colen.tempora.loggers.block_change.BlockChangeQueueElement;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
@@ -45,6 +46,11 @@ import cpw.mods.fml.relauncher.SideOnly;
 
 // Todo fix drag and drop not logging correctly.
 public class InventoryLogger extends GenericPositionalLogger<InventoryQueueElement> {
+
+    @Override
+    public @NotNull InventoryQueueElement getQueueElementInstance() {
+        return new InventoryQueueElement();
+    }
 
     @Override
     public @NotNull LoggerEventType getLoggerEventType() {
@@ -117,53 +123,6 @@ public class InventoryLogger extends GenericPositionalLogger<InventoryQueueEleme
                 }
 
             }
-        }
-    }
-
-    @Override
-    public @NotNull List<GenericQueueElement> generateQueryResults(ResultSet resultSet) throws SQLException {
-        ArrayList<GenericQueueElement> eventList = new ArrayList<>();
-        while (resultSet.next()) {
-            InventoryQueueElement queueElement = new InventoryQueueElement();
-            queueElement.populateDefaultFieldsFromResultSet(resultSet);
-
-            queueElement.containerName = resultSet.getString("containerName");
-            queueElement.playerUUID = resultSet.getString("playerUUID");
-            queueElement.interactionType = resultSet.getInt("interactionType");
-            queueElement.itemId = resultSet.getInt("itemID");
-            queueElement.itemMetadata = resultSet.getInt("itemMetadata");
-            queueElement.stackSize = resultSet.getInt("stacksize");
-            eventList.add(queueElement);
-        }
-        return eventList;
-    }
-
-    @Override
-    public void threadedSaveEvents(List<InventoryQueueElement> queueElements) throws SQLException {
-        if (queueElements == null || queueElements.isEmpty()) return;
-
-        final String sql = "INSERT INTO " + getLoggerName()
-            + " (containerName, interactionType, itemId, itemMetadata, playerUUID, stacksize, eventID, x, y, z, dimensionID, timestamp, versionID) "
-            + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
-        int index;
-        try (PreparedStatement pstmt = databaseManager.getDBConn()
-            .prepareStatement(sql)) {
-            for (InventoryQueueElement queueElement : queueElements) {
-                index = 1;
-
-                pstmt.setString(index++, queueElement.containerName);
-                pstmt.setInt(index++, queueElement.interactionType);
-                pstmt.setInt(index++, queueElement.itemId);
-                pstmt.setInt(index++, queueElement.itemMetadata);
-                pstmt.setString(index++, queueElement.playerUUID);
-                pstmt.setInt(index++, queueElement.stackSize);
-                DatabaseUtils.defaultColumnEntries(queueElement, pstmt, index);
-
-                pstmt.addBatch();
-            }
-
-            pstmt.executeBatch();
         }
     }
 

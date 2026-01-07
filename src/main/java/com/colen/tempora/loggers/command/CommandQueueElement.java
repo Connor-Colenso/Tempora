@@ -23,8 +23,6 @@ public class CommandQueueElement extends GenericQueueElement {
     @Column(type="TEXT", constraints = "NOT NULL")
     public String arguments;
 
-    // Not logged.
-    public String truePlayerName;
 
     @Override
     public void fromBytes(ByteBuf buf) {
@@ -32,7 +30,6 @@ public class CommandQueueElement extends GenericQueueElement {
         playerUUID = ByteBufUtils.readUTF8String(buf);
         commandName = ByteBufUtils.readUTF8String(buf);
         arguments = ByteBufUtils.readUTF8String(buf);
-        truePlayerName = ByteBufUtils.readUTF8String(buf);
     }
 
     @Override
@@ -41,7 +38,6 @@ public class CommandQueueElement extends GenericQueueElement {
         ByteBufUtils.writeUTF8String(buf, playerUUID);
         ByteBufUtils.writeUTF8String(buf, commandName);
         ByteBufUtils.writeUTF8String(buf, arguments);
-        ByteBufUtils.writeUTF8String(buf, truePlayerName);
     }
 
     @Override
@@ -65,7 +61,6 @@ public class CommandQueueElement extends GenericQueueElement {
 
         return new ChatComponentTranslation(
             "message.command_issued",
-            truePlayerName,
             commandName,
             arguments,
             coords,

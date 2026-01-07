@@ -5,6 +5,7 @@ import static com.colen.tempora.Tempora.LOG;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayDeque;
@@ -18,6 +19,7 @@ import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import com.colen.tempora.loggers.explosion.ExplosionQueueElement;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.MinecraftForge;
@@ -108,11 +110,108 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
         return databaseManager;
     }
 
-    public abstract void threadedSaveEvents(List<EventToLog> event) throws SQLException;
+    private void threadedSaveEvents(List<EventToLog> queueElements) throws SQLException {
+        if (queueElements == null || queueElements.isEmpty()) return;
+
+        final String sql = databaseManager.generateInsertSQL();
+
+        try (PreparedStatement pstmt = databaseManager.getDBConn().prepareStatement(sql)) {
+
+            for (EventToLog queueElement : queueElements) {
+                int index = 1;
+
+//                genericPositionalLogger.inferEventToLogClass()
+                for (Field field : getAllAnnotatedFieldsAlphabetically()) {
+                    Object value;
+                    try {
+                        value = field.get(queueElement);
+                    } catch (IllegalAccessException e) {
+                        throw new RuntimeException(e);
+                    }
+
+                    // Bind value according to type
+                    if (value instanceof Integer val) {
+                        pstmt.setInt(index++, val);
+                    } else if (value instanceof Long val) {
+                        pstmt.setLong(index++, val);
+                    } else if (value instanceof Double val) {
+                        pstmt.setDouble(index++, val);
+                    } else if (value instanceof Float val) {
+                        pstmt.setFloat(index++, val);
+                    } else if (value instanceof String val) {
+                        pstmt.setString(index++, val);
+                    } else {
+                        throw new IllegalStateException("Unsupported field type: " + field.getType());
+                    }
+                }
+
+                pstmt.addBatch();
+            }
+
+            pstmt.executeBatch();
+        }
+    }
 
     public abstract @NotNull LoggerEventType getLoggerEventType();
 
-    public abstract @NotNull List<GenericQueueElement> generateQueryResults(ResultSet rs) throws SQLException;
+    private Object readColumn(ResultSet rs, Class<?> type, String column) throws SQLException {
+        if (type == int.class || type == Integer.class) {
+            return rs.getInt(column);
+        }
+        if (type == long.class || type == Long.class) {
+            return rs.getLong(column);
+        }
+        if (type == double.class || type == Double.class) {
+            return rs.getDouble(column);
+        }
+        if (type == float.class || type == Float.class) {
+            return rs.getFloat(column);
+        }
+        if (type == String.class) {
+            return rs.getString(column);
+        }
+
+        throw new IllegalStateException("Unsupported field type: " + type);
+    }
+
+    public abstract @NotNull EventToLog getQueueElementInstance();
+
+    public @NotNull List<EventToLog> generateQueryResults(
+        ResultSet resultSet
+    ) throws SQLException {
+
+        List<EventToLog> eventList = new ArrayList<>();
+
+        try {
+            List<Field> fields = getAllAnnotatedFieldsAlphabetically();
+
+            while (resultSet.next()) {
+                EventToLog element = getQueueElementInstance();
+
+                // Populate base fields once
+                element.populateDefaultFieldsFromResultSet(resultSet);
+
+                for (Field field : fields) {
+                    Column col = field.getAnnotation(Column.class);
+                    if (col == null) continue;
+
+                    String columnName = col.name().isEmpty()
+                        ? field.getName()
+                        : col.name();
+
+                    Object value = readColumn(resultSet, field.getType(), columnName);
+
+                    field.set(element, value);
+                }
+
+                eventList.add(element);
+            }
+        } catch (ReflectiveOperationException e) {
+            throw new RuntimeException("Failed to create event instance", e);
+        }
+
+        return eventList;
+    }
 
     public abstract LoggerEnum getLoggerType();
 

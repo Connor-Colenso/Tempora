@@ -34,7 +34,7 @@ import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 public class TemporaUndoRanged extends CommandBase {
 
     // Todo clear on world exit.
-    private static final Map<String, List<GenericQueueElement>> PENDING_UNDOS = new ConcurrentHashMap<>();
+    private static final Map<String, List<? extends GenericQueueElement>> PENDING_UNDOS = new ConcurrentHashMap<>();
     private static final Map<String, String> PENDING_UNDOS_LOGGER_NAMES = new ConcurrentHashMap<>();
 
     public static int MAX_RANGE;
@@ -112,7 +112,7 @@ public class TemporaUndoRanged extends CommandBase {
             + "ON t.x=oldest.x AND t.y=oldest.y AND t.z=oldest.z AND t.timestamp=oldest.ts "
             + "ORDER BY t.timestamp ASC";
 
-        List<GenericQueueElement> results;
+        List<? extends GenericQueueElement> results;
 
         try (Connection conn = logger.getDatabaseManager()
             .getReadOnlyConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -177,7 +177,7 @@ public class TemporaUndoRanged extends CommandBase {
 
         String uuid = args[1];
 
-        List<GenericQueueElement> stored = PENDING_UNDOS.get(uuid);
+        List<? extends GenericQueueElement> stored = PENDING_UNDOS.get(uuid);
         String loggerName = PENDING_UNDOS_LOGGER_NAMES.get(uuid);
 
         if (stored == null || loggerName == null) {

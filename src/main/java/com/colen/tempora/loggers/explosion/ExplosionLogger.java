@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import com.colen.tempora.loggers.block_change.BlockChangeQueueElement;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
@@ -41,6 +42,11 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
 public class ExplosionLogger extends GenericPositionalLogger<ExplosionQueueElement> {
+
+    @Override
+    public @NotNull ExplosionQueueElement getQueueElementInstance() {
+        return new ExplosionQueueElement();
+    }
 
     @Override
     public LoggerEnum getLoggerType() {
@@ -114,83 +120,6 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionQueueEleme
                     GL11.glPopMatrix();
                 }
             }
-        }
-    }
-
-    @Override
-    public @NotNull List<GenericQueueElement> generateQueryResults(ResultSet resultSet) throws SQLException {
-        ArrayList<GenericQueueElement> eventList = new ArrayList<>();
-
-        while (resultSet.next()) {
-
-            ExplosionQueueElement queueElement = new ExplosionQueueElement();
-            queueElement.populateDefaultFieldsFromResultSet(resultSet);
-
-            String exploderUUID = resultSet.getString("exploderUUID");
-            if (exploderUUID.equals(TemporaUtils.UNKNOWN_PLAYER_NAME)) {
-                queueElement.exploderUUID = exploderUUID;
-            } else {
-                queueElement.exploderUUID = PlayerUtils.UUIDToName(resultSet.getString("exploderUUID"));
-            }
-
-            String closestPlayerUUID = resultSet.getString("closestPlayerUUID");
-            if (closestPlayerUUID.equals(TemporaUtils.UNKNOWN_PLAYER_NAME)) {
-                queueElement.closestPlayerUUID = closestPlayerUUID;
-            } else {
-                queueElement.closestPlayerUUID = PlayerUtils.UUIDToName(closestPlayerUUID);
-            }
-
-            queueElement.strength = resultSet.getFloat("strength");
-            queueElement.closestPlayerDistance = resultSet.getDouble("closestPlayerDistance");
-            queueElement.affectedBlockCoordinates = resultSet.getString("affectedBlockCoordinates");
-
-            eventList.add(queueElement);
-        }
-
-        return eventList;
-    }
-
-    @Override
-    public void threadedSaveEvents(List<ExplosionQueueElement> queueElements) throws SQLException {
-        if (queueElements == null || queueElements.isEmpty()) return;
-
-        final String sql = databaseManager.generateInsertSQL();
-
-        try (PreparedStatement pstmt = databaseManager.getDBConn().prepareStatement(sql)) {
-
-            for (ExplosionQueueElement queueElement : queueElements) {
-                int index = 1;
-
-//                genericPositionalLogger.inferEventToLogClass()
-                for (Field field : getAllAnnotatedFieldsAlphabetically()) {
-                    field.setAccessible(true);
-                    Object value;
-                    try {
-                        value = field.get(queueElement);
-                    } catch (IllegalAccessException e) {
-                        throw new RuntimeException(e);
-                    }
-
-                    // Bind value according to type
-                    if (value instanceof Integer) {
-                        pstmt.setInt(index++, (Integer) value);
-                    } else if (value instanceof Long) {
-                        pstmt.setLong(index++, (Long) value);
-                    } else if (value instanceof Double) {
-                        pstmt.setDouble(index++, (Double) value);
-                    } else if (value instanceof Float) {
-                        pstmt.setFloat(index++, (Float) value);
-                    } else if (value instanceof String) {
-                        pstmt.setString(index++, (String) value);
-                    } else {
-                        throw new IllegalStateException("Unsupported field type: " + field.getType());
-                    }
-                }
-
-                pstmt.addBatch();
-            }
-
-            pstmt.executeBatch();
         }
     }
 

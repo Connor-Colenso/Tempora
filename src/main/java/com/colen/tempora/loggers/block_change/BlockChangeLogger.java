@@ -2,20 +2,14 @@ package com.colen.tempora.loggers.block_change;
 
 import static com.colen.tempora.Tempora.LOG;
 import static com.colen.tempora.TemporaUtils.UNKNOWN_PLAYER_NAME;
-import static com.colen.tempora.utils.DatabaseUtils.MISSING_STRING_DATA;
 import static com.colen.tempora.utils.RenderingUtils.CLIENT_EVENT_RENDER_DISTANCE;
 import static com.colen.tempora.utils.nbt.NBTUtils.NBT_DISABLED;
 import static com.colen.tempora.utils.nbt.NBTUtils.NO_NBT;
 import static com.colen.tempora.utils.nbt.NBTUtils.getEncodedTileEntityNBT;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Deque;
-import java.util.List;
 import java.util.UUID;
 
 import net.minecraft.block.Block;
@@ -37,14 +31,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.enums.LoggerEventType;
-import com.colen.tempora.loggers.generic.ColumnDef;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.loggers.optional.ISupportsUndo;
 import com.colen.tempora.utils.BlockUtils;
-import com.colen.tempora.utils.DatabaseUtils;
 import com.colen.tempora.utils.GenericUtils;
-import com.colen.tempora.utils.PlayerUtils;
 import com.colen.tempora.utils.RenderingUtils;
 import com.colen.tempora.utils.WorldGenPhaseTracker;
 import com.colen.tempora.utils.nbt.NBTUtils;
@@ -147,75 +138,13 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
     }
 
     @Override
-    public void threadedSaveEvents(List<BlockChangeQueueElement> queueElements) throws SQLException {
-        if (queueElements == null || queueElements.isEmpty()) return;
-
-        final String sql = "INSERT INTO " + getLoggerName()
-            + " (beforeBlockID, beforeMetadata, beforePickBlockID, beforePickBlockMeta, beforeEncodedNBT, afterBlockID, afterMetadata, afterPickBlockID, afterPickBlockMeta, afterEncodedNBT, stackTrace, closestPlayerUUID, closestPlayerDistance, eventID, x, y, z, dimensionID, timestamp, versionID) "
-            + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
-        int index;
-        try (PreparedStatement pstmt = databaseManager.getDBConn()
-            .prepareStatement(sql)) {
-            for (BlockChangeQueueElement queueElement : queueElements) {
-                index = 1;
-
-                pstmt.setInt(index++, queueElement.beforeBlockID);
-                pstmt.setInt(index++, queueElement.beforeMetadata);
-                pstmt.setInt(index++, queueElement.beforePickBlockID);
-                pstmt.setInt(index++, queueElement.beforePickBlockMeta);
-                pstmt.setString(index++, queueElement.beforeEncodedNBT);
-
-                pstmt.setInt(index++, queueElement.afterBlockID);
-                pstmt.setInt(index++, queueElement.afterMetadata);
-                pstmt.setInt(index++, queueElement.afterPickBlockID);
-                pstmt.setInt(index++, queueElement.afterPickBlockMeta);
-                pstmt.setString(index++, queueElement.afterEncodedNBT);
-
-                pstmt.setString(index++, queueElement.stackTrace);
-                pstmt.setString(index++, queueElement.closestPlayerUUID);
-                pstmt.setDouble(index++, queueElement.closestPlayerDistance);
-
-                DatabaseUtils.defaultColumnEntries(queueElement, pstmt, index);
-
-                pstmt.addBatch();
-            }
-
-            pstmt.executeBatch();
-        }
-    }
-
-    @Override
     public @NotNull LoggerEventType getLoggerEventType() {
         return LoggerEventType.None;
     }
 
     @Override
-    public @NotNull List<GenericQueueElement> generateQueryResults(ResultSet resultSet) throws SQLException {
-        ArrayList<GenericQueueElement> events = new ArrayList<>();
-        while (resultSet.next()) {
-            BlockChangeQueueElement queueElement = new BlockChangeQueueElement();
-            queueElement.populateDefaultFieldsFromResultSet(resultSet);
-
-            queueElement.beforeBlockID = resultSet.getInt("beforeBlockID");
-            queueElement.beforeMetadata = resultSet.getInt("beforeMetadata");
-            queueElement.beforePickBlockID = resultSet.getInt("beforePickBlockID");
-            queueElement.beforePickBlockMeta = resultSet.getInt("beforePickBlockMeta");
-            queueElement.beforeEncodedNBT = resultSet.getString("beforeEncodedNBT");
-
-            queueElement.afterBlockID = resultSet.getInt("afterBlockID");
-            queueElement.afterMetadata = resultSet.getInt("afterMetadata");
-            queueElement.afterPickBlockID = resultSet.getInt("afterPickBlockID");
-            queueElement.afterPickBlockMeta = resultSet.getInt("afterPickBlockMeta");
-            queueElement.afterEncodedNBT = resultSet.getString("afterEncodedNBT");
-
-            queueElement.stackTrace = resultSet.getString("stackTrace");
-            queueElement.closestPlayerUUID = PlayerUtils.UUIDToName(resultSet.getString("closestPlayerUUID"));
-            queueElement.closestPlayerDistance = resultSet.getDouble("closestPlayerDistance");
-
-            events.add(queueElement);
-        }
-        return events;
+    public @NotNull BlockChangeQueueElement getQueueElementInstance() {
+        return new BlockChangeQueueElement();
     }
 
     // Not convinced multithreaded safety is needed here.

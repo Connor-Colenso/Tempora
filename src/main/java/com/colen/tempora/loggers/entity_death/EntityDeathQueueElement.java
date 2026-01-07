@@ -17,7 +17,7 @@ import io.netty.buffer.ByteBuf;
 public class EntityDeathQueueElement extends GenericQueueElement {
 
     @Column(type="TEXT", constraints = "NOT NULL")
-    public String nameOfDeadMob;
+    public String nameOfDeadEntity;
 
     @Column(type="TEXT", constraints = "NOT NULL")
     public String killedBy;
@@ -35,7 +35,7 @@ public class EntityDeathQueueElement extends GenericQueueElement {
     @Override
     public void fromBytes(ByteBuf buf) {
         super.fromBytes(buf);
-        nameOfDeadMob = ByteBufUtils.readUTF8String(buf);
+        nameOfDeadEntity = ByteBufUtils.readUTF8String(buf);
         killedBy = ByteBufUtils.readUTF8String(buf);
         entityUUID = ByteBufUtils.readUTF8String(buf);
         rotationYaw = buf.readFloat();
@@ -45,7 +45,7 @@ public class EntityDeathQueueElement extends GenericQueueElement {
     @Override
     public void toBytes(ByteBuf buf) {
         super.toBytes(buf);
-        ByteBufUtils.writeUTF8String(buf, nameOfDeadMob);
+        ByteBufUtils.writeUTF8String(buf, nameOfDeadEntity);
         ByteBufUtils.writeUTF8String(buf, killedBy);
         ByteBufUtils.writeUTF8String(buf, entityUUID);
         buf.writeFloat(rotationYaw);
@@ -67,7 +67,7 @@ public class EntityDeathQueueElement extends GenericQueueElement {
 
         return new ChatComponentTranslation(
             "message.entity_death",
-            new ChatComponentTranslation("entity." + nameOfDeadMob + ".name"),
+            new ChatComponentTranslation("entity." + nameOfDeadEntity + ".name"),
             uuidChatComponent,
             killedBy,
             coords,
