@@ -1,7 +1,10 @@
 package com.colen.tempora.loggers.entity_spawn;
 
+import static com.colen.tempora.utils.DatabaseUtils.MISSING_STRING_DATA;
 import static com.colen.tempora.utils.GenericUtils.entityUUIDChatComponent;
 
+import com.colen.tempora.loggers.generic.Column;
+import com.colen.tempora.loggers.generic.ColumnDef;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 
@@ -13,11 +16,21 @@ import com.colen.tempora.utils.TimeUtils;
 import cpw.mods.fml.common.network.ByteBufUtils;
 import io.netty.buffer.ByteBuf;
 
+import java.util.Arrays;
+import java.util.List;
+
 public class EntitySpawnQueueElement extends GenericQueueElement {
 
+    @Column(type="TEXT", constraints = "NOT NULL")
     public String entityName;
+
+    @Column(type="TEXT", constraints = "NOT NULL")
     public String entityUUID;
+
+    @Column(type="REAL", constraints = "NOT NULL")
     public float rotationYaw;
+
+    @Column(type="REAL", constraints = "NOT NULL")
     public float rotationPitch;
 
     @Override
@@ -40,7 +53,7 @@ public class EntitySpawnQueueElement extends GenericQueueElement {
             x,
             y,
             z,
-            dimensionId,
+            dimensionID,
             PlayerUtils.UUIDToName(uuid),
             CoordFormat.FLOAT_1DP);
         IChatComponent timeAgo = TimeUtils.formatTime(timestamp);

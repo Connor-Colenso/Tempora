@@ -1,5 +1,6 @@
 package com.colen.tempora.loggers.player_block_break;
 
+import com.colen.tempora.loggers.generic.Column;
 import net.minecraft.block.Block;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
@@ -15,11 +16,22 @@ import io.netty.buffer.ByteBuf;
 
 public class PlayerBlockBreakQueueElement extends GenericQueueElement {
 
+    @Column(type="INTEGER", constraints = "NOT NULL")
     public int blockID;
+
+    @Column(type="INTEGER", constraints = "NOT NULL")
     public int metadata;
+
+    @Column(type="INTEGER", constraints = "NOT NULL")
     public int pickBlockID;
+
+    @Column(type="INTEGER", constraints = "NOT NULL")
     public int pickBlockMeta;
-    public String playerUUIDWhoBrokeBlock;
+
+    @Column(type="TEXT", constraints = "NOT NULL")
+    public String playerUUID;
+
+    @Column(type="TEXT", constraints = "NOT NULL")
     public String encodedNBT;
 
     @Override
@@ -29,7 +41,7 @@ public class PlayerBlockBreakQueueElement extends GenericQueueElement {
         metadata = buf.readInt();
         pickBlockID = buf.readInt();
         pickBlockMeta = buf.readInt();
-        playerUUIDWhoBrokeBlock = ByteBufUtils.readUTF8String(buf);
+        playerUUID = ByteBufUtils.readUTF8String(buf);
         encodedNBT = ByteBufUtils.readUTF8String(buf);
     }
 
@@ -40,7 +52,7 @@ public class PlayerBlockBreakQueueElement extends GenericQueueElement {
         buf.writeInt(metadata);
         buf.writeInt(pickBlockID);
         buf.writeInt(pickBlockMeta);
-        ByteBufUtils.writeUTF8String(buf, playerUUIDWhoBrokeBlock);
+        ByteBufUtils.writeUTF8String(buf, playerUUID);
         ByteBufUtils.writeUTF8String(buf, encodedNBT);
     }
 
@@ -51,7 +63,7 @@ public class PlayerBlockBreakQueueElement extends GenericQueueElement {
             x,
             y,
             z,
-            dimensionId,
+            dimensionID,
             PlayerUtils.UUIDToName(playerUUID),
             CoordFormat.INT);
 
@@ -59,7 +71,8 @@ public class PlayerBlockBreakQueueElement extends GenericQueueElement {
 
         return new ChatComponentTranslation(
             "message.block_break",
-            PlayerUtils.UUIDToName(playerUUIDWhoBrokeBlock), // player name
+//            PlayerUtils.UUIDToName(this.playerUUID), // player name
+            playerUUID,
             block, // block localized name
             blockID, // block ID
             metadata, // metadata

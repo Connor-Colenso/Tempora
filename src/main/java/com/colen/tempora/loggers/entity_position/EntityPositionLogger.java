@@ -92,15 +92,6 @@ public class EntityPositionLogger extends GenericPositionalLogger<EntityPosition
     }
 
     @Override
-    public List<ColumnDef> getCustomTableColumns() {
-        return Arrays.asList(
-            new ColumnDef("entityName", "TEXT", "NOT NULL DEFAULT " + MISSING_STRING_DATA),
-            new ColumnDef("entityUUID", "TEXT", "NOT NULL DEFAULT " + MISSING_STRING_DATA),
-            new ColumnDef("rotationYaw", "REAL", "NOT NULL DEFAULT 0"),
-            new ColumnDef("rotationPitch", "REAL", "NOT NULL DEFAULT 0"));
-    }
-
-    @Override
     public void threadedSaveEvents(List<EntityPositionQueueElement> queueElements) throws SQLException {
         if (queueElements == null || queueElements.isEmpty()) return;
 
@@ -148,7 +139,7 @@ public class EntityPositionLogger extends GenericPositionalLogger<EntityPosition
         queueElement.x = event.entityLiving.posX;
         queueElement.y = event.entityLiving.posY;
         queueElement.z = event.entityLiving.posZ;
-        queueElement.dimensionId = event.entityLiving.dimension;
+        queueElement.dimensionID = event.entityLiving.dimension;
         queueElement.timestamp = System.currentTimeMillis();
 
         queueElement.rotationYaw = event.entityLiving.rotationYaw;

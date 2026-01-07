@@ -80,7 +80,7 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueE
         queueElement.x = event.entity.posX;
         queueElement.y = event.entity.posY;
         queueElement.z = event.entity.posZ;
-        queueElement.dimensionId = event.entity.dimension;
+        queueElement.dimensionID = event.entity.dimension;
         queueElement.timestamp = System.currentTimeMillis();
 
         queueElement.nameOfDeadMob = EntityList.getEntityString(event.entityLiving);
@@ -133,16 +133,6 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueE
         }
 
         return eventList;
-    }
-
-    @Override
-    public List<ColumnDef> getCustomTableColumns() {
-        return Arrays.asList(
-            new ColumnDef("entityName", "TEXT", "NOT NULL DEFAULT " + MISSING_STRING_DATA),
-            new ColumnDef("entityUUID", "TEXT", "NOT NULL DEFAULT " + MISSING_STRING_DATA),
-            new ColumnDef("killedBy", "TEXT", "NOT NULL DEFAULT " + MISSING_STRING_DATA),
-            new ColumnDef("rotationYaw", "REAL", "NOT NULL DEFAULT 0"),
-            new ColumnDef("rotationPitch", "REAL", "NOT NULL DEFAULT 0"));
     }
 
     @Override

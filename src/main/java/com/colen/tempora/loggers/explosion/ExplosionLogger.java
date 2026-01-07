@@ -1,13 +1,12 @@
 package com.colen.tempora.loggers.explosion;
 
 import static com.colen.tempora.TemporaUtils.isClientSide;
-import static com.colen.tempora.utils.DatabaseUtils.MISSING_STRING_DATA;
 
+import java.lang.reflect.Field;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -29,7 +28,6 @@ import org.lwjgl.opengl.GL11;
 import com.colen.tempora.TemporaUtils;
 import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.enums.LoggerEventType;
-import com.colen.tempora.loggers.generic.ColumnDef;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.rendering.RenderUtils;
@@ -153,35 +151,41 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionQueueEleme
     }
 
     @Override
-    public List<ColumnDef> getCustomTableColumns() {
-        return Arrays.asList(
-            new ColumnDef("strength", "REAL", "NOT NULL DEFAULT -1"),
-            new ColumnDef("exploderUUID", "TEXT", "NOT NULL DEFAULT " + MISSING_STRING_DATA),
-            new ColumnDef("closestPlayerUUID", "TEXT", "NOT NULL DEFAULT " + MISSING_STRING_DATA),
-            new ColumnDef("closestPlayerDistance", "REAL", "NOT NULL DEFAULT -1"),
-            new ColumnDef("affectedBlockCoordinates", "TEXT", "NOT NULL DEFAULT " + MISSING_STRING_DATA));
-    }
-
-    @Override
     public void threadedSaveEvents(List<ExplosionQueueElement> queueElements) throws SQLException {
         if (queueElements == null || queueElements.isEmpty()) return;
 
-        final String sql = "INSERT INTO " + getLoggerName()
-            + " (strength, exploderUUID, closestPlayerUUID, closestPlayerDistance, affectedBlockCoordinates, eventID, x, y, z, dimensionID, timestamp, versionID) "
-            + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        final String sql = databaseManager.generateInsertSQL();
 
-        int index;
-        try (PreparedStatement pstmt = databaseManager.getDBConn()
-            .prepareStatement(sql)) {
+        try (PreparedStatement pstmt = databaseManager.getDBConn().prepareStatement(sql)) {
+
             for (ExplosionQueueElement queueElement : queueElements) {
-                index = 1;
+                int index = 1;
 
-                pstmt.setFloat(index++, queueElement.strength);
-                pstmt.setString(index++, queueElement.exploderUUID);
-                pstmt.setString(index++, queueElement.closestPlayerUUID);
-                pstmt.setDouble(index++, queueElement.closestPlayerDistance);
-                pstmt.setString(index++, queueElement.affectedBlockCoordinates);
-                DatabaseUtils.defaultColumnEntries(queueElement, pstmt, index);
+//                genericPositionalLogger.inferEventToLogClass()
+                for (Field field : getAllAnnotatedFieldsAlphabetically()) {
+                    field.setAccessible(true);
+                    Object value;
+                    try {
+                        value = field.get(queueElement);
+                    } catch (IllegalAccessException e) {
+                        throw new RuntimeException(e);
+                    }
+
+                    // Bind value according to type
+                    if (value instanceof Integer) {
+                        pstmt.setInt(index++, (Integer) value);
+                    } else if (value instanceof Long) {
+                        pstmt.setLong(index++, (Long) value);
+                    } else if (value instanceof Double) {
+                        pstmt.setDouble(index++, (Double) value);
+                    } else if (value instanceof Float) {
+                        pstmt.setFloat(index++, (Float) value);
+                    } else if (value instanceof String) {
+                        pstmt.setString(index++, (String) value);
+                    } else {
+                        throw new IllegalStateException("Unsupported field type: " + field.getType());
+                    }
+                }
 
                 pstmt.addBatch();
             }
@@ -240,7 +244,7 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionQueueEleme
         queueElement.x = event.explosion.explosionX;
         queueElement.y = event.explosion.explosionY;
         queueElement.z = event.explosion.explosionZ;
-        queueElement.dimensionId = world.provider.dimensionId;
+        queueElement.dimensionID = world.provider.dimensionId;
         queueElement.timestamp = System.currentTimeMillis();
 
         queueElement.strength = strength;

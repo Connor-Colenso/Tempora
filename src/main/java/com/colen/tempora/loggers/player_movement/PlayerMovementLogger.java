@@ -53,11 +53,6 @@ public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovement
     // cause the dimension
     // to load, which we want to keep track of.
 
-    @Override
-    public List<ColumnDef> getCustomTableColumns() {
-        return Arrays.asList(new ColumnDef("playerUUID", "TEXT", "NOT NULL DEFAULT " + MISSING_STRING_DATA));
-    }
-
     private int playerMovementLoggingInterval;
 
     @Override
@@ -137,7 +132,7 @@ public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovement
         queueElement.x = player.posX;
         queueElement.y = player.posY;
         queueElement.z = player.posZ;
-        queueElement.dimensionId = player.worldObj.provider.dimensionId;
+        queueElement.dimensionID = player.worldObj.provider.dimensionId;
         queueElement.timestamp = System.currentTimeMillis();
 
         queueElement.playerUUID = player.getUniqueID()

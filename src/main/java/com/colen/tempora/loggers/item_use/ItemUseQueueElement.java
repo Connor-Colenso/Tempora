@@ -2,6 +2,7 @@ package com.colen.tempora.loggers.item_use;
 
 import static com.colen.tempora.utils.ItemUtils.getNameOfItemStack;
 
+import com.colen.tempora.loggers.generic.Column;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 
@@ -15,14 +16,19 @@ import io.netty.buffer.ByteBuf;
 
 public class ItemUseQueueElement extends GenericQueueElement {
 
-    public String playerName;
+    @Column(type="TEXT", constraints = "NOT NULL")
+    public String playerUUID;
+
+    @Column(type="INTEGER", constraints = "NOT NULL")
     public int itemID;
+
+    @Column(type="INTEGER", constraints = "NOT NULL")
     public int itemMetadata;
 
     @Override
     public void fromBytes(ByteBuf buf) {
         super.fromBytes(buf);
-        playerName = ByteBufUtils.readUTF8String(buf);
+        playerUUID = ByteBufUtils.readUTF8String(buf);
         itemID = buf.readInt();
         itemMetadata = buf.readInt();
     }
@@ -30,7 +36,7 @@ public class ItemUseQueueElement extends GenericQueueElement {
     @Override
     public void toBytes(ByteBuf buf) {
         super.toBytes(buf);
-        ByteBufUtils.writeUTF8String(buf, playerName);
+        ByteBufUtils.writeUTF8String(buf, playerUUID);
         buf.writeInt(itemID);
         buf.writeInt(itemMetadata);
     }
@@ -41,14 +47,14 @@ public class ItemUseQueueElement extends GenericQueueElement {
             x,
             y,
             z,
-            dimensionId,
+            dimensionID,
             PlayerUtils.UUIDToName(uuid),
             CoordFormat.FLOAT_1DP);
         IChatComponent timeAgo = TimeUtils.formatTime(timestamp);
 
         return new ChatComponentTranslation(
             "message.item_use",
-            playerName,
+            playerUUID,
             getNameOfItemStack(itemID, itemMetadata),
             itemID,
             itemMetadata,

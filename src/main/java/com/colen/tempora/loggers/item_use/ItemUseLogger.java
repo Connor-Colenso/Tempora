@@ -1,13 +1,11 @@
 package com.colen.tempora.loggers.item_use;
 
 import static com.colen.tempora.TemporaUtils.isClientSide;
-import static com.colen.tempora.utils.DatabaseUtils.MISSING_STRING_DATA;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -23,7 +21,6 @@ import org.jetbrains.annotations.NotNull;
 
 import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.enums.LoggerEventType;
-import com.colen.tempora.loggers.generic.ColumnDef;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.utils.DatabaseUtils;
@@ -56,7 +53,7 @@ public class ItemUseLogger extends GenericPositionalLogger<ItemUseQueueElement> 
             ItemUseQueueElement queueElement = new ItemUseQueueElement();
             queueElement.populateDefaultFieldsFromResultSet(resultSet);
 
-            queueElement.playerName = PlayerUtils.UUIDToName(resultSet.getString("playerUUID"));
+            queueElement.playerUUID = resultSet.getString("playerUUID");
             queueElement.itemID = resultSet.getInt("itemID");
             queueElement.itemMetadata = resultSet.getInt("itemMetadata");
 
@@ -64,14 +61,6 @@ public class ItemUseLogger extends GenericPositionalLogger<ItemUseQueueElement> 
         }
 
         return eventList;
-    }
-
-    @Override
-    public List<ColumnDef> getCustomTableColumns() {
-        return Arrays.asList(
-            new ColumnDef("playerUUID", "TEXT", "NOT NULL DEFAULT " + MISSING_STRING_DATA),
-            new ColumnDef("itemID", "INTEGER", "NOT NULL DEFAULT -1"),
-            new ColumnDef("itemMetadata", "INTEGER", "NOT NULL DEFAULT -1"));
     }
 
     @Override
@@ -87,7 +76,7 @@ public class ItemUseLogger extends GenericPositionalLogger<ItemUseQueueElement> 
             for (ItemUseQueueElement queueElement : queueElements) {
                 index = 1;
 
-                pstmt.setString(index++, queueElement.playerName);
+                pstmt.setString(index++, queueElement.playerUUID);
                 pstmt.setInt(index++, queueElement.itemID);
                 pstmt.setInt(index++, queueElement.itemMetadata);
                 DatabaseUtils.defaultColumnEntries(queueElement, pstmt, index);
@@ -134,10 +123,10 @@ public class ItemUseLogger extends GenericPositionalLogger<ItemUseQueueElement> 
         queueElement.x = player.posX;
         queueElement.y = player.posY;
         queueElement.z = player.posZ;
-        queueElement.dimensionId = world.provider.dimensionId;
+        queueElement.dimensionID = world.provider.dimensionId;
         queueElement.timestamp = System.currentTimeMillis();
 
-        queueElement.playerName = player.getUniqueID()
+        queueElement.playerUUID = player.getUniqueID()
             .toString();
 
         if (usedItem != null) {

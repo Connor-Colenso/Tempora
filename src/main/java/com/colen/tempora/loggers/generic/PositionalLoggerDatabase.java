@@ -4,6 +4,7 @@ import static com.colen.tempora.Tempora.LOG;
 import static com.colen.tempora.TemporaUtils.deleteLoggerDatabase;
 import static com.colen.tempora.utils.GenericUtils.parseSizeStringToBytes;
 
+import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.Connection;
@@ -14,7 +15,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -205,19 +205,6 @@ public class PositionalLoggerDatabase {
 
     public Connection getDBConn() {
         return positionalLoggerDBConnection;
-    }
-
-    // TODO Default version hash, and then if undoing events across versions, issue warning.
-    // These should really, never be missing, so even though the defaults are a bit clunky, it's alright.
-    public static List<ColumnDef> getDefaultColumns() {
-        return Arrays.asList(
-            new ColumnDef("eventID", "TEXT", "PRIMARY KEY"),
-            new ColumnDef("x", "INTEGER", "NOT NULL DEFAULT " + Integer.MIN_VALUE),
-            new ColumnDef("y", "INTEGER", "NOT NULL DEFAULT " + Integer.MIN_VALUE),
-            new ColumnDef("z", "INTEGER", "NOT NULL DEFAULT " + Integer.MIN_VALUE),
-            new ColumnDef("timestamp", "DATETIME", "NOT NULL DEFAULT 0"),
-            new ColumnDef("dimensionID", "INTEGER", "NOT NULL DEFAULT " + Integer.MIN_VALUE),
-            new ColumnDef("versionID", "INTEGER", "NOT NULL DEFAULT " + Integer.MIN_VALUE));
     }
 
     public Connection getReadOnlyConnection() {
@@ -536,16 +523,48 @@ public class PositionalLoggerDatabase {
         }
     }
 
-    public final List<ColumnDef> getAllTableColumns() {
-        List<ColumnDef> columns = new ArrayList<>(genericPositionalLogger.getCustomTableColumns());
-        columns.addAll(PositionalLoggerDatabase.getDefaultColumns());
-        return columns;
-    }
-
     // Use the fastest durability mode: may lose or corrupt the DB on sudden power loss.
     // Only recommended if recent data loss is acceptable and backups exist.
     public final boolean isHighRiskModeEnabled() {
         return durabilityMode == LogWriteSafety.HIGH_RISK;
     }
+
+    public List<ColumnDef> getAllTableColumns() {
+        List<ColumnDef> columns = new ArrayList<>();
+
+        for (Field field : genericPositionalLogger.getAllAnnotatedFieldsAlphabetically()) {
+            Column col = field.getAnnotation(Column.class);
+
+            String name = col.name().isEmpty()
+                ? field.getName()
+                : col.name();
+
+            columns.add(new ColumnDef(
+                name,
+                col.type(),
+                col.constraints()
+            ));
+        }
+
+        return columns;
+    }
+
+    public String generateInsertSQL() {
+        List<ColumnDef> columns = getAllTableColumns();
+
+        // Join the column names for the INSERT clause
+        String columnList = columns.stream()
+            .map(ColumnDef::getName)
+            .collect(Collectors.joining(", "));
+
+        // Generate a placeholder for each column
+        String placeholders = columns.stream()
+            .map(c -> "?")
+            .collect(Collectors.joining(", "));
+
+        return "INSERT INTO " + genericPositionalLogger.getLoggerName() + " (" + columnList + ") VALUES (" + placeholders + ")";
+    }
+
+
 
 }
