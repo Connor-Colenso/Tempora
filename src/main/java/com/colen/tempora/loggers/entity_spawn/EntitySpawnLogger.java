@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
+import com.colen.tempora.loggers.block_change.BlockChangeQueueElement;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
@@ -37,6 +38,11 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
 public class EntitySpawnLogger extends GenericPositionalLogger<EntitySpawnQueueElement> {
+
+    @Override
+    public @NotNull EntitySpawnQueueElement getQueueElementInstance() {
+        return new EntitySpawnQueueElement();
+    }
 
     @Override
     public LoggerEnum getLoggerType() {
@@ -98,49 +104,4 @@ public class EntitySpawnLogger extends GenericPositionalLogger<EntitySpawnQueueE
         queueEvent(queueElement);
     }
 
-    @Override
-    public @NotNull List<GenericQueueElement> generateQueryResults(ResultSet resultSet) throws SQLException {
-        ArrayList<GenericQueueElement> eventList = new ArrayList<>();
-
-        while (resultSet.next()) {
-
-            EntitySpawnQueueElement queueElement = new EntitySpawnQueueElement();
-            queueElement.populateDefaultFieldsFromResultSet(resultSet);
-
-            queueElement.entityName = resultSet.getString("entityName");
-            queueElement.entityUUID = resultSet.getString("entityUUID");
-            queueElement.rotationYaw = resultSet.getFloat("rotationYaw");
-            queueElement.rotationPitch = resultSet.getFloat("rotationPitch");
-
-            eventList.add(queueElement);
-        }
-
-        return eventList;
-    }
-
-    @Override
-    public void threadedSaveEvents(List<EntitySpawnQueueElement> queueElements) throws SQLException {
-        if (queueElements == null || queueElements.isEmpty()) return;
-
-        final String sql = "INSERT INTO " + getLoggerName()
-            + " (entityName, entityUUID, rotationYaw, rotationPitch, eventID, x, y, z, dimensionID, timestamp, versionID) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
-        int index;
-        try (PreparedStatement pstmt = databaseManager.getDBConn()
-            .prepareStatement(sql)) {
-            for (EntitySpawnQueueElement queueElement : queueElements) {
-                index = 1;
-
-                pstmt.setString(index++, queueElement.entityName);
-                pstmt.setString(index++, queueElement.entityUUID);
-                pstmt.setFloat(index++, queueElement.rotationYaw);
-                pstmt.setFloat(index++, queueElement.rotationPitch);
-
-                DatabaseUtils.defaultColumnEntries(queueElement, pstmt, index);
-                pstmt.addBatch();
-            }
-
-            pstmt.executeBatch();
-        }
-    }
 }

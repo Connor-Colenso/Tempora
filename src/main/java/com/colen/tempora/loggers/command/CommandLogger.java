@@ -4,13 +4,11 @@ import static com.colen.tempora.TemporaUtils.isClientSide;
 import static com.colen.tempora.rendering.RenderUtils.renderFloatingText;
 import static com.colen.tempora.utils.ChatUtils.ONE_DP;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import com.colen.tempora.loggers.block_change.BlockChangeQueueElement;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.command.ICommand;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -23,9 +21,6 @@ import org.jetbrains.annotations.NotNull;
 import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.enums.LoggerEventType;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
-import com.colen.tempora.loggers.generic.GenericQueueElement;
-import com.colen.tempora.utils.DatabaseUtils;
-import com.colen.tempora.utils.PlayerUtils;
 import com.colen.tempora.utils.TimeUtils;
 import com.gtnewhorizon.gtnhlib.util.numberformatting.NumberFormatUtil;
 
@@ -35,6 +30,11 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
 public class CommandLogger extends GenericPositionalLogger<CommandQueueElement> {
+
+    @Override
+    public @NotNull CommandQueueElement getQueueElementInstance() {
+        return new CommandQueueElement();
+    }
 
     @Override
     public LoggerEnum getLoggerType() {
@@ -53,7 +53,7 @@ public class CommandLogger extends GenericPositionalLogger<CommandQueueElement> 
             double z = cqe.z - renderManager.viewerPosZ;
 
             List<String> toRender = new ArrayList<>();
-            toRender.add(StatCollector.translateToLocalFormatted("event.command.executed", cqe.truePlayerName));
+            toRender.add(StatCollector.translateToLocalFormatted("event.command.executed", cqe.playerUUID));
             toRender.add("/" + cqe.commandName + " " + cqe.arguments);
 
             TimeUtils.DurationParts formattedTime = TimeUtils.relativeTimeAgoFormatter(cqe.timestamp);
@@ -64,55 +64,6 @@ public class CommandLogger extends GenericPositionalLogger<CommandQueueElement> 
                     NumberFormatUtil.formatNumber(formattedTime.time, ONE_DP)));
 
             renderFloatingText(toRender, x, y, z);
-        }
-    }
-
-
-
-    @Override
-    public @NotNull List<GenericQueueElement> generateQueryResults(ResultSet resultSet) throws SQLException {
-        ArrayList<GenericQueueElement> eventList = new ArrayList<>();
-
-        while (resultSet.next()) {
-            CommandQueueElement queueElement = new CommandQueueElement();
-            queueElement.populateDefaultFieldsFromResultSet(resultSet);
-
-            queueElement.playerUUID = resultSet.getString("playerUUID");
-            queueElement.commandName = resultSet.getString("commandName");
-            queueElement.arguments = resultSet.getString("arguments");
-
-            // Bit of a hack, but the client must have this info to render it properly.
-            queueElement.truePlayerName = PlayerUtils.UUIDToName(queueElement.playerUUID);
-
-            eventList.add(queueElement);
-        }
-
-        return eventList;
-    }
-
-    @Override
-    public void threadedSaveEvents(List<CommandQueueElement> commandQueueElements) throws SQLException {
-        if (commandQueueElements == null || commandQueueElements.isEmpty()) return;
-
-        final String sql = "INSERT INTO " + getLoggerName()
-            + " (playerUUID, commandName, arguments, eventID, x, y, z, dimensionID, timestamp, versionID) "
-            + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
-        int index;
-        try (PreparedStatement pstmt = databaseManager.getDBConn()
-            .prepareStatement(sql)) {
-            for (CommandQueueElement commandQueueElement : commandQueueElements) {
-                index = 1;
-
-                pstmt.setString(index++, commandQueueElement.playerUUID);
-                pstmt.setString(index++, commandQueueElement.commandName);
-                pstmt.setString(index++, commandQueueElement.arguments);
-
-                DatabaseUtils.defaultColumnEntries(commandQueueElement, pstmt, index);
-                pstmt.addBatch();
-            }
-
-            pstmt.executeBatch();
         }
     }
 

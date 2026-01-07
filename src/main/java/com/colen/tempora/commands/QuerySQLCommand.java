@@ -107,7 +107,7 @@ public class QuerySQLCommand extends CommandBase {
                 return;
             }
 
-            List<GenericQueueElement> output = executeReadOnlyQuery(targetLogger, rawQuery);
+            List<? extends GenericQueueElement> output = executeReadOnlyQuery(targetLogger, rawQuery);
 
             // We do this first, to not bury the info below, in case of a long response.
             for (GenericQueueElement queueElement : output) {
@@ -192,7 +192,7 @@ public class QuerySQLCommand extends CommandBase {
             .startsWith("select");
     }
 
-    private List<GenericQueueElement> executeReadOnlyQuery(GenericPositionalLogger<?> logger, String sql)
+    private List<? extends GenericQueueElement> executeReadOnlyQuery(GenericPositionalLogger<?> logger, String sql)
         throws SQLException {
 
         try (Connection roConn = logger.getDatabaseManager()

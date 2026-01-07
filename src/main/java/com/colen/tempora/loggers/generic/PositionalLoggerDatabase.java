@@ -272,7 +272,7 @@ public class PositionalLoggerDatabase {
                 ps.setInt(9, MAX_DATA_ROWS_PER_DB);
 
                 try (ResultSet rs = ps.executeQuery()) {
-                    List<GenericQueueElement> packets = genericPositionalLogger.generateQueryResults(rs);
+                    List<? extends GenericQueueElement> packets = genericPositionalLogger.generateQueryResults(rs);
 
                     if (packets.isEmpty()) {
                         IChatComponent noResults = new ChatComponentTranslation(
@@ -340,7 +340,7 @@ public class PositionalLoggerDatabase {
                 ps.setString(1, eventID);
 
                 ResultSet rs = ps.executeQuery();
-                List<GenericQueueElement> packets = genericPositionalLogger.generateQueryResults(rs);
+                List<? extends GenericQueueElement> packets = genericPositionalLogger.generateQueryResults(rs);
                 if (packets.isEmpty()) return null;
 
                 return packets.get(0);

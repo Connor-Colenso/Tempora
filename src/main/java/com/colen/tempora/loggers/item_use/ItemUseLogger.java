@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import com.colen.tempora.loggers.block_change.BlockChangeQueueElement;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -34,6 +35,11 @@ import cpw.mods.fml.relauncher.SideOnly;
 public class ItemUseLogger extends GenericPositionalLogger<ItemUseQueueElement> {
 
     @Override
+    public @NotNull ItemUseQueueElement getQueueElementInstance() {
+        return new ItemUseQueueElement();
+    }
+
+    @Override
     public LoggerEnum getLoggerType() {
         return LoggerEnum.ItemUseLogger;
     }
@@ -42,49 +48,6 @@ public class ItemUseLogger extends GenericPositionalLogger<ItemUseQueueElement> 
     @SideOnly(Side.CLIENT)
     public void renderEventsInWorld(RenderWorldLastEvent e) {
 
-    }
-
-    @Override
-    public @NotNull List<GenericQueueElement> generateQueryResults(ResultSet resultSet) throws SQLException {
-        ArrayList<GenericQueueElement> eventList = new ArrayList<>();
-
-        while (resultSet.next()) {
-
-            ItemUseQueueElement queueElement = new ItemUseQueueElement();
-            queueElement.populateDefaultFieldsFromResultSet(resultSet);
-
-            queueElement.playerUUID = resultSet.getString("playerUUID");
-            queueElement.itemID = resultSet.getInt("itemID");
-            queueElement.itemMetadata = resultSet.getInt("itemMetadata");
-
-            eventList.add(queueElement);
-        }
-
-        return eventList;
-    }
-
-    @Override
-    public void threadedSaveEvents(List<ItemUseQueueElement> queueElements) throws SQLException {
-        if (queueElements == null || queueElements.isEmpty()) return;
-
-        final String sql = "INSERT INTO " + getLoggerName()
-            + " (playerUUID, itemID, itemMetadata, eventID, x, y, z, dimensionID, timestamp, versionID) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
-        int index;
-        try (PreparedStatement pstmt = databaseManager.getDBConn()
-            .prepareStatement(sql)) {
-            for (ItemUseQueueElement queueElement : queueElements) {
-                index = 1;
-
-                pstmt.setString(index++, queueElement.playerUUID);
-                pstmt.setInt(index++, queueElement.itemID);
-                pstmt.setInt(index++, queueElement.itemMetadata);
-                DatabaseUtils.defaultColumnEntries(queueElement, pstmt, index);
-
-                pstmt.addBatch();
-            }
-            pstmt.executeBatch();
-        }
     }
 
     @Override

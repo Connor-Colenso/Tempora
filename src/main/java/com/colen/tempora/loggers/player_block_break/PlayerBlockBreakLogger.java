@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import com.colen.tempora.loggers.block_change.BlockChangeQueueElement;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
@@ -45,6 +46,11 @@ import cpw.mods.fml.relauncher.SideOnly;
 
 public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockBreakQueueElement>
     implements ISupportsUndo {
+
+    @Override
+    public @NotNull PlayerBlockBreakQueueElement getQueueElementInstance() {
+        return new PlayerBlockBreakQueueElement();
+    }
 
     private static boolean logNBT;
 
@@ -93,60 +99,6 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
                 If true, it will log the NBT of all blocks changes which interact with this event. This improves rendering of events and gives a better history.
                 WARNING: NBT may be large and this will cause the database to grow much quicker.
                 """);
-    }
-
-    @Override
-    public @NotNull List<GenericQueueElement> generateQueryResults(ResultSet resultSet) throws SQLException {
-
-        try {
-            ArrayList<GenericQueueElement> eventList = new ArrayList<>();
-
-            while (resultSet.next()) {
-                PlayerBlockBreakQueueElement queueElement = new PlayerBlockBreakQueueElement();
-                queueElement.populateDefaultFieldsFromResultSet(resultSet);
-
-                queueElement.encodedNBT = resultSet.getString("encodedNBT");
-                queueElement.playerUUID = resultSet.getString("playerUUID");
-                queueElement.blockID = resultSet.getInt("blockID");
-                queueElement.metadata = resultSet.getInt("metadata");
-                queueElement.pickBlockID = resultSet.getInt("pickBlockID");
-                queueElement.pickBlockMeta = resultSet.getInt("pickBlockMeta");
-
-                eventList.add(queueElement);
-            }
-
-            return eventList;
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-    @Override
-    public void threadedSaveEvents(List<PlayerBlockBreakQueueElement> queueElements) throws SQLException {
-        if (queueElements == null || queueElements.isEmpty()) return;
-
-        final String sql = "INSERT INTO " + getLoggerName()
-            + " (playerUUID, blockID, metadata, pickBlockID, pickBlockMeta, encodedNBT, eventID, x, y, z, dimensionID, timestamp, versionID) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
-        int index;
-        try (PreparedStatement pstmt = databaseManager.getDBConn()
-            .prepareStatement(sql)) {
-            for (PlayerBlockBreakQueueElement queueElement : queueElements) {
-                index = 1;
-
-                pstmt.setString(index++, queueElement.playerUUID);
-                pstmt.setInt(index++, queueElement.blockID);
-                pstmt.setInt(index++, queueElement.metadata);
-                pstmt.setInt(index++, queueElement.pickBlockID);
-                pstmt.setInt(index++, queueElement.pickBlockMeta);
-                pstmt.setString(index++, queueElement.encodedNBT);
-                DatabaseUtils.defaultColumnEntries(queueElement, pstmt, index);
-
-                pstmt.addBatch();
-            }
-
-            pstmt.executeBatch();
-        }
     }
 
     @Override

@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
+import com.colen.tempora.loggers.block_change.BlockChangeQueueElement;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.config.Configuration;
@@ -32,7 +33,18 @@ import cpw.mods.fml.common.gameevent.TickEvent.PlayerTickEvent;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
+// This class logs three items to the same database.
+// 1. Player movement every n ticks. By default, n = 200 ticks.
+// 2. Player teleportation between dimensions. Prevents users from evading the above detector by switching dims very
+// quickly.
+// 3. Player login, prevents the user from being logged into a dimension and quickly switching dims, this would
+// cause the dimension to load, which we want to keep track of.
 public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovementQueueElement> {
+
+    @Override
+    public @NotNull PlayerMovementQueueElement getQueueElementInstance() {
+        return new PlayerMovementQueueElement();
+    }
 
     @Override
     public LoggerEnum getLoggerType() {
@@ -44,14 +56,6 @@ public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovement
     public void renderEventsInWorld(RenderWorldLastEvent e) {
 
     }
-
-    // This class logs three items to the same database.
-    // 1. Player movement every n ticks. By default, n = 200 ticks.
-    // 2. Player teleportation between dimensions. Prevents users from evading the above detector by switching dims very
-    // quickly.
-    // 3. Player login, prevents the user from being logged into a dimension and quickly switching dims, this would
-    // cause the dimension
-    // to load, which we want to keep track of.
 
     private int playerMovementLoggingInterval;
 
@@ -66,48 +70,8 @@ public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovement
             "How often player location is recorded by Tempora. Measured in ticks (20/second).");
     }
 
-    @Override
-    public @NotNull List<GenericQueueElement> generateQueryResults(ResultSet resultSet) throws SQLException {
-        ArrayList<GenericQueueElement> eventList = new ArrayList<>();
-
-        while (resultSet.next()) {
-
-            PlayerMovementQueueElement queueElement = new PlayerMovementQueueElement();
-            queueElement.populateDefaultFieldsFromResultSet(resultSet);
-
-            queueElement.playerUUID = PlayerUtils.UUIDToName(resultSet.getString("playerUUID"));
-
-            eventList.add(queueElement);
-        }
-
-        return eventList;
-    }
-
     public PlayerMovementLogger() {
         super();
-    }
-
-    @Override
-    public void threadedSaveEvents(List<PlayerMovementQueueElement> queueElements) throws SQLException {
-        if (queueElements == null || queueElements.isEmpty()) return;
-
-        final String sql = "INSERT INTO " + getLoggerName()
-            + " (playerUUID, eventID, x, y, z, dimensionID, timestamp, versionID) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-
-        int index;
-        try (PreparedStatement pstmt = databaseManager.getDBConn()
-            .prepareStatement(sql)) {
-            for (PlayerMovementQueueElement queueElement : queueElements) {
-                index = 1;
-
-                pstmt.setString(index++, queueElement.playerUUID);
-                DatabaseUtils.defaultColumnEntries(queueElement, pstmt, index);
-
-                pstmt.addBatch();
-            }
-
-            pstmt.executeBatch();
-        }
     }
 
     @Override
