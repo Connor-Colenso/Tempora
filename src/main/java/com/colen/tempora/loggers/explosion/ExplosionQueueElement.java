@@ -4,6 +4,7 @@ import static cpw.mods.fml.common.network.ByteBufUtils.readVarInt;
 import static cpw.mods.fml.common.network.ByteBufUtils.varIntByteCount;
 import static cpw.mods.fml.common.network.ByteBufUtils.writeVarInt;
 
+import com.colen.tempora.loggers.generic.Column;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 
@@ -20,10 +21,15 @@ import io.netty.buffer.ByteBuf;
 
 public class ExplosionQueueElement extends GenericQueueElement {
 
+    @Column(type = "REAL", constraints = "NOT NULL DEFAULT -1")
     public float strength;
+    @Column(type = "TEXT", constraints = "NOT NULL")
     public String exploderUUID;
+    @Column(type = "TEXT", constraints = "NOT NULL")
     public String closestPlayerUUID;
+    @Column(type = "REAL", constraints = "NOT NULL DEFAULT -1")
     public double closestPlayerDistance;
+
     // We only use this field for rendering.
     public String affectedBlockCoordinates;
 

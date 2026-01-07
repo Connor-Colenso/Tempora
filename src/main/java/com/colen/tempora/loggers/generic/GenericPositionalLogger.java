@@ -2,10 +2,16 @@ package com.colen.tempora.loggers.generic;
 
 import static com.colen.tempora.Tempora.LOG;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -112,8 +118,73 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
     public abstract void renderEventsInWorld(RenderWorldLastEvent e);
 
-    // Add your own custom columns for each logger with this, we append the default x y z etc with getAllTableColumns
-    public abstract List<ColumnDef> getCustomTableColumns();
+    protected static List<Field> getAllAnnotatedFieldsAlphabetically(Class<?> clazz) {
+        List<Field> fields = new ArrayList<>();
+        Deque<Class<?>> hierarchy = new ArrayDeque<>();
+
+        while (clazz != null && clazz != Object.class) {
+            hierarchy.push(clazz);
+            clazz = clazz.getSuperclass();
+        }
+
+        while (!hierarchy.isEmpty()) {
+            Class<?> current = hierarchy.pop();
+
+            List<Field> declared = new ArrayList<>();
+            for (Field field : current.getDeclaredFields()) {
+                if (field.isAnnotationPresent(Column.class)) {
+                    declared.add(field);
+                }
+            }
+
+            // Bring some stability to ordering.
+            declared.sort(Comparator.comparing(Field::getName));
+
+            fields.addAll(declared);
+        }
+
+        return fields;
+    }
+
+    @SuppressWarnings("unchecked")
+    protected Class<EventToLog> inferEventClass() {
+        Type type = getClass().getGenericSuperclass();
+
+        if (!(type instanceof ParameterizedType)) {
+            throw new IllegalStateException(
+                "Logger must directly extend AbstractLogger<T>");
+        }
+
+        Type arg = ((ParameterizedType) type).getActualTypeArguments()[0];
+
+        if (arg instanceof Class<?>) {
+            return (Class<EventToLog>) arg;
+        }
+
+        throw new IllegalStateException(
+            "Cannot determine event class: " + arg);
+    }
+
+
+    protected List<ColumnDef> getCustomTableColumns() {
+        List<ColumnDef> columns = new ArrayList<>();
+
+        for (Field field : getAllAnnotatedFieldsAlphabetically(inferEventClass())) {
+            Column col = field.getAnnotation(Column.class);
+
+            String name = col.name().isEmpty()
+                ? field.getName()
+                : col.name();
+
+            columns.add(new ColumnDef(
+                name,
+                col.type(),
+                col.constraints()
+            ));
+        }
+
+        return columns;
+    }
 
     // Logger name is also the SQL table name.
     public String getLoggerName() {
