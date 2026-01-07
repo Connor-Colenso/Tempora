@@ -1,5 +1,6 @@
 package com.colen.tempora.loggers.entity_position;
 
+import com.colen.tempora.loggers.generic.Column;
 import net.minecraft.event.ClickEvent;
 import net.minecraft.event.HoverEvent;
 import net.minecraft.util.ChatComponentText;
@@ -18,9 +19,16 @@ import io.netty.buffer.ByteBuf;
 
 public class EntityPositionQueueElement extends GenericQueueElement {
 
+    @Column(type="TEXT", constraints = "NOT NULL")
     public String entityName;
+
+    @Column(type="TEXT", constraints = "NOT NULL")
     public String entityUUID;
+
+    @Column(type="REAL", constraints = "NOT NULL")
     public float rotationYaw;
+
+    @Column(type="REAL", constraints = "NOT NULL")
     public float rotationPitch;
 
     @Override
@@ -43,7 +51,7 @@ public class EntityPositionQueueElement extends GenericQueueElement {
             x,
             y,
             z,
-            dimensionId,
+            dimensionID,
             PlayerUtils.UUIDToName(uuid),
             CoordFormat.FLOAT_1DP);
         IChatComponent timeAgo = TimeUtils.formatTime(timestamp);

@@ -22,7 +22,7 @@ public class DatabaseUtils {
         pstmt.setDouble(index++, queueElement.x);
         pstmt.setDouble(index++, queueElement.y);
         pstmt.setDouble(index++, queueElement.z);
-        pstmt.setInt(index++, queueElement.dimensionId);
+        pstmt.setInt(index++, queueElement.dimensionID);
         pstmt.setTimestamp(index++, new Timestamp(queueElement.timestamp));
 
         // This is a static and unchanging int that corresponds to a modpack version. It can only shift on server

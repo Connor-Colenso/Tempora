@@ -1,5 +1,6 @@
 package com.colen.tempora.loggers.player_movement;
 
+import com.colen.tempora.loggers.generic.Column;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 
@@ -13,6 +14,7 @@ import io.netty.buffer.ByteBuf;
 
 public class PlayerMovementQueueElement extends GenericQueueElement {
 
+    @Column(type="TEXT", constraints = "NOT NULL")
     public String playerUUID;
 
     @Override
@@ -34,7 +36,7 @@ public class PlayerMovementQueueElement extends GenericQueueElement {
             x,
             y,
             z,
-            dimensionId,
+            dimensionID,
             PlayerUtils.UUIDToName(uuid),
             CoordFormat.FLOAT_1DP);
 

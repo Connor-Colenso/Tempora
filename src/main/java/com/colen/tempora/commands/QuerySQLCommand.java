@@ -87,8 +87,7 @@ public class QuerySQLCommand extends CommandBase {
         // Execute the query read-only
         try {
             // Ensure the user has all the columns needed
-            List<ColumnDef> columns = targetLogger.getDatabaseManager()
-                .getAllTableColumns();
+            List<ColumnDef> columns = targetLogger.getDatabaseManager().getAllTableColumns();
 
             List<String> missing = findMissingColumns(rawQuery, columns);
             if (!missing.isEmpty()) {

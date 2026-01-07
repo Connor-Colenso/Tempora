@@ -67,7 +67,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
         Map<String, EventToLog> latestPerBlock = new HashMap<>();
 
         for (EventToLog element : input) {
-            if (element.dimensionId != playerDim) continue;
+            if (element.dimensionID != playerDim) continue;
 
             String key = (int) element.x + "," + (int) element.y + "," + (int) element.z;
             EventToLog existing = latestPerBlock.get(key);
@@ -118,9 +118,12 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
     public abstract void renderEventsInWorld(RenderWorldLastEvent e);
 
-    protected static List<Field> getAllAnnotatedFieldsAlphabetically(Class<?> clazz) {
+    // todo move
+    public List<Field> getAllAnnotatedFieldsAlphabetically() {
         List<Field> fields = new ArrayList<>();
         Deque<Class<?>> hierarchy = new ArrayDeque<>();
+
+        Class<?> clazz = inferEventToLogClass();
 
         while (clazz != null && clazz != Object.class) {
             hierarchy.push(clazz);
@@ -146,13 +149,13 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
         return fields;
     }
 
+    // Annoying!
     @SuppressWarnings("unchecked")
-    protected Class<EventToLog> inferEventClass() {
+    protected Class<EventToLog> inferEventToLogClass() {
         Type type = getClass().getGenericSuperclass();
 
         if (!(type instanceof ParameterizedType)) {
-            throw new IllegalStateException(
-                "Logger must directly extend AbstractLogger<T>");
+            throw new IllegalStateException("Logger must directly extend GenericPositionalLogger<EventToLog>.");
         }
 
         Type arg = ((ParameterizedType) type).getActualTypeArguments()[0];
@@ -161,29 +164,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
             return (Class<EventToLog>) arg;
         }
 
-        throw new IllegalStateException(
-            "Cannot determine event class: " + arg);
-    }
-
-
-    protected List<ColumnDef> getCustomTableColumns() {
-        List<ColumnDef> columns = new ArrayList<>();
-
-        for (Field field : getAllAnnotatedFieldsAlphabetically(inferEventClass())) {
-            Column col = field.getAnnotation(Column.class);
-
-            String name = col.name().isEmpty()
-                ? field.getName()
-                : col.name();
-
-            columns.add(new ColumnDef(
-                name,
-                col.type(),
-                col.constraints()
-            ));
-        }
-
-        return columns;
+        throw new IllegalStateException("Cannot determine event class: " + arg);
     }
 
     // Logger name is also the SQL table name.

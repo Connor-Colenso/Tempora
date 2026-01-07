@@ -94,7 +94,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
 
         // --- NON-TRANSPARENT ---
         for (BlockChangeQueueElement event : nonTransparentEventsToRenderInWorld) {
-            if (event.dimensionId != player.dimension) continue;
+            if (event.dimensionID != player.dimension) continue;
             if (player.getDistanceSq(event.x, event.y, event.z) > maxDistSq) continue;
             filteredNonTransparentBuffer.add(event);
         }
@@ -112,7 +112,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
 
         // --- TRANSPARENT ---
         for (BlockChangeQueueElement event : transparentEventsToRenderInWorld) {
-            if (event.dimensionId != player.dimension) continue;
+            if (event.dimensionID != player.dimension) continue;
             if (player.getDistanceSq(event.x, event.y, event.z) > maxDistSq) continue;
             filteredTransparentBuffer.add(event);
         }
@@ -127,26 +127,6 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
                 bcqe.closestPlayerUUID,
                 getLoggerType());
         }
-    }
-
-    @Override
-    public List<ColumnDef> getCustomTableColumns() {
-        return Arrays.asList(
-            new ColumnDef("beforeBlockID", "INTEGER", "NOT NULL DEFAULT -1"),
-            new ColumnDef("beforeMetadata", "INTEGER", "NOT NULL DEFAULT -1"),
-            new ColumnDef("beforePickBlockID", "INTEGER", "NOT NULL DEFAULT -1"),
-            new ColumnDef("beforePickBlockMeta", "INTEGER", "NOT NULL DEFAULT -1"),
-            new ColumnDef("beforeEncodedNBT", "TEXT", "NOT NULL DEFAULT " + NO_NBT),
-
-            new ColumnDef("afterBlockID", "INTEGER", "NOT NULL DEFAULT -1"),
-            new ColumnDef("afterMetadata", "INTEGER", "NOT NULL DEFAULT -1"),
-            new ColumnDef("afterPickBlockID", "INTEGER", "NOT NULL DEFAULT -1"),
-            new ColumnDef("afterPickBlockMeta", "INTEGER", "NOT NULL DEFAULT -1"),
-            new ColumnDef("afterEncodedNBT", "TEXT", "NOT NULL DEFAULT " + NO_NBT),
-
-            new ColumnDef("stackTrace", "TEXT", "NOT NULL DEFAULT " + MISSING_STRING_DATA),
-            new ColumnDef("closestPlayerUUID", "TEXT", "NOT NULL DEFAULT " + MISSING_STRING_DATA),
-            new ColumnDef("closestPlayerDistance", "REAL", "NOT NULL DEFAULT -1"));
     }
 
     @Override
@@ -257,7 +237,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
         e.x = x;
         e.y = y;
         e.z = z;
-        e.dimensionId = world.provider.dimensionId;
+        e.dimensionID = world.provider.dimensionId;
 
         e.isWorldGen = WorldGenPhaseTracker.isWorldGen();
 
@@ -345,7 +325,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
             return new ChatComponentTranslation("tempora.cannot.block.break.undo.nbt.logging.disabled");
 
         World w = MinecraftServer.getServer()
-            .worldServerForDimension(queueElement.dimensionId);
+            .worldServerForDimension(queueElement.dimensionID);
         Block block = Block.getBlockById(bcqe.beforeBlockID);
         if (block == null) return new ChatComponentTranslation("tempora.cannot.block.break.undo.block.not.found");
 

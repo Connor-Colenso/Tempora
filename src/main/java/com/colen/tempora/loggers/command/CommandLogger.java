@@ -3,13 +3,11 @@ package com.colen.tempora.loggers.command;
 import static com.colen.tempora.TemporaUtils.isClientSide;
 import static com.colen.tempora.rendering.RenderUtils.renderFloatingText;
 import static com.colen.tempora.utils.ChatUtils.ONE_DP;
-import static com.colen.tempora.utils.DatabaseUtils.MISSING_STRING_DATA;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -24,7 +22,6 @@ import org.jetbrains.annotations.NotNull;
 
 import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.enums.LoggerEventType;
-import com.colen.tempora.loggers.generic.ColumnDef;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.utils.DatabaseUtils;
@@ -70,13 +67,7 @@ public class CommandLogger extends GenericPositionalLogger<CommandQueueElement> 
         }
     }
 
-    @Override
-    public List<ColumnDef> getCustomTableColumns() {
-        return Arrays.asList(
-            new ColumnDef("playerUUID", "TEXT", "NOT NULL DEFAULT " + MISSING_STRING_DATA),
-            new ColumnDef("command", "TEXT", "NOT NULL DEFAULT " + MISSING_STRING_DATA),
-            new ColumnDef("arguments", "TEXT", "NOT NULL DEFAULT " + MISSING_STRING_DATA));
-    }
+
 
     @Override
     public @NotNull List<GenericQueueElement> generateQueryResults(ResultSet resultSet) throws SQLException {
@@ -87,7 +78,7 @@ public class CommandLogger extends GenericPositionalLogger<CommandQueueElement> 
             queueElement.populateDefaultFieldsFromResultSet(resultSet);
 
             queueElement.playerUUID = resultSet.getString("playerUUID");
-            queueElement.commandName = resultSet.getString("command");
+            queueElement.commandName = resultSet.getString("commandName");
             queueElement.arguments = resultSet.getString("arguments");
 
             // Bit of a hack, but the client must have this info to render it properly.
@@ -104,7 +95,7 @@ public class CommandLogger extends GenericPositionalLogger<CommandQueueElement> 
         if (commandQueueElements == null || commandQueueElements.isEmpty()) return;
 
         final String sql = "INSERT INTO " + getLoggerName()
-            + " (playerUUID, command, arguments, eventID, x, y, z, dimensionID, timestamp, versionID) "
+            + " (playerUUID, commandName, arguments, eventID, x, y, z, dimensionID, timestamp, versionID) "
             + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         int index;
@@ -147,7 +138,7 @@ public class CommandLogger extends GenericPositionalLogger<CommandQueueElement> 
             queueElement.x = player.posX;
             queueElement.y = player.posY;
             queueElement.z = player.posZ;
-            queueElement.dimensionId = player.dimension;
+            queueElement.dimensionID = player.dimension;
             queueElement.timestamp = System.currentTimeMillis();
 
             queueElement.playerUUID = player.getUniqueID()

@@ -1,5 +1,6 @@
 package com.colen.tempora.loggers.inventory;
 
+import com.colen.tempora.loggers.generic.Column;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ChatComponentTranslation;
@@ -15,12 +16,23 @@ import io.netty.buffer.ByteBuf;
 
 public class InventoryQueueElement extends GenericQueueElement {
 
+    @Column(type="TEXT", constraints = "NOT NULL")
     public String containerName;
-    public int interactionType;
-    public int itemId;
-    public int itemMetadata;
+
+    @Column(type="TEXT", constraints = "NOT NULL")
+    public int interactionType; // Note: DB column is TEXT, but field is int – consider changing either to match
+
+    @Column(type="TEXT", constraints = "NOT NULL")
     public String playerUUID;
-    public int stackSize;
+
+    @Column(type="INTEGER", constraints = "NOT NULL")
+    public int itemId; // corresponds to "itemID" column
+
+    @Column(type="INTEGER", constraints = "NOT NULL")
+    public int itemMetadata;
+
+    @Column(type="INTEGER", constraints = "NOT NULL")
+    public int stackSize; // corresponds to "stacksize" column
 
     @Override
     public void fromBytes(ByteBuf buf) {
@@ -57,7 +69,7 @@ public class InventoryQueueElement extends GenericQueueElement {
             x,
             y,
             z,
-            dimensionId,
+            dimensionID,
             PlayerUtils.UUIDToName(uuid),
             CoordFormat.INT);
 

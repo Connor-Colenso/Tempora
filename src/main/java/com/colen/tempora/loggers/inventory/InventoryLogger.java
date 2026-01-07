@@ -121,17 +121,6 @@ public class InventoryLogger extends GenericPositionalLogger<InventoryQueueEleme
     }
 
     @Override
-    public List<ColumnDef> getCustomTableColumns() {
-        return Arrays.asList(
-            new ColumnDef("containerName", "TEXT", "NOT NULL DEFAULT " + MISSING_STRING_DATA),
-            new ColumnDef("interactionType", "TEXT", "NOT NULL DEFAULT " + MISSING_STRING_DATA),
-            new ColumnDef("playerUUID", "TEXT", "NOT NULL DEFAULT " + MISSING_STRING_DATA),
-            new ColumnDef("itemID", "INTEGER", "NOT NULL DEFAULT -1"),
-            new ColumnDef("itemMetadata", "INTEGER", "NOT NULL DEFAULT -1"),
-            new ColumnDef("stacksize", "INTEGER", "NOT NULL DEFAULT -1"));
-    }
-
-    @Override
     public @NotNull List<GenericQueueElement> generateQueryResults(ResultSet resultSet) throws SQLException {
         ArrayList<GenericQueueElement> eventList = new ArrayList<>();
         while (resultSet.next()) {
@@ -233,7 +222,7 @@ public class InventoryLogger extends GenericPositionalLogger<InventoryQueueEleme
             }
         }
 
-        queueElement.dimensionId = playerMP.dimension;
+        queueElement.dimensionID = playerMP.dimension;
         queueElement.timestamp = System.currentTimeMillis();
         queueElement.playerUUID = playerMP.getUniqueID()
             .toString();
@@ -287,7 +276,7 @@ public class InventoryLogger extends GenericPositionalLogger<InventoryQueueEleme
         queueElement.x = x;
         queueElement.y = y;
         queueElement.z = z;
-        queueElement.dimensionId = dim;
+        queueElement.dimensionID = dim;
 
         queueElement.containerName = containerName;
         queueElement.timestamp = System.currentTimeMillis();

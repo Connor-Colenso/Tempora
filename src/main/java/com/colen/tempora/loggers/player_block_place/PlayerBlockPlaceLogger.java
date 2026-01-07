@@ -2,15 +2,12 @@ package com.colen.tempora.loggers.player_block_place;
 
 import static com.colen.tempora.TemporaUtils.isClientSide;
 import static com.colen.tempora.utils.BlockUtils.getPickBlockSafe;
-import static com.colen.tempora.utils.DatabaseUtils.MISSING_STRING_DATA;
-import static com.colen.tempora.utils.nbt.NBTUtils.NO_NBT;
 import static com.colen.tempora.utils.nbt.NBTUtils.getEncodedTileEntityNBT;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -27,7 +24,6 @@ import org.jetbrains.annotations.NotNull;
 import com.colen.tempora.TemporaUtils;
 import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.enums.LoggerEventType;
-import com.colen.tempora.loggers.generic.ColumnDef;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.utils.DatabaseUtils;
@@ -74,7 +70,7 @@ public class PlayerBlockPlaceLogger extends GenericPositionalLogger<PlayerBlockP
                 pbbqe.blockID,
                 pbbqe.metadata,
                 pbbqe.encodedNBT,
-                pbbqe.playerNameWhoPlacedBlock,
+                pbbqe.playerUUID,
                 getLoggerType());
         }
 
@@ -85,20 +81,9 @@ public class PlayerBlockPlaceLogger extends GenericPositionalLogger<PlayerBlockP
                 pbbqe.blockID,
                 pbbqe.metadata,
                 pbbqe.encodedNBT,
-                pbbqe.playerNameWhoPlacedBlock,
+                pbbqe.playerUUID,
                 getLoggerType());
         }
-    }
-
-    @Override
-    public List<ColumnDef> getCustomTableColumns() {
-        return Arrays.asList(
-            new ColumnDef("playerUUID", "TEXT", "NOT NULL DEFAULT " + MISSING_STRING_DATA),
-            new ColumnDef("encodedNBT", "TEXT", "NOT NULL DEFAULT " + NO_NBT),
-            new ColumnDef("metadata", "INTEGER", "NOT NULL DEFAULT -1"),
-            new ColumnDef("blockID", "INTEGER", "NOT NULL DEFAULT -1"),
-            new ColumnDef("pickBlockMeta", "INTEGER", "NOT NULL DEFAULT -1"),
-            new ColumnDef("pickBlockID", "INTEGER", "NOT NULL DEFAULT -1"));
     }
 
     @Override
@@ -110,7 +95,7 @@ public class PlayerBlockPlaceLogger extends GenericPositionalLogger<PlayerBlockP
             PlayerBlockPlaceQueueElement queueElement = new PlayerBlockPlaceQueueElement();
             queueElement.populateDefaultFieldsFromResultSet(resultSet);
 
-            queueElement.playerNameWhoPlacedBlock = PlayerUtils.UUIDToName(resultSet.getString("playerUUID"));
+            queueElement.playerUUID = PlayerUtils.UUIDToName(resultSet.getString("playerUUID"));
             queueElement.encodedNBT = resultSet.getString("encodedNBT");
             queueElement.blockID = resultSet.getInt("blockID");
             queueElement.metadata = resultSet.getInt("metadata");
@@ -137,7 +122,7 @@ public class PlayerBlockPlaceLogger extends GenericPositionalLogger<PlayerBlockP
             for (PlayerBlockPlaceQueueElement queueElement : queueElements) {
                 index = 1;
 
-                pstmt.setString(index++, queueElement.playerNameWhoPlacedBlock);
+                pstmt.setString(index++, queueElement.playerUUID);
                 pstmt.setString(index++, queueElement.encodedNBT);
                 pstmt.setInt(index++, queueElement.blockID);
                 pstmt.setInt(index++, queueElement.metadata);
@@ -169,7 +154,7 @@ public class PlayerBlockPlaceLogger extends GenericPositionalLogger<PlayerBlockP
         queueElement.x = event.x;
         queueElement.y = event.y;
         queueElement.z = event.z;
-        queueElement.dimensionId = event.world.provider.dimensionId;
+        queueElement.dimensionID = event.world.provider.dimensionId;
         queueElement.timestamp = System.currentTimeMillis();
 
         queueElement.blockID = Block.getIdFromBlock(event.block);
@@ -190,10 +175,10 @@ public class PlayerBlockPlaceLogger extends GenericPositionalLogger<PlayerBlockP
         queueElement.encodedNBT = getEncodedTileEntityNBT(event.world, event.x, event.y, event.z, logNBT);
 
         if (event.player instanceof EntityPlayerMP) {
-            queueElement.playerNameWhoPlacedBlock = event.player.getUniqueID()
+            queueElement.playerUUID = event.player.getUniqueID()
                 .toString();
         } else {
-            queueElement.playerNameWhoPlacedBlock = TemporaUtils.UNKNOWN_PLAYER_NAME;
+            queueElement.playerUUID = TemporaUtils.UNKNOWN_PLAYER_NAME;
         }
 
         queueEvent(queueElement);

@@ -18,17 +18,29 @@ import io.netty.buffer.ByteBuf;
 
 public abstract class GenericQueueElement implements IMessage {
 
-    public double x;
-    public double y;
-    public double z;
-    public int dimensionId;
-    public long timestamp;
+    @Column(type="TEXT", constraints = "PRIMARY KEY")
     public String eventID;
+
+    @Column(type="REAL", constraints = "NOT NULL")
+    public double x;
+
+    @Column(type="REAL", constraints = "NOT NULL")
+    public double y;
+
+    @Column(type="REAL", constraints = "NOT NULL")
+    public double z;
+
+    @Column(type="INTEGER", constraints = "NOT NULL")
+    public int dimensionID;
+
+    @Column(type="INTEGER", constraints = "NOT NULL")
+    public long timestamp;
+
+    @Column(type="INTEGER", constraints = "NOT NULL")
     public int versionID;
 
     // This field purely dictates when an event was made when received by the client, so we know when to stop rendering
-    // it in world. It is only
-    // relevant on the client.
+    // it in world. It is only relevant on the client.
     public long eventRenderCreationTime;
 
     public abstract IChatComponent localiseText(String uuid);
@@ -37,7 +49,7 @@ public abstract class GenericQueueElement implements IMessage {
         x = resultSet.getDouble("x");
         y = resultSet.getDouble("y");
         z = resultSet.getDouble("z");
-        dimensionId = resultSet.getInt("dimensionID");
+        dimensionID = resultSet.getInt("dimensionID");
         timestamp = resultSet.getLong("timestamp");
         eventID = resultSet.getString("eventID");
         versionID = resultSet.getInt("versionID");
@@ -48,7 +60,7 @@ public abstract class GenericQueueElement implements IMessage {
         x = buf.readDouble();
         y = buf.readDouble();
         z = buf.readDouble();
-        dimensionId = buf.readInt();
+        dimensionID = buf.readInt();
         timestamp = buf.readLong();
         eventID = ByteBufUtils.readUTF8String(buf);
         // versionID Not applicable for client.
@@ -59,7 +71,7 @@ public abstract class GenericQueueElement implements IMessage {
         buf.writeDouble(x);
         buf.writeDouble(y);
         buf.writeDouble(z);
-        buf.writeInt(dimensionId);
+        buf.writeInt(dimensionID);
         buf.writeLong(timestamp);
         ByteBufUtils.writeUTF8String(buf, eventID);
         // versionID Not applicable for client.

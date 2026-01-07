@@ -2,6 +2,7 @@ package com.colen.tempora.loggers.entity_death;
 
 import static com.colen.tempora.utils.GenericUtils.entityUUIDChatComponent;
 
+import com.colen.tempora.loggers.generic.Column;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 
@@ -15,11 +16,21 @@ import io.netty.buffer.ByteBuf;
 
 public class EntityDeathQueueElement extends GenericQueueElement {
 
+    @Column(type="TEXT", constraints = "NOT NULL")
     public String nameOfDeadMob;
+
+    @Column(type="TEXT", constraints = "NOT NULL")
     public String killedBy;
+
+    @Column(type="TEXT", constraints = "NOT NULL")
     public String entityUUID;
+
+    @Column(type="REAL", constraints = "NOT NULL")
     public float rotationYaw;
+
+    @Column(type="REAL", constraints = "NOT NULL")
     public float rotationPitch;
+
 
     @Override
     public void fromBytes(ByteBuf buf) {
@@ -47,7 +58,7 @@ public class EntityDeathQueueElement extends GenericQueueElement {
             x,
             y,
             z,
-            dimensionId,
+            dimensionID,
             PlayerUtils.UUIDToName(uuid),
             CoordFormat.FLOAT_1DP);
         IChatComponent timeAgo = TimeUtils.formatTime(timestamp);

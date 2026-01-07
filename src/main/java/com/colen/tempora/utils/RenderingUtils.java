@@ -54,7 +54,7 @@ public class RenderingUtils {
                 sx,
                 sy,
                 sz,
-                queueElement.dimensionId,
+                queueElement.dimensionID,
                 blockID,
                 metadata,
                 playerUUID,

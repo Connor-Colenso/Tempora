@@ -29,8 +29,7 @@ public class ExplosionQueueElement extends GenericQueueElement {
     public String closestPlayerUUID;
     @Column(type = "REAL", constraints = "NOT NULL DEFAULT -1")
     public double closestPlayerDistance;
-
-    // We only use this field for rendering.
+    @Column(type="TEXT", constraints = "NOT NULL")
     public String affectedBlockCoordinates;
 
     @Override
@@ -75,7 +74,7 @@ public class ExplosionQueueElement extends GenericQueueElement {
             x,
             y,
             z,
-            dimensionId,
+            dimensionID,
             PlayerUtils.UUIDToName(uuid),
             CoordFormat.FLOAT_1DP);
         IChatComponent timeAgo = TimeUtils.formatTime(timestamp);

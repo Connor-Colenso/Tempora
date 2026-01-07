@@ -1,5 +1,6 @@
 package com.colen.tempora.loggers.command;
 
+import com.colen.tempora.loggers.generic.Column;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 
@@ -13,9 +14,16 @@ import io.netty.buffer.ByteBuf;
 
 public class CommandQueueElement extends GenericQueueElement {
 
+    @Column(type="TEXT", constraints = "NOT NULL")
     public String playerUUID;
+
+    @Column(type="TEXT", constraints = "NOT NULL")
     public String commandName;
+
+    @Column(type="TEXT", constraints = "NOT NULL")
     public String arguments;
+
+    // Not logged.
     public String truePlayerName;
 
     @Override
@@ -51,7 +59,7 @@ public class CommandQueueElement extends GenericQueueElement {
             x,
             y,
             z,
-            dimensionId,
+            dimensionID,
             PlayerUtils.UUIDToName(uuid),
             CoordFormat.FLOAT_1DP);
 

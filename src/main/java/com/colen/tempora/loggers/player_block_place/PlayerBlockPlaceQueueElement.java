@@ -1,5 +1,6 @@
 package com.colen.tempora.loggers.player_block_place;
 
+import com.colen.tempora.loggers.generic.Column;
 import net.minecraft.block.Block;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
@@ -15,12 +16,24 @@ import io.netty.buffer.ByteBuf;
 
 public class PlayerBlockPlaceQueueElement extends GenericQueueElement {
 
+    @Column(type="INTEGER", constraints = "NOT NULL")
     public int blockID;
+
+    @Column(type="INTEGER", constraints = "NOT NULL")
     public int metadata;
+
+    @Column(type="INTEGER", constraints = "NOT NULL")
     public int pickBlockID;
+
+    @Column(type="INTEGER", constraints = "NOT NULL")
     public int pickBlockMeta;
-    public String playerNameWhoPlacedBlock;
+
+    @Column(type="TEXT", constraints = "NOT NULL")
+    public String playerUUID; // todo ensure proper translation to name on client.
+
+    @Column(type="TEXT", constraints = "NOT NULL")
     public String encodedNBT;
+
 
     @Override
     public void fromBytes(ByteBuf buf) {
@@ -29,7 +42,7 @@ public class PlayerBlockPlaceQueueElement extends GenericQueueElement {
         metadata = buf.readInt();
         pickBlockID = buf.readInt();
         pickBlockMeta = buf.readInt();
-        playerNameWhoPlacedBlock = ByteBufUtils.readUTF8String(buf);
+        playerUUID = ByteBufUtils.readUTF8String(buf);
         encodedNBT = ByteBufUtils.readUTF8String(buf);
     }
 
@@ -40,7 +53,7 @@ public class PlayerBlockPlaceQueueElement extends GenericQueueElement {
         buf.writeInt(metadata);
         buf.writeInt(pickBlockID);
         buf.writeInt(pickBlockMeta);
-        ByteBufUtils.writeUTF8String(buf, playerNameWhoPlacedBlock);
+        ByteBufUtils.writeUTF8String(buf, playerUUID);
         ByteBufUtils.writeUTF8String(buf, encodedNBT);
     }
 
@@ -54,7 +67,7 @@ public class PlayerBlockPlaceQueueElement extends GenericQueueElement {
             x,
             y,
             z,
-            dimensionId,
+            dimensionID,
             PlayerUtils.UUIDToName(uuid),
             CoordFormat.INT);
 
@@ -64,7 +77,7 @@ public class PlayerBlockPlaceQueueElement extends GenericQueueElement {
         // Create translation with playerName, block, raw blockID:metadata, coords, and timeAgo
         return new ChatComponentTranslation(
             "message.block_place",
-            playerNameWhoPlacedBlock, // %0 – player name
+            playerUUID,
             block,
             blockID,
             metadata,
