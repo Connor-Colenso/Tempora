@@ -18,25 +18,25 @@ import io.netty.buffer.ByteBuf;
 
 public abstract class GenericQueueElement implements IMessage {
 
-    @Column(type="TEXT", constraints = "PRIMARY KEY")
+    @Column(type = "TEXT", constraints = "PRIMARY KEY")
     public String eventID;
 
-    @Column(type="REAL", constraints = "NOT NULL")
+    @Column(type = "REAL", constraints = "NOT NULL")
     public double x;
 
-    @Column(type="REAL", constraints = "NOT NULL")
+    @Column(type = "REAL", constraints = "NOT NULL")
     public double y;
 
-    @Column(type="REAL", constraints = "NOT NULL")
+    @Column(type = "REAL", constraints = "NOT NULL")
     public double z;
 
-    @Column(type="INTEGER", constraints = "NOT NULL")
+    @Column(type = "INTEGER", constraints = "NOT NULL")
     public int dimensionID;
 
-    @Column(type="INTEGER", constraints = "NOT NULL")
+    @Column(type = "INTEGER", constraints = "NOT NULL")
     public long timestamp;
 
-    @Column(type="INTEGER", constraints = "NOT NULL")
+    @Column(type = "INTEGER", constraints = "NOT NULL")
     public int versionID;
 
     // This field purely dictates when an event was made when received by the client, so we know when to stop rendering

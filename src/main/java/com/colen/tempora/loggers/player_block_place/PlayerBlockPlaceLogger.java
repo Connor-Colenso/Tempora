@@ -4,14 +4,9 @@ import static com.colen.tempora.TemporaUtils.isClientSide;
 import static com.colen.tempora.utils.BlockUtils.getPickBlockSafe;
 import static com.colen.tempora.utils.nbt.NBTUtils.getEncodedTileEntityNBT;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import com.colen.tempora.loggers.block_change.BlockChangeQueueElement;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
@@ -26,9 +21,6 @@ import com.colen.tempora.TemporaUtils;
 import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.enums.LoggerEventType;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
-import com.colen.tempora.loggers.generic.GenericQueueElement;
-import com.colen.tempora.utils.DatabaseUtils;
-import com.colen.tempora.utils.PlayerUtils;
 import com.colen.tempora.utils.RenderingUtils;
 
 import cpw.mods.fml.common.eventhandler.EventPriority;

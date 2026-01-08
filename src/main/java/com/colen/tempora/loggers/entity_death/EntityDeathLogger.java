@@ -1,16 +1,9 @@
 package com.colen.tempora.loggers.entity_death;
 
 import static com.colen.tempora.TemporaUtils.isClientSide;
-import static com.colen.tempora.utils.PlayerUtils.isUUID;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
-import com.colen.tempora.loggers.block_change.BlockChangeQueueElement;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
@@ -25,10 +18,7 @@ import org.jetbrains.annotations.NotNull;
 import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.enums.LoggerEventType;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
-import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.rendering.RenderUtils;
-import com.colen.tempora.utils.DatabaseUtils;
-import com.colen.tempora.utils.PlayerUtils;
 
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;

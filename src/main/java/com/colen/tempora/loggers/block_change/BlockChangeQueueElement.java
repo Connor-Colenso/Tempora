@@ -1,11 +1,11 @@
 package com.colen.tempora.loggers.block_change;
 
-import com.colen.tempora.loggers.generic.Column;
 import net.minecraft.block.Block;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 
 import com.colen.tempora.TemporaEvents;
+import com.colen.tempora.loggers.generic.Column;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.utils.BlockUtils;
 import com.colen.tempora.utils.PlayerUtils;
@@ -16,46 +16,46 @@ import io.netty.buffer.ByteBuf;
 
 public class BlockChangeQueueElement extends GenericQueueElement {
 
-    @Column(type="INTEGER", constraints = "NOT NULL")
+    @Column(type = "INTEGER", constraints = "NOT NULL")
     public int beforeBlockID;
 
-    @Column(type="INTEGER", constraints = "NOT NULL")
+    @Column(type = "INTEGER", constraints = "NOT NULL")
     public int beforeMetadata;
 
-    @Column(type="INTEGER", constraints = "NOT NULL")
+    @Column(type = "INTEGER", constraints = "NOT NULL")
     public int beforePickBlockID;
 
-    @Column(type="INTEGER", constraints = "NOT NULL")
+    @Column(type = "INTEGER", constraints = "NOT NULL")
     public int beforePickBlockMeta;
 
-    @Column(type="TEXT", constraints = "NOT NULL")
+    @Column(type = "TEXT", constraints = "NOT NULL")
     public String beforeEncodedNBT;
 
-    @Column(type="INTEGER", constraints = "NOT NULL")
+    @Column(type = "INTEGER", constraints = "NOT NULL")
     public int afterBlockID;
 
-    @Column(type="INTEGER", constraints = "NOT NULL")
+    @Column(type = "INTEGER", constraints = "NOT NULL")
     public int afterMetadata;
 
-    @Column(type="INTEGER", constraints = "NOT NULL")
+    @Column(type = "INTEGER", constraints = "NOT NULL")
     public int afterPickBlockID;
 
-    @Column(type="INTEGER", constraints = "NOT NULL")
+    @Column(type = "INTEGER", constraints = "NOT NULL")
     public int afterPickBlockMeta;
 
-    @Column(type="TEXT", constraints = "NOT NULL")
+    @Column(type = "TEXT", constraints = "NOT NULL")
     public String afterEncodedNBT;
 
-    @Column(type="TEXT", constraints = "NOT NULL")
+    @Column(type = "TEXT", constraints = "NOT NULL")
     public String stackTrace;
 
-    @Column(type="TEXT", constraints = "NOT NULL")
+    @Column(type = "TEXT", constraints = "NOT NULL")
     public String closestPlayerUUID;
 
-    @Column(type="REAL", constraints = "NOT NULL")
+    @Column(type = "REAL", constraints = "NOT NULL")
     public double closestPlayerDistance;
 
-    @Column(type="INTEGER", constraints = "NOT NULL")
+    @Column(type = "INTEGER", constraints = "NOT NULL")
     public boolean isWorldGen;
 
     @Override

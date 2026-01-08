@@ -1,11 +1,11 @@
 package com.colen.tempora.loggers.player_block_place;
 
-import com.colen.tempora.loggers.generic.Column;
 import net.minecraft.block.Block;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 
 import com.colen.tempora.TemporaEvents;
+import com.colen.tempora.loggers.generic.Column;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.utils.BlockUtils;
 import com.colen.tempora.utils.PlayerUtils;
@@ -16,24 +16,23 @@ import io.netty.buffer.ByteBuf;
 
 public class PlayerBlockPlaceQueueElement extends GenericQueueElement {
 
-    @Column(type="INTEGER", constraints = "NOT NULL")
+    @Column(type = "INTEGER", constraints = "NOT NULL")
     public int blockID;
 
-    @Column(type="INTEGER", constraints = "NOT NULL")
+    @Column(type = "INTEGER", constraints = "NOT NULL")
     public int metadata;
 
-    @Column(type="INTEGER", constraints = "NOT NULL")
+    @Column(type = "INTEGER", constraints = "NOT NULL")
     public int pickBlockID;
 
-    @Column(type="INTEGER", constraints = "NOT NULL")
+    @Column(type = "INTEGER", constraints = "NOT NULL")
     public int pickBlockMeta;
 
-    @Column(type="TEXT", constraints = "NOT NULL")
+    @Column(type = "TEXT", constraints = "NOT NULL")
     public String playerUUID; // todo ensure proper translation to name on client.
 
-    @Column(type="TEXT", constraints = "NOT NULL")
+    @Column(type = "TEXT", constraints = "NOT NULL")
     public String encodedNBT;
-
 
     @Override
     public void fromBytes(ByteBuf buf) {
