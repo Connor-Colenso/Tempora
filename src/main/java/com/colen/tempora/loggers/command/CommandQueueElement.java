@@ -4,8 +4,8 @@ import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 
 import com.colen.tempora.TemporaEvents;
-import com.colen.tempora.loggers.generic.column.Column;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
+import com.colen.tempora.loggers.generic.column.Column;
 import com.colen.tempora.utils.PlayerUtils;
 import com.colen.tempora.utils.TimeUtils;
 
@@ -58,7 +58,13 @@ public class CommandQueueElement extends GenericQueueElement {
             PlayerUtils.UUIDToName(commandIssuerUUID),
             CoordFormat.FLOAT_1DP);
 
-        return new ChatComponentTranslation("message.command_issued", PlayerUtils.generatePlayerNameWithUUID(playerUUID), commandName, arguments, coords, timeAgo);
+        return new ChatComponentTranslation(
+            "message.command_issued",
+            PlayerUtils.generatePlayerNameWithUUID(playerUUID),
+            commandName,
+            arguments,
+            coords,
+            timeAgo);
     }
 
     @Override

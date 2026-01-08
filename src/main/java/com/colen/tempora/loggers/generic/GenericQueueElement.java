@@ -3,7 +3,6 @@ package com.colen.tempora.loggers.generic;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import com.colen.tempora.loggers.generic.column.Column;
 import net.minecraft.event.ClickEvent;
 import net.minecraft.event.HoverEvent;
 import net.minecraft.util.ChatComponentTranslation;
@@ -11,6 +10,7 @@ import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
 import com.colen.tempora.commands.TemporaUndoCommand;
+import com.colen.tempora.loggers.generic.column.Column;
 import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 
 import cpw.mods.fml.common.network.ByteBufUtils;
@@ -136,9 +136,7 @@ public abstract class GenericQueueElement implements IMessage {
             + " "
             + dimId;
 
-        IChatComponent hoverText = new ChatComponentTranslation(
-            "tempora.teleport.hover",
-            dimId);
+        IChatComponent hoverText = new ChatComponentTranslation("tempora.teleport.hover", dimId);
         hoverText.getChatStyle()
             .setColor(EnumChatFormatting.GRAY);
 

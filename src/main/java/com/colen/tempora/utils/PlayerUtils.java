@@ -50,12 +50,12 @@ public class PlayerUtils {
 
         // Hover text showing the UUID
         IChatComponent hoverComponent = new ChatComponentText("UUID: " + uuid.toString());
-        hoverComponent.getChatStyle().setColor(EnumChatFormatting.GRAY);
+        hoverComponent.getChatStyle()
+            .setColor(EnumChatFormatting.GRAY);
 
         // Attach hover event
-        nameComponent.getChatStyle().setChatHoverEvent(
-            new HoverEvent(HoverEvent.Action.SHOW_TEXT, hoverComponent)
-        );
+        nameComponent.getChatStyle()
+            .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hoverComponent));
 
         return nameComponent;
     }
