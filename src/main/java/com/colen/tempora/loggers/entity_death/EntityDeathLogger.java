@@ -15,7 +15,6 @@ import net.minecraftforge.event.entity.living.LivingDeathEvent;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.enums.LoggerEventType;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.rendering.RenderUtils;
@@ -30,11 +29,6 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueE
     @Override
     public @NotNull EntityDeathQueueElement getQueueElementInstance() {
         return new EntityDeathQueueElement();
-    }
-
-    @Override
-    public LoggerEnum getLoggerType() {
-        return LoggerEnum.EntityDeathLogger;
     }
 
     @Override

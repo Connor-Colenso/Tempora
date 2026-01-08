@@ -10,7 +10,6 @@ import net.minecraftforge.common.config.Configuration;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.enums.LoggerEventType;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 
@@ -32,11 +31,6 @@ public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovement
     @Override
     public @NotNull PlayerMovementQueueElement getQueueElementInstance() {
         return new PlayerMovementQueueElement();
-    }
-
-    @Override
-    public LoggerEnum getLoggerType() {
-        return LoggerEnum.PlayerMovementLogger;
     }
 
     @Override

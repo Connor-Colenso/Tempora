@@ -1,5 +1,6 @@
 package com.colen.tempora.rendering;
 
+import java.awt.Color;
 import java.util.List;
 
 import net.minecraft.block.Block;
@@ -21,7 +22,7 @@ import net.minecraftforge.client.event.RenderWorldLastEvent;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 
-import com.colen.tempora.enums.LoggerEnum;
+import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.rendering.FakeWorld.FakeWorld;
 import com.gtnewhorizons.modularui.api.GlStateManager;
 
@@ -100,7 +101,7 @@ public abstract class RenderUtils {
     }
 
     public static void renderBlockInWorld(RenderWorldLastEvent e, double x, double y, double z, int blockID,
-        int metadata, NBTTagCompound nbt, LoggerEnum loggerEnum) {
+        int metadata, NBTTagCompound nbt, GenericPositionalLogger<?> logger) {
         Minecraft mc = Minecraft.getMinecraft();
         Tessellator tes = Tessellator.instance;
 
@@ -166,17 +167,10 @@ public abstract class RenderUtils {
 
         // Optionally render logger regions
         if (System.currentTimeMillis() / 500 % 2 == 0) {
-            if (loggerEnum == LoggerEnum.PlayerBlockBreakLogger) {
-                renderRegion(0, 0, 0, 1, 1, 1, 1, 0, 0);
-            } else if (loggerEnum == LoggerEnum.PlayerBlockPlaceLogger) {
-                renderRegion(0, 0, 0, 1, 1, 1, 0, 1, 0);
-            } else if (loggerEnum == LoggerEnum.BlockChangeLogger) {
-                renderRegion(0, 0, 0, 1, 1, 1, 0, 0, 1);
-            } else if (loggerEnum == LoggerEnum.ExplosionLogger) {
-                // Purple.
-                renderRegion(0, 0, 0, 1, 1, 1, 0.655, 0.125, 0.8);
-            }
+            Color color = logger.getColour();
+            renderRegion(0, 0, 0, 1, 1, 1, color.getRed(), color.getGreen(), color.getBlue());
         }
+
         GL11.glPopMatrix(); // end scale/align
 
         GL11.glPopMatrix(); // end world-relative

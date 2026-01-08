@@ -16,7 +16,6 @@ import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.enums.LoggerEventType;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.rendering.RenderUtils;
@@ -31,11 +30,6 @@ public class EntityPositionLogger extends GenericPositionalLogger<EntityPosition
     @Override
     public @NotNull EntityPositionQueueElement getQueueElementInstance() {
         return new EntityPositionQueueElement();
-    }
-
-    @Override
-    public LoggerEnum getLoggerType() {
-        return LoggerEnum.EntityPositionLogger;
     }
 
     @Override

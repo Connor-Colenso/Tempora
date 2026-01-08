@@ -24,7 +24,6 @@ import org.jetbrains.annotations.NotNull;
 import org.lwjgl.opengl.GL11;
 
 import com.colen.tempora.TemporaEvents;
-import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.enums.LoggerEventType;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.rendering.RenderUtils;
@@ -45,11 +44,6 @@ public class InventoryLogger extends GenericPositionalLogger<InventoryQueueEleme
     @Override
     public @NotNull LoggerEventType getLoggerEventType() {
         return LoggerEventType.None;
-    }
-
-    @Override
-    public LoggerEnum getLoggerType() {
-        return LoggerEnum.InventoryLogger;
     }
 
     @Override

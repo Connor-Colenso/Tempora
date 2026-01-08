@@ -2,6 +2,7 @@ package com.colen.tempora.loggers.explosion;
 
 import static com.colen.tempora.TemporaUtils.isClientSide;
 
+import java.awt.Color;
 import java.util.List;
 import java.util.UUID;
 
@@ -21,7 +22,6 @@ import org.jetbrains.annotations.NotNull;
 import org.lwjgl.opengl.GL11;
 
 import com.colen.tempora.TemporaUtils;
-import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.enums.LoggerEventType;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.rendering.RenderUtils;
@@ -37,11 +37,6 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionQueueEleme
     @Override
     public @NotNull ExplosionQueueElement getQueueElementInstance() {
         return new ExplosionQueueElement();
-    }
-
-    @Override
-    public LoggerEnum getLoggerType() {
-        return LoggerEnum.ExplosionLogger;
     }
 
     @Override
@@ -68,7 +63,7 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionQueueEleme
                 Block.getIdFromBlock(Blocks.tnt),
                 0,
                 null,
-                getLoggerType());
+                this);
 
             // Draw purple lines to affected blocks
             for (ChunkPosition chunkPosition : ChunkPositionUtils.decodePositions(exqe.affectedBlockCoordinates)) {
@@ -112,6 +107,11 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionQueueEleme
                 }
             }
         }
+    }
+
+    @Override
+    public Color getColour() {
+        return Color.MAGENTA;
     }
 
     @Override

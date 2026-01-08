@@ -29,7 +29,6 @@ import net.minecraftforge.common.config.Configuration;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.enums.LoggerEventType;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
@@ -54,11 +53,6 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
     }
 
     private static boolean logNBT;
-
-    @Override
-    public LoggerEnum getLoggerType() {
-        return LoggerEnum.BlockChangeLogger;
-    }
 
     // Client side usage only.
     ArrayList<BlockChangeQueueElement> filteredNonTransparentBuffer = new ArrayList<>();
@@ -96,7 +90,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
                 bcqe.beforeMetadata,
                 bcqe.beforeEncodedNBT,
                 bcqe.closestPlayerUUID,
-                getLoggerType());
+                this);
         }
 
         // --- TRANSPARENT ---
@@ -114,7 +108,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
                 bcqe.beforeMetadata,
                 bcqe.beforeEncodedNBT,
                 bcqe.closestPlayerUUID,
-                getLoggerType());
+                this);
         }
     }
 
@@ -191,7 +185,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
 
         if (stack.isEmpty()) {
             LOG.error("[BLOCK CHANGE LOGGER CRITICAL ERROR] RETURN without matching HEAD", new Exception());
-            return;
+            throw new IllegalStateException();
         }
 
         BlockChangeQueueElement e = stack.pop();
