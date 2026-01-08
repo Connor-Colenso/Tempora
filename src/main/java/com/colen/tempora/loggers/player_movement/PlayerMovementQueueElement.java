@@ -4,7 +4,7 @@ import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 
 import com.colen.tempora.TemporaEvents;
-import com.colen.tempora.loggers.generic.Column;
+import com.colen.tempora.loggers.generic.column.Column;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.utils.PlayerUtils;
 import com.colen.tempora.utils.TimeUtils;
@@ -14,7 +14,7 @@ import io.netty.buffer.ByteBuf;
 
 public class PlayerMovementQueueElement extends GenericQueueElement {
 
-    @Column(type = "TEXT", constraints = "NOT NULL")
+    @Column(constraints = "NOT NULL")
     public String playerUUID;
 
     @Override

@@ -1,4 +1,4 @@
-package com.colen.tempora.loggers.generic;
+package com.colen.tempora.loggers.generic.column;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -19,12 +19,17 @@ public @interface Column {
     String name() default "";
 
     /**
-     * SQL type (REAL, INTEGER, TEXT, etc.)
+     * Type of the field.
+     * <p>
+     * This is mapped internally to an SQLite-compatible column type and
+     * controls how values are written to and read from the database
+     * (e.g. BOOLEAN is stored as INTEGER).
      */
-    String type();
+    ColumnType type() default ColumnType.AUTO;
 
     /**
      * Extra constraints (NOT NULL, DEFAULT, etc.)
      */
     String constraints() default "";
+
 }

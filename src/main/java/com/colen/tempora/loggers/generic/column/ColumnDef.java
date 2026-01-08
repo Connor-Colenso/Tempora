@@ -1,4 +1,4 @@
-package com.colen.tempora.loggers.generic;
+package com.colen.tempora.loggers.generic.column;
 
 public class ColumnDef {
 

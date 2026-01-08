@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import com.colen.tempora.loggers.generic.column.Column;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.MinecraftForge;
@@ -37,7 +38,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
     public static final long SECONDS_RENDERING_DURATION = 10;
 
-    protected PositionalLoggerDatabase databaseManager;
+    protected PositionalLoggerDatabase databaseManager = new PositionalLoggerDatabase(this);
 
     private static volatile boolean running = true;
 
@@ -122,6 +123,9 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
         if (type == float.class || type == Float.class) {
             return rs.getFloat(column);
         }
+        if (type == boolean.class || type == Boolean.class) {
+            return rs.getInt(column) != 0;
+        }
         if (type == String.class) {
             return rs.getString(column);
         }
@@ -191,7 +195,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
                 }
             }
 
-            // Bring some stability to ordering.
+            // Bring some stability to ordering. todo move sorting to be per class, not overall.
             declared.sort(Comparator.comparing(Field::getName));
 
             fields.addAll(declared);

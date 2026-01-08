@@ -21,6 +21,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.colen.tempora.loggers.generic.column.Column;
+import com.colen.tempora.loggers.generic.column.ColumnDef;
+import com.colen.tempora.loggers.generic.column.ColumnType;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentTranslation;
@@ -247,120 +250,113 @@ public class PositionalLoggerDatabase {
     public void queryEventByCoordinate(ICommandSender sender, int centreX, int centreY, int centreZ, int radius,
         long seconds, int dimensionId) {
 
-        synchronized (GenericPositionalLogger.class) {
+        String sql = String.format("""
+            SELECT * FROM %s
+            WHERE ABS(x - ?) <= ?
+              AND ABS(y - ?) <= ?
+              AND ABS(z - ?) <= ?
+              AND dimensionID = ?
+              AND timestamp >= ?
+            ORDER BY timestamp DESC
+            LIMIT ?;
+            """, genericPositionalLogger.getLoggerName());
 
-            String sql = String.format("""
-                SELECT * FROM %s
-                WHERE ABS(x - ?) <= ?
-                  AND ABS(y - ?) <= ?
-                  AND ABS(z - ?) <= ?
-                  AND dimensionID = ?
-                  AND timestamp >= ?
-                ORDER BY timestamp DESC
-                LIMIT ?;
-                """, genericPositionalLogger.getLoggerName());
+        try (PreparedStatement ps = getReadOnlyConnection().prepareStatement(sql)) {
 
-            try (PreparedStatement ps = getReadOnlyConnection().prepareStatement(sql)) {
+            ps.setInt(1, centreX);
+            ps.setInt(2, radius);
+            ps.setInt(3, centreY);
+            ps.setInt(4, radius);
+            ps.setInt(5, centreZ);
+            ps.setInt(6, radius);
+            ps.setInt(7, dimensionId);
 
-                ps.setInt(1, centreX);
-                ps.setInt(2, radius);
-                ps.setInt(3, centreY);
-                ps.setInt(4, radius);
-                ps.setInt(5, centreZ);
-                ps.setInt(6, radius);
-                ps.setInt(7, dimensionId);
+            if (seconds < 0) {
+                // Don’t apply any timestamp filter, fetch everything.
+                ps.setTimestamp(8, new Timestamp(0));
+            } else {
+                ps.setTimestamp(8, new Timestamp(System.currentTimeMillis() - seconds * 1000L));
+            }
 
-                if (seconds < 0) {
-                    // Don’t apply any timestamp filter, fetch everything.
-                    ps.setTimestamp(8, new Timestamp(0));
+            ps.setInt(9, MAX_DATA_ROWS_PER_DB);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                List<? extends GenericQueueElement> packets = genericPositionalLogger.generateQueryResults(rs);
+
+                if (packets.isEmpty()) {
+                    IChatComponent noResults = new ChatComponentTranslation(
+                        "message.queryevents.no_results",
+                        genericPositionalLogger.getLoggerName());
+                    noResults.getChatStyle()
+                        .setColor(EnumChatFormatting.GRAY);
+                    sender.addChatMessage(noResults);
+
                 } else {
-                    ps.setTimestamp(8, new Timestamp(System.currentTimeMillis() - seconds * 1000L));
-                }
+                    IChatComponent showingResults = new ChatComponentTranslation(
+                        "message.queryevents.showing_results",
+                        packets.size(),
+                        genericPositionalLogger.getLoggerName());
+                    showingResults.getChatStyle()
+                        .setColor(EnumChatFormatting.GRAY);
+                    sender.addChatMessage(showingResults);
+                    if (genericPositionalLogger.getConcurrentEventQueue()
+                        .size() > 100) {
+                        IChatComponent tooMany = new ChatComponentTranslation(
+                            "message.queryevents.too_many_pending",
+                            genericPositionalLogger.getConcurrentEventQueue()
+                                .size());
+                        tooMany.getChatStyle()
+                            .setColor(EnumChatFormatting.RED);
+                        sender.addChatMessage(tooMany);
+                    }
 
-                ps.setInt(9, MAX_DATA_ROWS_PER_DB);
+                    // EntityPlayerMP specific stuff, like sending animation positions to user and the text
+                    // itself.
+                    EntityPlayerMP player = (EntityPlayerMP) sender;
 
-                try (ResultSet rs = ps.executeQuery()) {
-                    List<? extends GenericQueueElement> packets = genericPositionalLogger.generateQueryResults(rs);
+                    // Do not remove!
+                    Collections.reverse(packets);
 
-                    if (packets.isEmpty()) {
-                        IChatComponent noResults = new ChatComponentTranslation(
-                            "message.queryevents.no_results",
-                            genericPositionalLogger.getLoggerName());
-                        noResults.getChatStyle()
-                            .setColor(EnumChatFormatting.GRAY);
-                        sender.addChatMessage(noResults);
+                    String uuid = player.getUniqueID()
+                        .toString();
+                    packets.forEach(p -> sender.addChatMessage(p.localiseText(uuid)));
 
-                    } else {
-                        IChatComponent showingResults = new ChatComponentTranslation(
-                            "message.queryevents.showing_results",
-                            packets.size(),
-                            genericPositionalLogger.getLoggerName());
-                        showingResults.getChatStyle()
-                            .setColor(EnumChatFormatting.GRAY);
-                        sender.addChatMessage(showingResults);
-                        if (genericPositionalLogger.getConcurrentEventQueue()
-                            .size() > 100) {
-                            IChatComponent tooMany = new ChatComponentTranslation(
-                                "message.queryevents.too_many_pending",
-                                genericPositionalLogger.getConcurrentEventQueue()
-                                    .size());
-                            tooMany.getChatStyle()
-                                .setColor(EnumChatFormatting.RED);
-                            sender.addChatMessage(tooMany);
-                        }
-
-                        // EntityPlayerMP specific stuff, like sending animation positions to user and the text
-                        // itself.
-                        EntityPlayerMP player = (EntityPlayerMP) sender;
-
-                        // Do not remove!
-                        Collections.reverse(packets);
-
-                        String uuid = player.getUniqueID()
-                            .toString();
-                        packets.forEach(p -> sender.addChatMessage(p.localiseText(uuid)));
-
-                        // This tells the client what to render in world, as it needs this info.
-                        for (GenericQueueElement packet : packets) {
-                            new RenderEventPacket(packet).sendEventToClientForRendering(player);
-                        }
+                    // This tells the client what to render in world.
+                    for (GenericQueueElement packet : packets) {
+                        new RenderEventPacket(packet).sendEventToClientForRendering(player);
                     }
                 }
-            } catch (SQLException e) {
-                sender.addChatMessage(
-                    new ChatComponentTranslation(
-                        "message.queryevents.query_failed",
-                        genericPositionalLogger.getLoggerName(),
-                        e.getMessage()));
             }
+        } catch (SQLException e) {
+            sender.addChatMessage(
+                new ChatComponentTranslation(
+                    "message.queryevents.query_failed",
+                    genericPositionalLogger.getLoggerName(),
+                    e.getMessage()));
         }
     }
 
     public GenericQueueElement queryEventByEventID(String eventID) {
 
-        synchronized (GenericPositionalLogger.class) {
+        String sqlQuery = "SELECT * FROM " + genericPositionalLogger.getLoggerName() + " WHERE eventID == ? LIMIT 1";
 
-            String sqlQuery = "SELECT * FROM " + genericPositionalLogger.getLoggerName()
-                + " WHERE eventID == ? LIMIT 1";
+        try (PreparedStatement ps = getReadOnlyConnection().prepareStatement(sqlQuery)) {
 
-            try (PreparedStatement ps = getReadOnlyConnection().prepareStatement(sqlQuery)) {
+            ps.setString(1, eventID);
 
-                ps.setString(1, eventID);
+            ResultSet rs = ps.executeQuery();
+            List<? extends GenericQueueElement> packets = genericPositionalLogger.generateQueryResults(rs);
+            if (packets.isEmpty()) return null;
 
-                ResultSet rs = ps.executeQuery();
-                List<? extends GenericQueueElement> packets = genericPositionalLogger.generateQueryResults(rs);
-                if (packets.isEmpty()) return null;
+            return packets.get(0);
 
-                return packets.get(0);
-
-            } catch (Exception e) {
-                LOG.error(
-                    "SQL query failed for table '{}' by eventID={}. Query: {}",
-                    genericPositionalLogger.getLoggerName(),
-                    eventID,
-                    sqlQuery,
-                    e);
-            }
+        } catch (Exception e) {
+            LOG.error(
+                "SQL query failed for table '{}' by eventID={}. Query: {}",
+                genericPositionalLogger.getLoggerName(),
+                eventID,
+                sqlQuery,
+                e);
         }
 
         return null;
@@ -543,14 +539,24 @@ public class PositionalLoggerDatabase {
         for (Field field : genericPositionalLogger.getAllAnnotatedFieldsAlphabetically()) {
             Column col = field.getAnnotation(Column.class);
 
-            String name = col.name()
-                .isEmpty() ? field.getName() : col.name();
+            String name = col.name().isEmpty()
+                ? field.getName()
+                : col.name();
 
-            columns.add(new ColumnDef(name, col.type(), col.constraints()));
+            ColumnType type = col.type() == ColumnType.AUTO
+                ? ColumnType.inferFrom(field)
+                : col.type();
+
+            columns.add(new ColumnDef(
+                name,
+                type.getSqlType(),
+                col.constraints()
+            ));
         }
 
         return columns;
     }
+
 
     public String generateInsertSQL() {
         List<ColumnDef> columns = getAllTableColumns();
@@ -601,6 +607,8 @@ public class PositionalLoggerDatabase {
                         pstmt.setFloat(index++, val);
                     } else if (value instanceof String val) {
                         pstmt.setString(index++, val);
+                    } else if (value instanceof Boolean val) {
+                        pstmt.setInt(index++, val ? 1 : 0);
                     } else {
                         throw new IllegalStateException("Unsupported field type: " + field.getType());
                     }
