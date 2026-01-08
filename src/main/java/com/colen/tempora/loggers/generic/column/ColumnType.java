@@ -3,6 +3,7 @@ package com.colen.tempora.loggers.generic.column;
 import java.lang.reflect.Field;
 
 public enum ColumnType {
+
     AUTO(null),
 
     BOOLEAN("INTEGER"),
@@ -36,8 +37,6 @@ public enum ColumnType {
         if (t == String.class) return TEXT;
 
         throw new IllegalStateException(
-            "Cannot infer ColumnType for field " + field.getName() +
-                " of type " + t.getName()
-        );
+            "Cannot infer ColumnType for field " + field.getName() + " of type " + t.getName());
     }
 }

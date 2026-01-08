@@ -22,9 +22,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.colen.tempora.loggers.generic.column.Column;
-import com.colen.tempora.loggers.generic.column.ColumnDef;
-import com.colen.tempora.loggers.generic.column.ColumnType;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentTranslation;
@@ -36,6 +33,9 @@ import org.jetbrains.annotations.NotNull;
 import org.sqlite.SQLiteConfig;
 
 import com.colen.tempora.TemporaUtils;
+import com.colen.tempora.loggers.generic.column.Column;
+import com.colen.tempora.loggers.generic.column.ColumnDef;
+import com.colen.tempora.loggers.generic.column.ColumnType;
 import com.colen.tempora.utils.DatabaseUtils;
 import com.colen.tempora.utils.GenericUtils;
 import com.colen.tempora.utils.TimeUtils;
@@ -540,24 +540,16 @@ public class PositionalLoggerDatabase {
         for (Field field : genericPositionalLogger.getAllAnnotatedFieldsAlphabetically()) {
             Column col = field.getAnnotation(Column.class);
 
-            String name = col.name().isEmpty()
-                ? field.getName()
-                : col.name();
+            String name = col.name()
+                .isEmpty() ? field.getName() : col.name();
 
-            ColumnType type = col.type() == ColumnType.AUTO
-                ? ColumnType.inferFrom(field)
-                : col.type();
+            ColumnType type = col.type() == ColumnType.AUTO ? ColumnType.inferFrom(field) : col.type();
 
-            columns.add(new ColumnDef(
-                name,
-                type.getSqlType(),
-                col.constraints()
-            ));
+            columns.add(new ColumnDef(name, type.getSqlType(), col.constraints()));
         }
 
         return columns;
     }
-
 
     public String generateInsertSQL() {
         List<ColumnDef> columns = getAllTableColumns();

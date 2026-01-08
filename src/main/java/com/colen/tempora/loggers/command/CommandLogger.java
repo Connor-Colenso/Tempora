@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import com.colen.tempora.utils.PlayerUtils;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.command.ICommand;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -21,6 +20,7 @@ import org.jetbrains.annotations.NotNull;
 import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.enums.LoggerEventType;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
+import com.colen.tempora.utils.PlayerUtils;
 import com.colen.tempora.utils.TimeUtils;
 import com.gtnewhorizon.gtnhlib.util.numberformatting.NumberFormatUtil;
 
@@ -53,7 +53,9 @@ public class CommandLogger extends GenericPositionalLogger<CommandQueueElement> 
             double z = cqe.z - renderManager.viewerPosZ;
 
             List<String> toRender = new ArrayList<>();
-            toRender.add(StatCollector.translateToLocalFormatted("event.command.executed", PlayerUtils.UUIDToName(cqe.playerUUID)));
+            toRender.add(
+                StatCollector
+                    .translateToLocalFormatted("event.command.executed", PlayerUtils.UUIDToName(cqe.playerUUID)));
             toRender.add("/" + cqe.commandName + " " + cqe.arguments);
 
             TimeUtils.DurationParts formattedTime = TimeUtils.relativeTimeAgoFormatter(cqe.timestamp);
