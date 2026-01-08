@@ -10,7 +10,7 @@ import net.minecraft.util.IChatComponent;
 import org.apache.commons.lang3.Validate;
 
 import com.colen.tempora.TemporaEvents;
-import com.colen.tempora.loggers.generic.Column;
+import com.colen.tempora.loggers.generic.column.Column;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.utils.PlayerUtils;
 import com.colen.tempora.utils.TimeUtils;
@@ -21,15 +21,15 @@ import io.netty.buffer.ByteBuf;
 
 public class ExplosionQueueElement extends GenericQueueElement {
 
-    @Column(type = "REAL", constraints = "NOT NULL DEFAULT -1")
+    @Column(constraints = "NOT NULL DEFAULT -1")
     public float strength;
-    @Column(type = "TEXT", constraints = "NOT NULL")
+    @Column(constraints = "NOT NULL")
     public String exploderUUID;
-    @Column(type = "TEXT", constraints = "NOT NULL")
+    @Column(constraints = "NOT NULL")
     public String closestPlayerUUID;
-    @Column(type = "REAL", constraints = "NOT NULL DEFAULT -1")
+    @Column(constraints = "NOT NULL DEFAULT -1")
     public double closestPlayerDistance;
-    @Column(type = "TEXT", constraints = "NOT NULL")
+    @Column(constraints = "NOT NULL")
     public String affectedBlockCoordinates;
 
     @Override

@@ -9,7 +9,7 @@ import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
 import com.colen.tempora.TemporaEvents;
-import com.colen.tempora.loggers.generic.Column;
+import com.colen.tempora.loggers.generic.column.Column;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.utils.PlayerUtils;
 import com.colen.tempora.utils.TimeUtils;
@@ -19,16 +19,16 @@ import io.netty.buffer.ByteBuf;
 
 public class EntityPositionQueueElement extends GenericQueueElement {
 
-    @Column(type = "TEXT", constraints = "NOT NULL")
+    @Column(constraints = "NOT NULL")
     public String entityName;
 
-    @Column(type = "TEXT", constraints = "NOT NULL")
+    @Column(constraints = "NOT NULL")
     public String entityUUID;
 
-    @Column(type = "REAL", constraints = "NOT NULL")
+    @Column(constraints = "NOT NULL")
     public float rotationYaw;
 
-    @Column(type = "REAL", constraints = "NOT NULL")
+    @Column(constraints = "NOT NULL")
     public float rotationPitch;
 
     @Override

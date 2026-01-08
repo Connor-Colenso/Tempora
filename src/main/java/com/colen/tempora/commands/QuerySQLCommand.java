@@ -20,7 +20,7 @@ import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 
 import com.colen.tempora.TemporaLoggerManager;
-import com.colen.tempora.loggers.generic.ColumnDef;
+import com.colen.tempora.loggers.generic.column.ColumnDef;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.loggers.generic.RenderEventPacket;
