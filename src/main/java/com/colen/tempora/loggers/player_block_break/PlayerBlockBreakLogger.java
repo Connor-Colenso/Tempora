@@ -138,9 +138,10 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
     }
 
     // Todo de-dupe code here and in other block adjacent loggers.
+    // todo get rid of the need to cast the class here and use the generic.
     @Override
     public IChatComponent undoEvent(GenericQueueElement queueElement) {
-        if (!(queueElement instanceof PlayerBlockBreakQueueElement pbbqe)) return new ChatComponentTranslation("error");
+        if (!(queueElement instanceof PlayerBlockBreakQueueElement pbbqe)) return new ChatComponentTranslation("tempora.undo.block.break.unknown.error");
 
         // NBT existed but was not logged, it is not safe to undo this event.
         if (pbbqe.encodedNBT.equals(NBT_DISABLED))

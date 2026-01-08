@@ -75,7 +75,7 @@ tempora.range.negative=Range cannot be negative, stop trying to break me!
 # === Tempora Undo Messages ===
 tempora.cannot.block.break.undo.nbt.logging.disabled=Cannot undo, the block had NBT data, but NBT logging was disabled when it was saved.
 tempora.cannot.block.break.undo.block.not.found=Cannot undo, the block no longer exists.
-tempora.undo.block.break.unknown.error=An unknown error occurred while undoing the block break event. See log.
+tempora.undo.unknown.error=An unknown error occurred while undoing the %s event. See log.
 tempora.event.not.found.undo.ranged=Could not find event group. Has the server restarted?
 
 tempora.undo.query.display=[UNDO]
@@ -92,6 +92,9 @@ tempora.undo.preview=Previewing undo operation, click %s to undo events.
 tempora.undo.preview.highlight=WARNING: This operation is irreversible.
 tempora.undo.preview.confirm=[HERE]
 tempora.undo.range.too_large=Server config limits undo range to %s. Your requested range has been capped.
+
+tempora.unknown.player=[UNKNOWN PLAYER]
+tempora.unknown.cause=[UNKNOWN CAUSE]
 
 time.unit.seconds=s
 time.unit.minutes=mins
