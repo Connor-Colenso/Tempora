@@ -47,6 +47,7 @@ public class PositionalLoggerDatabase {
     private static final int MAX_DATA_ROWS_PER_DB = 5;
     private Connection positionalLoggerDBConnection;
     private GenericPositionalLogger<?> genericPositionalLogger;
+    private boolean initialised = false;
 
     public PositionalLoggerDatabase(GenericPositionalLogger<?> eventToLogGenericPositionalLogger) {
         genericPositionalLogger = eventToLogGenericPositionalLogger;
@@ -77,7 +78,6 @@ public class PositionalLoggerDatabase {
             }
         }
 
-        // Normal initialisation logic
         if (isHighRiskModeEnabled()) {
             enableHighRiskFastMode();
         }
@@ -87,9 +87,11 @@ public class PositionalLoggerDatabase {
         initTable();
         createAllIndexes();
 
-        // Handles data beyond the configs oldest limit or if oversized.
+        // Handles data beyond the configs oldest limit or if too large.
         removeOldDatabaseData();
         trimOversizedDatabase();
+
+        initialised = true;
     }
 
     private void initDbConnection() throws SQLException {
@@ -195,15 +197,20 @@ public class PositionalLoggerDatabase {
         }
     }
 
-    private void enableHighRiskFastMode() throws SQLException {
-        Connection conn = positionalLoggerDBConnection;
-
-        Statement st = conn.createStatement();
-        st.execute("PRAGMA synchronous=OFF;");
-        st.execute("PRAGMA wal_autocheckpoint=10000;");
+    private void enableHighRiskFastMode() {
+        try (Statement st = getDBConn().createStatement()) {
+            st.execute("PRAGMA synchronous=OFF;");
+            st.execute("PRAGMA wal_autocheckpoint=10000;");
+        } catch (SQLException e) {
+            LOG.error("Unable to enable high-risk mode for {}.", genericPositionalLogger.getLoggerName(), e);
+            throw new RuntimeException(
+                "Failed to enable high-risk mode for logger " + genericPositionalLogger.getLoggerName(), e
+            );
+        }
     }
 
     public Connection getDBConn() {
+        if (!initialised) throw new IllegalStateException("Database not initialised.");
         return positionalLoggerDBConnection;
     }
 
@@ -290,11 +297,11 @@ public class PositionalLoggerDatabase {
                         showingResults.getChatStyle()
                             .setColor(EnumChatFormatting.GRAY);
                         sender.addChatMessage(showingResults);
-                        if (genericPositionalLogger.getEventQueue()
+                        if (genericPositionalLogger.getConcurrentEventQueue()
                             .size() > 100) {
                             IChatComponent tooMany = new ChatComponentTranslation(
                                 "message.queryevents.too_many_pending",
-                                genericPositionalLogger.getEventQueue()
+                                genericPositionalLogger.getConcurrentEventQueue()
                                     .size());
                             tooMany.getChatStyle()
                                 .setColor(EnumChatFormatting.RED);
@@ -525,7 +532,7 @@ public class PositionalLoggerDatabase {
 
     // Use the fastest durability mode: may lose or corrupt the DB on sudden power loss.
     // Only recommended if recent data loss is acceptable and backups exist.
-    public final boolean isHighRiskModeEnabled() {
+    private boolean isHighRiskModeEnabled() {
         return durabilityMode == LogWriteSafety.HIGH_RISK;
     }
 
@@ -608,6 +615,10 @@ public class PositionalLoggerDatabase {
         }
     }
 
-
+    public void shutdownDatabase() throws SQLException {
+        if (positionalLoggerDBConnection != null && !positionalLoggerDBConnection.isClosed()) {
+            closeDbConnection();
+        }
+    }
 
 }

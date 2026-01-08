@@ -16,7 +16,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
 
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
@@ -38,11 +37,11 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
     public static final long SECONDS_RENDERING_DURATION = 10;
 
-    protected final PositionalLoggerDatabase databaseManager = new PositionalLoggerDatabase(this);
+    protected PositionalLoggerDatabase databaseManager;
 
     private static volatile boolean running = true;
 
-    private final LinkedBlockingQueue<EventToLog> eventQueue = new LinkedBlockingQueue<>();
+    private final LinkedBlockingQueue<EventToLog> concurrentEventQueue = new LinkedBlockingQueue<>();
     protected List<EventToLog> transparentEventsToRenderInWorld = new ArrayList<>();
     protected List<EventToLog> nonTransparentEventsToRenderInWorld = new ArrayList<>();
     private String loggerName;
@@ -243,7 +242,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
     public final void queueEvent(EventToLog event) {
         if (!isEnabled) return;
-        eventQueue.offer(event); // Non-blocking, thread-safe
+        concurrentEventQueue.offer(event); // Non-blocking, thread-safe
     }
 
     private void startQueueWorker(String sqlTableName) {
@@ -260,45 +259,55 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
         t.start();
     }
 
+    private static final int LARGE_QUEUE_THRESHOLD = 5_000;
+
     private void queueLoop(String sqlTableName) {
-        final List<EventToLog> buffer = new ArrayList<>();
-        final int LARGE_QUEUE_THRESHOLD = 5_000;
+        List<EventToLog> buffer = new ArrayList<>();
 
-        while (running || !eventQueue.isEmpty()) {
-            try {
-                EventToLog event = eventQueue.poll(300, TimeUnit.MILLISECONDS);
-                if (event == null) continue;
+        try {
+            while (running || !concurrentEventQueue.isEmpty()) {
+                // This blocks until at least one event is available.
+                buffer.add(concurrentEventQueue.take());
 
-                if (eventQueue.size() > LARGE_QUEUE_THRESHOLD) {
-                    LOG.warn("{} has {} elements waiting to be logged, this may indicate server slowdown.", sqlTableName, eventQueue.size());
+                // Drain any additional available events into the buffer
+                concurrentEventQueue.drainTo(buffer);
+
+                if (concurrentEventQueue.size() > LARGE_QUEUE_THRESHOLD) {
+                    LOG.warn("{} has {} events pending, possible slowdown.", sqlTableName, concurrentEventQueue.size());
                 }
 
-                buffer.add(event);
-                eventQueue.drainTo(buffer);
+                // Insert the batch into DB and commit
                 databaseManager.insertBatch(buffer);
                 databaseManager.getDBConn().commit();
                 buffer.clear();
-
-            } catch (Exception x) {
-                throw new RuntimeException("DB failure in " + sqlTableName, x);
             }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            LOG.error("Queue worker interrupted for {} from external source. This is not meant to happen!", sqlTableName);
+        } catch (Exception e) {
+            throw new RuntimeException("DB failure in " + sqlTableName, e);
         }
 
         if (running) {
-            throw new IllegalStateException("Queue worker terminated unexpectedly");
+            throw new IllegalStateException("Queue worker terminated unexpectedly.");
         }
     }
 
     public final void genericConfig(@NotNull Configuration config) {
         isEnabled = config.getBoolean("isEnabled", getLoggerName(), loggerEnabledByDefault(), "Enables this logger.");
-
         databaseManager.genericConfig(config);
     }
 
+    // Run on server start up/world load.
     private void initialiseLogger() {
         try {
-            // Clear events and initialise connection
+            // Clear events and initialise connection.
+            if (! concurrentEventQueue.isEmpty()) {
+                LOG.warn("Tempora log for {} was not empty upon initialisation. This may suggest state leakage has occurred. Please report this.", loggerName);
+            }
+
             clearEvents();
+            databaseManager = new PositionalLoggerDatabase(this);
             databaseManager.initialiseDatabase();
             startQueueWorker(getLoggerName());
 
@@ -307,12 +316,12 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
         }
     }
 
-    public final LinkedBlockingQueue<EventToLog> getEventQueue() {
-        return eventQueue;
+    public final LinkedBlockingQueue<EventToLog> getConcurrentEventQueue() {
+        return concurrentEventQueue;
     }
 
     private void clearEvents() {
-        eventQueue.clear();
+        concurrentEventQueue.clear();
     }
 
     // --------------------------------------
@@ -329,14 +338,10 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
     public static void onServerClose() {
         try {
-            running = false; // Signal worker to stop
+            running = false; // Signal worker thread to stop
 
             for (GenericPositionalLogger<?> logger : TemporaLoggerManager.getLoggerList()) {
-                // Shut down each db.
-                if (logger.databaseManager.getDBConn() != null && !logger.databaseManager.getDBConn()
-                    .isClosed()) {
-                    logger.databaseManager.closeDbConnection();
-                }
+                logger.databaseManager.shutdownDatabase();
             }
 
         } catch (Exception e) {
