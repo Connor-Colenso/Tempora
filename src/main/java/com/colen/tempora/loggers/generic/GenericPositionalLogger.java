@@ -171,6 +171,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
     public abstract LoggerEnum getLoggerType();
 
+    @SideOnly(Side.CLIENT)
     public abstract void renderEventsInWorld(RenderWorldLastEvent e);
 
     // todo move
