@@ -565,6 +565,49 @@ public class PositionalLoggerDatabase {
         return "INSERT INTO " + genericPositionalLogger.getLoggerName() + " (" + columnList + ") VALUES (" + placeholders + ")";
     }
 
+    // This is responsible for logging the actual events
+    public <EventToLog extends GenericQueueElement> void insertBatch(List<EventToLog> queueElements) throws SQLException {
+        if (queueElements == null || queueElements.isEmpty()) return;
+
+        final String sql = generateInsertSQL();
+
+        try (PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(sql)) {
+
+            for (EventToLog queueElement : queueElements) {
+                int index = 1;
+
+//                genericPositionalLogger.inferEventToLogClass()
+                for (Field field : genericPositionalLogger.getAllAnnotatedFieldsAlphabetically()) {
+                    Object value;
+                    try {
+                        value = field.get(queueElement);
+                    } catch (IllegalAccessException e) {
+                        throw new RuntimeException(e);
+                    }
+
+                    // Bind value according to type
+                    if (value instanceof Integer val) {
+                        pstmt.setInt(index++, val);
+                    } else if (value instanceof Long val) {
+                        pstmt.setLong(index++, val);
+                    } else if (value instanceof Double val) {
+                        pstmt.setDouble(index++, val);
+                    } else if (value instanceof Float val) {
+                        pstmt.setFloat(index++, val);
+                    } else if (value instanceof String val) {
+                        pstmt.setString(index++, val);
+                    } else {
+                        throw new IllegalStateException("Unsupported field type: " + field.getType());
+                    }
+                }
+
+                pstmt.addBatch();
+            }
+
+            pstmt.executeBatch();
+        }
+    }
+
 
 
 }

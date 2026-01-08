@@ -5,7 +5,6 @@ import static com.colen.tempora.Tempora.LOG;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayDeque;
@@ -19,7 +18,6 @@ import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-import com.colen.tempora.loggers.explosion.ExplosionQueueElement;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.MinecraftForge;
@@ -108,49 +106,6 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
     public PositionalLoggerDatabase getDatabaseManager() {
         return databaseManager;
-    }
-
-    // This is responsible for logging the actual events
-    private void threadedSaveEvents(List<EventToLog> queueElements) throws SQLException {
-        if (queueElements == null || queueElements.isEmpty()) return;
-
-        final String sql = databaseManager.generateInsertSQL();
-
-        try (PreparedStatement pstmt = databaseManager.getDBConn().prepareStatement(sql)) {
-
-            for (EventToLog queueElement : queueElements) {
-                int index = 1;
-
-//                genericPositionalLogger.inferEventToLogClass()
-                for (Field field : getAllAnnotatedFieldsAlphabetically()) {
-                    Object value;
-                    try {
-                        value = field.get(queueElement);
-                    } catch (IllegalAccessException e) {
-                        throw new RuntimeException(e);
-                    }
-
-                    // Bind value according to type
-                    if (value instanceof Integer val) {
-                        pstmt.setInt(index++, val);
-                    } else if (value instanceof Long val) {
-                        pstmt.setLong(index++, val);
-                    } else if (value instanceof Double val) {
-                        pstmt.setDouble(index++, val);
-                    } else if (value instanceof Float val) {
-                        pstmt.setFloat(index++, val);
-                    } else if (value instanceof String val) {
-                        pstmt.setString(index++, val);
-                    } else {
-                        throw new IllegalStateException("Unsupported field type: " + field.getType());
-                    }
-                }
-
-                pstmt.addBatch();
-            }
-
-            pstmt.executeBatch();
-        }
     }
 
     public abstract @NotNull LoggerEventType getLoggerEventType();
@@ -320,11 +275,10 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
                 buffer.add(event);
                 eventQueue.drainTo(buffer);
-
-                threadedSaveEvents(buffer);
-                databaseManager.getDBConn()
-                    .commit();
+                databaseManager.insertBatch(buffer);
+                databaseManager.getDBConn().commit();
                 buffer.clear();
+
             } catch (Exception x) {
                 throw new RuntimeException("DB failure in " + sqlTableName, x);
             }
