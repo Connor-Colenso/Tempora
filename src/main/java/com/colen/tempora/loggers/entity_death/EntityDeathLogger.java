@@ -33,8 +33,8 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueE
 
     @Override
     @SideOnly(Side.CLIENT)
-    public void renderEventsInWorld(RenderWorldLastEvent e) {
-        sortByDistanceDescending(transparentEventsToRenderInWorld, e);
+    public void renderEventsInWorld(RenderWorldLastEvent renderEvent) {
+        sortByDistanceDescending(transparentEventsToRenderInWorld, renderEvent);
 
         for (EntityDeathQueueElement bcqe : transparentEventsToRenderInWorld) {
             Entity entity = EntityList.createEntityByName(bcqe.nameOfDeadEntity, Minecraft.getMinecraft().theWorld);

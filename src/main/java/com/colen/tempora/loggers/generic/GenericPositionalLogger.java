@@ -170,7 +170,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
     }
 
     @SideOnly(Side.CLIENT)
-    public abstract void renderEventsInWorld(RenderWorldLastEvent e);
+    public abstract void renderEventsInWorld(RenderWorldLastEvent renderEvent);
 
     // todo move
     public List<Field> getAllAnnotatedFieldsAlphabetically() {

@@ -37,9 +37,9 @@ public class CommandLogger extends GenericPositionalLogger<CommandQueueElement> 
 
     @Override
     @SideOnly(Side.CLIENT)
-    public void renderEventsInWorld(RenderWorldLastEvent e) {
+    public void renderEventsInWorld(RenderWorldLastEvent renderEvent) {
         RenderManager renderManager = RenderManager.instance;
-        sortByDistanceDescending(transparentEventsToRenderInWorld, e);
+        sortByDistanceDescending(transparentEventsToRenderInWorld, renderEvent);
 
         for (CommandQueueElement cqe : transparentEventsToRenderInWorld) {
             double x = cqe.x - renderManager.viewerPosX;

@@ -34,8 +34,8 @@ public class EntityPositionLogger extends GenericPositionalLogger<EntityPosition
 
     @Override
     @SideOnly(Side.CLIENT)
-    public void renderEventsInWorld(RenderWorldLastEvent e) {
-        sortByDistanceDescending(transparentEventsToRenderInWorld, e);
+    public void renderEventsInWorld(RenderWorldLastEvent renderEvent) {
+        sortByDistanceDescending(transparentEventsToRenderInWorld, renderEvent);
 
         for (EntityPositionQueueElement epqh : transparentEventsToRenderInWorld) {
             Entity entity = EntityList.createEntityByName(epqh.entityName, Minecraft.getMinecraft().theWorld);

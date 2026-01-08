@@ -60,7 +60,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
 
     @Override
     @SideOnly(Side.CLIENT)
-    public void renderEventsInWorld(RenderWorldLastEvent e) {
+    public void renderEventsInWorld(RenderWorldLastEvent renderEvent) {
         Minecraft mc = Minecraft.getMinecraft();
         EntityPlayerSP player = mc.thePlayer;
 
@@ -84,7 +84,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
 
         for (BlockChangeQueueElement bcqe : filteredNonTransparentBuffer) {
             RenderingUtils.quickRenderBlockWithHighlightAndChecks(
-                e,
+                renderEvent,
                 bcqe,
                 bcqe.beforeBlockID,
                 bcqe.beforeMetadata,
@@ -100,9 +100,9 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
             filteredTransparentBuffer.add(event);
         }
 
-        for (BlockChangeQueueElement bcqe : getSortedLatestEventsByDistance(filteredTransparentBuffer, e)) {
+        for (BlockChangeQueueElement bcqe : getSortedLatestEventsByDistance(filteredTransparentBuffer, renderEvent)) {
             RenderingUtils.quickRenderBlockWithHighlightAndChecks(
-                e,
+                renderEvent,
                 bcqe,
                 bcqe.beforeBlockID,
                 bcqe.beforeMetadata,

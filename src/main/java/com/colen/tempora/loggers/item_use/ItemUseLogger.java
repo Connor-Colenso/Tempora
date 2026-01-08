@@ -31,7 +31,7 @@ public class ItemUseLogger extends GenericPositionalLogger<ItemUseQueueElement> 
 
     @Override
     @SideOnly(Side.CLIENT)
-    public void renderEventsInWorld(RenderWorldLastEvent e) {
+    public void renderEventsInWorld(RenderWorldLastEvent renderEvent) {
 
     }
 
