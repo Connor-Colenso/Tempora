@@ -1,10 +1,10 @@
 package com.colen.tempora.loggers.command;
 
-import com.colen.tempora.loggers.generic.Column;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 
 import com.colen.tempora.TemporaEvents;
+import com.colen.tempora.loggers.generic.Column;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.utils.PlayerUtils;
 import com.colen.tempora.utils.TimeUtils;
@@ -14,15 +14,14 @@ import io.netty.buffer.ByteBuf;
 
 public class CommandQueueElement extends GenericQueueElement {
 
-    @Column(type="TEXT", constraints = "NOT NULL")
+    @Column(type = "TEXT", constraints = "NOT NULL")
     public String playerUUID;
 
-    @Column(type="TEXT", constraints = "NOT NULL")
+    @Column(type = "TEXT", constraints = "NOT NULL")
     public String commandName;
 
-    @Column(type="TEXT", constraints = "NOT NULL")
+    @Column(type = "TEXT", constraints = "NOT NULL")
     public String arguments;
-
 
     @Override
     public void fromBytes(ByteBuf buf) {
@@ -59,12 +58,7 @@ public class CommandQueueElement extends GenericQueueElement {
             PlayerUtils.UUIDToName(uuid),
             CoordFormat.FLOAT_1DP);
 
-        return new ChatComponentTranslation(
-            "message.command_issued",
-            commandName,
-            arguments,
-            coords,
-            timeAgo);
+        return new ChatComponentTranslation("message.command_issued", commandName, arguments, coords, timeAgo);
     }
 
     @Override

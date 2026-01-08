@@ -131,9 +131,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
     public abstract @NotNull EventToLog getQueueElementInstance();
 
-    public @NotNull List<EventToLog> generateQueryResults(
-        ResultSet resultSet
-    ) throws SQLException {
+    public @NotNull List<EventToLog> generateQueryResults(ResultSet resultSet) throws SQLException {
 
         List<EventToLog> eventList = new ArrayList<>();
 
@@ -150,9 +148,8 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
                     Column col = field.getAnnotation(Column.class);
                     if (col == null) continue;
 
-                    String columnName = col.name().isEmpty()
-                        ? field.getName()
-                        : col.name();
+                    String columnName = col.name()
+                        .isEmpty() ? field.getName() : col.name();
 
                     Object value = readColumn(resultSet, field.getType(), columnName);
 
@@ -278,12 +275,16 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
                 // Insert the batch into DB and commit
                 databaseManager.insertBatch(buffer);
-                databaseManager.getDBConn().commit();
+                databaseManager.getDBConn()
+                    .commit();
                 buffer.clear();
             }
         } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            LOG.error("Queue worker interrupted for {} from external source. This is not meant to happen!", sqlTableName);
+            Thread.currentThread()
+                .interrupt();
+            LOG.error(
+                "Queue worker interrupted for {} from external source. This is not meant to happen!",
+                sqlTableName);
         } catch (Exception e) {
             throw new RuntimeException("DB failure in " + sqlTableName, e);
         }
@@ -302,8 +303,10 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
     private void initialiseLogger() {
         try {
             // Clear events and initialise connection.
-            if (! concurrentEventQueue.isEmpty()) {
-                LOG.warn("Tempora log for {} was not empty upon initialisation. This may suggest state leakage has occurred. Please report this.", loggerName);
+            if (!concurrentEventQueue.isEmpty()) {
+                LOG.warn(
+                    "Tempora log for {} was not empty upon initialisation. This may suggest state leakage has occurred. Please report this.",
+                    loggerName);
             }
 
             clearEvents();

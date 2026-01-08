@@ -1,14 +1,12 @@
 package com.colen.tempora.loggers.entity_spawn;
 
-import static com.colen.tempora.utils.DatabaseUtils.MISSING_STRING_DATA;
 import static com.colen.tempora.utils.GenericUtils.entityUUIDChatComponent;
 
-import com.colen.tempora.loggers.generic.Column;
-import com.colen.tempora.loggers.generic.ColumnDef;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 
 import com.colen.tempora.TemporaEvents;
+import com.colen.tempora.loggers.generic.Column;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.utils.PlayerUtils;
 import com.colen.tempora.utils.TimeUtils;
@@ -16,21 +14,18 @@ import com.colen.tempora.utils.TimeUtils;
 import cpw.mods.fml.common.network.ByteBufUtils;
 import io.netty.buffer.ByteBuf;
 
-import java.util.Arrays;
-import java.util.List;
-
 public class EntitySpawnQueueElement extends GenericQueueElement {
 
-    @Column(type="TEXT", constraints = "NOT NULL")
+    @Column(type = "TEXT", constraints = "NOT NULL")
     public String entityName;
 
-    @Column(type="TEXT", constraints = "NOT NULL")
+    @Column(type = "TEXT", constraints = "NOT NULL")
     public String entityUUID;
 
-    @Column(type="REAL", constraints = "NOT NULL")
+    @Column(type = "REAL", constraints = "NOT NULL")
     public float rotationYaw;
 
-    @Column(type="REAL", constraints = "NOT NULL")
+    @Column(type = "REAL", constraints = "NOT NULL")
     public float rotationPitch;
 
     @Override

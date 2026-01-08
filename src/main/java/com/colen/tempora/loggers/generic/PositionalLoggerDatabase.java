@@ -137,7 +137,8 @@ public class PositionalLoggerDatabase {
 
         // Step 2: Check existing columns
         Set<String> existingColumns = new HashSet<>();
-        try (PreparedStatement stmt = positionalLoggerDBConnection.prepareStatement("PRAGMA table_info(" + tableName + ");")) {
+        try (PreparedStatement stmt = positionalLoggerDBConnection
+            .prepareStatement("PRAGMA table_info(" + tableName + ");")) {
             ResultSet rs = stmt.executeQuery();
 
             while (rs.next()) {
@@ -204,8 +205,8 @@ public class PositionalLoggerDatabase {
         } catch (SQLException e) {
             LOG.error("Unable to enable high-risk mode for {}.", genericPositionalLogger.getLoggerName(), e);
             throw new RuntimeException(
-                "Failed to enable high-risk mode for logger " + genericPositionalLogger.getLoggerName(), e
-            );
+                "Failed to enable high-risk mode for logger " + genericPositionalLogger.getLoggerName(),
+                e);
         }
     }
 
@@ -542,15 +543,10 @@ public class PositionalLoggerDatabase {
         for (Field field : genericPositionalLogger.getAllAnnotatedFieldsAlphabetically()) {
             Column col = field.getAnnotation(Column.class);
 
-            String name = col.name().isEmpty()
-                ? field.getName()
-                : col.name();
+            String name = col.name()
+                .isEmpty() ? field.getName() : col.name();
 
-            columns.add(new ColumnDef(
-                name,
-                col.type(),
-                col.constraints()
-            ));
+            columns.add(new ColumnDef(name, col.type(), col.constraints()));
         }
 
         return columns;
@@ -569,11 +565,13 @@ public class PositionalLoggerDatabase {
             .map(c -> "?")
             .collect(Collectors.joining(", "));
 
-        return "INSERT INTO " + genericPositionalLogger.getLoggerName() + " (" + columnList + ") VALUES (" + placeholders + ")";
+        return "INSERT INTO " + genericPositionalLogger
+            .getLoggerName() + " (" + columnList + ") VALUES (" + placeholders + ")";
     }
 
     // This is responsible for logging the actual events
-    public <EventToLog extends GenericQueueElement> void insertBatch(List<EventToLog> queueElements) throws SQLException {
+    public <EventToLog extends GenericQueueElement> void insertBatch(List<EventToLog> queueElements)
+        throws SQLException {
         if (queueElements == null || queueElements.isEmpty()) return;
 
         final String sql = generateInsertSQL();
@@ -583,7 +581,7 @@ public class PositionalLoggerDatabase {
             for (EventToLog queueElement : queueElements) {
                 int index = 1;
 
-//                genericPositionalLogger.inferEventToLogClass()
+                // genericPositionalLogger.inferEventToLogClass()
                 for (Field field : genericPositionalLogger.getAllAnnotatedFieldsAlphabetically()) {
                     Object value;
                     try {
