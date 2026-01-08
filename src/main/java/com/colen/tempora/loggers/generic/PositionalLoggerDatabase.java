@@ -3,6 +3,7 @@ package com.colen.tempora.loggers.generic;
 import static com.colen.tempora.Tempora.LOG;
 import static com.colen.tempora.TemporaUtils.deleteLoggerDatabase;
 import static com.colen.tempora.utils.GenericUtils.parseSizeStringToBytes;
+import static com.gtnewhorizon.gtnhlib.util.numberformatting.NumberFormatUtil.formatNumber;
 
 import java.lang.reflect.Field;
 import java.nio.file.Files;
@@ -430,8 +431,8 @@ public class PositionalLoggerDatabase {
         LOG.info(
             "{} database is now {} MB (Config limit is {} MB).",
             genericPositionalLogger.getLoggerName(),
-            String.format("%.2f", sizeMb),
-            String.format("%.2f", limitMb));
+            formatNumber(sizeMb),
+            formatNumber(limitMb));
 
     }
 

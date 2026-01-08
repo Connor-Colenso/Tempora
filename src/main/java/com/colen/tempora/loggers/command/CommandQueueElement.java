@@ -45,7 +45,7 @@ public class CommandQueueElement extends GenericQueueElement {
     }
 
     @Override
-    public IChatComponent localiseText(String uuid) {
+    public IChatComponent localiseText(String commandIssuerUUID) {
         // Relative time (as chat component with hover info)
         IChatComponent timeAgo = TimeUtils.formatTime(timestamp);
 
@@ -55,10 +55,10 @@ public class CommandQueueElement extends GenericQueueElement {
             y,
             z,
             dimensionID,
-            PlayerUtils.UUIDToName(uuid),
+            PlayerUtils.UUIDToName(commandIssuerUUID),
             CoordFormat.FLOAT_1DP);
 
-        return new ChatComponentTranslation("message.command_issued", commandName, arguments, coords, timeAgo);
+        return new ChatComponentTranslation("message.command_issued", PlayerUtils.generatePlayerNameWithUUID(playerUUID), commandName, arguments, coords, timeAgo);
     }
 
     @Override

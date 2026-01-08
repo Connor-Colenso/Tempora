@@ -44,7 +44,7 @@ public abstract class GenericQueueElement implements IMessage {
     // it in world. It is only relevant on the client.
     public long eventRenderCreationTime;
 
-    public abstract IChatComponent localiseText(String uuid);
+    public abstract IChatComponent localiseText(String commandIssuerUUID);
 
     public void populateDefaultFieldsFromResultSet(ResultSet resultSet) throws SQLException {
         x = resultSet.getDouble("x");
@@ -138,9 +138,6 @@ public abstract class GenericQueueElement implements IMessage {
 
         IChatComponent hoverText = new ChatComponentTranslation(
             "tempora.teleport.hover",
-            new ChatComponentNumber(x),
-            new ChatComponentNumber(y),
-            new ChatComponentNumber(z),
             dimId);
         hoverText.getChatStyle()
             .setColor(EnumChatFormatting.GRAY);

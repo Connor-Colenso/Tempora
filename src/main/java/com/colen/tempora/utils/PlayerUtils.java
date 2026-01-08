@@ -12,40 +12,52 @@ import javax.annotation.Nullable;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.event.HoverEvent;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.management.ServerConfigurationManager;
+import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 import net.minecraftforge.common.UsernameCache;
-
-import com.mojang.authlib.GameProfile;
 
 public class PlayerUtils {
 
     public static String UUIDToName(String UUIDString) {
+        if (UUIDString == null) return UNKNOWN_PLAYER_NAME;
         if (UUIDString.equals(UNKNOWN_PLAYER_NAME)) return UNKNOWN_PLAYER_NAME;
         if (!isUUID(UUIDString)) return UUIDString;
 
-        // To get a name from a UUID:
-        UUID playerUUID = UUID.fromString(UUIDString); // field_152366_X
+        String userName = UsernameCache.getLastKnownUsername(UUID.fromString(UUIDString));
+        if (userName == null) return UNKNOWN_PLAYER_NAME;
 
-        GameProfile gameprofile = MinecraftServer.getServer()
-            .func_152358_ax()
-            .func_152652_a(playerUUID);
-
-        if (gameprofile != null) {
-            return gameprofile.getName();
-        } else {
-            return UNKNOWN_PLAYER_NAME;
-        }
+        return userName;
     }
 
-    private static final Pattern UUID_PATTERN = Pattern
-        .compile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$");
+    /**
+     * Generates a chat component showing the player's name,
+     * with a hover showing the UUID.
+     */
+    public static IChatComponent generatePlayerNameWithUUID(String uuid) {
+        if (uuid == null) {
+            return new ChatComponentText(UNKNOWN_PLAYER_NAME);
+        }
 
-    public static boolean isUUID(String str) {
-        return str != null && UUID_PATTERN.matcher(str)
-            .matches();
+        // Use UUIDToName for consistency
+        String playerName = UUIDToName(uuid.toString());
+
+        IChatComponent nameComponent = new ChatComponentText(playerName);
+
+        // Hover text showing the UUID
+        IChatComponent hoverComponent = new ChatComponentText("UUID: " + uuid.toString());
+        hoverComponent.getChatStyle().setColor(EnumChatFormatting.GRAY);
+
+        // Attach hover event
+        nameComponent.getChatStyle().setChatHoverEvent(
+            new HoverEvent(HoverEvent.Action.SHOW_TEXT, hoverComponent)
+        );
+
+        return nameComponent;
     }
 
     public static boolean isPlayerOp(EntityPlayer player) {
@@ -119,4 +131,14 @@ public class PlayerUtils {
 
         return completions;
     }
+
+    // Utils
+    private static final Pattern UUID_PATTERN = Pattern
+        .compile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$");
+
+    private static boolean isUUID(String str) {
+        return str != null && UUID_PATTERN.matcher(str)
+            .matches();
+    }
+
 }

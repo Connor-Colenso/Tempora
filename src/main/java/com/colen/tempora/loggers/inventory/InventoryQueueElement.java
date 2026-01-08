@@ -57,11 +57,10 @@ public class InventoryQueueElement extends GenericQueueElement {
     }
 
     @Override
-    public IChatComponent localiseText(String uuid) {
+    public IChatComponent localiseText(String commandIssuerUUID) {
         IChatComponent formattedTime = TimeUtils.formatTime(timestamp);
-        String playerName = PlayerUtils.UUIDToName(playerUUID);
 
-        // Try localise the item name...
+        // Try to localise the item name...
         ItemStack itemStack = new ItemStack(Item.getItemById(itemId), stackSize, itemMetadata);
         IChatComponent itemDetails = new ChatComponentTranslation(itemStack.getDisplayName());
 
@@ -70,7 +69,7 @@ public class InventoryQueueElement extends GenericQueueElement {
             y,
             z,
             dimensionID,
-            PlayerUtils.UUIDToName(uuid),
+            PlayerUtils.UUIDToName(commandIssuerUUID),
             CoordFormat.INT);
 
         InventoryLogger.Direction dir = InventoryLogger.Direction.fromOrdinal(interactionType);
@@ -84,7 +83,7 @@ public class InventoryQueueElement extends GenericQueueElement {
 
         return new ChatComponentTranslation(
             translationKey,
-            playerName,
+            PlayerUtils.generatePlayerNameWithUUID(playerUUID),
             stackSize,
             itemDetails,
             itemId,
