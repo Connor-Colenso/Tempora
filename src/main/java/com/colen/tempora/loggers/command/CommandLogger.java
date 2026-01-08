@@ -17,7 +17,6 @@ import net.minecraftforge.event.CommandEvent;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.enums.LoggerEventType;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.utils.PlayerUtils;
@@ -34,11 +33,6 @@ public class CommandLogger extends GenericPositionalLogger<CommandQueueElement> 
     @Override
     public @NotNull CommandQueueElement getQueueElementInstance() {
         return new CommandQueueElement();
-    }
-
-    @Override
-    public LoggerEnum getLoggerType() {
-        return LoggerEnum.CommandLogger;
     }
 
     @Override

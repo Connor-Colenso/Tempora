@@ -14,7 +14,6 @@ import net.minecraftforge.event.entity.player.PlayerUseItemEvent;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.enums.LoggerEventType;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 
@@ -28,11 +27,6 @@ public class ItemUseLogger extends GenericPositionalLogger<ItemUseQueueElement> 
     @Override
     public @NotNull ItemUseQueueElement getQueueElementInstance() {
         return new ItemUseQueueElement();
-    }
-
-    @Override
-    public LoggerEnum getLoggerType() {
-        return LoggerEnum.ItemUseLogger;
     }
 
     @Override

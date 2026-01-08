@@ -25,7 +25,6 @@ import net.minecraftforge.event.world.BlockEvent;
 import org.jetbrains.annotations.NotNull;
 
 import com.colen.tempora.TemporaUtils;
-import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.enums.LoggerEventType;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
@@ -49,11 +48,6 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
     private static boolean logNBT;
 
     @Override
-    public LoggerEnum getLoggerType() {
-        return LoggerEnum.PlayerBlockBreakLogger;
-    }
-
-    @Override
     @SideOnly(Side.CLIENT)
     public void renderEventsInWorld(RenderWorldLastEvent e) {
         List<PlayerBlockBreakQueueElement> sortedList = getSortedLatestEventsByDistance(
@@ -68,7 +62,7 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
                 pbbqe.metadata,
                 pbbqe.encodedNBT,
                 pbbqe.playerUUID,
-                getLoggerType());
+                this);
         }
 
         for (PlayerBlockBreakQueueElement pbbqe : nonTransparentEventsToRenderInWorld) {
@@ -79,7 +73,7 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
                 pbbqe.metadata,
                 pbbqe.encodedNBT,
                 pbbqe.playerUUID,
-                getLoggerType());
+                this);
         }
     }
 
@@ -147,10 +141,6 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
     @Override
     public IChatComponent undoEvent(GenericQueueElement queueElement) {
         if (!(queueElement instanceof PlayerBlockBreakQueueElement pbbqe)) return new ChatComponentTranslation("error");
-
-        // if (queueElement == null) {
-        // return new ChatComponentTranslation("tempora.event.not.found", eventUUID, getLoggerType());
-        // }
 
         // NBT existed but was not logged, it is not safe to undo this event.
         if (pbbqe.encodedNBT.equals(NBT_DISABLED))

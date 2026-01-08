@@ -15,7 +15,6 @@ import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.enums.LoggerEventType;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.mixin_interfaces.IEntityMixin;
@@ -31,11 +30,6 @@ public class EntitySpawnLogger extends GenericPositionalLogger<EntitySpawnQueueE
     @Override
     public @NotNull EntitySpawnQueueElement getQueueElementInstance() {
         return new EntitySpawnQueueElement();
-    }
-
-    @Override
-    public LoggerEnum getLoggerType() {
-        return LoggerEnum.EntitySpawnLogger;
     }
 
     @Override

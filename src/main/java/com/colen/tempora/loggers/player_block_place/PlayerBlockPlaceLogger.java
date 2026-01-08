@@ -18,7 +18,6 @@ import net.minecraftforge.event.world.BlockEvent.PlaceEvent;
 import org.jetbrains.annotations.NotNull;
 
 import com.colen.tempora.TemporaUtils;
-import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.enums.LoggerEventType;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.utils.RenderingUtils;
@@ -50,11 +49,6 @@ public class PlayerBlockPlaceLogger extends GenericPositionalLogger<PlayerBlockP
     }
 
     @Override
-    public LoggerEnum getLoggerType() {
-        return LoggerEnum.PlayerBlockPlaceLogger;
-    }
-
-    @Override
     @SideOnly(Side.CLIENT)
     public void renderEventsInWorld(RenderWorldLastEvent e) {
         List<PlayerBlockPlaceQueueElement> sortedList = getSortedLatestEventsByDistance(
@@ -69,7 +63,7 @@ public class PlayerBlockPlaceLogger extends GenericPositionalLogger<PlayerBlockP
                 pbbqe.metadata,
                 pbbqe.encodedNBT,
                 pbbqe.playerUUID,
-                getLoggerType());
+                this);
         }
 
         for (PlayerBlockPlaceQueueElement pbbqe : nonTransparentEventsToRenderInWorld) {
@@ -80,7 +74,7 @@ public class PlayerBlockPlaceLogger extends GenericPositionalLogger<PlayerBlockP
                 pbbqe.metadata,
                 pbbqe.encodedNBT,
                 pbbqe.playerUUID,
-                getLoggerType());
+                this);
         }
     }
 

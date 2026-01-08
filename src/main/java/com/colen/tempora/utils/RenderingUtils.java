@@ -11,7 +11,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 
 import com.colen.tempora.Tempora;
-import com.colen.tempora.enums.LoggerEnum;
+import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.rendering.RenderUtils;
 import com.colen.tempora.utils.nbt.NBTUtils;
@@ -21,22 +21,16 @@ public class RenderingUtils {
     public static int CLIENT_EVENT_RENDER_DISTANCE;
 
     public static void quickRenderBlockWithHighlightAndChecks(RenderWorldLastEvent e, GenericQueueElement queueElement,
-        int blockID, int metadata, String encodedNBT, String playerUUID, LoggerEnum loggerType) {
+        int blockID, int metadata, String encodedNBT, String playerUUID,
+        GenericPositionalLogger<? extends GenericQueueElement> logger) {
         try {
             NBTTagCompound nbt = null;
             if (!Objects.equals(encodedNBT, NO_NBT) && !Objects.equals(encodedNBT, NBT_DISABLED)) {
                 nbt = NBTUtils.decodeFromString(encodedNBT);
             }
 
-            RenderUtils.renderBlockInWorld(
-                e,
-                queueElement.x,
-                queueElement.y,
-                queueElement.z,
-                blockID,
-                metadata,
-                nbt,
-                loggerType);
+            RenderUtils
+                .renderBlockInWorld(e, queueElement.x, queueElement.y, queueElement.z, blockID, metadata, nbt, logger);
         } catch (Exception exception) {
             // Render an error block here instead, if something went critically wrong.
             String truncatedNBT = (encodedNBT != null && !encodedNBT.isEmpty()
@@ -49,7 +43,7 @@ public class RenderingUtils {
 
             LOG.warn(
                 "Failed to render {} event (eventID={}) at ({}, {}, {}) in dim {}. BlockID={}:{} Player={} NBT={} Timestamp={} | Exception: {}: {}",
-                loggerType,
+                logger.getLoggerName(),
                 queueElement.eventID,
                 sx,
                 sy,
@@ -75,7 +69,7 @@ public class RenderingUtils {
                 Block.getIdFromBlock(Tempora.renderingErrorBlock),
                 0,
                 null,
-                loggerType);
+                logger);
         }
     }
 }

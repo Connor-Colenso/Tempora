@@ -2,6 +2,7 @@ package com.colen.tempora.loggers.generic;
 
 import static com.colen.tempora.Tempora.LOG;
 
+import java.awt.Color;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -25,7 +26,6 @@ import net.minecraftforge.common.config.Configuration;
 import org.jetbrains.annotations.NotNull;
 
 import com.colen.tempora.TemporaLoggerManager;
-import com.colen.tempora.enums.LoggerEnum;
 import com.colen.tempora.enums.LoggerEventType;
 import com.colen.tempora.loggers.generic.column.Column;
 
@@ -169,8 +169,6 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
         return eventList;
     }
 
-    public abstract LoggerEnum getLoggerType();
-
     @SideOnly(Side.CLIENT)
     public abstract void renderEventsInWorld(RenderWorldLastEvent e);
 
@@ -225,7 +223,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
     // Logger name is also the SQL table name.
     public String getLoggerName() {
-        return getLoggerType().name();
+        return loggerName;
     }
 
     public void handleCustomLoggerConfig(Configuration config) {}
@@ -376,5 +374,9 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
     public void setName(String loggerName) {
         this.loggerName = loggerName;
+    }
+
+    public Color getColour() {
+        return Color.RED;
     }
 }
