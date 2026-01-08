@@ -46,13 +46,13 @@ public class EntityPositionQueueElement extends GenericQueueElement {
     }
 
     @Override
-    public IChatComponent localiseText(String uuid) {
+    public IChatComponent localiseText(String commandIssuerUUID) {
         IChatComponent coords = generateTeleportChatComponent(
             x,
             y,
             z,
             dimensionID,
-            PlayerUtils.UUIDToName(uuid),
+            PlayerUtils.UUIDToName(commandIssuerUUID),
             CoordFormat.FLOAT_1DP);
         IChatComponent timeAgo = TimeUtils.formatTime(timestamp);
 

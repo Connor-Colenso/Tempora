@@ -12,6 +12,8 @@ import com.colen.tempora.utils.TimeUtils;
 import cpw.mods.fml.common.network.ByteBufUtils;
 import io.netty.buffer.ByteBuf;
 
+import static com.colen.tempora.utils.PlayerUtils.generatePlayerNameWithUUID;
+
 public class PlayerMovementQueueElement extends GenericQueueElement {
 
     @Column(constraints = "NOT NULL")
@@ -30,17 +32,17 @@ public class PlayerMovementQueueElement extends GenericQueueElement {
     }
 
     @Override
-    public IChatComponent localiseText(String uuid) {
+    public IChatComponent localiseText(String commandIssuerUUID) {
         IChatComponent formattedTime = TimeUtils.formatTime(timestamp);
         IChatComponent coords = generateTeleportChatComponent(
             x,
             y,
             z,
             dimensionID,
-            PlayerUtils.UUIDToName(uuid),
+            PlayerUtils.UUIDToName(commandIssuerUUID),
             CoordFormat.FLOAT_1DP);
 
-        return new ChatComponentTranslation("message.player_movement", playerUUID, coords, formattedTime);
+        return new ChatComponentTranslation("message.player_movement", PlayerUtils.generatePlayerNameWithUUID(playerUUID), coords, formattedTime);
     }
 
     @Override

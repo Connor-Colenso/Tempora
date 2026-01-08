@@ -59,7 +59,7 @@ public class BlockChangeQueueElement extends GenericQueueElement {
     public boolean isWorldGen;
 
     @Override
-    public IChatComponent localiseText(String uuid) {
+    public IChatComponent localiseText(String commandIssuerUUID) {
         // Block names
         IChatComponent beforeBlockName = BlockUtils.getUnlocalisedChatComponent(beforePickBlockID, beforePickBlockMeta);
         IChatComponent afterBlockName = BlockUtils.getUnlocalisedChatComponent(afterPickBlockID, afterPickBlockMeta);
@@ -70,7 +70,7 @@ public class BlockChangeQueueElement extends GenericQueueElement {
             y,
             z,
             dimensionID,
-            PlayerUtils.UUIDToName(uuid),
+            PlayerUtils.UUIDToName(commandIssuerUUID),
             CoordFormat.INT);
 
         // Time ago
@@ -90,7 +90,7 @@ public class BlockChangeQueueElement extends GenericQueueElement {
             afterBlockID, // %d: block after ID
             afterMetadata, // %d: block after metadata
             timeAgo, // %s: time ago
-            closestPlayerName, // %s: closest player
+            PlayerUtils.generatePlayerNameWithUUID(closestPlayerName), // %s: closest player
             closestPlayerDist, // %s: distance
             generateUndoCommand(getLoggerName(), eventID) // %s: Undo operation.
         );

@@ -57,7 +57,7 @@ public class PlayerBlockPlaceQueueElement extends GenericQueueElement {
     }
 
     @Override
-    public IChatComponent localiseText(String uuid) {
+    public IChatComponent localiseText(String commandIssuerUUID) {
         // Use normalized pickBlockID and pickBlockMeta for translation key
         IChatComponent block = BlockUtils.getUnlocalisedChatComponent(pickBlockID, pickBlockMeta);
 
@@ -67,7 +67,7 @@ public class PlayerBlockPlaceQueueElement extends GenericQueueElement {
             y,
             z,
             dimensionID,
-            PlayerUtils.UUIDToName(uuid),
+            PlayerUtils.UUIDToName(commandIssuerUUID),
             CoordFormat.INT);
 
         // Relative time component
@@ -76,7 +76,7 @@ public class PlayerBlockPlaceQueueElement extends GenericQueueElement {
         // Create translation with playerName, block, raw blockID:metadata, coords, and timeAgo
         return new ChatComponentTranslation(
             "message.block_place",
-            playerUUID,
+            PlayerUtils.generatePlayerNameWithUUID(playerUUID),
             block,
             blockID,
             metadata,

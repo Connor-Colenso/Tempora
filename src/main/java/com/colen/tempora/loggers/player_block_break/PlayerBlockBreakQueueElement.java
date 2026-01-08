@@ -57,22 +57,21 @@ public class PlayerBlockBreakQueueElement extends GenericQueueElement {
     }
 
     @Override
-    public IChatComponent localiseText(String playerUUID) {
+    public IChatComponent localiseText(String commandIssuerUUID) {
         IChatComponent block = BlockUtils.getUnlocalisedChatComponent(pickBlockID, pickBlockMeta);
         IChatComponent coords = generateTeleportChatComponent(
             x,
             y,
             z,
             dimensionID,
-            PlayerUtils.UUIDToName(playerUUID),
+            PlayerUtils.UUIDToName(commandIssuerUUID),
             CoordFormat.INT);
 
         IChatComponent timeAgo = TimeUtils.formatTime(timestamp);
 
         return new ChatComponentTranslation(
             "message.block_break",
-            // PlayerUtils.UUIDToName(this.playerUUID), // player name
-            playerUUID,
+            PlayerUtils.generatePlayerNameWithUUID(commandIssuerUUID),
             block, // block localized name
             blockID, // block ID
             metadata, // metadata

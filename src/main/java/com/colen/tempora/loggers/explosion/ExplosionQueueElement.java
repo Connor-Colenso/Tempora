@@ -1,5 +1,7 @@
 package com.colen.tempora.loggers.explosion;
 
+import static com.colen.tempora.utils.ChatUtils.ONE_DP;
+import static com.gtnewhorizon.gtnhlib.util.numberformatting.NumberFormatUtil.formatNumber;
 import static cpw.mods.fml.common.network.ByteBufUtils.readVarInt;
 import static cpw.mods.fml.common.network.ByteBufUtils.varIntByteCount;
 import static cpw.mods.fml.common.network.ByteBufUtils.writeVarInt;
@@ -69,22 +71,22 @@ public class ExplosionQueueElement extends GenericQueueElement {
     }
 
     @Override
-    public IChatComponent localiseText(String uuid) {
+    public IChatComponent localiseText(String commandIssuerUUID) {
         IChatComponent coords = generateTeleportChatComponent(
             x,
             y,
             z,
             dimensionID,
-            PlayerUtils.UUIDToName(uuid),
+            PlayerUtils.UUIDToName(commandIssuerUUID),
             CoordFormat.FLOAT_1DP);
         IChatComponent timeAgo = TimeUtils.formatTime(timestamp);
 
         return new ChatComponentTranslation(
             "message.explosion",
-            exploderUUID,
-            String.format("%.1f", strength),
+            PlayerUtils.generatePlayerNameWithUUID(exploderUUID),
+            formatNumber(strength, ONE_DP),
             closestPlayerUUID,
-            String.format("%.1f", closestPlayerDistance),
+            formatNumber(closestPlayerDistance, ONE_DP),
             coords,
             timeAgo);
     }
