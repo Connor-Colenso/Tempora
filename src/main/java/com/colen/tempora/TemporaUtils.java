@@ -15,7 +15,8 @@ import cpw.mods.fml.relauncher.Side;
 
 public class TemporaUtils {
 
-    public static final String UNKNOWN_PLAYER_NAME = "[UNKNOWN]";
+    public static final String UNKNOWN_PLAYER_NAME = "[UNKNOWN PLAYER]";
+    public static final String UNKNOWN_CAUSE = "[UNKNOWN CAUSE]";
 
     public static Path databaseDir() {
         // Works for both dedicated and integrated servers.

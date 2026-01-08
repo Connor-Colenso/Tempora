@@ -50,14 +50,14 @@ public class PlayerBlockPlaceLogger extends GenericPositionalLogger<PlayerBlockP
 
     @Override
     @SideOnly(Side.CLIENT)
-    public void renderEventsInWorld(RenderWorldLastEvent e) {
+    public void renderEventsInWorld(RenderWorldLastEvent renderEvent) {
         List<PlayerBlockPlaceQueueElement> sortedList = getSortedLatestEventsByDistance(
             transparentEventsToRenderInWorld,
-            e);
+            renderEvent);
 
         for (PlayerBlockPlaceQueueElement pbbqe : sortedList) {
             RenderingUtils.quickRenderBlockWithHighlightAndChecks(
-                e,
+                renderEvent,
                 pbbqe,
                 pbbqe.blockID,
                 pbbqe.metadata,
@@ -68,7 +68,7 @@ public class PlayerBlockPlaceLogger extends GenericPositionalLogger<PlayerBlockP
 
         for (PlayerBlockPlaceQueueElement pbbqe : nonTransparentEventsToRenderInWorld) {
             RenderingUtils.quickRenderBlockWithHighlightAndChecks(
-                e,
+                renderEvent,
                 pbbqe,
                 pbbqe.blockID,
                 pbbqe.metadata,

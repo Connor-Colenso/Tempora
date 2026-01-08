@@ -8,6 +8,7 @@ import java.util.UUID;
 
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.entity.EntityClientPlayerMP;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.Container;
@@ -48,14 +49,15 @@ public class InventoryLogger extends GenericPositionalLogger<InventoryQueueEleme
 
     @Override
     @SideOnly(Side.CLIENT)
-    public void renderEventsInWorld(RenderWorldLastEvent e) {
-        List<InventoryQueueElement> sortedList = getSortedLatestEventsByDistance(transparentEventsToRenderInWorld, e);
+    public void renderEventsInWorld(RenderWorldLastEvent renderEvent) {
+        List<InventoryQueueElement> sortedList = getSortedLatestEventsByDistance(transparentEventsToRenderInWorld, renderEvent);
 
         Minecraft mc = Minecraft.getMinecraft();
+        EntityClientPlayerMP player = mc.thePlayer;
 
-        double px = mc.thePlayer.lastTickPosX + (mc.thePlayer.posX - mc.thePlayer.lastTickPosX) * e.partialTicks;
-        double py = mc.thePlayer.lastTickPosY + (mc.thePlayer.posY - mc.thePlayer.lastTickPosY) * e.partialTicks;
-        double pz = mc.thePlayer.lastTickPosZ + (mc.thePlayer.posZ - mc.thePlayer.lastTickPosZ) * e.partialTicks;
+        double px = player.lastTickPosX + (player.posX - player.lastTickPosX) * renderEvent.partialTicks;
+        double py = player.lastTickPosY + (player.posY - player.lastTickPosY) * renderEvent.partialTicks;
+        double pz = player.lastTickPosZ + (player.posZ - player.lastTickPosZ) * renderEvent.partialTicks;
 
         GL11.glPushMatrix();
         GL11.glTranslated(-px, -py, -pz);

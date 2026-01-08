@@ -41,22 +41,22 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionQueueEleme
 
     @Override
     @SideOnly(Side.CLIENT)
-    public void renderEventsInWorld(RenderWorldLastEvent e) {
+    public void renderEventsInWorld(RenderWorldLastEvent renderEvent) {
 
-        List<ExplosionQueueElement> sortedList = getSortedLatestEventsByDistance(transparentEventsToRenderInWorld, e);
+        List<ExplosionQueueElement> sortedList = getSortedLatestEventsByDistance(transparentEventsToRenderInWorld, renderEvent);
         Tessellator tessellator = Tessellator.instance;
         Minecraft mc = Minecraft.getMinecraft();
         EntityPlayerSP player = mc.thePlayer;
 
         // compute player interpolated position once
-        double px = player.lastTickPosX + (player.posX - player.lastTickPosX) * e.partialTicks;
-        double py = player.lastTickPosY + (player.posY - player.lastTickPosY) * e.partialTicks;
-        double pz = player.lastTickPosZ + (player.posZ - player.lastTickPosZ) * e.partialTicks;
+        double px = player.lastTickPosX + (player.posX - player.lastTickPosX) * renderEvent.partialTicks;
+        double py = player.lastTickPosY + (player.posY - player.lastTickPosY) * renderEvent.partialTicks;
+        double pz = player.lastTickPosZ + (player.posZ - player.lastTickPosZ) * renderEvent.partialTicks;
 
         for (ExplosionQueueElement exqe : sortedList) {
             // Draw explosion center as TNT block
             RenderUtils.renderBlockInWorld(
-                e,
+                renderEvent,
                 exqe.x - 0.5,
                 exqe.y - 0.5,
                 exqe.z - 0.5,
