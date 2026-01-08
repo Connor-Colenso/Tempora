@@ -12,6 +12,8 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.UUID;
 
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
@@ -40,9 +42,6 @@ import com.colen.tempora.utils.RenderingUtils;
 import com.colen.tempora.utils.WorldGenPhaseTracker;
 import com.colen.tempora.utils.nbt.NBTUtils;
 
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
-
 // todo look into logging world gen and marking that separately, such that you can use a useful regen command to restore
 // the state of the world.
 public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueElement> implements ISupportsUndo {
@@ -60,10 +59,8 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
         return LoggerEnum.BlockChangeLogger;
     }
 
-    @SideOnly(Side.CLIENT)
+    // Client side usage only.
     ArrayList<BlockChangeQueueElement> filteredNonTransparentBuffer = new ArrayList<>();
-
-    @SideOnly(Side.CLIENT)
     ArrayList<BlockChangeQueueElement> filteredTransparentBuffer = new ArrayList<>();
 
     @Override
