@@ -386,6 +386,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
         return false;
     }
 
+    // Todo also return if succeed or not, to tally up and return to user. Reasons also, then present them all?
     public IChatComponent undoEvent(GenericQueueElement queueElement, EntityPlayer player) {
         return null;
     }
