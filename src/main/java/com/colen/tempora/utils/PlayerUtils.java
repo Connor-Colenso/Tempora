@@ -36,20 +36,20 @@ public class PlayerUtils {
 
     /**
      * Generates a chat component showing the player's name,
-     * with a hover showing the UUID.
+     * with a hover showing the UUID. Invalid UUIDs will return UNKNOWN_PLAYER_NAME.
      */
-    public static IChatComponent generatePlayerNameWithUUID(String uuid) {
+    public static IChatComponent playerNameFromUUID(String uuid) {
         if (uuid == null) {
-            return new ChatComponentText(UNKNOWN_PLAYER_NAME);
+            return new ChatComponentTranslation(UNKNOWN_PLAYER_NAME);
         }
 
         // Use UUIDToName for consistency
-        String playerName = UUIDToName(uuid.toString());
+        String playerName = UUIDToName(uuid);
 
         IChatComponent nameComponent = new ChatComponentText(playerName);
 
         // Hover text showing the UUID
-        IChatComponent hoverComponent = new ChatComponentText("UUID: " + uuid.toString());
+        IChatComponent hoverComponent = new ChatComponentText("UUID: " + uuid);
         hoverComponent.getChatStyle()
             .setColor(EnumChatFormatting.GRAY);
 

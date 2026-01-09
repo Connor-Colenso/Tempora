@@ -8,7 +8,6 @@ import net.minecraft.util.IChatComponent;
 import com.colen.tempora.TemporaEvents;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.loggers.generic.column.Column;
-import com.colen.tempora.utils.PlayerUtils;
 import com.colen.tempora.utils.TimeUtils;
 
 import cpw.mods.fml.common.network.ByteBufUtils;
@@ -44,13 +43,7 @@ public class EntitySpawnQueueElement extends GenericQueueElement {
 
     @Override
     public IChatComponent localiseText(String commandIssuerUUID) {
-        IChatComponent coords = generateTeleportChatComponent(
-            x,
-            y,
-            z,
-            dimensionID,
-            PlayerUtils.UUIDToName(commandIssuerUUID),
-            CoordFormat.FLOAT_1DP);
+        IChatComponent coords = teleportChatComponent(x, y, z, dimensionID, CoordFormat.FLOAT_1DP);
         IChatComponent timeAgo = TimeUtils.formatTime(timestamp);
         IChatComponent uuidChatComponent = entityUUIDChatComponent(entityUUID);
 

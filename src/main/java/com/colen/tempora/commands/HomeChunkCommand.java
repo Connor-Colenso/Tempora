@@ -2,7 +2,7 @@ package com.colen.tempora.commands;
 
 import static com.colen.tempora.Tempora.LOG;
 import static com.colen.tempora.TemporaEvents.PLAYER_MOVEMENT;
-import static com.colen.tempora.loggers.generic.GenericQueueElement.generateTeleportChatComponent;
+import static com.colen.tempora.loggers.generic.GenericQueueElement.teleportChatComponent;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -165,18 +165,17 @@ public class HomeChunkCommand extends CommandBase {
                 double homeZ = rs.getDouble("home_z");
                 int dim = rs.getInt("dimensionID");
 
-                IChatComponent tpLink = generateTeleportChatComponent(
+                IChatComponent tpLink = teleportChatComponent(
                     homeX,
                     homeY,
                     homeZ,
                     dim,
-                    args[0],
                     GenericQueueElement.CoordFormat.FLOAT_1DP);
 
                 sender.addChatMessage(
                     new ChatComponentTranslation(
                         "tempora.command.averagehome.result",
-                        PlayerUtils.UUIDToName(uuid),
+                        PlayerUtils.playerNameFromUUID(uuid),
                         dim,
                         tpLink));
             }

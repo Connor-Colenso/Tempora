@@ -43,7 +43,9 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionQueueEleme
     @SideOnly(Side.CLIENT)
     public void renderEventsInWorld(RenderWorldLastEvent renderEvent) {
 
-        List<ExplosionQueueElement> sortedList = getSortedLatestEventsByDistance(transparentEventsToRenderInWorld, renderEvent);
+        List<ExplosionQueueElement> sortedList = getSortedLatestEventsByDistance(
+            transparentEventsToRenderInWorld,
+            renderEvent);
         Tessellator tessellator = Tessellator.instance;
         Minecraft mc = Minecraft.getMinecraft();
         EntityPlayerSP player = mc.thePlayer;

@@ -10,6 +10,7 @@ import com.colen.tempora.loggers.generic.column.Column;
 import com.colen.tempora.utils.BlockUtils;
 import com.colen.tempora.utils.PlayerUtils;
 import com.colen.tempora.utils.TimeUtils;
+import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 
 import cpw.mods.fml.common.network.ByteBufUtils;
 import io.netty.buffer.ByteBuf;
@@ -65,20 +66,14 @@ public class BlockChangeQueueElement extends GenericQueueElement {
         IChatComponent afterBlockName = BlockUtils.getUnlocalisedChatComponent(afterPickBlockID, afterPickBlockMeta);
 
         // Coordinates component
-        IChatComponent coords = generateTeleportChatComponent(
-            x,
-            y,
-            z,
-            dimensionID,
-            PlayerUtils.UUIDToName(commandIssuerUUID),
-            CoordFormat.INT);
+        IChatComponent coords = teleportChatComponent(x, y, z, dimensionID, CoordFormat.INT);
 
         // Time ago
         IChatComponent timeAgo = TimeUtils.formatTime(timestamp);
 
         // Closest player info
-        String closestPlayerName = closestPlayerUUID != null ? PlayerUtils.UUIDToName(closestPlayerUUID) : "Unknown";
-        String closestPlayerDist = String.format("%.1f", closestPlayerDistance); // float formatting
+        IChatComponent closestPlayerName = PlayerUtils.playerNameFromUUID(closestPlayerUUID);
+        ChatComponentNumber closestPlayerDist = new ChatComponentNumber(closestPlayerDistance);
 
         return new ChatComponentTranslation(
             "message.block_change",
@@ -90,7 +85,7 @@ public class BlockChangeQueueElement extends GenericQueueElement {
             afterBlockID, // %d: block after ID
             afterMetadata, // %d: block after metadata
             timeAgo, // %s: time ago
-            PlayerUtils.generatePlayerNameWithUUID(closestPlayerName), // %s: closest player
+            closestPlayerName, // %s: closest player
             closestPlayerDist, // %s: distance
             generateUndoCommand(getLoggerName(), eventID) // %s: Undo operation.
         );

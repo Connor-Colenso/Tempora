@@ -1,7 +1,7 @@
 package com.colen.tempora.commands;
 
 import static com.colen.tempora.commands.CommandConstants.ONLY_IN_GAME;
-import static com.colen.tempora.loggers.generic.GenericQueueElement.generateTeleportChatComponent;
+import static com.colen.tempora.loggers.generic.GenericQueueElement.teleportChatComponent;
 
 import java.util.List;
 
@@ -78,20 +78,19 @@ public class ListRegionsCommand extends CommandBase {
             double cz = (r.minZ + r.maxZ) / 2.0;
 
             /* Clickable coordinate component */
-            ChatComponentTranslation tp = (ChatComponentTranslation) generateTeleportChatComponent(
+            ChatComponentTranslation tp = (ChatComponentTranslation) teleportChatComponent(
                 cx,
                 cy,
                 cz,
                 r.dim,
-                playerName,
                 CoordFormat.INT);
 
             /* Whole entry line */
             ChatComponentTranslation line = new ChatComponentTranslation(
                 "tempora.command.listregions.entry",
                 idx++,
-                generateTeleportChatComponent(r.minX, r.minY, r.minZ, r.dim, playerName, CoordFormat.INT),
-                generateTeleportChatComponent(r.maxX, r.maxY, r.maxZ, r.dim, playerName, CoordFormat.INT),
+                teleportChatComponent(r.minX, r.minY, r.minZ, r.dim, CoordFormat.INT),
+                teleportChatComponent(r.maxX, r.maxY, r.maxZ, r.dim, CoordFormat.INT),
                 r.dim,
                 tp);
 

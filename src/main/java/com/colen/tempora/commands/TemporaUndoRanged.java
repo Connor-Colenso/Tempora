@@ -26,7 +26,6 @@ import net.minecraft.util.IChatComponent;
 import com.colen.tempora.TemporaLoggerManager;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
-import com.colen.tempora.loggers.optional.ISupportsUndo;
 import com.colen.tempora.utils.CommandUtils;
 import com.colen.tempora.utils.TimeUtils;
 import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
@@ -93,7 +92,7 @@ public class TemporaUndoRanged extends CommandBase {
             return;
         }
 
-        if (!(logger instanceof ISupportsUndo)) {
+        if (!logger.isUndoEnabled()) {
             sender.addChatMessage(new ChatComponentTranslation("tempora.command.undo.not_undoable", loggerName));
             return;
         }
@@ -101,7 +100,7 @@ public class TemporaUndoRanged extends CommandBase {
         Timestamp cutoff = new Timestamp(System.currentTimeMillis() - seconds * 1000L);
         String table = logger.getLoggerName();
 
-        // Optimised SQL query
+        // Attempt at optimised SQL query
         String sql = "SELECT t.* FROM " + table
             + " t "
             + "JOIN (SELECT x,y,z,MIN(timestamp) ts FROM "
@@ -187,13 +186,13 @@ public class TemporaUndoRanged extends CommandBase {
 
         GenericPositionalLogger<?> logger = TemporaLoggerManager.getLogger(loggerName);
 
-        if (!(logger instanceof ISupportsUndo supportsUndo)) {
+        if (!logger.isUndoEnabled()) {
             sender.addChatMessage(new ChatComponentTranslation("tempora.command.undo.not_undoable", loggerName));
             return;
         }
 
         long start = System.currentTimeMillis();
-        supportsUndo.undoEvents(stored);
+        logger.undoEvents(stored, sender);
         long duration = System.currentTimeMillis() - start;
 
         TimeUtils.DurationParts p = TimeUtils.relativeTimeAgoFormatter(duration);

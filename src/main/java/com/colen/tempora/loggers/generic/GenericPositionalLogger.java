@@ -19,6 +19,8 @@ import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.util.IChatComponent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
@@ -378,5 +380,19 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
     public Color getColour() {
         return Color.RED;
+    }
+
+    public boolean isUndoEnabled() {
+        return false;
+    }
+
+    public IChatComponent undoEvent(GenericQueueElement queueElement, EntityPlayer player) {
+        return null;
+    }
+
+    public final void undoEvents(List<? extends GenericQueueElement> results, EntityPlayer player) {
+        for (GenericQueueElement element : results) {
+            undoEvent(element, player);
+        }
     }
 }

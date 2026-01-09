@@ -53,13 +53,7 @@ public class EntityDeathQueueElement extends GenericQueueElement {
 
     @Override
     public IChatComponent localiseText(String commandIssuerUUID) {
-        IChatComponent coords = generateTeleportChatComponent(
-            x,
-            y,
-            z,
-            dimensionID,
-            PlayerUtils.UUIDToName(commandIssuerUUID),
-            CoordFormat.FLOAT_1DP);
+        IChatComponent coords = teleportChatComponent(x, y, z, dimensionID, CoordFormat.FLOAT_1DP);
         IChatComponent timeAgo = TimeUtils.formatTime(timestamp);
 
         IChatComponent uuidChatComponent = entityUUIDChatComponent(entityUUID);
@@ -68,7 +62,7 @@ public class EntityDeathQueueElement extends GenericQueueElement {
             "message.entity_death",
             new ChatComponentTranslation("entity." + nameOfDeadEntity + ".name"),
             uuidChatComponent,
-            PlayerUtils.generatePlayerNameWithUUID(killedBy), // Maybe a UUID
+            PlayerUtils.playerNameFromUUID(killedBy), // Maybe a UUID
             coords,
             timeAgo);
     }

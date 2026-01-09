@@ -47,9 +47,10 @@ public class CommandLogger extends GenericPositionalLogger<CommandQueueElement> 
             double z = cqe.z - renderManager.viewerPosZ;
 
             List<String> toRender = new ArrayList<>();
+
             toRender.add(
                 StatCollector
-                    .translateToLocalFormatted("event.command.executed", PlayerUtils.UUIDToName(cqe.playerUUID)));
+                    .translateToLocalFormatted("event.command.executed", PlayerUtils.uuidForName(cqe.playerUUID)));
             toRender.add("/" + cqe.commandName + " " + cqe.arguments);
 
             TimeUtils.DurationParts formattedTime = TimeUtils.relativeTimeAgoFormatter(cqe.timestamp);

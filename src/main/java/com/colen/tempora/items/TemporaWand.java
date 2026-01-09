@@ -1,7 +1,7 @@
 package com.colen.tempora.items;
 
 import static com.colen.tempora.Tempora.LOG;
-import static com.colen.tempora.loggers.generic.GenericQueueElement.generateTeleportChatComponent;
+import static com.colen.tempora.loggers.generic.GenericQueueElement.teleportChatComponent;
 
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.player.EntityPlayer;
@@ -73,13 +73,7 @@ public class TemporaWand extends Item {
             player.addChatMessage(
                 new ChatComponentTranslation(
                     "msg.tempora.wand.checking.pos",
-                    generateTeleportChatComponent(
-                        x,
-                        y,
-                        z,
-                        player.dimension,
-                        player.getDisplayName(),
-                        GenericQueueElement.CoordFormat.INT),
+                    teleportChatComponent(x, y, z, player.dimension, GenericQueueElement.CoordFormat.INT),
                     player.dimension).setChatStyle(new ChatStyle().setColor(EnumChatFormatting.RED)));
 
             for (GenericPositionalLogger<?> logger : TemporaLoggerManager.getLoggerList()) {

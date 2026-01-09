@@ -50,7 +50,9 @@ public class InventoryLogger extends GenericPositionalLogger<InventoryQueueEleme
     @Override
     @SideOnly(Side.CLIENT)
     public void renderEventsInWorld(RenderWorldLastEvent renderEvent) {
-        List<InventoryQueueElement> sortedList = getSortedLatestEventsByDistance(transparentEventsToRenderInWorld, renderEvent);
+        List<InventoryQueueElement> sortedList = getSortedLatestEventsByDistance(
+            transparentEventsToRenderInWorld,
+            renderEvent);
 
         Minecraft mc = Minecraft.getMinecraft();
         EntityClientPlayerMP player = mc.thePlayer;
