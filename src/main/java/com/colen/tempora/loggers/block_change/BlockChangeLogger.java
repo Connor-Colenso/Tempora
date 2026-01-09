@@ -2,6 +2,7 @@ package com.colen.tempora.loggers.block_change;
 
 import static com.colen.tempora.Tempora.LOG;
 import static com.colen.tempora.TemporaUtils.UNKNOWN_PLAYER_NAME;
+import static com.colen.tempora.loggers.generic.GenericQueueElement.teleportChatComponent;
 import static com.colen.tempora.utils.RenderingUtils.CLIENT_EVENT_RENDER_DISTANCE;
 import static com.colen.tempora.utils.nbt.NBTUtils.NBT_DISABLED;
 import static com.colen.tempora.utils.nbt.NBTUtils.NO_NBT;
@@ -16,6 +17,7 @@ import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.MinecraftServer;
@@ -32,7 +34,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import com.colen.tempora.enums.LoggerEventType;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
-import com.colen.tempora.loggers.optional.ISupportsUndo;
 import com.colen.tempora.utils.BlockUtils;
 import com.colen.tempora.utils.GenericUtils;
 import com.colen.tempora.utils.RenderingUtils;
@@ -44,7 +45,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 
 // todo look into logging world gen and marking that separately, such that you can use a useful regen command to restore
 // the state of the world.
-public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueElement> implements ISupportsUndo {
+public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueElement> {
 
     private boolean globalBlockChangeLogging;
 
@@ -236,26 +237,38 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
         queueEvent(queueElement);
     }
 
-    @Override
-    public IChatComponent undoEvent(GenericQueueElement queueElement) {
-        if (!(queueElement instanceof BlockChangeQueueElement)) return new ChatComponentTranslation("error");
-
-        BlockChangeQueueElement bcqe = (BlockChangeQueueElement) queueElement;
+    public IChatComponent undoEvent(GenericQueueElement queueElement, EntityPlayerMP player) {
+        if (!(queueElement instanceof BlockChangeQueueElement bcqe))
+            return new ChatComponentTranslation("tempora.undo.unknown.error", getLoggerName());
 
         if (bcqe.beforeEncodedNBT.equals(NBT_DISABLED))
             return new ChatComponentTranslation("tempora.cannot.block.break.undo.nbt.logging.disabled");
 
-        World w = MinecraftServer.getServer()
-            .worldServerForDimension(queueElement.dimensionID);
-        Block block = Block.getBlockById(bcqe.beforeBlockID);
-        if (block == null) return new ChatComponentTranslation("tempora.cannot.block.break.undo.block.not.found");
-
         int x = (int) bcqe.x;
         int y = (int) bcqe.y;
         int z = (int) bcqe.z;
+        int blockID = bcqe.beforeBlockID;
         int meta = bcqe.beforeMetadata;
+        int dimID = queueElement.dimensionID;
+
+        Block block = Block.getBlockById(blockID);
+        if (block == null) {
+            IChatComponent teleportCommand = teleportChatComponent(
+                x,
+                y,
+                z,
+                blockID,
+                GenericQueueElement.CoordFormat.INT);
+            return new ChatComponentTranslation(
+                "tempora.cannot.block.break.undo.block.not.found",
+                bcqe.beforeBlockID,
+                bcqe.beforeMetadata,
+                teleportCommand);
+        }
 
         // Place silently (no physics or callbacks)
+        World w = MinecraftServer.getServer()
+            .worldServerForDimension(dimID);
         BlockUtils.setBlockNoUpdate(w, x, y, z, block, meta); // todo use this in other undos.
 
         if (!bcqe.beforeEncodedNBT.equals(NO_NBT)) {
@@ -273,7 +286,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
                 w.setBlockToAir(x, y, z);
                 w.removeTileEntity(x, y, z);
                 e.printStackTrace();
-                return new ChatComponentTranslation("tempora.undo.block.break.unknown.error");
+                return new ChatComponentTranslation("tempora.undo.unknown.error", getLoggerName());
             }
         }
 
@@ -281,5 +294,10 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
         w.markBlockForUpdate(x, y, z);
 
         return new ChatComponentTranslation("tempora.undo.success");
+    }
+
+    @Override
+    public boolean isUndoEnabled() {
+        return true;
     }
 }

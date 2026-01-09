@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.UUID;
 
 import net.minecraft.block.Block;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -28,7 +29,6 @@ import com.colen.tempora.TemporaUtils;
 import com.colen.tempora.enums.LoggerEventType;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
-import com.colen.tempora.loggers.optional.ISupportsUndo;
 import com.colen.tempora.utils.RenderingUtils;
 import com.colen.tempora.utils.nbt.NBTUtils;
 
@@ -37,8 +37,7 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockBreakQueueElement>
-    implements ISupportsUndo {
+public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockBreakQueueElement> {
 
     @Override
     public @NotNull PlayerBlockBreakQueueElement getQueueElementInstance() {
@@ -87,6 +86,11 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
                 If true, it will log the NBT of all blocks changes which interact with this event. This improves rendering of events and gives a better history.
                 WARNING: NBT may be large and this will cause the database to grow much quicker.
                 """);
+    }
+
+    @Override
+    public boolean isUndoEnabled() {
+        return true;
     }
 
     @Override
@@ -140,8 +144,9 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
     // Todo de-dupe code here and in other block adjacent loggers.
     // todo get rid of the need to cast the class here and use the generic.
     @Override
-    public IChatComponent undoEvent(GenericQueueElement queueElement) {
-        if (!(queueElement instanceof PlayerBlockBreakQueueElement pbbqe)) return new ChatComponentTranslation("tempora.undo.block.break.unknown.error");
+    public IChatComponent undoEvent(GenericQueueElement queueElement, EntityPlayer player) {
+        if (!(queueElement instanceof PlayerBlockBreakQueueElement pbbqe))
+            return new ChatComponentTranslation("tempora.undo.unknown.error", getLoggerName());
 
         // NBT existed but was not logged, it is not safe to undo this event.
         if (pbbqe.encodedNBT.equals(NBT_DISABLED))
@@ -170,7 +175,7 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
             w.removeTileEntity((int) pbbqe.x, (int) pbbqe.y, (int) pbbqe.z);
 
             e.printStackTrace();
-            return new ChatComponentTranslation("tempora.undo.block.break.unknown.error");
+            return new ChatComponentTranslation("tempora.undo.unknown.error", getLoggerName());
         }
 
         return new ChatComponentTranslation("tempora.undo.success");

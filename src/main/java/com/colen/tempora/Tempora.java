@@ -7,6 +7,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.colen.tempora.blocks.RenderingErrorBlock;
+import com.colen.tempora.commands.CommandTemporaTp;
 import com.colen.tempora.commands.CreateRegionCommand;
 import com.colen.tempora.commands.HomeChunkCommand;
 import com.colen.tempora.commands.ListRegionsCommand;
@@ -92,6 +93,7 @@ public class Tempora {
 
         event.registerServerCommand(new TemporaUndoCommand());
         event.registerServerCommand(new TemporaUndoRanged());
+        event.registerServerCommand(new CommandTemporaTp());
     }
 
     @Mod.EventHandler

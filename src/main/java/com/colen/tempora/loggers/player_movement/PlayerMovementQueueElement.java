@@ -32,17 +32,11 @@ public class PlayerMovementQueueElement extends GenericQueueElement {
     @Override
     public IChatComponent localiseText(String commandIssuerUUID) {
         IChatComponent formattedTime = TimeUtils.formatTime(timestamp);
-        IChatComponent coords = generateTeleportChatComponent(
-            x,
-            y,
-            z,
-            dimensionID,
-            PlayerUtils.UUIDToName(commandIssuerUUID),
-            CoordFormat.FLOAT_1DP);
+        IChatComponent coords = teleportChatComponent(x, y, z, dimensionID, CoordFormat.FLOAT_1DP);
 
         return new ChatComponentTranslation(
             "message.player_movement",
-            PlayerUtils.generatePlayerNameWithUUID(playerUUID),
+            PlayerUtils.playerNameFromUUID(playerUUID),
             coords,
             formattedTime);
     }

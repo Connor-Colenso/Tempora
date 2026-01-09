@@ -2,6 +2,7 @@ package com.colen.tempora;
 
 import static com.colen.tempora.Tempora.LOG;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -15,14 +16,15 @@ import cpw.mods.fml.relauncher.Side;
 
 public class TemporaUtils {
 
-    public static final String UNKNOWN_PLAYER_NAME = "tempora.unknown.player"; /
-    public static final String UNKNOWN_CAUSE = "tempora.unknown.cause"; /
+    public static final String UNKNOWN_PLAYER_NAME = "tempora.unknown.player";
+    public static final String UNKNOWN_CAUSE = "tempora.unknown.cause"; // todo use
 
     public static Path databaseDir() {
         // Works for both dedicated and integrated servers.
-        Path worldDir = DimensionManager.getCurrentSaveRootDirectory()
-            .toPath();
-        Path dir = worldDir.resolve("TemporaDatabases");
+        File worldDir = DimensionManager.getCurrentSaveRootDirectory();
+        if (worldDir == null) throw new NullPointerException("worldDir is null");
+        Path dir = worldDir.toPath()
+            .resolve("TemporaDatabases");
 
         try {
             Files.createDirectories(dir);

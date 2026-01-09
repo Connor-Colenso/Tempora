@@ -43,18 +43,12 @@ public class ItemUseQueueElement extends GenericQueueElement {
 
     @Override
     public IChatComponent localiseText(String commandIssuerUUID) {
-        IChatComponent coords = generateTeleportChatComponent(
-            x,
-            y,
-            z,
-            dimensionID,
-            PlayerUtils.UUIDToName(commandIssuerUUID),
-            CoordFormat.FLOAT_1DP);
+        IChatComponent coords = teleportChatComponent(x, y, z, dimensionID, CoordFormat.FLOAT_1DP);
         IChatComponent timeAgo = TimeUtils.formatTime(timestamp);
 
         return new ChatComponentTranslation(
             "message.item_use",
-            PlayerUtils.generatePlayerNameWithUUID(playerUUID),
+            PlayerUtils.playerNameFromUUID(playerUUID),
             getNameOfItemStack(itemID, itemMetadata),
             itemID,
             itemMetadata,

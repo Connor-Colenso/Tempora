@@ -62,13 +62,7 @@ public class PlayerBlockPlaceQueueElement extends GenericQueueElement {
         IChatComponent block = BlockUtils.getUnlocalisedChatComponent(pickBlockID, pickBlockMeta);
 
         // Clickable coords component
-        IChatComponent coords = generateTeleportChatComponent(
-            x,
-            y,
-            z,
-            dimensionID,
-            PlayerUtils.UUIDToName(commandIssuerUUID),
-            CoordFormat.INT);
+        IChatComponent coords = teleportChatComponent(x, y, z, dimensionID, CoordFormat.INT);
 
         // Relative time component
         IChatComponent timeAgo = TimeUtils.formatTime(timestamp);
@@ -76,7 +70,7 @@ public class PlayerBlockPlaceQueueElement extends GenericQueueElement {
         // Create translation with playerName, block, raw blockID:metadata, coords, and timeAgo
         return new ChatComponentTranslation(
             "message.block_place",
-            PlayerUtils.generatePlayerNameWithUUID(playerUUID),
+            PlayerUtils.playerNameFromUUID(playerUUID),
             block,
             blockID,
             metadata,

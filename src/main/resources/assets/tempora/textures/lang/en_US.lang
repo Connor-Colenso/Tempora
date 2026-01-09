@@ -74,7 +74,7 @@ tempora.range.negative=Range cannot be negative, stop trying to break me!
 
 # === Tempora Undo Messages ===
 tempora.cannot.block.break.undo.nbt.logging.disabled=Cannot undo, the block had NBT data, but NBT logging was disabled when it was saved.
-tempora.cannot.block.break.undo.block.not.found=Cannot undo, the block no longer exists.
+tempora.cannot.block.break.undo.block.not.found=Cannot undo, the block %s:%s formerly at %s no longer exists. An updated mod may have removed it.
 tempora.undo.unknown.error=An unknown error occurred while undoing the %s event. See log.
 tempora.event.not.found.undo.ranged=Could not find event group. Has the server restarted?
 

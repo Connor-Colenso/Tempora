@@ -5,12 +5,12 @@ import java.util.List;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.IChatComponent;
 
 import com.colen.tempora.TemporaLoggerManager;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
-import com.colen.tempora.loggers.optional.ISupportsUndo;
 import com.colen.tempora.utils.CommandUtils;
 
 public class TemporaUndoCommand extends CommandBase {
@@ -38,13 +38,13 @@ public class TemporaUndoCommand extends CommandBase {
         String eventID = args[1];
 
         GenericPositionalLogger<?> genericLogger = TemporaLoggerManager.getLogger(loggerName);
-        if (genericLogger instanceof ISupportsUndo supportsUndo) {
+        if (genericLogger == null) {
+            throw new WrongUsageException("tempora.command.undo.wrong.logger", loggerName);
+        } else if (genericLogger.isUndoEnabled()) {
             GenericQueueElement queueElement = genericLogger.getDatabaseManager()
                 .queryEventByEventID(eventID);
-            IChatComponent chatMessage = supportsUndo.undoEvent(queueElement);
+            IChatComponent chatMessage = genericLogger.undoEvent(queueElement, (EntityPlayer) sender);
             sender.addChatMessage(chatMessage);
-        } else if (genericLogger == null) {
-            throw new WrongUsageException("tempora.command.undo.wrong.logger", loggerName);
         } else {
             throw new WrongUsageException("tempora.command.undo.not_undoable", loggerName);
         }

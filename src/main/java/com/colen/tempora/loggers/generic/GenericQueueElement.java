@@ -116,8 +116,7 @@ public abstract class GenericQueueElement implements IMessage {
         }
     }
 
-    public static IChatComponent generateTeleportChatComponent(double x, double y, double z, int dimId,
-        String playerName, CoordFormat fmt) {
+    public static IChatComponent teleportChatComponent(double x, double y, double z, int dimId, CoordFormat fmt) {
 
         // Translation‑driven teleport options.
         IChatComponent display = new ChatComponentTranslation(
@@ -126,15 +125,7 @@ public abstract class GenericQueueElement implements IMessage {
             new ChatComponentNumber(y),
             new ChatComponentNumber(z));
 
-        String cmd = "/cofh tpx " + playerName
-            + " "
-            + fmt.command(x)
-            + " "
-            + fmt.command(y)
-            + " "
-            + fmt.command(z)
-            + " "
-            + dimId;
+        String cmd = "/temporatp " + " " + fmt.command(x) + " " + fmt.command(y) + " " + fmt.command(z) + " " + dimId;
 
         IChatComponent hoverText = new ChatComponentTranslation("tempora.teleport.hover", dimId);
         hoverText.getChatStyle()
