@@ -53,7 +53,7 @@ public final class TemporaLoggerManager {
         byte id = nextQueueElementId++;
 
         // Register logger
-        logger.setName(loggerName);
+        logger.setLoggerName(loggerName);
         LOGGERS.put(loggerName, logger);
 
         // Register queue element networking metadata

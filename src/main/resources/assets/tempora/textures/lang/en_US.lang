@@ -85,7 +85,7 @@ tempora.command.undo.not_undoable=The event type %s does not support undo operat
 tempora.command.undo.wrong.logger=The event type %s does not exist.
 tempora.event.not.found=No event with the ID %s could be found in %s.
 tempora.undo.success=Undo completed successfully.
-tempora.undo.success.ranged=Undo completed successfully. %s events reverted in %s%s.
+tempora.undo.success.ranged=Undo completed successfully, %s events reverted in %s%s.
 tempora.command.undo.nothing=No events found within the range and time specified for %s.
 tempora.undo.failed=Undo failed: %s
 tempora.undo.preview=Previewing undo operation, click %s to undo events.
@@ -96,6 +96,7 @@ tempora.undo.range.too_large=Server config limits undo range to %s. Your request
 tempora.unknown.player=[UNKNOWN PLAYER]
 tempora.unknown.cause=[UNKNOWN CAUSE]
 
+time.unit.milliseconds=ms
 time.unit.seconds=s
 time.unit.minutes=mins
 time.unit.hours=hrs

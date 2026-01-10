@@ -374,7 +374,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
             .removeIf(eventPosition -> eventPosition.eventRenderCreationTime < expiryCutoff);
     }
 
-    public void setName(String loggerName) {
+    public void setLoggerName(String loggerName) {
         this.loggerName = loggerName;
     }
 
@@ -388,7 +388,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
     // Todo also return if succeed or not, to tally up and return to user. Reasons also, then present them all?
     public IChatComponent undoEvent(GenericQueueElement queueElement, EntityPlayer player) {
-        return null;
+        throw new UnsupportedOperationException("The class " + loggerName + " supports undo but has no implementation.");
     }
 
     public final void undoEvents(List<? extends GenericQueueElement> results, EntityPlayer player) {

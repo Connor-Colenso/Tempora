@@ -497,7 +497,7 @@ public class PositionalLoggerDatabase {
             "OldestDataCutoff",
             genericPositionalLogger.getLoggerName(),
             OLDEST_DATA_DEFAULT,
-            "Any records older than this relative to now, will be erased. This is unrecoverable, be careful!");
+            "Any records older than this relative to server boot, will be erased. This is unrecoverable, be careful!");
 
         try {
             durabilityMode = LogWriteSafety.valueOf(raw);
