@@ -10,7 +10,6 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-/** Thin white outline for every synced region (no filled faces). */
 @SideOnly(Side.CLIENT)
 public final class RenderRegionsInWorld {
 

@@ -1,6 +1,7 @@
 package com.colen.tempora.loggers.generic;
 
 import static com.colen.tempora.Tempora.LOG;
+import static com.colen.tempora.rendering.RenderRegionsInWorld.SECONDS_RENDERING_DURATION;
 
 import java.awt.Color;
 import java.lang.reflect.Field;
@@ -37,8 +38,6 @@ import cpw.mods.fml.relauncher.SideOnly;
 
 @SuppressWarnings("SqlDialectInspection")
 public abstract class GenericPositionalLogger<EventToLog extends GenericQueueElement> {
-
-    public static final long SECONDS_RENDERING_DURATION = 10;
 
     protected PositionalLoggerDatabase databaseManager = new PositionalLoggerDatabase(this);
 
