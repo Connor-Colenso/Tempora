@@ -29,7 +29,7 @@ public class TemporaEvents {
     public static InventoryLogger inventoryLogger = new InventoryLogger();
     public static BlockChangeLogger blockChangeLogger = new BlockChangeLogger();
 
-    // Logger names.
+    // Logger names. DO NOT RENAME. This WILL break all past data.
     public static final String BLOCK_CHANGE = "BlockChangeLogger";
     public static final String COMMAND = "CommandLogger";
     public static final String ENTITY_DEATH = "EntityDeathLogger";
@@ -44,18 +44,18 @@ public class TemporaEvents {
 
     public static void registerAll() {
 
-        TemporaLoggerManager.register(BLOCK_CHANGE, blockChangeLogger, BlockChangeQueueElement::new);
-        TemporaLoggerManager.register(COMMAND, new CommandLogger(), CommandQueueElement::new);
-        TemporaLoggerManager.register(ENTITY_DEATH, new EntityDeathLogger(), EntityDeathQueueElement::new);
-        TemporaLoggerManager.register(ENTITY_POSITION, new EntityPositionLogger(), EntityPositionQueueElement::new);
-        TemporaLoggerManager.register(ENTITY_SPAWN, new EntitySpawnLogger(), EntitySpawnQueueElement::new);
-        TemporaLoggerManager.register(EXPLOSION, new ExplosionLogger(), ExplosionQueueElement::new);
-        TemporaLoggerManager.register(INVENTORY, inventoryLogger, InventoryQueueElement::new);
-        TemporaLoggerManager.register(ITEM_USE, new ItemUseLogger(), ItemUseQueueElement::new);
+        TemporaLoggerManager.register(blockChangeLogger, BlockChangeQueueElement::new);
+        TemporaLoggerManager.register(new CommandLogger(), CommandQueueElement::new);
+        TemporaLoggerManager.register(new EntityDeathLogger(), EntityDeathQueueElement::new);
+        TemporaLoggerManager.register(new EntityPositionLogger(), EntityPositionQueueElement::new);
+        TemporaLoggerManager.register(new EntitySpawnLogger(), EntitySpawnQueueElement::new);
+        TemporaLoggerManager.register(new ExplosionLogger(), ExplosionQueueElement::new);
+        TemporaLoggerManager.register(inventoryLogger, InventoryQueueElement::new);
+        TemporaLoggerManager.register(new ItemUseLogger(), ItemUseQueueElement::new);
         TemporaLoggerManager
-            .register(PLAYER_BLOCK_BREAK, new PlayerBlockBreakLogger(), PlayerBlockBreakQueueElement::new);
+            .register(new PlayerBlockBreakLogger(), PlayerBlockBreakQueueElement::new);
         TemporaLoggerManager
-            .register(PLAYER_BLOCK_PLACE, new PlayerBlockPlaceLogger(), PlayerBlockPlaceQueueElement::new);
-        TemporaLoggerManager.register(PLAYER_MOVEMENT, new PlayerMovementLogger(), PlayerMovementQueueElement::new);
+            .register(new PlayerBlockPlaceLogger(), PlayerBlockPlaceQueueElement::new);
+        TemporaLoggerManager.register(new PlayerMovementLogger(), PlayerMovementQueueElement::new);
     }
 }
