@@ -4,8 +4,6 @@ import static com.colen.tempora.Tempora.NETWORK;
 import static com.colen.tempora.Tempora.renderingErrorBlock;
 import static com.colen.tempora.config.Config.synchronizeConfiguration;
 
-import com.colen.tempora.loggers.generic.GenericRenderEventPacketHandler;
-import com.colen.tempora.loggers.generic.RenderEventPacket;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
 
@@ -15,6 +13,8 @@ import com.colen.tempora.commands.TemporaUndoRanged;
 import com.colen.tempora.events.OnWorldLoad;
 import com.colen.tempora.items.TemporaWand;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
+import com.colen.tempora.loggers.generic.GenericRenderEventPacketHandler;
+import com.colen.tempora.loggers.generic.RenderEventPacket;
 import com.colen.tempora.networking.PacketShowRegionInWorld;
 
 import cpw.mods.fml.common.event.FMLInitializationEvent;

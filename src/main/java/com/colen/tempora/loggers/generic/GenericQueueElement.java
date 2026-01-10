@@ -54,7 +54,7 @@ public abstract class GenericQueueElement {
         eventID = resultSet.getString("eventID");
         versionID = resultSet.getInt("versionID");
     }
-    
+
     public void fromBytes(ByteBuf buf) {
         x = buf.readDouble();
         y = buf.readDouble();
