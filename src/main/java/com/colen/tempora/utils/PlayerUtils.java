@@ -1,5 +1,7 @@
 package com.colen.tempora.utils;
 
+import static com.colen.tempora.TemporaUtils.ERROR;
+import static com.colen.tempora.TemporaUtils.UNKNOWN_CAUSE;
 import static com.colen.tempora.TemporaUtils.UNKNOWN_PLAYER_NAME;
 
 import java.util.ArrayList;
@@ -23,7 +25,7 @@ import net.minecraftforge.common.UsernameCache;
 
 public class PlayerUtils {
 
-    public static String UUIDToName(String UUIDString) {
+    private static String UUIDToName(String UUIDString) {
         if (UUIDString == null) return UNKNOWN_PLAYER_NAME;
         if (UUIDString.equals(UNKNOWN_PLAYER_NAME)) return UNKNOWN_PLAYER_NAME;
         if (!isUUID(UUIDString)) return UUIDString;
@@ -36,11 +38,13 @@ public class PlayerUtils {
 
     /**
      * Generates a chat component showing the player's name,
-     * with a hover showing the UUID. Invalid UUIDs will return UNKNOWN_PLAYER_NAME.
+     * with a hover showing the UUID. Invalid UUIDs will return relevant translation code.
      */
     public static IChatComponent playerNameFromUUID(String uuid) {
         if (uuid == null) {
-            return new ChatComponentTranslation(UNKNOWN_PLAYER_NAME);
+            return new ChatComponentTranslation(ERROR);
+        } else if (uuid.equals(UNKNOWN_PLAYER_NAME) || uuid.equals(UNKNOWN_CAUSE)) {
+            return new ChatComponentTranslation(uuid);
         }
 
         // Use UUIDToName for consistency
@@ -49,7 +53,7 @@ public class PlayerUtils {
         IChatComponent nameComponent = new ChatComponentText(playerName);
 
         // Hover text showing the UUID
-        IChatComponent hoverComponent = new ChatComponentText("UUID: " + uuid);
+        IChatComponent hoverComponent = new ChatComponentTranslation("tempora.uuid.display", uuid);
         hoverComponent.getChatStyle()
             .setColor(EnumChatFormatting.GRAY);
 
@@ -61,22 +65,10 @@ public class PlayerUtils {
     }
 
     public static boolean isPlayerOp(EntityPlayer player) {
-        if (isSinglePlayer()) return true; // SP override.
+        if (!(player instanceof EntityPlayerMP playerMP)) return false;
 
-        MinecraftServer server = MinecraftServer.getServer();
-        if (server == null) return false;
-
-        ServerConfigurationManager scm = server.getConfigurationManager();
-        if (scm == null) return false;
-
-        // func_152596_g is the obfuscated method that checks if the player is OP
-        // Yes it is dumb that this is seemingly the only way to do this in this version!
-        return scm.func_152596_g(player.getGameProfile());
-    }
-
-    public static boolean isSinglePlayer() {
-        MinecraftServer server = MinecraftServer.getServer();
-        return server != null && !server.isDedicatedServer();
+        MinecraftServer server = playerMP.mcServer;
+        return server.getConfigurationManager().func_152596_g(player.getGameProfile());
     }
 
     /**
