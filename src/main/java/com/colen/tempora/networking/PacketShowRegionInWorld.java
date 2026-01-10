@@ -4,10 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import net.minecraft.entity.player.EntityPlayerMP;
-
-import com.colen.tempora.Tempora;
-import com.colen.tempora.loggers.block_change.BlockChangeRecordingRegion;
+import com.colen.tempora.loggers.block_change.RenderRegionAlternatingCheckers;
 
 import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import cpw.mods.fml.common.network.simpleimpl.IMessageHandler;
@@ -20,30 +17,30 @@ import io.netty.buffer.ByteBuf;
 public final class PacketShowRegionInWorld {
 
     @SideOnly(Side.CLIENT)
-    public static final List<BlockChangeRecordingRegion> CLIENT_REGIONS = Collections
+    public static final List<RenderRegionAlternatingCheckers> CLIENT_REGIONS = Collections
         .synchronizedList(new ArrayList<>());
-
-    /** send to one player */
-    public static void send(EntityPlayerMP target, List<BlockChangeRecordingRegion> regions) {
-        Tempora.NETWORK.sendTo(new RegionMsg(regions), target);
-    }
 
     public static final class RegionMsg implements IMessage {
 
-        private List<BlockChangeRecordingRegion> list = new ArrayList<>();
+        private List<RenderRegionAlternatingCheckers> list = new ArrayList<>();
 
         // Empty constructor required to instantiate from reflection later.
         @SuppressWarnings("unused")
         public RegionMsg() {}
 
-        public RegionMsg(List<BlockChangeRecordingRegion> list) {
+        public RegionMsg(List<RenderRegionAlternatingCheckers> list) {
             this.list = list;
+        }
+
+        public RegionMsg(RenderRegionAlternatingCheckers region) {
+            this.list = new ArrayList<>();
+            this.list.add(region);
         }
 
         @Override
         public void toBytes(ByteBuf buf) {
             buf.writeInt(list.size());
-            for (BlockChangeRecordingRegion r : list) {
+            for (RenderRegionAlternatingCheckers r : list) {
                 buf.writeInt(r.dim);
                 buf.writeInt(r.minX);
                 buf.writeInt(r.minY);
@@ -62,7 +59,7 @@ public final class PacketShowRegionInWorld {
                 int dim = buf.readInt();
                 int x1 = buf.readInt(), y1 = buf.readInt(), z1 = buf.readInt();
                 int x2 = buf.readInt(), y2 = buf.readInt(), z2 = buf.readInt();
-                list.add(new BlockChangeRecordingRegion(dim, x1, y1, z1, x2, y2, z2, System.currentTimeMillis()));
+                list.add(new RenderRegionAlternatingCheckers(dim, x1, y1, z1, x2, y2, z2, System.currentTimeMillis()));
             }
         }
 

@@ -24,9 +24,11 @@ import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
 import com.colen.tempora.TemporaLoggerManager;
+import com.colen.tempora.loggers.block_change.RenderRegionAlternatingCheckers;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.loggers.generic.RenderEventPacket;
+import com.colen.tempora.networking.PacketShowRegionInWorld;
 import com.colen.tempora.utils.CommandUtils;
 import com.colen.tempora.utils.TimeUtils;
 import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
@@ -114,22 +116,26 @@ public class TemporaUndoRanged extends CommandBase {
 
         List<? extends GenericQueueElement> results;
 
+        int playerX = (int) player.posX;
+        int playerY = (int) player.posY;
+        int playerZ = (int) player.posZ;
+
         try (Connection conn = logger.getDatabaseManager()
             .getReadOnlyConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            ps.setInt(1, (int) player.posX);
+            ps.setInt(1, playerX);
             ps.setInt(2, radius);
-            ps.setInt(3, (int) player.posX);
+            ps.setInt(3, playerX);
             ps.setInt(4, radius);
 
-            ps.setInt(5, (int) player.posY);
+            ps.setInt(5, playerY);
             ps.setInt(6, radius);
-            ps.setInt(7, (int) player.posY);
+            ps.setInt(7, playerY);
             ps.setInt(8, radius);
 
-            ps.setInt(9, (int) player.posZ);
+            ps.setInt(9, playerZ);
             ps.setInt(10, radius);
-            ps.setInt(11, (int) player.posZ);
+            ps.setInt(11, playerZ);
             ps.setInt(12, radius);
 
             ps.setInt(13, player.dimension);
@@ -153,6 +159,19 @@ public class TemporaUndoRanged extends CommandBase {
         for (GenericQueueElement event : results) {
             NETWORK.sendTo(new RenderEventPacket(event), player);
         }
+
+        // Renders the checker box region on the client.
+        RenderRegionAlternatingCheckers region = new RenderRegionAlternatingCheckers(
+            player.dimension,
+            playerX - radius,
+            playerY - radius,
+            playerZ - radius,
+            playerX + radius + 1,
+            playerY + radius + 1,
+            playerZ + radius + 1,
+            System.currentTimeMillis());
+
+        NETWORK.sendTo(new PacketShowRegionInWorld.RegionMsg(region), player);
 
         // Store preview results
         String uuid = UUID.randomUUID()
