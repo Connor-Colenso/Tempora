@@ -94,6 +94,7 @@ tempora.undo.range.too_large=Server config limits undo range to %s. Your request
 
 tempora.unknown.player=[UNKNOWN PLAYER]
 tempora.unknown.cause=[UNKNOWN CAUSE]
+tempora.unknown.uuid.to.player.error=[UNKNOWN ERROR]
 
 time.unit.milliseconds=ms
 time.unit.seconds=s
@@ -110,3 +111,5 @@ explode.command.no.block.in.sight=No block in sight.
 tempora.command.usage=Usage: %s
 tempora.command.force.must.be.numeric=Force must be a number.
 tempora.command.create.region.non.numeric.coordinate=All coordinates must be integers, found %s.
+
+tempora.uuid.display=UUID: %s

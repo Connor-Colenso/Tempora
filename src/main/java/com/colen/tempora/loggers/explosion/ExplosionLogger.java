@@ -1,5 +1,6 @@
 package com.colen.tempora.loggers.explosion;
 
+import static com.colen.tempora.TemporaUtils.UNKNOWN_CAUSE;
 import static com.colen.tempora.TemporaUtils.isClientSide;
 
 import java.awt.Color;
@@ -147,26 +148,13 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionEventInfo>
             exploderName = event.explosion.exploder.getClass()
                 .getSimpleName();
         } else {
-            exploderName = "[UNKNOWN]";
+            exploderName = UNKNOWN_CAUSE;
         }
 
-        // Todo use built ins to clean this up further.
-        EntityPlayer closestPlayer = null;
-        double closestDistance = Double.MAX_VALUE;
-
-        for (EntityPlayer player : world.playerEntities) {
-            double distance = player.getDistanceSq(x, y, z);
-            if (distance < closestDistance) {
-                closestPlayer = player;
-                closestDistance = distance;
-            }
-        }
-
-        String closestPlayerName = closestPlayer != null ? closestPlayer.getUniqueID()
-            .toString() : TemporaUtils.UNKNOWN_PLAYER_NAME;
-        closestDistance = Math.sqrt(closestDistance); // Convert from square distance to actual distance
+        EntityPlayer closestPlayer = world.getClosestPlayer(x, y, z, -1);
 
         ExplosionEventInfo eventInfo = new ExplosionEventInfo();
+
         eventInfo.eventID = UUID.randomUUID()
             .toString();
         eventInfo.x = event.explosion.explosionX;
@@ -177,8 +165,11 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionEventInfo>
 
         eventInfo.strength = strength;
         eventInfo.exploderUUID = exploderName;
-        eventInfo.closestPlayerUUID = closestPlayerName;
-        eventInfo.closestPlayerDistance = closestDistance;
+
+        eventInfo.closestPlayerUUID = closestPlayer != null ? closestPlayer.getUniqueID()
+            .toString() : TemporaUtils.UNKNOWN_PLAYER_NAME;
+
+        eventInfo.closestPlayerDistance = closestPlayer != null ? closestPlayer.getDistance(x, y, z) : -1;
 
         eventInfo.affectedBlockCoordinates = ChunkPositionUtils.encodePositions(event.explosion.affectedBlockPositions);
 
