@@ -4,6 +4,8 @@ import static com.colen.tempora.Tempora.NETWORK;
 import static com.colen.tempora.Tempora.renderingErrorBlock;
 import static com.colen.tempora.config.Config.synchronizeConfiguration;
 
+import com.colen.tempora.loggers.generic.GenericRenderEventPacketHandler;
+import com.colen.tempora.loggers.generic.RenderEventPacket;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
 
@@ -40,6 +42,8 @@ public class CommonProxy {
             5,
             Integer.MAX_VALUE,
             "Tempora undo max range, in blocks. Recommended to keep low, as this will get exponentially more expensive, the wider the range.");
+
+        NETWORK.registerMessage(GenericRenderEventPacketHandler.class, RenderEventPacket.class, 1000, Side.CLIENT);
 
         NETWORK.registerMessage(
             PacketShowRegionInWorld.RegionMsg.Handler.class,

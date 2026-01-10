@@ -14,10 +14,9 @@ import com.colen.tempora.loggers.generic.column.Column;
 import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 
 import cpw.mods.fml.common.network.ByteBufUtils;
-import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import io.netty.buffer.ByteBuf;
 
-public abstract class GenericQueueElement implements IMessage {
+public abstract class GenericQueueElement {
 
     @Column(constraints = "PRIMARY KEY")
     public String eventID;
@@ -55,8 +54,7 @@ public abstract class GenericQueueElement implements IMessage {
         eventID = resultSet.getString("eventID");
         versionID = resultSet.getInt("versionID");
     }
-
-    @Override
+    
     public void fromBytes(ByteBuf buf) {
         x = buf.readDouble();
         y = buf.readDouble();
@@ -67,7 +65,6 @@ public abstract class GenericQueueElement implements IMessage {
         // versionID Not applicable for client.
     }
 
-    @Override
     public void toBytes(ByteBuf buf) {
         buf.writeDouble(x);
         buf.writeDouble(y);

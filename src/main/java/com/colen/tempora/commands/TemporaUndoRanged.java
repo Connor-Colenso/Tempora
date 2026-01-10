@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.colen.tempora.loggers.generic.RenderEventPacket;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
@@ -150,7 +151,7 @@ public class TemporaUndoRanged extends CommandBase {
 
         // Send preview markers
         for (GenericQueueElement event : results) {
-            NETWORK.sendTo(event, player);
+            NETWORK.sendTo(new RenderEventPacket(event), player);
         }
 
         // Store preview results

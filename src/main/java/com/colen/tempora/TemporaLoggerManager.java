@@ -1,7 +1,5 @@
 package com.colen.tempora;
 
-import static com.colen.tempora.Tempora.NETWORK;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -14,10 +12,6 @@ import org.jetbrains.annotations.NotNull;
 
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
-import com.colen.tempora.loggers.generic.GenericRenderEventPacketHandler;
-import com.colen.tempora.loggers.generic.RenderEventPacket;
-
-import cpw.mods.fml.relauncher.Side;
 
 public final class TemporaLoggerManager {
 
@@ -35,17 +29,18 @@ public final class TemporaLoggerManager {
 
     /* ---------------- PACKET REGISTRATION ---------------- */
 
-    private static boolean packetsRegistered = false;
-
     @SuppressWarnings("unchecked")
-    public static <T extends GenericQueueElement> void register(String loggerName, GenericPositionalLogger<T> logger,
-        Supplier<T> factory) {
+    public static <EventToLog extends GenericQueueElement> void register(GenericPositionalLogger<EventToLog> logger, Supplier<EventToLog> factory) {
+
+        EventToLog probe = factory.get();
+        String loggerName = probe.getLoggerName();
+
         if (LOGGERS.containsKey(loggerName)) {
             throw new IllegalStateException("Logger already registered: " + loggerName);
         }
 
         // Little messy, but works...
-        Class<T> queueElementClass = (Class<T>) factory.get()
+        Class<EventToLog> queueElementClass = (Class<EventToLog>) factory.get()
             .getClass();
 
         if (CLASS_TO_ID.containsKey(queueElementClass)) {
@@ -63,17 +58,6 @@ public final class TemporaLoggerManager {
         CLASS_TO_ID.put(queueElementClass, id);
         FACTORIES.put(id, factory);
 
-        // Sanity check: logger ↔ queue element consistency
-        T probe = factory.get();
-        if (!loggerName.equals(probe.getLoggerName())) {
-            throw new IllegalStateException("Logger name mismatch: " + loggerName + " vs " + probe.getLoggerName());
-        }
-
-        // Register packet exactly once
-        if (!packetsRegistered) {
-            NETWORK.registerMessage(GenericRenderEventPacketHandler.class, RenderEventPacket.class, 1000, Side.CLIENT);
-            packetsRegistered = true;
-        }
     }
 
     /* ---------------- NETWORK HELPERS ---------------- */
