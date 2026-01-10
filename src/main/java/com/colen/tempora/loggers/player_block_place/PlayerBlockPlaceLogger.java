@@ -17,6 +17,7 @@ import net.minecraftforge.event.world.BlockEvent.PlaceEvent;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.colen.tempora.TemporaEvents;
 import com.colen.tempora.TemporaUtils;
 import com.colen.tempora.enums.LoggerEventType;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
@@ -28,6 +29,11 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
 public class PlayerBlockPlaceLogger extends GenericPositionalLogger<PlayerBlockPlaceQueueElement> {
+
+    @Override
+    public String getLoggerName() {
+        return TemporaEvents.PLAYER_BLOCK_PLACE;
+    }
 
     @Override
     public @NotNull PlayerBlockPlaceQueueElement getQueueElementInstance() {

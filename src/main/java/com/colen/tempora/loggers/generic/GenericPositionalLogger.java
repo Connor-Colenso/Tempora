@@ -47,7 +47,6 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
     private final LinkedBlockingQueue<EventToLog> concurrentEventQueue = new LinkedBlockingQueue<>();
     protected List<EventToLog> transparentEventsToRenderInWorld = new ArrayList<>();
     protected List<EventToLog> nonTransparentEventsToRenderInWorld = new ArrayList<>();
-    private String loggerName;
 
     private boolean isEnabled;
 
@@ -223,10 +222,8 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
         throw new IllegalStateException("Cannot determine event class: " + arg);
     }
 
-    // Logger name is also the SQL table name.
-    public String getLoggerName() {
-        return loggerName;
-    }
+    // Logger name is also the SQL table name. So choose it careful and never rename it.
+    public abstract String getLoggerName();
 
     public void handleCustomLoggerConfig(Configuration config) {}
 
@@ -311,7 +308,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
             if (!concurrentEventQueue.isEmpty()) {
                 LOG.warn(
                     "Tempora log for {} was not empty upon initialisation. This may suggest state leakage has occurred. Please report this.",
-                    loggerName);
+                    getLoggerName());
             }
 
             clearEvents();
@@ -320,7 +317,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
             startQueueWorker(getLoggerName());
 
         } catch (SQLException e) {
-            throw new RuntimeException("[Tempora] Failed to initialise database for logger " + loggerName, e);
+            throw new RuntimeException("[Tempora] Failed to initialise database for logger " + getLoggerName(), e);
         }
     }
 
@@ -374,10 +371,6 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
             .removeIf(eventPosition -> eventPosition.eventRenderCreationTime < expiryCutoff);
     }
 
-    public void setLoggerName(String loggerName) {
-        this.loggerName = loggerName;
-    }
-
     public Color getColour() {
         return Color.RED;
     }
@@ -388,7 +381,8 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
     // Todo also return if succeed or not, to tally up and return to user. Reasons also, then present them all?
     public IChatComponent undoEvent(GenericQueueElement queueElement, EntityPlayer player) {
-        throw new UnsupportedOperationException("The class " + loggerName + " supports undo but has no implementation.");
+        throw new UnsupportedOperationException(
+            "The class " + getLoggerName() + " supports undo but has no implementation.");
     }
 
     public final void undoEvents(List<? extends GenericQueueElement> results, EntityPlayer player) {

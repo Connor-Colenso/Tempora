@@ -17,6 +17,7 @@ import net.minecraftforge.event.CommandEvent;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.colen.tempora.TemporaEvents;
 import com.colen.tempora.enums.LoggerEventType;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.utils.PlayerUtils;
@@ -29,6 +30,11 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
 public class CommandLogger extends GenericPositionalLogger<CommandQueueElement> {
+
+    @Override
+    public String getLoggerName() {
+        return TemporaEvents.COMMAND;
+    }
 
     @Override
     public @NotNull CommandQueueElement getQueueElementInstance() {

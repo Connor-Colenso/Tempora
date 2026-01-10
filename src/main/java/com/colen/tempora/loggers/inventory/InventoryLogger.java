@@ -38,6 +38,11 @@ import cpw.mods.fml.relauncher.SideOnly;
 public class InventoryLogger extends GenericPositionalLogger<InventoryQueueElement> {
 
     @Override
+    public String getLoggerName() {
+        return TemporaEvents.INVENTORY;
+    }
+
+    @Override
     public @NotNull InventoryQueueElement getQueueElementInstance() {
         return new InventoryQueueElement();
     }

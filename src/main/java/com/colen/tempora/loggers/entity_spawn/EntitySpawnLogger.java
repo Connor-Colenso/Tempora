@@ -15,6 +15,7 @@ import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.colen.tempora.TemporaEvents;
 import com.colen.tempora.enums.LoggerEventType;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.mixin_interfaces.IEntityMixin;
@@ -26,6 +27,11 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
 public class EntitySpawnLogger extends GenericPositionalLogger<EntitySpawnQueueElement> {
+
+    @Override
+    public String getLoggerName() {
+        return TemporaEvents.ENTITY_SPAWN;
+    }
 
     @Override
     public @NotNull EntitySpawnQueueElement getQueueElementInstance() {

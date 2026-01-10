@@ -1,6 +1,7 @@
 package com.colen.tempora.loggers.generic;
 
 import static com.colen.tempora.Tempora.LOG;
+import static com.colen.tempora.Tempora.NETWORK;
 import static com.colen.tempora.TemporaUtils.deleteLoggerDatabase;
 import static com.colen.tempora.utils.GenericUtils.parseSizeStringToBytes;
 import static com.gtnewhorizon.gtnhlib.util.numberformatting.NumberFormatUtil.formatNumber;
@@ -282,9 +283,9 @@ public class PositionalLoggerDatabase {
             ps.setInt(9, MAX_DATA_ROWS_PER_DB);
 
             try (ResultSet rs = ps.executeQuery()) {
-                List<? extends GenericQueueElement> packets = genericPositionalLogger.generateQueryResults(rs);
+                List<? extends GenericQueueElement> eventDataList = genericPositionalLogger.generateQueryResults(rs);
 
-                if (packets.isEmpty()) {
+                if (eventDataList.isEmpty()) {
                     IChatComponent noResults = new ChatComponentTranslation(
                         "message.queryevents.no_results",
                         genericPositionalLogger.getLoggerName());
@@ -295,7 +296,7 @@ public class PositionalLoggerDatabase {
                 } else {
                     IChatComponent showingResults = new ChatComponentTranslation(
                         "message.queryevents.showing_results",
-                        packets.size(),
+                        eventDataList.size(),
                         genericPositionalLogger.getLoggerName());
                     showingResults.getChatStyle()
                         .setColor(EnumChatFormatting.GRAY);
@@ -316,15 +317,15 @@ public class PositionalLoggerDatabase {
                     EntityPlayerMP player = (EntityPlayerMP) sender;
 
                     // Do not remove!
-                    Collections.reverse(packets);
+                    Collections.reverse(eventDataList);
 
                     String uuid = player.getUniqueID()
                         .toString();
-                    packets.forEach(p -> sender.addChatMessage(p.localiseText(uuid)));
+                    eventDataList.forEach(p -> sender.addChatMessage(p.localiseText(uuid)));
 
                     // This tells the client what to render in world.
-                    for (GenericQueueElement packet : packets) {
-                        new RenderEventPacket(packet).sendEventToClientForRendering(player);
+                    for (GenericQueueElement eventData : eventDataList) {
+                        NETWORK.sendTo(new RenderEventPacket(eventData), player);
                     }
                 }
             }

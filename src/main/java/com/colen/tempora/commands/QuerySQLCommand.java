@@ -1,5 +1,6 @@
 package com.colen.tempora.commands;
 
+import static com.colen.tempora.Tempora.NETWORK;
 import static com.colen.tempora.commands.CommandConstants.ONLY_IN_GAME;
 
 import java.sql.Connection;
@@ -111,14 +112,14 @@ public class QuerySQLCommand extends CommandBase {
             List<? extends GenericQueueElement> output = executeReadOnlyQuery(targetLogger, rawQuery);
 
             // We do this first, to not bury the info below, in case of a long response.
-            for (GenericQueueElement queueElement : output) {
+            for (GenericQueueElement eventData : output) {
                 sender.addChatMessage(
-                    queueElement.localiseText(
+                    eventData.localiseText(
                         entityPlayerMP.getPersistentID()
                             .toString()));
 
                 // Render info.
-                new RenderEventPacket(queueElement).sendEventToClientForRendering(entityPlayerMP);
+                NETWORK.sendTo(new RenderEventPacket(eventData), entityPlayerMP);
             }
 
             ChatComponentTranslation queryFeedbackMsg = new ChatComponentTranslation(
