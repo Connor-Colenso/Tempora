@@ -34,7 +34,6 @@ tempora.command.querysql.query_quantity=Found %s matching results.
 tempora.command.querysql.query_quantity_if_max=Showing the first %s results (server limit: %s). Additional matches may be hidden.
 tempora.command.querysql.invalid_table=Couldn't find table. Choices are, %s.
 
-
 tempora.click.to.copy.uuid=Click to copy UUID.
 
 item.tempora_wand.name=Tempora Wand
@@ -53,7 +52,7 @@ command.tempora.removeregion.removed.single=Removed %d region at your position.
 command.tempora.removeregion.removed.plural=Removed %d regions at your position.
 command.tempora.removeregion.no_region=No region found at your position.
 
-command.tempora.region.created=Region created: (%d %d %d) to (%d %d %d) in dimension %d.
+command.tempora.region.created=Region created: %s to %s in dimension %d.
 
 tempora.command.queryevents.bad_filter=Filter "%s" is invalid.
 
@@ -107,3 +106,7 @@ message.block_change=The block at %s was set from %s (%d:%d) to %s (%d:%d) (%s).
 # This does not exist in vanilla MC sadly.
 tile.air.name=Air
 
+explode.command.no.block.in.sight=No block in sight.
+tempora.command.usage=Usage: %s
+tempora.command.force.must.be.numeric=Force must be a number.
+tempora.command.create.region.non.numeric.coordinate=All coordinates must be integers, found %s.

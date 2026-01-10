@@ -1,5 +1,6 @@
 package com.colen.tempora;
 
+import com.colen.tempora.commands.ExplodeCommand;
 import net.minecraft.block.Block;
 import net.minecraftforge.common.config.Configuration;
 
@@ -7,7 +8,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.colen.tempora.blocks.RenderingErrorBlock;
-import com.colen.tempora.commands.CommandTemporaTp;
+import com.colen.tempora.commands.TemporaTpCommand;
 import com.colen.tempora.commands.CreateRegionCommand;
 import com.colen.tempora.commands.HomeChunkCommand;
 import com.colen.tempora.commands.ListRegionsCommand;
@@ -15,7 +16,7 @@ import com.colen.tempora.commands.QueryEventsCommand;
 import com.colen.tempora.commands.QuerySQLCommand;
 import com.colen.tempora.commands.RemoveRegionCommand;
 import com.colen.tempora.commands.TemporaUndoCommand;
-import com.colen.tempora.commands.TemporaUndoRanged;
+import com.colen.tempora.commands.TemporaUndoRangedCommand;
 import com.colen.tempora.loggers.block_change.RegionRegistry;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 
@@ -92,8 +93,9 @@ public class Tempora {
         event.registerServerCommand(new RemoveRegionCommand());
 
         event.registerServerCommand(new TemporaUndoCommand());
-        event.registerServerCommand(new TemporaUndoRanged());
-        event.registerServerCommand(new CommandTemporaTp());
+        event.registerServerCommand(new TemporaUndoRangedCommand());
+        event.registerServerCommand(new TemporaTpCommand());
+        event.registerServerCommand(new ExplodeCommand());
     }
 
     @Mod.EventHandler

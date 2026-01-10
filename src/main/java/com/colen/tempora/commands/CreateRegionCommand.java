@@ -1,15 +1,18 @@
 package com.colen.tempora.commands;
 
+import com.colen.tempora.loggers.generic.GenericQueueElement;
+import com.colen.tempora.utils.CommandUtils;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
-import net.minecraft.command.WrongUsageException;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.IChatComponent;
 import net.minecraft.world.World;
 
 import com.colen.tempora.loggers.block_change.RegionRegistry;
 import com.colen.tempora.loggers.block_change.RenderRegionAlternatingCheckers;
-import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
+
+import static com.colen.tempora.loggers.generic.GenericQueueElement.teleportChatComponent;
 
 /**
  * /createregion <x1> <y1> <z1> <x2> <y2> <z2>
@@ -30,48 +33,56 @@ public class CreateRegionCommand extends CommandBase {
 
     @Override
     public int getRequiredPermissionLevel() {
-        return 2; // OP‑only by default
+        return 2; // OP‑only
     }
 
     @Override
     public void processCommand(ICommandSender sender, String[] args) {
-        if (args.length != 6) throw new WrongUsageException(getCommandUsage(sender));
+        if (args.length != 6) {
+            CommandUtils.wrongUsage(getCommandUsage(sender));
+            return;
+        }
 
-        /* ---- parse six integers ---- */
-        int x1 = parseInt(sender, args[0]);
-        int y1 = parseInt(sender, args[1]);
-        int z1 = parseInt(sender, args[2]);
-        int x2 = parseInt(sender, args[3]);
-        int y2 = parseInt(sender, args[4]);
-        int z2 = parseInt(sender, args[5]);
+        // Parse six integers for xyz start & xyz end.
+        int[] coords = new int[6];
 
-        /* ---- build & store region ---- */
+        for (int i = 0; i < 6; i++) {
+            try {
+                coords[i] = parseInt(sender, args[i]);
+            } catch (NumberFormatException e) {
+                IChatComponent msg = new ChatComponentTranslation(
+                    "tempora.command.create.region.non.numeric.coordinate",
+                    args[i]
+                );
+
+                msg.getChatStyle().setColor(EnumChatFormatting.RED);
+                sender.addChatMessage(msg);
+                return;
+            }
+        }
+
+        // Build and store region
         World world = sender.getEntityWorld();
         int dim = world.provider.dimensionId;
 
         RenderRegionAlternatingCheckers region = new RenderRegionAlternatingCheckers(
             dim,
-            x1,
-            y1,
-            z1,
-            x2,
-            y2,
-            z2,
+            coords[0],
+            coords[1],
+            coords[2],
+            coords[3],
+            coords[4],
+            coords[5],
             System.currentTimeMillis());
         RegionRegistry.add(region);
 
         ChatComponentTranslation msg = new ChatComponentTranslation(
             "command.tempora.region.created",
-            new ChatComponentNumber(x1),
-            new ChatComponentNumber(y1),
-            new ChatComponentNumber(z1), // first corner
-            new ChatComponentNumber(x2),
-            new ChatComponentNumber(y2),
-            new ChatComponentNumber(z2), // second corner
+            teleportChatComponent(coords[0], coords[1], coords[2], dim, GenericQueueElement.CoordFormat.INT),
+            teleportChatComponent(coords[3], coords[4], coords[5], dim, GenericQueueElement.CoordFormat.INT),
             dim); // dimension ID
 
-        msg.getChatStyle()
-            .setColor(EnumChatFormatting.GREEN);
+        msg.getChatStyle().setColor(EnumChatFormatting.GREEN);
         sender.addChatMessage(msg);
     }
 

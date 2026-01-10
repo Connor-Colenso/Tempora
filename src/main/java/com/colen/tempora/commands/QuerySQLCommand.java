@@ -1,7 +1,6 @@
 package com.colen.tempora.commands;
 
 import static com.colen.tempora.Tempora.NETWORK;
-import static com.colen.tempora.commands.CommandConstants.ONLY_IN_GAME;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -50,8 +49,7 @@ public class QuerySQLCommand extends CommandBase {
     public void processCommand(ICommandSender sender, String[] args) {
 
         if (!(sender instanceof EntityPlayerMP entityPlayerMP)) {
-            // This is likely executed by a terminal, so translation is meaningless.
-            sender.addChatMessage(new ChatComponentText(ONLY_IN_GAME));
+            sender.addChatMessage(CommandUtils.playerOnly());
             return;
         }
 

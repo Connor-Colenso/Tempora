@@ -1,5 +1,6 @@
 package com.colen.tempora.commands;
 
+import com.colen.tempora.utils.CommandUtils;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
@@ -7,7 +8,7 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.WorldServer;
 
-public class CommandTemporaTp extends CommandBase {
+public class TemporaTpCommand extends CommandBase {
 
     @Override
     public String getCommandName() {
@@ -27,11 +28,13 @@ public class CommandTemporaTp extends CommandBase {
     @Override
     public void processCommand(ICommandSender sender, String[] args) {
         if (!(sender instanceof EntityPlayerMP player)) {
-            throw new WrongUsageException("Players only"); // todo localise
+            sender.addChatMessage(CommandUtils.playerOnly());
+            return;
         }
 
         if (args.length < 3 || args.length > 4) {
-            throw new WrongUsageException(getCommandUsage(sender));
+            sender.addChatMessage(CommandUtils.wrongUsage(getCommandUsage(sender)));
+            return;
         }
 
         double x = parseDouble(sender, args[0]);
