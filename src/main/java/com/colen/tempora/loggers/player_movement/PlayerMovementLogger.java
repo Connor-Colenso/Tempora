@@ -27,7 +27,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 // quickly.
 // 3. Player login, prevents the user from being logged into a dimension and quickly switching dims, this would
 // cause the dimension to load, which we want to keep track of.
-public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovementQueueElement> {
+public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovementEventInfo> {
 
     @Override
     public String getLoggerName() {
@@ -35,8 +35,8 @@ public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovement
     }
 
     @Override
-    public @NotNull PlayerMovementQueueElement getQueueElementInstance() {
-        return new PlayerMovementQueueElement();
+    public @NotNull PlayerMovementEventInfo getEventInfoInstance() {
+        return new PlayerMovementEventInfo();
     }
 
     @Override
@@ -74,19 +74,19 @@ public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovement
             .getMinecraftServerInstance()
             .getTickCounter() % playerMovementLoggingInterval != 0) return;
 
-        PlayerMovementQueueElement queueElement = new PlayerMovementQueueElement();
-        queueElement.eventID = UUID.randomUUID()
+        PlayerMovementEventInfo eventInfo = new PlayerMovementEventInfo();
+        eventInfo.eventID = UUID.randomUUID()
             .toString();
-        queueElement.x = player.posX;
-        queueElement.y = player.posY;
-        queueElement.z = player.posZ;
-        queueElement.dimensionID = player.worldObj.provider.dimensionId;
-        queueElement.timestamp = System.currentTimeMillis();
+        eventInfo.x = player.posX;
+        eventInfo.y = player.posY;
+        eventInfo.z = player.posZ;
+        eventInfo.dimensionID = player.worldObj.provider.dimensionId;
+        eventInfo.timestamp = System.currentTimeMillis();
 
-        queueElement.playerUUID = player.getUniqueID()
+        eventInfo.playerUUID = player.getUniqueID()
             .toString();
 
-        queueEvent(queueElement);
+        queueEventInfo(eventInfo);
     }
 
 }

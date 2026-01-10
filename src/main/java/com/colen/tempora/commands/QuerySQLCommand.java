@@ -15,13 +15,12 @@ import java.util.regex.Pattern;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 
 import com.colen.tempora.TemporaLoggerManager;
+import com.colen.tempora.loggers.generic.GenericEventInfo;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
-import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.loggers.generic.RenderEventPacket;
 import com.colen.tempora.loggers.generic.column.ColumnDef;
 import com.colen.tempora.utils.CommandUtils;
@@ -107,10 +106,10 @@ public class QuerySQLCommand extends CommandBase {
                 return;
             }
 
-            List<? extends GenericQueueElement> output = executeReadOnlyQuery(targetLogger, rawQuery);
+            List<? extends GenericEventInfo> output = executeReadOnlyQuery(targetLogger, rawQuery);
 
             // We do this first, to not bury the info below, in case of a long response.
-            for (GenericQueueElement eventData : output) {
+            for (GenericEventInfo eventData : output) {
                 sender.addChatMessage(
                     eventData.localiseText(
                         entityPlayerMP.getPersistentID()
@@ -192,7 +191,7 @@ public class QuerySQLCommand extends CommandBase {
             .startsWith("select");
     }
 
-    private List<? extends GenericQueueElement> executeReadOnlyQuery(GenericPositionalLogger<?> logger, String sql)
+    private List<? extends GenericEventInfo> executeReadOnlyQuery(GenericPositionalLogger<?> logger, String sql)
         throws SQLException {
 
         try (Connection roConn = logger.getDatabaseManager()

@@ -28,8 +28,8 @@ import org.jetbrains.annotations.NotNull;
 import com.colen.tempora.TemporaEvents;
 import com.colen.tempora.TemporaUtils;
 import com.colen.tempora.enums.LoggerEventType;
+import com.colen.tempora.loggers.generic.GenericEventInfo;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
-import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.utils.RenderingUtils;
 import com.colen.tempora.utils.nbt.NBTUtils;
 
@@ -38,7 +38,7 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockBreakQueueElement> {
+public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockBreakEventInfo> {
 
     @Override
     public String getLoggerName() {
@@ -46,8 +46,8 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
     }
 
     @Override
-    public @NotNull PlayerBlockBreakQueueElement getQueueElementInstance() {
-        return new PlayerBlockBreakQueueElement();
+    public @NotNull PlayerBlockBreakEventInfo getEventInfoInstance() {
+        return new PlayerBlockBreakEventInfo();
     }
 
     private static boolean logNBT;
@@ -55,11 +55,11 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
     @Override
     @SideOnly(Side.CLIENT)
     public void renderEventsInWorld(RenderWorldLastEvent renderEvent) {
-        List<PlayerBlockBreakQueueElement> sortedList = getSortedLatestEventsByDistance(
+        List<PlayerBlockBreakEventInfo> sortedList = getSortedLatestEventsByDistance(
             transparentEventsToRenderInWorld,
             renderEvent);
 
-        for (PlayerBlockBreakQueueElement pbbqe : sortedList) {
+        for (PlayerBlockBreakEventInfo pbbqe : sortedList) {
             RenderingUtils.quickRenderBlockWithHighlightAndChecks(
                 renderEvent,
                 pbbqe,
@@ -70,7 +70,7 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
                 this);
         }
 
-        for (PlayerBlockBreakQueueElement pbbqe : nonTransparentEventsToRenderInWorld) {
+        for (PlayerBlockBreakEventInfo pbbqe : nonTransparentEventsToRenderInWorld) {
             RenderingUtils.quickRenderBlockWithHighlightAndChecks(
                 renderEvent,
                 pbbqe,
@@ -111,47 +111,47 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
         if (isClientSide()) return;
         if (event.isCanceled()) return;
 
-        PlayerBlockBreakQueueElement queueElement = new PlayerBlockBreakQueueElement();
-        queueElement.eventID = UUID.randomUUID()
+        PlayerBlockBreakEventInfo eventInfo = new PlayerBlockBreakEventInfo();
+        eventInfo.eventID = UUID.randomUUID()
             .toString();
-        queueElement.x = event.x;
-        queueElement.y = event.y;
-        queueElement.z = event.z;
-        queueElement.dimensionID = event.world.provider.dimensionId;
-        queueElement.timestamp = System.currentTimeMillis();
+        eventInfo.x = event.x;
+        eventInfo.y = event.y;
+        eventInfo.z = event.z;
+        eventInfo.dimensionID = event.world.provider.dimensionId;
+        eventInfo.timestamp = System.currentTimeMillis();
 
-        queueElement.blockID = Block.getIdFromBlock(event.block);
-        queueElement.metadata = event.blockMetadata;
+        eventInfo.blockID = Block.getIdFromBlock(event.block);
+        eventInfo.metadata = event.blockMetadata;
 
-        queueElement.encodedNBT = getEncodedTileEntityNBT(event.world, event.x, event.y, event.z, logNBT);
+        eventInfo.encodedNBT = getEncodedTileEntityNBT(event.world, event.x, event.y, event.z, logNBT);
 
         // Calculate pickBlockID and pickBlockMeta using getPickBlock
         ItemStack pickStack = getPickBlockSafe(event.block, event.world, event.x, event.y, event.z);
         if (pickStack != null && pickStack.getItem() != null) {
-            queueElement.pickBlockID = Item.getIdFromItem(pickStack.getItem());
-            queueElement.pickBlockMeta = pickStack.getItemDamage();
+            eventInfo.pickBlockID = Item.getIdFromItem(pickStack.getItem());
+            eventInfo.pickBlockMeta = pickStack.getItemDamage();
         } else {
             // Fallback to raw values if pickBlock is null
-            queueElement.pickBlockID = queueElement.blockID;
-            queueElement.pickBlockMeta = queueElement.metadata;
+            eventInfo.pickBlockID = eventInfo.blockID;
+            eventInfo.pickBlockMeta = eventInfo.metadata;
         }
 
         if (event.getPlayer() instanceof EntityPlayerMP) {
-            queueElement.playerUUID = event.getPlayer()
+            eventInfo.playerUUID = event.getPlayer()
                 .getUniqueID()
                 .toString();
         } else {
-            queueElement.playerUUID = TemporaUtils.UNKNOWN_PLAYER_NAME;
+            eventInfo.playerUUID = TemporaUtils.UNKNOWN_PLAYER_NAME;
         }
 
-        queueEvent(queueElement);
+        queueEventInfo(eventInfo);
     }
 
     // Todo de-dupe code here and in other block adjacent loggers.
     // todo get rid of the need to cast the class here and use the generic.
     @Override
-    public IChatComponent undoEvent(GenericQueueElement queueElement, EntityPlayer player) {
-        if (!(queueElement instanceof PlayerBlockBreakQueueElement pbbqe))
+    public IChatComponent undoEvent(GenericEventInfo eventInfo, EntityPlayer player) {
+        if (!(eventInfo instanceof PlayerBlockBreakEventInfo pbbqe))
             return new ChatComponentTranslation("tempora.undo.unknown.error", getLoggerName());
 
         // NBT existed but was not logged, it is not safe to undo this event.
@@ -159,7 +159,7 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
             return new ChatComponentTranslation("tempora.cannot.block.break.undo.nbt.logging.disabled");
 
         World w = MinecraftServer.getServer()
-            .worldServerForDimension(queueElement.dimensionID);
+            .worldServerForDimension(eventInfo.dimensionID);
 
         Block block = Block.getBlockById(pbbqe.blockID);
         if (block == null) return new ChatComponentTranslation("tempora.cannot.block.break.undo.block.not.found");

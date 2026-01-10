@@ -23,7 +23,7 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-public class ItemUseLogger extends GenericPositionalLogger<ItemUseQueueElement> {
+public class ItemUseLogger extends GenericPositionalLogger<ItemUseEventInfo> {
 
     @Override
     public String getLoggerName() {
@@ -31,8 +31,8 @@ public class ItemUseLogger extends GenericPositionalLogger<ItemUseQueueElement> 
     }
 
     @Override
-    public @NotNull ItemUseQueueElement getQueueElementInstance() {
-        return new ItemUseQueueElement();
+    public @NotNull ItemUseEventInfo getEventInfoInstance() {
+        return new ItemUseEventInfo();
     }
 
     @Override
@@ -71,27 +71,27 @@ public class ItemUseLogger extends GenericPositionalLogger<ItemUseQueueElement> 
         final World world = player.worldObj;
         final ItemStack usedItem = player.getCurrentEquippedItem();
 
-        ItemUseQueueElement queueElement = new ItemUseQueueElement();
-        queueElement.eventID = UUID.randomUUID()
+        ItemUseEventInfo eventInfo = new ItemUseEventInfo();
+        eventInfo.eventID = UUID.randomUUID()
             .toString();
-        queueElement.x = player.posX;
-        queueElement.y = player.posY;
-        queueElement.z = player.posZ;
-        queueElement.dimensionID = world.provider.dimensionId;
-        queueElement.timestamp = System.currentTimeMillis();
+        eventInfo.x = player.posX;
+        eventInfo.y = player.posY;
+        eventInfo.z = player.posZ;
+        eventInfo.dimensionID = world.provider.dimensionId;
+        eventInfo.timestamp = System.currentTimeMillis();
 
-        queueElement.playerUUID = player.getUniqueID()
+        eventInfo.playerUUID = player.getUniqueID()
             .toString();
 
         if (usedItem != null) {
-            queueElement.itemID = Item.getIdFromItem(usedItem.getItem());
-            queueElement.itemMetadata = usedItem.getItemDamage();
+            eventInfo.itemID = Item.getIdFromItem(usedItem.getItem());
+            eventInfo.itemMetadata = usedItem.getItemDamage();
         } else {
-            queueElement.itemID = 0;
-            queueElement.itemMetadata = 0;
+            eventInfo.itemID = 0;
+            eventInfo.itemMetadata = 0;
         }
 
-        queueEvent(queueElement);
+        queueEventInfo(eventInfo);
     }
 
 }

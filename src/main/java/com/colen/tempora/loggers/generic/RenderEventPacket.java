@@ -7,24 +7,24 @@ import io.netty.buffer.ByteBuf;
 
 public class RenderEventPacket implements IMessage {
 
-    public GenericQueueElement queueElement;
+    public GenericEventInfo eventInfo;
 
     public RenderEventPacket() {}
 
-    public RenderEventPacket(GenericQueueElement queueElement) {
-        this.queueElement = queueElement;
+    public RenderEventPacket(GenericEventInfo eventInfo) {
+        this.eventInfo = eventInfo;
     }
 
     @Override
     public void toBytes(ByteBuf buf) {
-        buf.writeInt(TemporaLoggerManager.getQueueElementId(queueElement));
-        queueElement.toBytes(buf);
+        buf.writeInt(TemporaLoggerManager.getEventInfoId(eventInfo));
+        eventInfo.toBytes(buf);
     }
 
     @Override
     public void fromBytes(ByteBuf buf) {
         int id = buf.readInt();
-        queueElement = TemporaLoggerManager.createQueueElement(id);
-        queueElement.fromBytes(buf);
+        eventInfo = TemporaLoggerManager.createEventInfo(id);
+        eventInfo.fromBytes(buf);
     }
 }

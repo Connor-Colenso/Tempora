@@ -1,12 +1,13 @@
 package com.colen.tempora.commands;
 
-import com.colen.tempora.utils.CommandUtils;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.WorldServer;
+
+import com.colen.tempora.utils.CommandUtils;
 
 public class TemporaTpCommand extends CommandBase {
 

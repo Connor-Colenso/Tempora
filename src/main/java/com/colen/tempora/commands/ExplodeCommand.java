@@ -1,6 +1,5 @@
 package com.colen.tempora.commands;
 
-import com.colen.tempora.utils.CommandUtils;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -8,6 +7,8 @@ import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
+
+import com.colen.tempora.utils.CommandUtils;
 
 public class ExplodeCommand extends CommandBase {
 
@@ -50,20 +51,12 @@ public class ExplodeCommand extends CommandBase {
         World world = player.worldObj;
 
         // Ray trace from the player's eyes
-        Vec3 start = Vec3.createVectorHelper(
-            player.posX,
-            player.posY + player.getEyeHeight(),
-            player.posZ
-        );
+        Vec3 start = Vec3.createVectorHelper(player.posX, player.posY + player.getEyeHeight(), player.posZ);
 
         Vec3 look = player.getLookVec();
         double range = 200.0D;
 
-        Vec3 end = start.addVector(
-            look.xCoord * range,
-            look.yCoord * range,
-            look.zCoord * range
-        );
+        Vec3 end = start.addVector(look.xCoord * range, look.yCoord * range, look.zCoord * range);
 
         MovingObjectPosition hit = world.rayTraceBlocks(start, end, false);
 
@@ -79,10 +72,12 @@ public class ExplodeCommand extends CommandBase {
         // Create explosion
         world.newExplosion(
             player, // Explosion source
-            x, y, z,
+            x,
+            y,
+            z,
             strength,
             false, // Causes fire
-            true   // Damages blocks
+            true // Damages blocks
         );
     }
 }

@@ -3,7 +3,7 @@ package com.colen.tempora.rendering;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 
-import com.colen.tempora.loggers.block_change.RenderRegionAlternatingCheckers;
+import com.colen.tempora.loggers.block_change.region_registry.RenderRegionAlternatingCheckers;
 import com.colen.tempora.networking.PacketShowRegionInWorld;
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;

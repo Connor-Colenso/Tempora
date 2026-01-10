@@ -1,4 +1,4 @@
-package com.colen.tempora.loggers.block_change;
+package com.colen.tempora.loggers.block_change.region_registry;
 
 import java.io.File;
 import java.util.ArrayList;

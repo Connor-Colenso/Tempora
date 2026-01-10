@@ -2,7 +2,7 @@ package com.colen.tempora.loggers.block_change;
 
 import static com.colen.tempora.Tempora.LOG;
 import static com.colen.tempora.TemporaUtils.UNKNOWN_PLAYER_NAME;
-import static com.colen.tempora.loggers.generic.GenericQueueElement.teleportChatComponent;
+import static com.colen.tempora.loggers.generic.GenericEventInfo.teleportChatComponent;
 import static com.colen.tempora.utils.BlockUtils.getPickBlockSafe;
 import static com.colen.tempora.utils.RenderingUtils.CLIENT_EVENT_RENDER_DISTANCE;
 import static com.colen.tempora.utils.nbt.NBTUtils.NBT_DISABLED;
@@ -33,8 +33,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import com.colen.tempora.TemporaEvents;
 import com.colen.tempora.enums.LoggerEventType;
+import com.colen.tempora.loggers.block_change.region_registry.RegionRegistry;
+import com.colen.tempora.loggers.generic.GenericEventInfo;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
-import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.utils.BlockUtils;
 import com.colen.tempora.utils.GenericUtils;
 import com.colen.tempora.utils.RenderingUtils;
@@ -47,7 +48,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 // todo look into logging world gen and marking that separately, such that you can use a useful regen command to restore
 // todo look into flowers not reverting/saving properly.
 // the state of the world.
-public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueElement> {
+public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventInfo> {
 
     @Override
     public String getLoggerName() {
@@ -63,8 +64,8 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
     private static boolean logNBT;
 
     // Client side usage only.
-    ArrayList<BlockChangeQueueElement> filteredNonTransparentBuffer = new ArrayList<>();
-    ArrayList<BlockChangeQueueElement> filteredTransparentBuffer = new ArrayList<>();
+    ArrayList<BlockChangeEventInfo> filteredNonTransparentBuffer = new ArrayList<>();
+    ArrayList<BlockChangeEventInfo> filteredTransparentBuffer = new ArrayList<>();
 
     @Override
     @SideOnly(Side.CLIENT)
@@ -84,13 +85,13 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
         filteredTransparentBuffer.ensureCapacity(transparentEventsToRenderInWorld.size());
 
         // --- NON-TRANSPARENT ---
-        for (BlockChangeQueueElement event : nonTransparentEventsToRenderInWorld) {
+        for (BlockChangeEventInfo event : nonTransparentEventsToRenderInWorld) {
             if (event.dimensionID != player.dimension) continue;
             if (player.getDistanceSq(event.x, event.y, event.z) > maxDistSq) continue;
             filteredNonTransparentBuffer.add(event);
         }
 
-        for (BlockChangeQueueElement bcqe : filteredNonTransparentBuffer) {
+        for (BlockChangeEventInfo bcqe : filteredNonTransparentBuffer) {
             RenderingUtils.quickRenderBlockWithHighlightAndChecks(
                 renderEvent,
                 bcqe,
@@ -102,13 +103,13 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
         }
 
         // --- TRANSPARENT ---
-        for (BlockChangeQueueElement event : transparentEventsToRenderInWorld) {
+        for (BlockChangeEventInfo event : transparentEventsToRenderInWorld) {
             if (event.dimensionID != player.dimension) continue;
             if (player.getDistanceSq(event.x, event.y, event.z) > maxDistSq) continue;
             filteredTransparentBuffer.add(event);
         }
 
-        for (BlockChangeQueueElement bcqe : getSortedLatestEventsByDistance(filteredTransparentBuffer, renderEvent)) {
+        for (BlockChangeEventInfo bcqe : getSortedLatestEventsByDistance(filteredTransparentBuffer, renderEvent)) {
             RenderingUtils.quickRenderBlockWithHighlightAndChecks(
                 renderEvent,
                 bcqe,
@@ -143,26 +144,25 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
     }
 
     @Override
-    public @NotNull BlockChangeQueueElement getQueueElementInstance() {
-        return new BlockChangeQueueElement();
+    public @NotNull BlockChangeEventInfo getEventInfoInstance() {
+        return new BlockChangeEventInfo();
     }
 
     // Not convinced multithreaded safety is needed here.
-    private static final ThreadLocal<Deque<BlockChangeQueueElement>> BLOCK_STACK = ThreadLocal
+    private static final ThreadLocal<Deque<BlockChangeEventInfo>> BLOCK_STACK = ThreadLocal
         .withInitial(ArrayDeque::new);
 
     public void onSetBlockHead(int x, int y, int z, World world) {
 
-        Deque<BlockChangeQueueElement> stack = BLOCK_STACK.get();
+        Deque<BlockChangeEventInfo> stack = BLOCK_STACK.get();
 
-        BlockChangeQueueElement e = new BlockChangeQueueElement();
+        BlockChangeEventInfo e = new BlockChangeEventInfo();
         e.eventID = UUID.randomUUID()
             .toString();
         e.timestamp = System.currentTimeMillis();
         e.stackTrace = GenericUtils.getCallingClassChain();
         stack.push(e);
 
-        // GenericQueueElement fields
         e.x = x;
         e.y = y;
         e.z = z;
@@ -189,14 +189,14 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
 
     public void onSetBlockReturn(int x, int y, int z, World world, CallbackInfoReturnable<Boolean> cir) {
 
-        Deque<BlockChangeQueueElement> stack = BLOCK_STACK.get();
+        Deque<BlockChangeEventInfo> stack = BLOCK_STACK.get();
 
         if (stack.isEmpty()) {
             LOG.error("[BLOCK CHANGE LOGGER CRITICAL ERROR] RETURN without matching HEAD", new Exception());
             throw new IllegalStateException();
         }
 
-        BlockChangeQueueElement e = stack.pop();
+        BlockChangeEventInfo e = stack.pop();
 
         // If placement failed, mark as no-op and move on
         if (!cir.getReturnValue()) {
@@ -222,7 +222,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
         recordSetBlock(e.x, e.y, e.z, e, world);
     }
 
-    private void recordSetBlock(double x, double y, double z, BlockChangeQueueElement queueElement, World world) {
+    private void recordSetBlock(double x, double y, double z, BlockChangeEventInfo eventInfo, World world) {
 
         // Only log changes if (x, y, z) is inside a defined region. Unless config has entire world logging on.
         if (!globalBlockChangeLogging
@@ -237,16 +237,16 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
             closestDistance = closestPlayer.getDistance(x, y, z);
         }
 
-        queueElement.closestPlayerUUID = closestPlayer != null ? closestPlayer.getUniqueID()
+        eventInfo.closestPlayerUUID = closestPlayer != null ? closestPlayer.getUniqueID()
             .toString() : UNKNOWN_PLAYER_NAME;
-        queueElement.closestPlayerDistance = closestDistance;
+        eventInfo.closestPlayerDistance = closestDistance;
 
-        queueEvent(queueElement);
+        queueEventInfo(eventInfo);
     }
 
     @Override
-    public IChatComponent undoEvent(GenericQueueElement queueElement, EntityPlayer player) {
-        if (!(queueElement instanceof BlockChangeQueueElement bcqe))
+    public IChatComponent undoEvent(GenericEventInfo eventInfo, EntityPlayer player) {
+        if (!(eventInfo instanceof BlockChangeEventInfo bcqe))
             return new ChatComponentTranslation("tempora.undo.unknown.error", getLoggerName());
 
         if (bcqe.beforeEncodedNBT.equals(NBT_DISABLED))
@@ -257,16 +257,11 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
         int z = (int) bcqe.z;
         int blockID = bcqe.beforeBlockID;
         int meta = bcqe.beforeMetadata;
-        int dimID = queueElement.dimensionID;
+        int dimID = eventInfo.dimensionID;
 
         Block block = Block.getBlockById(blockID);
         if (block == null) {
-            IChatComponent teleportCommand = teleportChatComponent(
-                x,
-                y,
-                z,
-                blockID,
-                GenericQueueElement.CoordFormat.INT);
+            IChatComponent teleportCommand = teleportChatComponent(x, y, z, blockID, GenericEventInfo.CoordFormat.INT);
             return new ChatComponentTranslation(
                 "tempora.cannot.block.break.undo.block.not.found",
                 bcqe.beforeBlockID,

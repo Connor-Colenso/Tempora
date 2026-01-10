@@ -33,18 +33,18 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-public class ExplosionLogger extends GenericPositionalLogger<ExplosionQueueElement> {
+public class ExplosionLogger extends GenericPositionalLogger<ExplosionEventInfo> {
 
     @Override
-    public @NotNull ExplosionQueueElement getQueueElementInstance() {
-        return new ExplosionQueueElement();
+    public @NotNull ExplosionEventInfo getEventInfoInstance() {
+        return new ExplosionEventInfo();
     }
 
     @Override
     @SideOnly(Side.CLIENT)
     public void renderEventsInWorld(RenderWorldLastEvent renderEvent) {
 
-        List<ExplosionQueueElement> sortedList = getSortedLatestEventsByDistance(
+        List<ExplosionEventInfo> sortedList = getSortedLatestEventsByDistance(
             transparentEventsToRenderInWorld,
             renderEvent);
         Tessellator tessellator = Tessellator.instance;
@@ -56,7 +56,7 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionQueueEleme
         double py = player.lastTickPosY + (player.posY - player.lastTickPosY) * renderEvent.partialTicks;
         double pz = player.lastTickPosZ + (player.posZ - player.lastTickPosZ) * renderEvent.partialTicks;
 
-        for (ExplosionQueueElement exqe : sortedList) {
+        for (ExplosionEventInfo exqe : sortedList) {
             // Draw explosion center as TNT block
             RenderUtils.renderBlockInWorld(
                 renderEvent,
@@ -166,24 +166,23 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionQueueEleme
             .toString() : TemporaUtils.UNKNOWN_PLAYER_NAME;
         closestDistance = Math.sqrt(closestDistance); // Convert from square distance to actual distance
 
-        ExplosionQueueElement queueElement = new ExplosionQueueElement();
-        queueElement.eventID = UUID.randomUUID()
+        ExplosionEventInfo eventInfo = new ExplosionEventInfo();
+        eventInfo.eventID = UUID.randomUUID()
             .toString();
-        queueElement.x = event.explosion.explosionX;
-        queueElement.y = event.explosion.explosionY;
-        queueElement.z = event.explosion.explosionZ;
-        queueElement.dimensionID = world.provider.dimensionId;
-        queueElement.timestamp = System.currentTimeMillis();
+        eventInfo.x = event.explosion.explosionX;
+        eventInfo.y = event.explosion.explosionY;
+        eventInfo.z = event.explosion.explosionZ;
+        eventInfo.dimensionID = world.provider.dimensionId;
+        eventInfo.timestamp = System.currentTimeMillis();
 
-        queueElement.strength = strength;
-        queueElement.exploderUUID = exploderName;
-        queueElement.closestPlayerUUID = closestPlayerName;
-        queueElement.closestPlayerDistance = closestDistance;
+        eventInfo.strength = strength;
+        eventInfo.exploderUUID = exploderName;
+        eventInfo.closestPlayerUUID = closestPlayerName;
+        eventInfo.closestPlayerDistance = closestDistance;
 
-        queueElement.affectedBlockCoordinates = ChunkPositionUtils
-            .encodePositions(event.explosion.affectedBlockPositions);
+        eventInfo.affectedBlockCoordinates = ChunkPositionUtils.encodePositions(event.explosion.affectedBlockPositions);
 
-        queueEvent(queueElement);
+        queueEventInfo(eventInfo);
     }
 
 }

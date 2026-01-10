@@ -1,27 +1,27 @@
 package com.colen.tempora;
 
+import com.colen.tempora.loggers.block_change.BlockChangeEventInfo;
 import com.colen.tempora.loggers.block_change.BlockChangeLogger;
-import com.colen.tempora.loggers.block_change.BlockChangeQueueElement;
+import com.colen.tempora.loggers.command.CommandEventInfo;
 import com.colen.tempora.loggers.command.CommandLogger;
-import com.colen.tempora.loggers.command.CommandQueueElement;
+import com.colen.tempora.loggers.entity_death.EntityDeathEventInfo;
 import com.colen.tempora.loggers.entity_death.EntityDeathLogger;
-import com.colen.tempora.loggers.entity_death.EntityDeathQueueElement;
+import com.colen.tempora.loggers.entity_position.EntityPositionEventInfo;
 import com.colen.tempora.loggers.entity_position.EntityPositionLogger;
-import com.colen.tempora.loggers.entity_position.EntityPositionQueueElement;
+import com.colen.tempora.loggers.entity_spawn.EntitySpawnEventInfo;
 import com.colen.tempora.loggers.entity_spawn.EntitySpawnLogger;
-import com.colen.tempora.loggers.entity_spawn.EntitySpawnQueueElement;
+import com.colen.tempora.loggers.explosion.ExplosionEventInfo;
 import com.colen.tempora.loggers.explosion.ExplosionLogger;
-import com.colen.tempora.loggers.explosion.ExplosionQueueElement;
+import com.colen.tempora.loggers.inventory.InventoryEventInfo;
 import com.colen.tempora.loggers.inventory.InventoryLogger;
-import com.colen.tempora.loggers.inventory.InventoryQueueElement;
+import com.colen.tempora.loggers.item_use.ItemUseEventInfo;
 import com.colen.tempora.loggers.item_use.ItemUseLogger;
-import com.colen.tempora.loggers.item_use.ItemUseQueueElement;
+import com.colen.tempora.loggers.player_block_break.PlayerBlockBreakEventInfo;
 import com.colen.tempora.loggers.player_block_break.PlayerBlockBreakLogger;
-import com.colen.tempora.loggers.player_block_break.PlayerBlockBreakQueueElement;
+import com.colen.tempora.loggers.player_block_place.PlayerBlockPlaceEventInfo;
 import com.colen.tempora.loggers.player_block_place.PlayerBlockPlaceLogger;
-import com.colen.tempora.loggers.player_block_place.PlayerBlockPlaceQueueElement;
+import com.colen.tempora.loggers.player_movement.PlayerMovementEventInfo;
 import com.colen.tempora.loggers.player_movement.PlayerMovementLogger;
-import com.colen.tempora.loggers.player_movement.PlayerMovementQueueElement;
 
 public class TemporaEvents {
 
@@ -44,16 +44,16 @@ public class TemporaEvents {
 
     public static void registerAll() {
 
-        TemporaLoggerManager.register(blockChangeLogger, BlockChangeQueueElement::new);
-        TemporaLoggerManager.register(new CommandLogger(), CommandQueueElement::new);
-        TemporaLoggerManager.register(new EntityDeathLogger(), EntityDeathQueueElement::new);
-        TemporaLoggerManager.register(new EntityPositionLogger(), EntityPositionQueueElement::new);
-        TemporaLoggerManager.register(new EntitySpawnLogger(), EntitySpawnQueueElement::new);
-        TemporaLoggerManager.register(new ExplosionLogger(), ExplosionQueueElement::new);
-        TemporaLoggerManager.register(inventoryLogger, InventoryQueueElement::new);
-        TemporaLoggerManager.register(new ItemUseLogger(), ItemUseQueueElement::new);
-        TemporaLoggerManager.register(new PlayerBlockBreakLogger(), PlayerBlockBreakQueueElement::new);
-        TemporaLoggerManager.register(new PlayerBlockPlaceLogger(), PlayerBlockPlaceQueueElement::new);
-        TemporaLoggerManager.register(new PlayerMovementLogger(), PlayerMovementQueueElement::new);
+        TemporaLoggerManager.register(blockChangeLogger, BlockChangeEventInfo::new);
+        TemporaLoggerManager.register(new CommandLogger(), CommandEventInfo::new);
+        TemporaLoggerManager.register(new EntityDeathLogger(), EntityDeathEventInfo::new);
+        TemporaLoggerManager.register(new EntityPositionLogger(), EntityPositionEventInfo::new);
+        TemporaLoggerManager.register(new EntitySpawnLogger(), EntitySpawnEventInfo::new);
+        TemporaLoggerManager.register(new ExplosionLogger(), ExplosionEventInfo::new);
+        TemporaLoggerManager.register(inventoryLogger, InventoryEventInfo::new);
+        TemporaLoggerManager.register(new ItemUseLogger(), ItemUseEventInfo::new);
+        TemporaLoggerManager.register(new PlayerBlockBreakLogger(), PlayerBlockBreakEventInfo::new);
+        TemporaLoggerManager.register(new PlayerBlockPlaceLogger(), PlayerBlockPlaceEventInfo::new);
+        TemporaLoggerManager.register(new PlayerMovementLogger(), PlayerMovementEventInfo::new);
     }
 }

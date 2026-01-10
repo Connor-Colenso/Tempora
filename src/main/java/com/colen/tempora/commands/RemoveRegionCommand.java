@@ -10,7 +10,7 @@ import net.minecraft.util.ChunkCoordinates;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.world.World;
 
-import com.colen.tempora.loggers.block_change.RegionRegistry;
+import com.colen.tempora.loggers.block_change.region_registry.RegionRegistry;
 import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 
 /**

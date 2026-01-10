@@ -5,7 +5,7 @@ import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 
 import com.colen.tempora.TemporaEvents;
-import com.colen.tempora.loggers.generic.GenericQueueElement;
+import com.colen.tempora.loggers.generic.GenericEventInfo;
 import com.colen.tempora.loggers.generic.column.Column;
 import com.colen.tempora.utils.BlockUtils;
 import com.colen.tempora.utils.PlayerUtils;
@@ -15,7 +15,7 @@ import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 import cpw.mods.fml.common.network.ByteBufUtils;
 import io.netty.buffer.ByteBuf;
 
-public class BlockChangeQueueElement extends GenericQueueElement {
+public class BlockChangeEventInfo extends GenericEventInfo {
 
     @Column(constraints = "NOT NULL")
     public int beforeBlockID;
