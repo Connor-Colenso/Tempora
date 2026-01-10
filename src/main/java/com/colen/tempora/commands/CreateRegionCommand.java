@@ -7,8 +7,8 @@ import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.world.World;
 
-import com.colen.tempora.loggers.block_change.BlockChangeRecordingRegion;
 import com.colen.tempora.loggers.block_change.RegionRegistry;
+import com.colen.tempora.loggers.block_change.RenderRegionAlternatingCheckers;
 import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 
 /**
@@ -49,7 +49,7 @@ public class CreateRegionCommand extends CommandBase {
         World world = sender.getEntityWorld();
         int dim = world.provider.dimensionId;
 
-        BlockChangeRecordingRegion region = new BlockChangeRecordingRegion(
+        RenderRegionAlternatingCheckers region = new RenderRegionAlternatingCheckers(
             dim,
             x1,
             y1,

@@ -1,5 +1,6 @@
 package com.colen.tempora.commands;
 
+import static com.colen.tempora.Tempora.NETWORK;
 import static com.colen.tempora.commands.CommandConstants.ONLY_IN_GAME;
 import static com.colen.tempora.loggers.generic.GenericQueueElement.teleportChatComponent;
 
@@ -13,8 +14,8 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 
-import com.colen.tempora.loggers.block_change.BlockChangeRecordingRegion;
 import com.colen.tempora.loggers.block_change.RegionRegistry;
+import com.colen.tempora.loggers.block_change.RenderRegionAlternatingCheckers;
 import com.colen.tempora.loggers.generic.GenericQueueElement.CoordFormat;
 import com.colen.tempora.networking.PacketShowRegionInWorld;
 
@@ -55,9 +56,7 @@ public class ListRegionsCommand extends CommandBase {
 
         if (!(sender instanceof EntityPlayerMP player)) throw new CommandException(ONLY_IN_GAME);
 
-        String playerName = player.getCommandSenderName();
-
-        List<BlockChangeRecordingRegion> regions = RegionRegistry.getAll();
+        List<RenderRegionAlternatingCheckers> regions = RegionRegistry.getAll();
 
         if (dimFilter != null) {
             regions.removeIf(r -> r.dim != dimFilter);
@@ -70,7 +69,7 @@ public class ListRegionsCommand extends CommandBase {
 
         /* ---- list every region ---- */
         int idx = 1;
-        for (BlockChangeRecordingRegion r : regions) {
+        for (RenderRegionAlternatingCheckers r : regions) {
 
             // Centre of the region for a sensible teleport target
             double cx = (r.minX + r.maxX) / 2.0;
@@ -99,6 +98,6 @@ public class ListRegionsCommand extends CommandBase {
             sender.addChatMessage(line);
         }
 
-        PacketShowRegionInWorld.send(player, regions);
+        NETWORK.sendTo(new PacketShowRegionInWorld.RegionMsg(regions), player);
     }
 }

@@ -2,14 +2,14 @@ package com.colen.tempora.loggers.block_change;
 
 import net.minecraft.nbt.NBTTagCompound;
 
-public final class BlockChangeRecordingRegion {
+public final class RenderRegionAlternatingCheckers {
 
     public final int dim; // dimension id
     public final int minX, minY, minZ; // inclusive
     public final int maxX, maxY, maxZ; // inclusive
     public final long posPrintTime;
 
-    public BlockChangeRecordingRegion(int dim, int x1, int y1, int z1, int x2, int y2, int z2, long posPrintTime) {
+    public RenderRegionAlternatingCheckers(int dim, int x1, int y1, int z1, int x2, int y2, int z2, long posPrintTime) {
         this.dim = dim;
         this.minX = Math.min(x1, x2);
         this.minY = Math.min(y1, y2);
@@ -40,8 +40,8 @@ public final class BlockChangeRecordingRegion {
         return tag;
     }
 
-    public static BlockChangeRecordingRegion readNBT(NBTTagCompound tag) {
-        return new BlockChangeRecordingRegion(
+    public static RenderRegionAlternatingCheckers readNBT(NBTTagCompound tag) {
+        return new RenderRegionAlternatingCheckers(
             tag.getInteger("dim"),
             tag.getInteger("minX"),
             tag.getInteger("minY"),
