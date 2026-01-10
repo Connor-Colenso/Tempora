@@ -29,7 +29,7 @@ public class PlayerBlockPlaceQueueElement extends GenericQueueElement {
     public int pickBlockMeta;
 
     @Column(constraints = "NOT NULL")
-    public String playerUUID; // todo ensure proper translation to name on client.
+    public String playerUUID;
 
     @Column(constraints = "NOT NULL")
     public String encodedNBT;
