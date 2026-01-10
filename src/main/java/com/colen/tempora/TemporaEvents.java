@@ -52,10 +52,8 @@ public class TemporaEvents {
         TemporaLoggerManager.register(new ExplosionLogger(), ExplosionQueueElement::new);
         TemporaLoggerManager.register(inventoryLogger, InventoryQueueElement::new);
         TemporaLoggerManager.register(new ItemUseLogger(), ItemUseQueueElement::new);
-        TemporaLoggerManager
-            .register(new PlayerBlockBreakLogger(), PlayerBlockBreakQueueElement::new);
-        TemporaLoggerManager
-            .register(new PlayerBlockPlaceLogger(), PlayerBlockPlaceQueueElement::new);
+        TemporaLoggerManager.register(new PlayerBlockBreakLogger(), PlayerBlockBreakQueueElement::new);
+        TemporaLoggerManager.register(new PlayerBlockPlaceLogger(), PlayerBlockPlaceQueueElement::new);
         TemporaLoggerManager.register(new PlayerMovementLogger(), PlayerMovementQueueElement::new);
     }
 }

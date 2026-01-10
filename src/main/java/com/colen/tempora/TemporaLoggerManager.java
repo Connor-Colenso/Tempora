@@ -29,8 +29,10 @@ public final class TemporaLoggerManager {
 
     /* ---------------- PACKET REGISTRATION ---------------- */
 
+    // See TemporaEvents.java in Tempora mod for example usages.
     @SuppressWarnings("unchecked")
-    public static <EventToLog extends GenericQueueElement> void register(GenericPositionalLogger<EventToLog> logger, Supplier<EventToLog> factory) {
+    public static <EventToLog extends GenericQueueElement> void register(GenericPositionalLogger<EventToLog> logger,
+        Supplier<EventToLog> factory) {
 
         EventToLog probe = factory.get();
         String loggerName = probe.getLoggerName();
