@@ -237,7 +237,8 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
         queueEvent(queueElement);
     }
 
-    public IChatComponent undoEvent(GenericQueueElement queueElement, EntityPlayerMP player) {
+    @Override
+    public IChatComponent undoEvent(GenericQueueElement queueElement, EntityPlayer player) {
         if (!(queueElement instanceof BlockChangeQueueElement bcqe))
             return new ChatComponentTranslation("tempora.undo.unknown.error", getLoggerName());
 
