@@ -3,6 +3,7 @@ package com.colen.tempora.loggers.block_change;
 import static com.colen.tempora.Tempora.LOG;
 import static com.colen.tempora.TemporaUtils.UNKNOWN_PLAYER_NAME;
 import static com.colen.tempora.loggers.generic.GenericQueueElement.teleportChatComponent;
+import static com.colen.tempora.utils.BlockUtils.getPickBlockSafe;
 import static com.colen.tempora.utils.RenderingUtils.CLIENT_EVENT_RENDER_DISTANCE;
 import static com.colen.tempora.utils.nbt.NBTUtils.NBT_DISABLED;
 import static com.colen.tempora.utils.nbt.NBTUtils.NO_NBT;
@@ -173,7 +174,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
         e.beforeBlockID = Block.getIdFromBlock(before);
         e.beforeMetadata = world.getBlockMetadata(x, y, z);
 
-        ItemStack pick = before.getPickBlock(null, world, x, y, z);
+        ItemStack pick = getPickBlockSafe(before, world, x, y, z);
         if (pick != null && pick.getItem() != null) {
             e.beforePickBlockID = Item.getIdFromItem(pick.getItem());
             e.beforePickBlockMeta = pick.getItemDamage();
