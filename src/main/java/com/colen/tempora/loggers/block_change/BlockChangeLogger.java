@@ -45,6 +45,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
 // todo look into logging world gen and marking that separately, such that you can use a useful regen command to restore
+// todo look into flowers not reverting/saving properly.
 // the state of the world.
 public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueElement> {
 

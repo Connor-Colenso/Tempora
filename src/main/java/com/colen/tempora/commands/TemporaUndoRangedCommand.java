@@ -33,7 +33,7 @@ import com.colen.tempora.utils.CommandUtils;
 import com.colen.tempora.utils.TimeUtils;
 import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 
-public class TemporaUndoRanged extends CommandBase {
+public class TemporaUndoRangedCommand extends CommandBase {
 
     // Todo clear on world exit.
     private static final Map<String, List<? extends GenericQueueElement>> PENDING_UNDOS = new ConcurrentHashMap<>();

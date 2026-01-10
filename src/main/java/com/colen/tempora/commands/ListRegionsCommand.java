@@ -1,15 +1,13 @@
 package com.colen.tempora.commands;
 
 import static com.colen.tempora.Tempora.NETWORK;
-import static com.colen.tempora.commands.CommandConstants.ONLY_IN_GAME;
 import static com.colen.tempora.loggers.generic.GenericQueueElement.teleportChatComponent;
 
 import java.util.List;
 
+import com.colen.tempora.utils.CommandUtils;
 import net.minecraft.command.CommandBase;
-import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
-import net.minecraft.command.WrongUsageException;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
@@ -44,8 +42,10 @@ public class ListRegionsCommand extends CommandBase {
 
     @Override
     public void processCommand(ICommandSender sender, String[] args) {
-
-        if (args.length > 2) throw new WrongUsageException(getCommandUsage(sender));
+        if (args.length > 2) {
+            sender.addChatMessage(CommandUtils.wrongUsage(getCommandUsage(sender)));
+            return;
+        }
 
         Integer dimFilter;
         if (args.length == 2) {
@@ -54,7 +54,10 @@ public class ListRegionsCommand extends CommandBase {
             dimFilter = null;
         }
 
-        if (!(sender instanceof EntityPlayerMP player)) throw new CommandException(ONLY_IN_GAME);
+        if (!(sender instanceof EntityPlayerMP player)) {
+            sender.addChatMessage(CommandUtils.playerOnly());
+            return;
+        }
 
         List<RenderRegionAlternatingCheckers> regions = RegionRegistry.getAll();
 
