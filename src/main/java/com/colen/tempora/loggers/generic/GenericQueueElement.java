@@ -39,9 +39,9 @@ public abstract class GenericQueueElement {
     @Column(constraints = "NOT NULL")
     public int versionID;
 
-    // This field purely dictates when an event was made when received by the client, so we know when to stop rendering
-    // it in world. It is only relevant on the client.
+    // These fields purely dictates rendering info, and are not relevant elsewhere.
     public long eventRenderCreationTime;
+    public String loggerName;
 
     public abstract IChatComponent localiseText(String commandIssuerUUID);
 
@@ -122,7 +122,7 @@ public abstract class GenericQueueElement {
             new ChatComponentNumber(y),
             new ChatComponentNumber(z));
 
-        String cmd = "/temporatp " + " " + fmt.command(x) + " " + fmt.command(y) + " " + fmt.command(z) + " " + dimId;
+        String cmd = "/temporatp " + fmt.command(x) + " " + fmt.command(y) + " " + fmt.command(z) + " " + dimId;
 
         IChatComponent hoverText = new ChatComponentTranslation("tempora.teleport.hover", dimId);
         hoverText.getChatStyle()

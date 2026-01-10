@@ -10,6 +10,7 @@ import net.minecraftforge.common.config.Configuration;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.colen.tempora.TemporaEvents;
 import com.colen.tempora.enums.LoggerEventType;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 
@@ -27,6 +28,11 @@ import cpw.mods.fml.relauncher.SideOnly;
 // 3. Player login, prevents the user from being logged into a dimension and quickly switching dims, this would
 // cause the dimension to load, which we want to keep track of.
 public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovementQueueElement> {
+
+    @Override
+    public String getLoggerName() {
+        return TemporaEvents.PLAYER_MOVEMENT;
+    }
 
     @Override
     public @NotNull PlayerMovementQueueElement getQueueElementInstance() {

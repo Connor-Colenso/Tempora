@@ -1,9 +1,5 @@
 package com.colen.tempora.loggers.generic;
 
-import static com.colen.tempora.Tempora.NETWORK;
-
-import net.minecraft.entity.player.EntityPlayerMP;
-
 import com.colen.tempora.TemporaLoggerManager;
 
 import cpw.mods.fml.common.network.simpleimpl.IMessage;
@@ -21,19 +17,14 @@ public class RenderEventPacket implements IMessage {
 
     @Override
     public void toBytes(ByteBuf buf) {
-        buf.writeByte(TemporaLoggerManager.getQueueElementId(queueElement));
+        buf.writeInt(TemporaLoggerManager.getQueueElementId(queueElement));
         queueElement.toBytes(buf);
     }
 
     @Override
     public void fromBytes(ByteBuf buf) {
-        byte id = buf.readByte();
+        int id = buf.readInt();
         queueElement = TemporaLoggerManager.createQueueElement(id);
         queueElement.fromBytes(buf);
     }
-
-    public void sendEventToClientForRendering(EntityPlayerMP player) {
-        NETWORK.sendTo(this, player);
-    }
-
 }

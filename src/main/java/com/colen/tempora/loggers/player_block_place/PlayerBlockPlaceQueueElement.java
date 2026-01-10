@@ -79,13 +79,13 @@ public class PlayerBlockPlaceQueueElement extends GenericQueueElement {
     }
 
     @Override
-    public String getLoggerName() {
-        return TemporaEvents.PLAYER_BLOCK_PLACE;
-    }
-
-    @Override
     public boolean needsTransparencyToRender() {
         return !Block.getBlockById(blockID)
             .isOpaqueCube();
+    }
+
+    @Override
+    public String getLoggerName() {
+        return TemporaEvents.PLAYER_BLOCK_PLACE;
     }
 }

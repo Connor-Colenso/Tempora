@@ -21,6 +21,7 @@ import net.minecraftforge.event.world.ExplosionEvent;
 import org.jetbrains.annotations.NotNull;
 import org.lwjgl.opengl.GL11;
 
+import com.colen.tempora.TemporaEvents;
 import com.colen.tempora.TemporaUtils;
 import com.colen.tempora.enums.LoggerEventType;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
@@ -109,6 +110,11 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionQueueEleme
                 }
             }
         }
+    }
+
+    @Override
+    public String getLoggerName() {
+        return TemporaEvents.EXPLOSION;
     }
 
     @Override

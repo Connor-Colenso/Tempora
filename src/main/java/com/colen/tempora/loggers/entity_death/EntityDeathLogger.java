@@ -15,6 +15,7 @@ import net.minecraftforge.event.entity.living.LivingDeathEvent;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.colen.tempora.TemporaEvents;
 import com.colen.tempora.enums.LoggerEventType;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.rendering.RenderUtils;
@@ -25,6 +26,11 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
 public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueElement> {
+
+    @Override
+    public String getLoggerName() {
+        return TemporaEvents.ENTITY_DEATH;
+    }
 
     @Override
     public @NotNull EntityDeathQueueElement getQueueElementInstance() {

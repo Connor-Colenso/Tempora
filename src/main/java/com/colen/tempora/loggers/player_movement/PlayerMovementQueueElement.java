@@ -30,6 +30,11 @@ public class PlayerMovementQueueElement extends GenericQueueElement {
     }
 
     @Override
+    public String getLoggerName() {
+        return TemporaEvents.PLAYER_MOVEMENT;
+    }
+
+    @Override
     public IChatComponent localiseText(String commandIssuerUUID) {
         IChatComponent formattedTime = TimeUtils.formatTime(timestamp);
         IChatComponent coords = teleportChatComponent(x, y, z, dimensionID, CoordFormat.FLOAT_1DP);
@@ -41,8 +46,4 @@ public class PlayerMovementQueueElement extends GenericQueueElement {
             formattedTime);
     }
 
-    @Override
-    public String getLoggerName() {
-        return TemporaEvents.PLAYER_MOVEMENT;
-    }
 }

@@ -14,6 +14,7 @@ import net.minecraftforge.event.entity.player.PlayerUseItemEvent;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.colen.tempora.TemporaEvents;
 import com.colen.tempora.enums.LoggerEventType;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 
@@ -23,6 +24,11 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
 public class ItemUseLogger extends GenericPositionalLogger<ItemUseQueueElement> {
+
+    @Override
+    public String getLoggerName() {
+        return TemporaEvents.ITEM_USE;
+    }
 
     @Override
     public @NotNull ItemUseQueueElement getQueueElementInstance() {

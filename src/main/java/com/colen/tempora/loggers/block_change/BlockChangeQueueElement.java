@@ -134,13 +134,13 @@ public class BlockChangeQueueElement extends GenericQueueElement {
     }
 
     @Override
-    public String getLoggerName() {
-        return TemporaEvents.BLOCK_CHANGE;
-    }
-
-    @Override
     public boolean needsTransparencyToRender() {
         return !Block.getBlockById(beforePickBlockID)
             .isOpaqueCube();
+    }
+
+    @Override
+    public String getLoggerName() {
+        return TemporaEvents.BLOCK_CHANGE;
     }
 }

@@ -17,7 +17,6 @@ import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.MinecraftServer;
@@ -31,6 +30,7 @@ import net.minecraftforge.common.config.Configuration;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import com.colen.tempora.TemporaEvents;
 import com.colen.tempora.enums.LoggerEventType;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.GenericQueueElement;
@@ -46,6 +46,11 @@ import cpw.mods.fml.relauncher.SideOnly;
 // todo look into logging world gen and marking that separately, such that you can use a useful regen command to restore
 // the state of the world.
 public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueElement> {
+
+    @Override
+    public String getLoggerName() {
+        return TemporaEvents.BLOCK_CHANGE;
+    }
 
     private boolean globalBlockChangeLogging;
 

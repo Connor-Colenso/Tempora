@@ -75,13 +75,13 @@ public class PlayerBlockBreakQueueElement extends GenericQueueElement {
     }
 
     @Override
-    public String getLoggerName() {
-        return TemporaEvents.PLAYER_BLOCK_BREAK;
-    }
-
-    @Override
     public boolean needsTransparencyToRender() {
         return !Block.getBlockById(blockID)
             .isOpaqueCube();
+    }
+
+    @Override
+    public String getLoggerName() {
+        return TemporaEvents.PLAYER_BLOCK_BREAK;
     }
 }

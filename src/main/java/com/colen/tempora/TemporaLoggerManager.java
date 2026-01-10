@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -21,51 +22,52 @@ public final class TemporaLoggerManager {
 
     private static final Map<String, GenericPositionalLogger<?>> LOGGERS = new HashMap<>();
 
-    /* ---------------- QUEUE ELEMENT REGISTRY ---------------- */
+    /* ---------------- REGISTRY ---------------- */
 
-    private static final Map<Byte, Supplier<? extends GenericQueueElement>> FACTORIES = new HashMap<>();
-    private static final Map<Class<?>, Byte> CLASS_TO_ID = new HashMap<>();
-    private static byte nextQueueElementId = 0;
+    private static final Map<Integer, Supplier<? extends GenericQueueElement>> FACTORIES = new HashMap<>();
+    private static final Map<Class<?>, Integer> CLASS_TO_ID = new HashMap<>();
+    private static int nextQueueElementId = 0;
 
     /* ---------------- PACKET REGISTRATION ---------------- */
 
     // See TemporaEvents.java in Tempora mod for example usages.
-    @SuppressWarnings("unchecked")
     public static <EventToLog extends GenericQueueElement> void register(GenericPositionalLogger<EventToLog> logger,
         Supplier<EventToLog> factory) {
 
-        EventToLog probe = factory.get();
+        // 1. Validate inputs
+        Objects.requireNonNull(logger, "logger must not be null");
+        Objects.requireNonNull(factory, "factory must not be null");
+
+        // 2. Probe factory output
+        EventToLog probe = Objects.requireNonNull(factory.get(), "factory.get() must not return null");
+
         String loggerName = probe.getLoggerName();
 
+        @SuppressWarnings("unchecked")
+        Class<EventToLog> queueElementClass = (Class<EventToLog>) probe.getClass();
+
+        // 3. Validate uniqueness
         if (LOGGERS.containsKey(loggerName)) {
             throw new IllegalStateException("Logger already registered: " + loggerName);
         }
-
-        // Little messy, but works...
-        Class<EventToLog> queueElementClass = (Class<EventToLog>) factory.get()
-            .getClass();
 
         if (CLASS_TO_ID.containsKey(queueElementClass)) {
             throw new IllegalStateException("QueueElement already registered: " + queueElementClass.getName());
         }
 
-        // Assign ID
-        byte id = nextQueueElementId++;
+        // 4. Assign ID
+        int id = nextQueueElementId++;
 
-        // Register logger
-        logger.setLoggerName(loggerName);
+        // 5. Register
         LOGGERS.put(loggerName, logger);
-
-        // Register queue element networking metadata
         CLASS_TO_ID.put(queueElementClass, id);
         FACTORIES.put(id, factory);
-
     }
 
     /* ---------------- NETWORK HELPERS ---------------- */
 
-    public static byte getQueueElementId(GenericQueueElement element) {
-        Byte id = CLASS_TO_ID.get(element.getClass());
+    public static int getQueueElementId(GenericQueueElement element) {
+        Integer id = CLASS_TO_ID.get(element.getClass());
         if (id == null) {
             throw new IllegalStateException(
                 "Unregistered QueueElement: " + element.getClass()
@@ -74,7 +76,7 @@ public final class TemporaLoggerManager {
         return id;
     }
 
-    public static GenericQueueElement createQueueElement(byte id) {
+    public static @NotNull GenericQueueElement createQueueElement(int id) {
         Supplier<? extends GenericQueueElement> f = FACTORIES.get(id);
         if (f == null) {
             throw new IllegalStateException("Unknown QueueElement id: " + id);

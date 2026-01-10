@@ -16,6 +16,7 @@ import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.colen.tempora.TemporaEvents;
 import com.colen.tempora.enums.LoggerEventType;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.rendering.RenderUtils;
@@ -26,6 +27,11 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
 public class EntityPositionLogger extends GenericPositionalLogger<EntityPositionQueueElement> {
+
+    @Override
+    public String getLoggerName() {
+        return TemporaEvents.ENTITY_POSITION;
+    }
 
     @Override
     public @NotNull EntityPositionQueueElement getQueueElementInstance() {
