@@ -255,7 +255,7 @@ public abstract class RenderUtils {
         final int COLOR_B = 0x80888888;
 
         // Small inset to avoid Z-fighting with block faces / other geometry.
-        final double EPS = 0.002;
+        final double EPS = 0.005;
 
         // Normalize bounds and inset on all sides.
         double minX = Math.min(startX, endX) + EPS;

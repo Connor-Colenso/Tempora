@@ -207,7 +207,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeQueueE
         e.afterBlockID = Block.getIdFromBlock(after);
         e.afterMetadata = world.getBlockMetadata(x, y, z);
 
-        ItemStack pick = after.getPickBlock(null, world, x, y, z);
+        ItemStack pick = getPickBlockSafe(after, world, x, y, z);
         if (pick != null && pick.getItem() != null) {
             e.afterPickBlockID = Item.getIdFromItem(pick.getItem());
             e.afterPickBlockMeta = pick.getItemDamage();
