@@ -1,6 +1,5 @@
 package com.colen.tempora;
 
-import com.colen.tempora.commands.ExplodeCommand;
 import net.minecraft.block.Block;
 import net.minecraftforge.common.config.Configuration;
 
@@ -8,16 +7,17 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.colen.tempora.blocks.RenderingErrorBlock;
-import com.colen.tempora.commands.TemporaTpCommand;
 import com.colen.tempora.commands.CreateRegionCommand;
+import com.colen.tempora.commands.ExplodeCommand;
 import com.colen.tempora.commands.HomeChunkCommand;
 import com.colen.tempora.commands.ListRegionsCommand;
 import com.colen.tempora.commands.QueryEventsCommand;
 import com.colen.tempora.commands.QuerySQLCommand;
 import com.colen.tempora.commands.RemoveRegionCommand;
+import com.colen.tempora.commands.TemporaTpCommand;
 import com.colen.tempora.commands.TemporaUndoCommand;
 import com.colen.tempora.commands.TemporaUndoRangedCommand;
-import com.colen.tempora.loggers.block_change.RegionRegistry;
+import com.colen.tempora.loggers.block_change.region_registry.RegionRegistry;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 
 import cpw.mods.fml.common.Mod;

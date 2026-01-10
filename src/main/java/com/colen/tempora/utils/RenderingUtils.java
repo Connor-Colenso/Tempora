@@ -11,8 +11,8 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 
 import com.colen.tempora.Tempora;
+import com.colen.tempora.loggers.generic.GenericEventInfo;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
-import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.rendering.RenderUtils;
 import com.colen.tempora.utils.nbt.NBTUtils;
 
@@ -20,40 +20,39 @@ public class RenderingUtils {
 
     public static int CLIENT_EVENT_RENDER_DISTANCE;
 
-    public static void quickRenderBlockWithHighlightAndChecks(RenderWorldLastEvent e, GenericQueueElement queueElement,
+    public static void quickRenderBlockWithHighlightAndChecks(RenderWorldLastEvent e, GenericEventInfo eventInfo,
         int blockID, int metadata, String encodedNBT, String playerUUID,
-        GenericPositionalLogger<? extends GenericQueueElement> logger) {
+        GenericPositionalLogger<? extends GenericEventInfo> logger) {
         try {
             NBTTagCompound nbt = null;
             if (!Objects.equals(encodedNBT, NO_NBT) && !Objects.equals(encodedNBT, NBT_DISABLED)) {
                 nbt = NBTUtils.decodeFromString(encodedNBT);
             }
 
-            RenderUtils
-                .renderBlockInWorld(e, queueElement.x, queueElement.y, queueElement.z, blockID, metadata, nbt, logger);
+            RenderUtils.renderBlockInWorld(e, eventInfo.x, eventInfo.y, eventInfo.z, blockID, metadata, nbt, logger);
         } catch (Exception exception) {
             // Render an error block here instead, if something went critically wrong.
             String truncatedNBT = (encodedNBT != null && !encodedNBT.isEmpty()
                 ? encodedNBT.substring(0, Math.min(encodedNBT.length(), 64)) + "..."
                 : "none");
 
-            String sx = String.format("%.1f", queueElement.x);
-            String sy = String.format("%.1f", queueElement.y);
-            String sz = String.format("%.1f", queueElement.z);
+            String sx = String.format("%.1f", eventInfo.x);
+            String sy = String.format("%.1f", eventInfo.y);
+            String sz = String.format("%.1f", eventInfo.z);
 
             LOG.warn(
                 "Failed to render {} event (eventID={}) at ({}, {}, {}) in dim {}. BlockID={}:{} Player={} NBT={} Timestamp={} | Exception: {}: {}",
                 logger.getLoggerName(),
-                queueElement.eventID,
+                eventInfo.eventID,
                 sx,
                 sy,
                 sz,
-                queueElement.dimensionID,
+                eventInfo.dimensionID,
                 blockID,
                 metadata,
                 playerUUID,
                 truncatedNBT,
-                queueElement.timestamp,
+                eventInfo.timestamp,
                 exception.getClass()
                     .getSimpleName(),
                 exception.getMessage());
@@ -63,9 +62,9 @@ public class RenderingUtils {
 
             RenderUtils.renderBlockInWorld(
                 e,
-                queueElement.x,
-                queueElement.y,
-                queueElement.z,
+                eventInfo.x,
+                eventInfo.y,
+                eventInfo.z,
                 Block.getIdFromBlock(Tempora.renderingErrorBlock),
                 0,
                 null,

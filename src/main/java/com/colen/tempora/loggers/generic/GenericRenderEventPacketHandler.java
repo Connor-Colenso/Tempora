@@ -12,7 +12,7 @@ public class GenericRenderEventPacketHandler implements IMessageHandler<RenderEv
     @Override
     public IMessage onMessage(RenderEventPacket pkt, MessageContext ctx) {
         if (ctx.side == Side.CLIENT) {
-            GenericQueueElement event = pkt.queueElement;
+            GenericEventInfo event = pkt.eventInfo;
             TemporaLoggerManager.getTypedLogger(event.getLoggerName())
                 .addEventToRender(event);
         }

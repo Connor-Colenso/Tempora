@@ -283,7 +283,7 @@ public class PositionalLoggerDatabase {
             ps.setInt(9, MAX_DATA_ROWS_PER_DB);
 
             try (ResultSet rs = ps.executeQuery()) {
-                List<? extends GenericQueueElement> eventDataList = genericPositionalLogger.generateQueryResults(rs);
+                List<? extends GenericEventInfo> eventDataList = genericPositionalLogger.generateQueryResults(rs);
 
                 if (eventDataList.isEmpty()) {
                     IChatComponent noResults = new ChatComponentTranslation(
@@ -324,7 +324,7 @@ public class PositionalLoggerDatabase {
                     eventDataList.forEach(p -> sender.addChatMessage(p.localiseText(uuid)));
 
                     // This tells the client what to render in world.
-                    for (GenericQueueElement eventData : eventDataList) {
+                    for (GenericEventInfo eventData : eventDataList) {
                         NETWORK.sendTo(new RenderEventPacket(eventData), player);
                     }
                 }
@@ -338,7 +338,7 @@ public class PositionalLoggerDatabase {
         }
     }
 
-    public GenericQueueElement queryEventByEventID(String eventID) {
+    public GenericEventInfo queryEventByEventID(String eventID) {
 
         String sqlQuery = "SELECT * FROM " + genericPositionalLogger.getLoggerName() + " WHERE eventID == ? LIMIT 1";
 
@@ -347,7 +347,7 @@ public class PositionalLoggerDatabase {
             ps.setString(1, eventID);
 
             ResultSet rs = ps.executeQuery();
-            List<? extends GenericQueueElement> packets = genericPositionalLogger.generateQueryResults(rs);
+            List<? extends GenericEventInfo> packets = genericPositionalLogger.generateQueryResults(rs);
             if (packets.isEmpty()) return null;
 
             return packets.get(0);
@@ -570,22 +570,21 @@ public class PositionalLoggerDatabase {
     }
 
     // This is responsible for logging the actual events
-    public <EventToLog extends GenericQueueElement> void insertBatch(List<EventToLog> queueElements)
-        throws SQLException {
-        if (queueElements == null || queueElements.isEmpty()) return;
+    public <EventInfo extends GenericEventInfo> void insertBatch(List<EventInfo> eventInfoQueue) throws SQLException {
+        if (eventInfoQueue == null || eventInfoQueue.isEmpty()) return;
 
         final String sql = generateInsertSQL();
 
         try (PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(sql)) {
 
-            for (EventToLog queueElement : queueElements) {
+            for (EventInfo eventInfo : eventInfoQueue) {
                 int index = 1;
 
                 // genericPositionalLogger.inferEventToLogClass()
                 for (Field field : genericPositionalLogger.getAllAnnotatedFieldsAlphabetically()) {
                     Object value;
                     try {
-                        value = field.get(queueElement);
+                        value = field.get(eventInfo);
                     } catch (IllegalAccessException e) {
                         throw new RuntimeException(e);
                     }

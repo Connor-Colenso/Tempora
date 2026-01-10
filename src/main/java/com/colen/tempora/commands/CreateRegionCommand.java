@@ -1,7 +1,7 @@
 package com.colen.tempora.commands;
 
-import com.colen.tempora.loggers.generic.GenericQueueElement;
-import com.colen.tempora.utils.CommandUtils;
+import static com.colen.tempora.loggers.generic.GenericEventInfo.teleportChatComponent;
+
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.util.ChatComponentTranslation;
@@ -9,10 +9,10 @@ import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.world.World;
 
-import com.colen.tempora.loggers.block_change.RegionRegistry;
-import com.colen.tempora.loggers.block_change.RenderRegionAlternatingCheckers;
-
-import static com.colen.tempora.loggers.generic.GenericQueueElement.teleportChatComponent;
+import com.colen.tempora.loggers.block_change.region_registry.RegionRegistry;
+import com.colen.tempora.loggers.block_change.region_registry.RenderRegionAlternatingCheckers;
+import com.colen.tempora.loggers.generic.GenericEventInfo;
+import com.colen.tempora.utils.CommandUtils;
 
 /**
  * /createregion <x1> <y1> <z1> <x2> <y2> <z2>
@@ -52,10 +52,10 @@ public class CreateRegionCommand extends CommandBase {
             } catch (NumberFormatException e) {
                 IChatComponent msg = new ChatComponentTranslation(
                     "tempora.command.create.region.non.numeric.coordinate",
-                    args[i]
-                );
+                    args[i]);
 
-                msg.getChatStyle().setColor(EnumChatFormatting.RED);
+                msg.getChatStyle()
+                    .setColor(EnumChatFormatting.RED);
                 sender.addChatMessage(msg);
                 return;
             }
@@ -78,11 +78,12 @@ public class CreateRegionCommand extends CommandBase {
 
         ChatComponentTranslation msg = new ChatComponentTranslation(
             "command.tempora.region.created",
-            teleportChatComponent(coords[0], coords[1], coords[2], dim, GenericQueueElement.CoordFormat.INT),
-            teleportChatComponent(coords[3], coords[4], coords[5], dim, GenericQueueElement.CoordFormat.INT),
+            teleportChatComponent(coords[0], coords[1], coords[2], dim, GenericEventInfo.CoordFormat.INT),
+            teleportChatComponent(coords[3], coords[4], coords[5], dim, GenericEventInfo.CoordFormat.INT),
             dim); // dimension ID
 
-        msg.getChatStyle().setColor(EnumChatFormatting.GREEN);
+        msg.getChatStyle()
+            .setColor(EnumChatFormatting.GREEN);
         sender.addChatMessage(msg);
     }
 

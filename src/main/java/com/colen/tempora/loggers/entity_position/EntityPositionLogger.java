@@ -26,7 +26,7 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-public class EntityPositionLogger extends GenericPositionalLogger<EntityPositionQueueElement> {
+public class EntityPositionLogger extends GenericPositionalLogger<EntityPositionEventInfo> {
 
     @Override
     public String getLoggerName() {
@@ -34,8 +34,8 @@ public class EntityPositionLogger extends GenericPositionalLogger<EntityPosition
     }
 
     @Override
-    public @NotNull EntityPositionQueueElement getQueueElementInstance() {
-        return new EntityPositionQueueElement();
+    public @NotNull EntityPositionEventInfo getEventInfoInstance() {
+        return new EntityPositionEventInfo();
     }
 
     @Override
@@ -43,7 +43,7 @@ public class EntityPositionLogger extends GenericPositionalLogger<EntityPosition
     public void renderEventsInWorld(RenderWorldLastEvent renderEvent) {
         sortByDistanceDescending(transparentEventsToRenderInWorld, renderEvent);
 
-        for (EntityPositionQueueElement epqh : transparentEventsToRenderInWorld) {
+        for (EntityPositionEventInfo epqh : transparentEventsToRenderInWorld) {
             Entity entity = EntityList.createEntityByName(epqh.entityName, Minecraft.getMinecraft().theWorld);
 
             // Render mob
@@ -83,23 +83,23 @@ public class EntityPositionLogger extends GenericPositionalLogger<EntityPosition
         if (event.entity instanceof EntityItem) return;
         if (event.entity instanceof EntityXPOrb) return;
 
-        EntityPositionQueueElement queueElement = new EntityPositionQueueElement();
-        queueElement.eventID = UUID.randomUUID()
+        EntityPositionEventInfo eventInfo = new EntityPositionEventInfo();
+        eventInfo.eventID = UUID.randomUUID()
             .toString();
-        queueElement.x = event.entityLiving.posX;
-        queueElement.y = event.entityLiving.posY;
-        queueElement.z = event.entityLiving.posZ;
-        queueElement.dimensionID = event.entityLiving.dimension;
-        queueElement.timestamp = System.currentTimeMillis();
+        eventInfo.x = event.entityLiving.posX;
+        eventInfo.y = event.entityLiving.posY;
+        eventInfo.z = event.entityLiving.posZ;
+        eventInfo.dimensionID = event.entityLiving.dimension;
+        eventInfo.timestamp = System.currentTimeMillis();
 
-        queueElement.rotationYaw = event.entityLiving.rotationYaw;
-        queueElement.rotationPitch = event.entityLiving.rotationPitch;
+        eventInfo.rotationYaw = event.entityLiving.rotationYaw;
+        eventInfo.rotationPitch = event.entityLiving.rotationPitch;
 
-        queueElement.entityName = event.entityLiving.getCommandSenderName();
-        queueElement.entityUUID = event.entityLiving.getUniqueID()
+        eventInfo.entityName = event.entityLiving.getCommandSenderName();
+        eventInfo.entityUUID = event.entityLiving.getUniqueID()
             .toString();
 
-        queueEvent(queueElement);
+        queueEventInfo(eventInfo);
     }
 
 }

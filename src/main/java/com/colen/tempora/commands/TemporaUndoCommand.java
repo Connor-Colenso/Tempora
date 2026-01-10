@@ -9,8 +9,8 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.IChatComponent;
 
 import com.colen.tempora.TemporaLoggerManager;
+import com.colen.tempora.loggers.generic.GenericEventInfo;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
-import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.utils.CommandUtils;
 
 public class TemporaUndoCommand extends CommandBase {
@@ -41,9 +41,9 @@ public class TemporaUndoCommand extends CommandBase {
         if (genericLogger == null) {
             throw new WrongUsageException("tempora.command.undo.wrong.logger", loggerName);
         } else if (genericLogger.isUndoEnabled()) {
-            GenericQueueElement queueElement = genericLogger.getDatabaseManager()
+            GenericEventInfo eventInfo = genericLogger.getDatabaseManager()
                 .queryEventByEventID(eventID);
-            IChatComponent chatMessage = genericLogger.undoEvent(queueElement, (EntityPlayer) sender);
+            IChatComponent chatMessage = genericLogger.undoEvent(eventInfo, (EntityPlayer) sender);
             sender.addChatMessage(chatMessage);
         } else {
             throw new WrongUsageException("tempora.command.undo.not_undoable", loggerName);

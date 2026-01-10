@@ -24,9 +24,9 @@ import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
 import com.colen.tempora.TemporaLoggerManager;
-import com.colen.tempora.loggers.block_change.RenderRegionAlternatingCheckers;
+import com.colen.tempora.loggers.block_change.region_registry.RenderRegionAlternatingCheckers;
+import com.colen.tempora.loggers.generic.GenericEventInfo;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
-import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.loggers.generic.RenderEventPacket;
 import com.colen.tempora.networking.PacketShowRegionInWorld;
 import com.colen.tempora.utils.CommandUtils;
@@ -36,7 +36,7 @@ import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 public class TemporaUndoRangedCommand extends CommandBase {
 
     // Todo clear on world exit.
-    private static final Map<String, List<? extends GenericQueueElement>> PENDING_UNDOS = new ConcurrentHashMap<>();
+    private static final Map<String, List<? extends GenericEventInfo>> PENDING_UNDOS = new ConcurrentHashMap<>();
     private static final Map<String, String> PENDING_UNDOS_LOGGER_NAMES = new ConcurrentHashMap<>();
 
     public static int MAX_RANGE;
@@ -114,7 +114,7 @@ public class TemporaUndoRangedCommand extends CommandBase {
             + "ON t.x=oldest.x AND t.y=oldest.y AND t.z=oldest.z AND t.timestamp=oldest.ts "
             + "ORDER BY t.timestamp ASC";
 
-        List<? extends GenericQueueElement> results;
+        List<? extends GenericEventInfo> results;
 
         int playerX = (int) player.posX;
         int playerY = (int) player.posY;
@@ -156,7 +156,7 @@ public class TemporaUndoRangedCommand extends CommandBase {
         }
 
         // Send preview markers
-        for (GenericQueueElement event : results) {
+        for (GenericEventInfo event : results) {
             NETWORK.sendTo(new RenderEventPacket(event), player);
         }
 
@@ -196,7 +196,7 @@ public class TemporaUndoRangedCommand extends CommandBase {
 
         String uuid = args[1];
 
-        List<? extends GenericQueueElement> stored = PENDING_UNDOS.get(uuid);
+        List<? extends GenericEventInfo> stored = PENDING_UNDOS.get(uuid);
         String loggerName = PENDING_UNDOS_LOGGER_NAMES.get(uuid);
 
         if (stored == null || loggerName == null) {

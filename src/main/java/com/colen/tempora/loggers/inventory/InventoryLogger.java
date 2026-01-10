@@ -35,7 +35,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
 // Todo fix drag and drop not logging correctly.
-public class InventoryLogger extends GenericPositionalLogger<InventoryQueueElement> {
+public class InventoryLogger extends GenericPositionalLogger<InventoryEventInfo> {
 
     @Override
     public String getLoggerName() {
@@ -43,8 +43,8 @@ public class InventoryLogger extends GenericPositionalLogger<InventoryQueueEleme
     }
 
     @Override
-    public @NotNull InventoryQueueElement getQueueElementInstance() {
-        return new InventoryQueueElement();
+    public @NotNull InventoryEventInfo getEventInfoInstance() {
+        return new InventoryEventInfo();
     }
 
     @Override
@@ -55,7 +55,7 @@ public class InventoryLogger extends GenericPositionalLogger<InventoryQueueEleme
     @Override
     @SideOnly(Side.CLIENT)
     public void renderEventsInWorld(RenderWorldLastEvent renderEvent) {
-        List<InventoryQueueElement> sortedList = getSortedLatestEventsByDistance(
+        List<InventoryEventInfo> sortedList = getSortedLatestEventsByDistance(
             transparentEventsToRenderInWorld,
             renderEvent);
 
@@ -69,7 +69,7 @@ public class InventoryLogger extends GenericPositionalLogger<InventoryQueueEleme
         GL11.glPushMatrix();
         GL11.glTranslated(-px, -py, -pz);
 
-        for (InventoryQueueElement iqe : sortedList) {
+        for (InventoryEventInfo iqe : sortedList) {
             GL11.glPushMatrix();
             GL11.glTranslated(iqe.x, iqe.y, iqe.z);
             RenderUtils.renderRegion(0, 0, 0, 1, 1, 1, 0.655, 0.125, 0.8);
@@ -127,15 +127,15 @@ public class InventoryLogger extends GenericPositionalLogger<InventoryQueueEleme
         ItemStack copyStack = itemStack.copy();
         copyStack.stackSize = Math.abs(delta);
 
-        InventoryQueueElement queueElement = new InventoryQueueElement();
-        queueElement.eventID = UUID.randomUUID()
+        InventoryEventInfo eventInfo = new InventoryEventInfo();
+        eventInfo.eventID = UUID.randomUUID()
             .toString();
 
         if (inventory instanceof InventoryPlayer) {
-            queueElement.containerName = inventory.getInventoryName();
-            queueElement.x = playerMP.posX;
-            queueElement.y = playerMP.posY;
-            queueElement.z = playerMP.posZ;
+            eventInfo.containerName = inventory.getInventoryName();
+            eventInfo.x = playerMP.posX;
+            eventInfo.y = playerMP.posY;
+            eventInfo.z = playerMP.posZ;
         } else {
             // Special GT handling.
             if (container instanceof ModularUIContainer) {
@@ -156,34 +156,34 @@ public class InventoryLogger extends GenericPositionalLogger<InventoryQueueEleme
                     tileEntity.yCoord,
                     tileEntity.zCoord);
 
-                queueElement.containerName = pickStack.getDisplayName();
-                queueElement.x = tileEntity.xCoord;
-                queueElement.y = tileEntity.yCoord;
-                queueElement.z = tileEntity.zCoord;
+                eventInfo.containerName = pickStack.getDisplayName();
+                eventInfo.x = tileEntity.xCoord;
+                eventInfo.y = tileEntity.yCoord;
+                eventInfo.z = tileEntity.zCoord;
             } else if (inventory != null) {
-                queueElement.containerName = inventory.getInventoryName();
-                queueElement.x = playerMP.posX;
-                queueElement.y = playerMP.posY;
-                queueElement.z = playerMP.posZ;
+                eventInfo.containerName = inventory.getInventoryName();
+                eventInfo.x = playerMP.posX;
+                eventInfo.y = playerMP.posY;
+                eventInfo.z = playerMP.posZ;
             } else {
-                queueElement.containerName = container.getClass()
+                eventInfo.containerName = container.getClass()
                     .getSimpleName();
-                queueElement.x = playerMP.posX;
-                queueElement.y = playerMP.posY;
-                queueElement.z = playerMP.posZ;
+                eventInfo.x = playerMP.posX;
+                eventInfo.y = playerMP.posY;
+                eventInfo.z = playerMP.posZ;
             }
         }
 
-        queueElement.dimensionID = playerMP.dimension;
-        queueElement.timestamp = System.currentTimeMillis();
-        queueElement.playerUUID = playerMP.getUniqueID()
+        eventInfo.dimensionID = playerMP.dimension;
+        eventInfo.timestamp = System.currentTimeMillis();
+        eventInfo.playerUUID = playerMP.getUniqueID()
             .toString();
-        queueElement.interactionType = dir.getDbId();
-        queueElement.itemId = Item.getIdFromItem(copyStack.getItem());
-        queueElement.itemMetadata = copyStack.getItemDamage();
-        queueElement.stackSize = copyStack.stackSize;
+        eventInfo.interactionType = dir.getDbId();
+        eventInfo.itemId = Item.getIdFromItem(copyStack.getItem());
+        eventInfo.itemMetadata = copyStack.getItemDamage();
+        eventInfo.stackSize = copyStack.stackSize;
 
-        queueEvent(queueElement);
+        queueEventInfo(eventInfo);
     }
 
     // Never change the values here.
@@ -223,23 +223,23 @@ public class InventoryLogger extends GenericPositionalLogger<InventoryQueueEleme
         double y, double z, int dim) {
         if (dir == Direction.OUT_OF_PLAYER || dir == Direction.IN_TO_PLAYER) return;
 
-        InventoryQueueElement queueElement = new InventoryQueueElement();
+        InventoryEventInfo eventInfo = new InventoryEventInfo();
 
-        queueElement.x = x;
-        queueElement.y = y;
-        queueElement.z = z;
-        queueElement.dimensionID = dim;
+        eventInfo.x = x;
+        eventInfo.y = y;
+        eventInfo.z = z;
+        eventInfo.dimensionID = dim;
 
-        queueElement.containerName = containerName;
-        queueElement.timestamp = System.currentTimeMillis();
-        queueElement.playerUUID = playerMP.getUniqueID()
+        eventInfo.containerName = containerName;
+        eventInfo.timestamp = System.currentTimeMillis();
+        eventInfo.playerUUID = playerMP.getUniqueID()
             .toString();
-        queueElement.interactionType = dir.getDbId();
-        queueElement.itemId = Item.getIdFromItem(stack.getItem());
-        queueElement.itemMetadata = stack.getItemDamage();
-        queueElement.stackSize = stack.stackSize;
+        eventInfo.interactionType = dir.getDbId();
+        eventInfo.itemId = Item.getIdFromItem(stack.getItem());
+        eventInfo.itemMetadata = stack.getItemDamage();
+        eventInfo.stackSize = stack.stackSize;
 
-        queueEvent(queueElement);
+        queueEventInfo(eventInfo);
     }
 
 }

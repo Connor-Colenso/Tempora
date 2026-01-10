@@ -25,7 +25,7 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueElement> {
+public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathEventInfo> {
 
     @Override
     public String getLoggerName() {
@@ -33,8 +33,8 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueE
     }
 
     @Override
-    public @NotNull EntityDeathQueueElement getQueueElementInstance() {
-        return new EntityDeathQueueElement();
+    public @NotNull EntityDeathEventInfo getEventInfoInstance() {
+        return new EntityDeathEventInfo();
     }
 
     @Override
@@ -42,7 +42,7 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueE
     public void renderEventsInWorld(RenderWorldLastEvent renderEvent) {
         sortByDistanceDescending(transparentEventsToRenderInWorld, renderEvent);
 
-        for (EntityDeathQueueElement bcqe : transparentEventsToRenderInWorld) {
+        for (EntityDeathEventInfo bcqe : transparentEventsToRenderInWorld) {
             Entity entity = EntityList.createEntityByName(bcqe.nameOfDeadEntity, Minecraft.getMinecraft().theWorld);
 
             // Render mob
@@ -67,39 +67,39 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathQueueE
         if (event.entity instanceof EntityXPOrb) return;
         if (event.isCanceled()) return;
 
-        EntityDeathQueueElement queueElement = new EntityDeathQueueElement();
-        queueElement.eventID = UUID.randomUUID()
+        EntityDeathEventInfo eventInfo = new EntityDeathEventInfo();
+        eventInfo.eventID = UUID.randomUUID()
             .toString();
-        queueElement.x = event.entity.posX;
-        queueElement.y = event.entity.posY;
-        queueElement.z = event.entity.posZ;
-        queueElement.dimensionID = event.entity.dimension;
-        queueElement.timestamp = System.currentTimeMillis();
+        eventInfo.x = event.entity.posX;
+        eventInfo.y = event.entity.posY;
+        eventInfo.z = event.entity.posZ;
+        eventInfo.dimensionID = event.entity.dimension;
+        eventInfo.timestamp = System.currentTimeMillis();
 
-        queueElement.nameOfDeadEntity = EntityList.getEntityString(event.entityLiving);
-        queueElement.entityUUID = event.entityLiving.getUniqueID()
+        eventInfo.nameOfDeadEntity = EntityList.getEntityString(event.entityLiving);
+        eventInfo.entityUUID = event.entityLiving.getUniqueID()
             .toString();
 
-        queueElement.rotationYaw = event.entityLiving.rotationYaw;
-        queueElement.rotationPitch = event.entityLiving.rotationPitch;
+        eventInfo.rotationYaw = event.entityLiving.rotationYaw;
+        eventInfo.rotationPitch = event.entityLiving.rotationPitch;
 
         // Get what killed it.
         Entity trueSource = event.source.getEntity();
         if (trueSource != null) {
             if (trueSource instanceof EntityPlayerMP player) {
                 // This is specific for players
-                queueElement.killedBy = player.getUniqueID()
+                eventInfo.killedBy = player.getUniqueID()
                     .toString();
             } else {
                 // For non-player entities
-                queueElement.killedBy = "[" + trueSource.getClass()
+                eventInfo.killedBy = "[" + trueSource.getClass()
                     .getSimpleName() + "]";
             }
         } else {
-            queueElement.killedBy = "[" + event.source.damageType + "]";
+            eventInfo.killedBy = "[" + event.source.damageType + "]";
         }
 
-        queueEvent(queueElement);
+        queueEventInfo(eventInfo);
     }
 
 }

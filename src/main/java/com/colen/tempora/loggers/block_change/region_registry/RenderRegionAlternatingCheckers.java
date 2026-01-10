@@ -1,4 +1,4 @@
-package com.colen.tempora.loggers.block_change;
+package com.colen.tempora.loggers.block_change.region_registry;
 
 import net.minecraft.nbt.NBTTagCompound;
 
@@ -7,7 +7,8 @@ public final class RenderRegionAlternatingCheckers {
     public final int dim; // dimension id
     public final int minX, minY, minZ; // inclusive
     public final int maxX, maxY, maxZ; // inclusive
-    public final long posPrintTime;
+    public final long posPrintTime; // Time at which the event instance was made (in ms), used to track removal on
+                                    // client side.
 
     public RenderRegionAlternatingCheckers(int dim, int x1, int y1, int z1, int x2, int y2, int z2, long posPrintTime) {
         this.dim = dim;
@@ -20,13 +21,11 @@ public final class RenderRegionAlternatingCheckers {
         this.posPrintTime = posPrintTime;
     }
 
-    /** True if the block (x,y,z) in <em>this.dim</em> is inside the box. */
     public boolean contains(int dim, double x, double y, double z) {
         return this.dim == dim && x >= minX && x < maxX + 1 && y >= minY && y < maxY + 1 && z >= minZ && z < maxZ + 1;
     }
 
-    /* ---------- NBT helpers ---------- */
-
+    // NBT Save/load
     public NBTTagCompound writeNBT() {
         NBTTagCompound tag = new NBTTagCompound();
         tag.setInteger("dim", dim);

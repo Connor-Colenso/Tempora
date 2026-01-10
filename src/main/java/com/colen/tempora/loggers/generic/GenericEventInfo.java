@@ -16,7 +16,7 @@ import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 import cpw.mods.fml.common.network.ByteBufUtils;
 import io.netty.buffer.ByteBuf;
 
-public abstract class GenericQueueElement {
+public abstract class GenericEventInfo {
 
     @Column(constraints = "PRIMARY KEY")
     public String eventID;

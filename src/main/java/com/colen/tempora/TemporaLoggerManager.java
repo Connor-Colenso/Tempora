@@ -11,8 +11,8 @@ import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.colen.tempora.loggers.generic.GenericEventInfo;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
-import com.colen.tempora.loggers.generic.GenericQueueElement;
 
 public final class TemporaLoggerManager {
 
@@ -24,62 +24,62 @@ public final class TemporaLoggerManager {
 
     /* ---------------- REGISTRY ---------------- */
 
-    private static final Map<Integer, Supplier<? extends GenericQueueElement>> FACTORIES = new HashMap<>();
+    private static final Map<Integer, Supplier<? extends GenericEventInfo>> FACTORIES = new HashMap<>();
     private static final Map<Class<?>, Integer> CLASS_TO_ID = new HashMap<>();
-    private static int nextQueueElementId = 0;
+    private static int nextEventInfoId = 0;
 
     /* ---------------- PACKET REGISTRATION ---------------- */
 
     // See TemporaEvents.java in Tempora mod for example usages.
-    public static <EventToLog extends GenericQueueElement> void register(GenericPositionalLogger<EventToLog> logger,
-        Supplier<EventToLog> factory) {
+    public static <EventInfo extends GenericEventInfo> void register(GenericPositionalLogger<EventInfo> logger,
+        Supplier<EventInfo> factory) {
 
         // 1. Validate inputs
         Objects.requireNonNull(logger, "logger must not be null");
         Objects.requireNonNull(factory, "factory must not be null");
 
         // 2. Probe factory output
-        EventToLog probe = Objects.requireNonNull(factory.get(), "factory.get() must not return null");
+        EventInfo probe = Objects.requireNonNull(factory.get(), "factory.get() must not return null");
 
         String loggerName = probe.getLoggerName();
 
         @SuppressWarnings("unchecked")
-        Class<EventToLog> queueElementClass = (Class<EventToLog>) probe.getClass();
+        Class<EventInfo> eventInfoClass = (Class<EventInfo>) probe.getClass();
 
         // 3. Validate uniqueness
         if (LOGGERS.containsKey(loggerName)) {
             throw new IllegalStateException("Logger already registered: " + loggerName);
         }
 
-        if (CLASS_TO_ID.containsKey(queueElementClass)) {
-            throw new IllegalStateException("QueueElement already registered: " + queueElementClass.getName());
+        if (CLASS_TO_ID.containsKey(eventInfoClass)) {
+            throw new IllegalStateException("EventInfo already registered: " + eventInfoClass.getName());
         }
 
         // 4. Assign ID
-        int id = nextQueueElementId++;
+        int id = nextEventInfoId++;
 
         // 5. Register
         LOGGERS.put(loggerName, logger);
-        CLASS_TO_ID.put(queueElementClass, id);
+        CLASS_TO_ID.put(eventInfoClass, id);
         FACTORIES.put(id, factory);
     }
 
     /* ---------------- NETWORK HELPERS ---------------- */
 
-    public static int getQueueElementId(GenericQueueElement element) {
+    public static int getEventInfoId(GenericEventInfo element) {
         Integer id = CLASS_TO_ID.get(element.getClass());
         if (id == null) {
             throw new IllegalStateException(
-                "Unregistered QueueElement: " + element.getClass()
+                "Unregistered EventInfo: " + element.getClass()
                     .getName());
         }
         return id;
     }
 
-    public static @NotNull GenericQueueElement createQueueElement(int id) {
-        Supplier<? extends GenericQueueElement> f = FACTORIES.get(id);
+    public static @NotNull GenericEventInfo createEventInfo(int id) {
+        Supplier<? extends GenericEventInfo> f = FACTORIES.get(id);
         if (f == null) {
-            throw new IllegalStateException("Unknown QueueElement id: " + id);
+            throw new IllegalStateException("Unknown EventInfo id: " + id);
         }
         return f.get();
     }
@@ -95,7 +95,7 @@ public final class TemporaLoggerManager {
     }
 
     @SuppressWarnings("unchecked")
-    public static <T extends GenericQueueElement> GenericPositionalLogger<T> getTypedLogger(String loggerName) {
+    public static <T extends GenericEventInfo> GenericPositionalLogger<T> getTypedLogger(String loggerName) {
         return (GenericPositionalLogger<T>) LOGGERS.get(loggerName);
     }
 

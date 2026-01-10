@@ -28,7 +28,7 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-public class PlayerBlockPlaceLogger extends GenericPositionalLogger<PlayerBlockPlaceQueueElement> {
+public class PlayerBlockPlaceLogger extends GenericPositionalLogger<PlayerBlockPlaceEventInfo> {
 
     @Override
     public String getLoggerName() {
@@ -36,8 +36,8 @@ public class PlayerBlockPlaceLogger extends GenericPositionalLogger<PlayerBlockP
     }
 
     @Override
-    public @NotNull PlayerBlockPlaceQueueElement getQueueElementInstance() {
-        return new PlayerBlockPlaceQueueElement();
+    public @NotNull PlayerBlockPlaceEventInfo getEventInfoInstance() {
+        return new PlayerBlockPlaceEventInfo();
     }
 
     private boolean logNBT;
@@ -57,11 +57,11 @@ public class PlayerBlockPlaceLogger extends GenericPositionalLogger<PlayerBlockP
     @Override
     @SideOnly(Side.CLIENT)
     public void renderEventsInWorld(RenderWorldLastEvent renderEvent) {
-        List<PlayerBlockPlaceQueueElement> sortedList = getSortedLatestEventsByDistance(
+        List<PlayerBlockPlaceEventInfo> sortedList = getSortedLatestEventsByDistance(
             transparentEventsToRenderInWorld,
             renderEvent);
 
-        for (PlayerBlockPlaceQueueElement pbbqe : sortedList) {
+        for (PlayerBlockPlaceEventInfo pbbqe : sortedList) {
             RenderingUtils.quickRenderBlockWithHighlightAndChecks(
                 renderEvent,
                 pbbqe,
@@ -72,7 +72,7 @@ public class PlayerBlockPlaceLogger extends GenericPositionalLogger<PlayerBlockP
                 this);
         }
 
-        for (PlayerBlockPlaceQueueElement pbbqe : nonTransparentEventsToRenderInWorld) {
+        for (PlayerBlockPlaceEventInfo pbbqe : nonTransparentEventsToRenderInWorld) {
             RenderingUtils.quickRenderBlockWithHighlightAndChecks(
                 renderEvent,
                 pbbqe,
@@ -95,40 +95,40 @@ public class PlayerBlockPlaceLogger extends GenericPositionalLogger<PlayerBlockP
         if (isClientSide()) return; // Server side only
         if (event.isCanceled()) return;
 
-        PlayerBlockPlaceQueueElement queueElement = new PlayerBlockPlaceQueueElement();
-        queueElement.eventID = UUID.randomUUID()
+        PlayerBlockPlaceEventInfo eventInfo = new PlayerBlockPlaceEventInfo();
+        eventInfo.eventID = UUID.randomUUID()
             .toString();
-        queueElement.x = event.x;
-        queueElement.y = event.y;
-        queueElement.z = event.z;
-        queueElement.dimensionID = event.world.provider.dimensionId;
-        queueElement.timestamp = System.currentTimeMillis();
+        eventInfo.x = event.x;
+        eventInfo.y = event.y;
+        eventInfo.z = event.z;
+        eventInfo.dimensionID = event.world.provider.dimensionId;
+        eventInfo.timestamp = System.currentTimeMillis();
 
-        queueElement.blockID = Block.getIdFromBlock(event.block);
-        queueElement.metadata = event.world.getBlockMetadata(event.x, event.y, event.z);
+        eventInfo.blockID = Block.getIdFromBlock(event.block);
+        eventInfo.metadata = event.world.getBlockMetadata(event.x, event.y, event.z);
 
         // Calculate pickBlockID and pickBlockMeta using getPickBlock
         ItemStack pickStack = getPickBlockSafe(event.block, event.world, event.x, event.y, event.z);
         if (pickStack != null && pickStack.getItem() != null) {
-            queueElement.pickBlockID = Item.getIdFromItem(pickStack.getItem());
-            queueElement.pickBlockMeta = pickStack.getItemDamage();
+            eventInfo.pickBlockID = Item.getIdFromItem(pickStack.getItem());
+            eventInfo.pickBlockMeta = pickStack.getItemDamage();
         } else {
             // Fallback to raw values if pickBlock is null
-            queueElement.pickBlockID = queueElement.blockID;
-            queueElement.pickBlockMeta = queueElement.metadata;
+            eventInfo.pickBlockID = eventInfo.blockID;
+            eventInfo.pickBlockMeta = eventInfo.metadata;
         }
 
         // Log NBT.
-        queueElement.encodedNBT = getEncodedTileEntityNBT(event.world, event.x, event.y, event.z, logNBT);
+        eventInfo.encodedNBT = getEncodedTileEntityNBT(event.world, event.x, event.y, event.z, logNBT);
 
         if (event.player instanceof EntityPlayerMP) {
-            queueElement.playerUUID = event.player.getUniqueID()
+            eventInfo.playerUUID = event.player.getUniqueID()
                 .toString();
         } else {
-            queueElement.playerUUID = TemporaUtils.UNKNOWN_PLAYER_NAME;
+            eventInfo.playerUUID = TemporaUtils.UNKNOWN_PLAYER_NAME;
         }
 
-        queueEvent(queueElement);
+        queueEventInfo(eventInfo);
     }
 
 }

@@ -1,26 +1,25 @@
-package com.colen.tempora.loggers.entity_death;
+package com.colen.tempora.loggers.entity_position;
 
-import static com.colen.tempora.utils.GenericUtils.entityUUIDChatComponent;
-
+import net.minecraft.event.ClickEvent;
+import net.minecraft.event.HoverEvent;
+import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.ChatStyle;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
 import com.colen.tempora.TemporaEvents;
-import com.colen.tempora.loggers.generic.GenericQueueElement;
+import com.colen.tempora.loggers.generic.GenericEventInfo;
 import com.colen.tempora.loggers.generic.column.Column;
-import com.colen.tempora.utils.PlayerUtils;
 import com.colen.tempora.utils.TimeUtils;
 
 import cpw.mods.fml.common.network.ByteBufUtils;
 import io.netty.buffer.ByteBuf;
 
-public class EntityDeathQueueElement extends GenericQueueElement {
+public class EntityPositionEventInfo extends GenericEventInfo {
 
     @Column(constraints = "NOT NULL")
-    public String nameOfDeadEntity;
-
-    @Column(constraints = "NOT NULL")
-    public String killedBy;
+    public String entityName;
 
     @Column(constraints = "NOT NULL")
     public String entityUUID;
@@ -34,21 +33,15 @@ public class EntityDeathQueueElement extends GenericQueueElement {
     @Override
     public void fromBytes(ByteBuf buf) {
         super.fromBytes(buf);
-        nameOfDeadEntity = ByteBufUtils.readUTF8String(buf);
-        killedBy = ByteBufUtils.readUTF8String(buf);
+        entityName = ByteBufUtils.readUTF8String(buf);
         entityUUID = ByteBufUtils.readUTF8String(buf);
-        rotationYaw = buf.readFloat();
-        rotationPitch = buf.readFloat();
     }
 
     @Override
     public void toBytes(ByteBuf buf) {
         super.toBytes(buf);
-        ByteBufUtils.writeUTF8String(buf, nameOfDeadEntity);
-        ByteBufUtils.writeUTF8String(buf, killedBy);
+        ByteBufUtils.writeUTF8String(buf, entityName);
         ByteBufUtils.writeUTF8String(buf, entityUUID);
-        buf.writeFloat(rotationYaw);
-        buf.writeFloat(rotationPitch);
     }
 
     @Override
@@ -56,19 +49,25 @@ public class EntityDeathQueueElement extends GenericQueueElement {
         IChatComponent coords = teleportChatComponent(x, y, z, dimensionID, CoordFormat.FLOAT_1DP);
         IChatComponent timeAgo = TimeUtils.formatTime(timestamp);
 
-        IChatComponent uuidChatComponent = entityUUIDChatComponent(entityUUID);
+        IChatComponent clickToCopy = new ChatComponentTranslation("tempora.click.to.copy.uuid");
+        clickToCopy.getChatStyle()
+            .setColor(EnumChatFormatting.GRAY);
+
+        IChatComponent uuidChatComponent = new ChatComponentText("[UUID]").setChatStyle(
+            new ChatStyle().setColor(EnumChatFormatting.AQUA)
+                .setChatClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, entityUUID))
+                .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, clickToCopy)));
 
         return new ChatComponentTranslation(
-            "message.entity_death",
-            new ChatComponentTranslation("entity." + nameOfDeadEntity + ".name"),
+            "message.entity_position",
+            new ChatComponentTranslation("entity." + entityName + ".name"),
             uuidChatComponent,
-            PlayerUtils.playerNameFromUUID(killedBy), // Maybe a UUID
             coords,
             timeAgo);
     }
 
     @Override
     public String getLoggerName() {
-        return TemporaEvents.ENTITY_DEATH;
+        return TemporaEvents.ENTITY_POSITION;
     }
 }

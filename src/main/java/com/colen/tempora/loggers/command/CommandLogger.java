@@ -29,7 +29,7 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-public class CommandLogger extends GenericPositionalLogger<CommandQueueElement> {
+public class CommandLogger extends GenericPositionalLogger<CommandEventInfo> {
 
     @Override
     public String getLoggerName() {
@@ -37,8 +37,8 @@ public class CommandLogger extends GenericPositionalLogger<CommandQueueElement> 
     }
 
     @Override
-    public @NotNull CommandQueueElement getQueueElementInstance() {
-        return new CommandQueueElement();
+    public @NotNull CommandEventInfo getEventInfoInstance() {
+        return new CommandEventInfo();
     }
 
     @Override
@@ -47,7 +47,7 @@ public class CommandLogger extends GenericPositionalLogger<CommandQueueElement> 
         RenderManager renderManager = RenderManager.instance;
         sortByDistanceDescending(transparentEventsToRenderInWorld, renderEvent);
 
-        for (CommandQueueElement cqe : transparentEventsToRenderInWorld) {
+        for (CommandEventInfo cqe : transparentEventsToRenderInWorld) {
             double x = cqe.x - renderManager.viewerPosX;
             double y = cqe.y - renderManager.viewerPosY + 1;
             double z = cqe.z - renderManager.viewerPosZ;
@@ -86,21 +86,21 @@ public class CommandLogger extends GenericPositionalLogger<CommandQueueElement> 
             ICommand command = event.command;
             String[] args = event.parameters;
 
-            CommandQueueElement queueElement = new CommandQueueElement();
-            queueElement.eventID = UUID.randomUUID()
+            CommandEventInfo eventInfo = new CommandEventInfo();
+            eventInfo.eventID = UUID.randomUUID()
                 .toString();
-            queueElement.x = player.posX;
-            queueElement.y = player.posY;
-            queueElement.z = player.posZ;
-            queueElement.dimensionID = player.dimension;
-            queueElement.timestamp = System.currentTimeMillis();
+            eventInfo.x = player.posX;
+            eventInfo.y = player.posY;
+            eventInfo.z = player.posZ;
+            eventInfo.dimensionID = player.dimension;
+            eventInfo.timestamp = System.currentTimeMillis();
 
-            queueElement.playerUUID = player.getUniqueID()
+            eventInfo.playerUUID = player.getUniqueID()
                 .toString();
-            queueElement.commandName = command.getCommandName();
-            queueElement.arguments = String.join(" ", args);
+            eventInfo.commandName = command.getCommandName();
+            eventInfo.arguments = String.join(" ", args);
 
-            queueEvent(queueElement);
+            queueEventInfo(eventInfo);
         }
     }
 }

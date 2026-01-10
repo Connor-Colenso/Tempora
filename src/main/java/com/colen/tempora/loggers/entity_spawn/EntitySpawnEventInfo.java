@@ -1,63 +1,62 @@
-package com.colen.tempora.loggers.item_use;
+package com.colen.tempora.loggers.entity_spawn;
 
-import static com.colen.tempora.utils.ItemUtils.getNameOfItemStack;
+import static com.colen.tempora.utils.GenericUtils.entityUUIDChatComponent;
 
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 
 import com.colen.tempora.TemporaEvents;
-import com.colen.tempora.loggers.generic.GenericQueueElement;
+import com.colen.tempora.loggers.generic.GenericEventInfo;
 import com.colen.tempora.loggers.generic.column.Column;
-import com.colen.tempora.utils.PlayerUtils;
 import com.colen.tempora.utils.TimeUtils;
 
 import cpw.mods.fml.common.network.ByteBufUtils;
 import io.netty.buffer.ByteBuf;
 
-public class ItemUseQueueElement extends GenericQueueElement {
+public class EntitySpawnEventInfo extends GenericEventInfo {
 
     @Column(constraints = "NOT NULL")
-    public String playerUUID;
+    public String entityName;
 
     @Column(constraints = "NOT NULL")
-    public int itemID;
+    public String entityUUID;
 
     @Column(constraints = "NOT NULL")
-    public int itemMetadata;
+    public float rotationYaw;
+
+    @Column(constraints = "NOT NULL")
+    public float rotationPitch;
 
     @Override
     public void fromBytes(ByteBuf buf) {
         super.fromBytes(buf);
-        playerUUID = ByteBufUtils.readUTF8String(buf);
-        itemID = buf.readInt();
-        itemMetadata = buf.readInt();
+        entityName = ByteBufUtils.readUTF8String(buf);
+        entityUUID = ByteBufUtils.readUTF8String(buf);
     }
 
     @Override
     public void toBytes(ByteBuf buf) {
         super.toBytes(buf);
-        ByteBufUtils.writeUTF8String(buf, playerUUID);
-        buf.writeInt(itemID);
-        buf.writeInt(itemMetadata);
+        ByteBufUtils.writeUTF8String(buf, entityName);
+        ByteBufUtils.writeUTF8String(buf, entityUUID);
     }
 
     @Override
     public IChatComponent localiseText(String commandIssuerUUID) {
         IChatComponent coords = teleportChatComponent(x, y, z, dimensionID, CoordFormat.FLOAT_1DP);
         IChatComponent timeAgo = TimeUtils.formatTime(timestamp);
+        IChatComponent uuidChatComponent = entityUUIDChatComponent(entityUUID);
 
         return new ChatComponentTranslation(
-            "message.item_use",
-            PlayerUtils.playerNameFromUUID(playerUUID),
-            getNameOfItemStack(itemID, itemMetadata),
-            itemID,
-            itemMetadata,
+            "message.entity_spawn",
+            new ChatComponentTranslation("entity." + entityName + ".name"), // todo review
+            uuidChatComponent,
             coords,
             timeAgo);
     }
 
     @Override
     public String getLoggerName() {
-        return TemporaEvents.ITEM_USE;
+        return TemporaEvents.ENTITY_SPAWN;
     }
 }

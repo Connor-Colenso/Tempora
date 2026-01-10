@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import com.colen.tempora.loggers.block_change.RenderRegionAlternatingCheckers;
+import com.colen.tempora.loggers.block_change.region_registry.RenderRegionAlternatingCheckers;
 
 import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import cpw.mods.fml.common.network.simpleimpl.IMessageHandler;

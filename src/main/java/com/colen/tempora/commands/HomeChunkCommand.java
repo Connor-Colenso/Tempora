@@ -2,7 +2,7 @@ package com.colen.tempora.commands;
 
 import static com.colen.tempora.Tempora.LOG;
 import static com.colen.tempora.TemporaEvents.PLAYER_MOVEMENT;
-import static com.colen.tempora.loggers.generic.GenericQueueElement.teleportChatComponent;
+import static com.colen.tempora.loggers.generic.GenericEventInfo.teleportChatComponent;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -18,8 +18,8 @@ import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 
 import com.colen.tempora.TemporaLoggerManager;
+import com.colen.tempora.loggers.generic.GenericEventInfo;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
-import com.colen.tempora.loggers.generic.GenericQueueElement;
 import com.colen.tempora.utils.PlayerUtils;
 import com.colen.tempora.utils.TimeUtils;
 
@@ -170,7 +170,7 @@ public class HomeChunkCommand extends CommandBase {
                     homeY,
                     homeZ,
                     dim,
-                    GenericQueueElement.CoordFormat.FLOAT_1DP);
+                    GenericEventInfo.CoordFormat.FLOAT_1DP);
 
                 sender.addChatMessage(
                     new ChatComponentTranslation(

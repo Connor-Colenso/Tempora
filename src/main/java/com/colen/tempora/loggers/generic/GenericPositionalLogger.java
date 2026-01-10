@@ -37,19 +37,19 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
 @SuppressWarnings("SqlDialectInspection")
-public abstract class GenericPositionalLogger<EventToLog extends GenericQueueElement> {
+public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo> {
 
     protected PositionalLoggerDatabase databaseManager = new PositionalLoggerDatabase(this);
 
     private static volatile boolean running = true;
 
-    private final LinkedBlockingQueue<EventToLog> concurrentEventQueue = new LinkedBlockingQueue<>();
-    protected List<EventToLog> transparentEventsToRenderInWorld = new ArrayList<>();
-    protected List<EventToLog> nonTransparentEventsToRenderInWorld = new ArrayList<>();
+    private final LinkedBlockingQueue<EventInfo> concurrentEventQueue = new LinkedBlockingQueue<>();
+    protected List<EventInfo> transparentEventsToRenderInWorld = new ArrayList<>();
+    protected List<EventInfo> nonTransparentEventsToRenderInWorld = new ArrayList<>();
 
     private boolean isEnabled;
 
-    public void addEventToRender(EventToLog event) {
+    public void addEventToRender(EventInfo event) {
         event.eventRenderCreationTime = System.currentTimeMillis();
 
         if (event.needsTransparencyToRender()) {
@@ -60,30 +60,30 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
     }
 
     @SideOnly(Side.CLIENT)
-    public List<EventToLog> getSortedLatestEventsByDistance(Collection<EventToLog> input, RenderWorldLastEvent e) {
+    public List<EventInfo> getSortedLatestEventsByDistance(Collection<EventInfo> input, RenderWorldLastEvent e) {
         Minecraft mc = Minecraft.getMinecraft();
         int playerDim = mc.thePlayer.dimension;
 
-        Map<String, EventToLog> latestPerBlock = new HashMap<>();
+        Map<String, EventInfo> latestPerBlock = new HashMap<>();
 
-        for (EventToLog element : input) {
+        for (EventInfo element : input) {
             if (element.dimensionID != playerDim) continue;
 
             String key = (int) element.x + "," + (int) element.y + "," + (int) element.z;
-            EventToLog existing = latestPerBlock.get(key);
+            EventInfo existing = latestPerBlock.get(key);
 
             if (existing == null || element.timestamp > existing.timestamp) {
                 latestPerBlock.put(key, element);
             }
         }
 
-        List<EventToLog> sorted = new ArrayList<>(latestPerBlock.values());
+        List<EventInfo> sorted = new ArrayList<>(latestPerBlock.values());
         sortByDistanceDescending(sorted, e);
         return sorted;
     }
 
     @SideOnly(Side.CLIENT)
-    public void sortByDistanceDescending(List<EventToLog> list, RenderWorldLastEvent e) {
+    public void sortByDistanceDescending(List<EventInfo> list, RenderWorldLastEvent e) {
         Minecraft mc = Minecraft.getMinecraft();
         double px = mc.thePlayer.lastTickPosX + (mc.thePlayer.posX - mc.thePlayer.lastTickPosX) * e.partialTicks;
         double py = mc.thePlayer.lastTickPosY + (mc.thePlayer.posY - mc.thePlayer.lastTickPosY) * e.partialTicks;
@@ -93,7 +93,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
     }
 
     @SideOnly(Side.CLIENT)
-    private static double squaredDistance(GenericQueueElement e, double x, double y, double z) {
+    private static double squaredDistance(GenericEventInfo e, double x, double y, double z) {
         double dx = e.x - x;
         double dy = e.y - y;
         double dz = e.z - z;
@@ -133,17 +133,17 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
         throw new IllegalStateException("Unsupported field type: " + type);
     }
 
-    public abstract @NotNull EventToLog getQueueElementInstance();
+    public abstract @NotNull EventInfo getEventInfoInstance();
 
-    public @NotNull List<EventToLog> generateQueryResults(ResultSet resultSet) throws SQLException {
+    public @NotNull List<EventInfo> generateQueryResults(ResultSet resultSet) throws SQLException {
 
-        List<EventToLog> eventList = new ArrayList<>();
+        List<EventInfo> eventList = new ArrayList<>();
 
         try {
             List<Field> fields = getAllAnnotatedFieldsAlphabetically();
 
             while (resultSet.next()) {
-                EventToLog element = getQueueElementInstance();
+                EventInfo element = getEventInfoInstance();
 
                 // Populate base fields once
                 element.populateDefaultFieldsFromResultSet(resultSet);
@@ -205,7 +205,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
 
     // Annoying!
     @SuppressWarnings("unchecked")
-    protected Class<EventToLog> inferEventToLogClass() {
+    protected Class<EventInfo> inferEventToLogClass() {
         Type type = getClass().getGenericSuperclass();
 
         if (!(type instanceof ParameterizedType)) {
@@ -215,7 +215,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
         Type arg = ((ParameterizedType) type).getActualTypeArguments()[0];
 
         if (arg instanceof Class<?>) {
-            return (Class<EventToLog>) arg;
+            return (Class<EventInfo>) arg;
         }
 
         throw new IllegalStateException("Cannot determine event class: " + arg);
@@ -238,7 +238,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
         }
     }
 
-    public final void queueEvent(EventToLog event) {
+    public final void queueEventInfo(EventInfo event) {
         if (!isEnabled) return;
         concurrentEventQueue.offer(event); // Non-blocking, thread-safe
     }
@@ -260,7 +260,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
     private static final int LARGE_QUEUE_THRESHOLD = 5_000;
 
     private void queueLoop(String sqlTableName) {
-        List<EventToLog> buffer = new ArrayList<>();
+        List<EventInfo> buffer = new ArrayList<>();
 
         try {
             while (running || !concurrentEventQueue.isEmpty()) {
@@ -320,7 +320,7 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
         }
     }
 
-    public final LinkedBlockingQueue<EventToLog> getConcurrentEventQueue() {
+    public final LinkedBlockingQueue<EventInfo> getConcurrentEventQueue() {
         return concurrentEventQueue;
     }
 
@@ -379,13 +379,13 @@ public abstract class GenericPositionalLogger<EventToLog extends GenericQueueEle
     }
 
     // Todo also return if succeed or not, to tally up and return to user. Reasons also, then present them all?
-    public IChatComponent undoEvent(GenericQueueElement queueElement, EntityPlayer player) {
+    public IChatComponent undoEvent(GenericEventInfo eventInfo, EntityPlayer player) {
         throw new UnsupportedOperationException(
             "The class " + getLoggerName() + " supports undo but has no implementation.");
     }
 
-    public final void undoEvents(List<? extends GenericQueueElement> results, EntityPlayer player) {
-        for (GenericQueueElement element : results) {
+    public final void undoEvents(List<? extends GenericEventInfo> results, EntityPlayer player) {
+        for (GenericEventInfo element : results) {
             undoEvent(element, player);
         }
     }
