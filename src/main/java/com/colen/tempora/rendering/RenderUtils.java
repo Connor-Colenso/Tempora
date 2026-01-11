@@ -487,4 +487,274 @@ public abstract class RenderUtils {
         GL11.glPopMatrix();
     }
 
+    private static double clamp(double v, double a, double b) {
+        return v < a ? a : (v > b ? b : v);
+    }
+
+    private static boolean quadInRange(double camX, double camY, double camZ,
+                                       double rangeSq,
+                                       double x0, double y0, double z0,
+                                       double x1, double y1, double z1) {
+        // Closest point on the quad’s AABB (works because each quad is axis-aligned)
+        double px = clamp(camX, Math.min(x0, x1), Math.max(x0, x1));
+        double py = clamp(camY, Math.min(y0, y1), Math.max(y0, y1));
+        double pz = clamp(camZ, Math.min(z0, z1), Math.max(z0, z1));
+        double dx = camX - px, dy = camY - py, dz = camZ - pz;
+        return (dx*dx + dy*dy + dz*dz) <= rangeSq;
+    }
+
+    /**
+     * Renders a semi-transparent checkerboard cuboid in world space.
+     *
+     * Call this from RenderWorldLastEvent (on the client render thread).
+     *
+     * @param startX min corner X (world)
+     * @param startY min corner Y (world)
+     * @param startZ min corner Z (world)
+     * @param endX   max corner X (world)
+     * @param endY   max corner Y (world)
+     * @param endZ   max corner Z (world)
+     */
+    public static void renderCheckerDebugCuboidWithRange(RenderWorldLastEvent e,
+                                                         double startX, double startY, double startZ,
+                                                         double endX,   double endY,   double endZ,
+                                                         double range) {
+
+        if (range <= 0) return;
+
+        final int COLOR_A = 0x80AAAAAA;
+        final int COLOR_B = 0x80888888;
+        final double EPS = 0.005;
+
+        double minX = Math.min(startX, endX) + EPS;
+        double minY = Math.min(startY, endY) + EPS;
+        double minZ = Math.min(startZ, endZ) + EPS;
+        double maxX = Math.max(startX, endX) - EPS;
+        double maxY = Math.max(startY, endY) - EPS;
+        double maxZ = Math.max(startZ, endZ) - EPS;
+
+        if (maxX <= minX || maxY <= minY || maxZ <= minZ) return;
+
+        final Minecraft mc = Minecraft.getMinecraft();
+        final Entity view = mc.renderViewEntity;
+        final float pt = e.partialTicks;
+
+        final double camX = view.lastTickPosX + (view.posX - view.lastTickPosX) * pt;
+        final double camY = view.lastTickPosY + (view.posY - view.lastTickPosY) * pt;
+        final double camZ = view.lastTickPosZ + (view.posZ - view.lastTickPosZ) * pt;
+
+        final double rangeSq = range * range;
+
+        // Early-out: if camera is farther than range from the cuboid AABB, no tiles can be in range.
+        double ddx = 0, ddy = 0, ddz = 0;
+        if (camX < minX) ddx = minX - camX; else if (camX > maxX) ddx = camX - maxX;
+        if (camY < minY) ddy = minY - camY; else if (camY > maxY) ddy = camY - maxY;
+        if (camZ < minZ) ddz = minZ - camZ; else if (camZ > maxZ) ddz = camZ - maxZ;
+        if (ddx*ddx + ddy*ddy + ddz*ddz > rangeSq) return;
+
+        GL11.glPushMatrix();
+        GL11.glTranslated(-camX, -camY, -camZ);
+
+        GL11.glPushAttrib(
+            GL11.GL_ENABLE_BIT | GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT | GL11.GL_LIGHTING_BIT);
+        GL11.glDisable(GL11.GL_LIGHTING);
+        GL11.glDisable(GL11.GL_TEXTURE_2D);
+        GL11.glEnable(GL11.GL_BLEND);
+        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+        GL11.glEnable(GL11.GL_DEPTH_TEST);
+        GL11.glDepthMask(false);
+        GL11.glDisable(GL11.GL_CULL_FACE);
+
+        final Tessellator t = Tessellator.instance;
+        t.startDrawingQuads();
+
+        final int ix0 = (int) Math.floor(minX), ix1 = (int) Math.ceil(maxX);
+        final int iy0 = (int) Math.floor(minY), iy1 = (int) Math.ceil(maxY);
+        final int iz0 = (int) Math.floor(minZ), iz1 = (int) Math.ceil(maxZ);
+
+        final int faceCellXMin = (int) Math.floor(minX + 1.0e-6);
+        final int faceCellXMax = (int) Math.floor(maxX - 1.0e-6);
+        final int faceCellYMin = (int) Math.floor(minY + 1.0e-6);
+        final int faceCellYMax = (int) Math.floor(maxY - 1.0e-6);
+        final int faceCellZMin = (int) Math.floor(minZ + 1.0e-6);
+        final int faceCellZMax = (int) Math.floor(maxZ - 1.0e-6);
+
+        // -------------------------
+        // TOP (+Y) and BOTTOM (-Y)
+        // -------------------------
+        for (int xi = ix0; xi < ix1; xi++) {
+            final double xa = Math.max(minX, xi);
+            final double xb = Math.min(maxX, xi + 1.0);
+            if (xb <= xa) continue;
+
+            for (int zi = iz0; zi < iz1; zi++) {
+                final double za = Math.max(minZ, zi);
+                final double zb = Math.min(maxZ, zi + 1.0);
+                if (zb <= za) continue;
+
+                // Top quad range test (plane y = maxY)
+                double px = camX < xa ? xa : (camX > xb ? xb : camX);
+                double pz = camZ < za ? za : (camZ > zb ? zb : camZ);
+                double dx = camX - px, dy = camY - maxY, dz = camZ - pz;
+                if (dx*dx + dy*dy + dz*dz > rangeSq) continue;
+
+                final int parity = (xi + faceCellYMax + zi) & 1;
+                final int col = (parity == 0) ? COLOR_A : COLOR_B;
+                t.setColorRGBA((col >> 16) & 255, (col >> 8) & 255, col & 255, (col >> 24) & 255);
+
+                t.addVertex(xa, maxY, za);
+                t.addVertex(xb, maxY, za);
+                t.addVertex(xb, maxY, zb);
+                t.addVertex(xa, maxY, zb);
+            }
+        }
+
+        for (int xi = ix0; xi < ix1; xi++) {
+            final double xa = Math.max(minX, xi);
+            final double xb = Math.min(maxX, xi + 1.0);
+            if (xb <= xa) continue;
+
+            for (int zi = iz0; zi < iz1; zi++) {
+                final double za = Math.max(minZ, zi);
+                final double zb = Math.min(maxZ, zi + 1.0);
+                if (zb <= za) continue;
+
+                // Bottom quad range test (plane y = minY)
+                double px = camX < xa ? xa : (Math.min(camX, xb));
+                double pz = camZ < za ? za : (Math.min(camZ, zb));
+                double dx = camX - px, dy = camY - minY, dz = camZ - pz;
+                if (dx*dx + dy*dy + dz*dz > rangeSq) continue;
+
+                final int parity = (xi + faceCellYMin + zi) & 1;
+                final int col = (parity == 0) ? COLOR_A : COLOR_B;
+                t.setColorRGBA((col >> 16) & 255, (col >> 8) & 255, col & 255, (col >> 24) & 255);
+
+                t.addVertex(xa, minY, zb);
+                t.addVertex(xb, minY, zb);
+                t.addVertex(xb, minY, za);
+                t.addVertex(xa, minY, za);
+            }
+        }
+
+        // -------------------------
+        // +X and -X faces (YZ grid)
+        // -------------------------
+        for (int yi = iy0; yi < iy1; yi++) {
+            final double ya = Math.max(minY, yi);
+            final double yb = Math.min(maxY, yi + 1.0);
+            if (yb <= ya) continue;
+
+            for (int zi = iz0; zi < iz1; zi++) {
+                final double za = Math.max(minZ, zi);
+                final double zb = Math.min(maxZ, zi + 1.0);
+                if (zb <= za) continue;
+
+                // +X quad range test (plane x = maxX)
+                double py = camY < ya ? ya : (Math.min(camY, yb));
+                double pz = camZ < za ? za : (Math.min(camZ, zb));
+                double dx = camX - maxX, dy = camY - py, dz = camZ - pz;
+                if (dx*dx + dy*dy + dz*dz > rangeSq) continue;
+
+                final int parity = (faceCellXMax + yi + zi) & 1;
+                final int col = (parity == 0) ? COLOR_A : COLOR_B;
+                t.setColorRGBA((col >> 16) & 255, (col >> 8) & 255, col & 255, (col >> 24) & 255);
+
+                t.addVertex(maxX, ya, za);
+                t.addVertex(maxX, ya, zb);
+                t.addVertex(maxX, yb, zb);
+                t.addVertex(maxX, yb, za);
+            }
+        }
+
+        for (int yi = iy0; yi < iy1; yi++) {
+            final double ya = Math.max(minY, yi);
+            final double yb = Math.min(maxY, yi + 1.0);
+            if (yb <= ya) continue;
+
+            for (int zi = iz0; zi < iz1; zi++) {
+                final double za = Math.max(minZ, zi);
+                final double zb = Math.min(maxZ, zi + 1.0);
+                if (zb <= za) continue;
+
+                // -X quad range test (plane x = minX)
+                double py = camY < ya ? ya : (Math.min(camY, yb));
+                double pz = camZ < za ? za : (Math.min(camZ, zb));
+                double dx = camX - minX, dy = camY - py, dz = camZ - pz;
+                if (dx*dx + dy*dy + dz*dz > rangeSq) continue;
+
+                final int parity = (faceCellXMin + yi + zi) & 1;
+                final int col = (parity == 0) ? COLOR_A : COLOR_B;
+                t.setColorRGBA((col >> 16) & 255, (col >> 8) & 255, col & 255, (col >> 24) & 255);
+
+                t.addVertex(minX, ya, zb);
+                t.addVertex(minX, ya, za);
+                t.addVertex(minX, yb, za);
+                t.addVertex(minX, yb, zb);
+            }
+        }
+
+        // -------------------------
+        // +Z and -Z faces (XY grid)
+        // -------------------------
+        for (int xi = ix0; xi < ix1; xi++) {
+            final double xa = Math.max(minX, xi);
+            final double xb = Math.min(maxX, xi + 1.0);
+            if (xb <= xa) continue;
+
+            for (int yi = iy0; yi < iy1; yi++) {
+                final double ya = Math.max(minY, yi);
+                final double yb = Math.min(maxY, yi + 1.0);
+                if (yb <= ya) continue;
+
+                // +Z quad range test (plane z = maxZ)
+                double px = camX < xa ? xa : (Math.min(camX, xb));
+                double py = camY < ya ? ya : (Math.min(camY, yb));
+                double dx = camX - px, dy = camY - py, dz = camZ - maxZ;
+                if (dx*dx + dy*dy + dz*dz > rangeSq) continue;
+
+                final int parity = (xi + yi + faceCellZMax) & 1;
+                final int col = (parity == 0) ? COLOR_A : COLOR_B;
+                t.setColorRGBA((col >> 16) & 255, (col >> 8) & 255, col & 255, (col >> 24) & 255);
+
+                t.addVertex(xa, ya, maxZ);
+                t.addVertex(xb, ya, maxZ);
+                t.addVertex(xb, yb, maxZ);
+                t.addVertex(xa, yb, maxZ);
+            }
+        }
+
+        for (int xi = ix0; xi < ix1; xi++) {
+            final double xa = Math.max(minX, xi);
+            final double xb = Math.min(maxX, xi + 1.0);
+            if (xb <= xa) continue;
+
+            for (int yi = iy0; yi < iy1; yi++) {
+                final double ya = Math.max(minY, yi);
+                final double yb = Math.min(maxY, yi + 1.0);
+                if (yb <= ya) continue;
+
+                // -Z quad range test (plane z = minZ)
+                double px = camX < xa ? xa : (Math.min(camX, xb));
+                double py = camY < ya ? ya : (Math.min(camY, yb));
+                double dx = camX - px, dy = camY - py, dz = camZ - minZ;
+                if (dx*dx + dy*dy + dz*dz > rangeSq) continue;
+
+                final int parity = (xi + yi + faceCellZMin) & 1;
+                final int col = (parity == 0) ? COLOR_A : COLOR_B;
+                t.setColorRGBA((col >> 16) & 255, (col >> 8) & 255, col & 255, (col >> 24) & 255);
+
+                t.addVertex(xb, ya, minZ);
+                t.addVertex(xa, ya, minZ);
+                t.addVertex(xa, yb, minZ);
+                t.addVertex(xb, yb, minZ);
+            }
+        }
+
+        t.draw();
+
+        GL11.glDepthMask(true);
+        GL11.glPopAttrib();
+        GL11.glPopMatrix();
+    }
+
 }

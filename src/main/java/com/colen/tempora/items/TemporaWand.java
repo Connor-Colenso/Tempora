@@ -1,10 +1,14 @@
 package com.colen.tempora.items;
 
 import static com.colen.tempora.Tempora.LOG;
+import static com.colen.tempora.Tempora.NETWORK;
 import static com.colen.tempora.loggers.generic.GenericEventInfo.teleportChatComponent;
 
+import com.colen.tempora.loggers.block_change.region_registry.RenderRegionAlternatingCheckers;
+import com.colen.tempora.networking.PacketShowRegionInWorld;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ChatComponentTranslation;
@@ -46,15 +50,25 @@ public class TemporaWand extends Item {
     @Override
     public boolean onItemUse(ItemStack stack, EntityPlayer player, World world, int x, int y, int z, int side,
         float hitX, float hitY, float hitZ) {
-        if (TemporaUtils.isClientSide()) return true;
+        if (!(player instanceof EntityPlayerMP entityPlayerMP)) return false;
 
         int px = x + Facing.offsetsXForSide[side];
         int py = y + Facing.offsetsYForSide[side];
         int pz = z + Facing.offsetsZForSide[side];
 
-        checkSpot(player, px, py, pz);
+        checkSpot(entityPlayerMP, px, py, pz);
 
-        // Todo send client render packet to highlight selected coordinate.
+        // Send client render packet to highlight selected coordinate.
+        RenderRegionAlternatingCheckers region =
+            new RenderRegionAlternatingCheckers(
+                entityPlayerMP.dimension,
+                px,     py,     pz,
+                px + 1, py + 1, pz + 1,
+                System.currentTimeMillis()
+            );
+
+        NETWORK.sendTo(new PacketShowRegionInWorld.RegionMsg(region), entityPlayerMP);
+
 
         return true;
     }
