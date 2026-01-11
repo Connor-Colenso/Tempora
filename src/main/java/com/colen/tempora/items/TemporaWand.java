@@ -4,8 +4,6 @@ import static com.colen.tempora.Tempora.LOG;
 import static com.colen.tempora.Tempora.NETWORK;
 import static com.colen.tempora.loggers.generic.GenericEventInfo.teleportChatComponent;
 
-import com.colen.tempora.loggers.block_change.region_registry.RenderRegionAlternatingCheckers;
-import com.colen.tempora.networking.PacketShowRegionInWorld;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -19,8 +17,10 @@ import net.minecraft.world.World;
 
 import com.colen.tempora.TemporaLoggerManager;
 import com.colen.tempora.TemporaUtils;
+import com.colen.tempora.loggers.block_change.region_registry.RenderRegionAlternatingCheckers;
 import com.colen.tempora.loggers.generic.GenericEventInfo;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
+import com.colen.tempora.networking.PacketShowRegionInWorld;
 import com.colen.tempora.utils.PlayerUtils;
 
 public class TemporaWand extends Item {
@@ -59,16 +59,17 @@ public class TemporaWand extends Item {
         checkSpot(entityPlayerMP, px, py, pz);
 
         // Send client render packet to highlight selected coordinate.
-        RenderRegionAlternatingCheckers region =
-            new RenderRegionAlternatingCheckers(
-                entityPlayerMP.dimension,
-                px,     py,     pz,
-                px + 1, py + 1, pz + 1,
-                System.currentTimeMillis()
-            );
+        RenderRegionAlternatingCheckers region = new RenderRegionAlternatingCheckers(
+            entityPlayerMP.dimension,
+            px,
+            py,
+            pz,
+            px + 1,
+            py + 1,
+            pz + 1,
+            System.currentTimeMillis());
 
         NETWORK.sendTo(new PacketShowRegionInWorld.RegionMsg(region), entityPlayerMP);
-
 
         return true;
     }
