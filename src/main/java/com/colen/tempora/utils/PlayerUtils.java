@@ -68,7 +68,8 @@ public class PlayerUtils {
         if (!(player instanceof EntityPlayerMP playerMP)) return false;
 
         MinecraftServer server = playerMP.mcServer;
-        return server.getConfigurationManager().func_152596_g(player.getGameProfile());
+        return server.getConfigurationManager()
+            .func_152596_g(player.getGameProfile());
     }
 
     /**
