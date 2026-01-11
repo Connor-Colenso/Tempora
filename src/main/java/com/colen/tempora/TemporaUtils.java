@@ -17,7 +17,7 @@ import cpw.mods.fml.relauncher.Side;
 public class TemporaUtils {
 
     public static final String UNKNOWN_PLAYER_NAME = "tempora.unknown.player";
-    public static final String UNKNOWN_CAUSE = "tempora.unknown.cause"; // todo use
+    public static final String UNKNOWN_CAUSE = "tempora.unknown.cause";
     public static final String ERROR = "tempora.unknown.uuid.to.player.error";
 
     public static Path databaseDir() {
