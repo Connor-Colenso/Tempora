@@ -15,6 +15,7 @@ public final class RegionToRender {
                                     // client side.
 
     public final Color color = getRandomBrightColor();
+    public String channel;
 
     public RegionToRender(int dim, double x1, double y1, double z1, double x2, double y2, double z2,
         long posPrintTime) {
