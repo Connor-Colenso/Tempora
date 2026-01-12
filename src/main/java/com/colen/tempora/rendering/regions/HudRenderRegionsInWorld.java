@@ -44,7 +44,7 @@ public class HudRenderRegionsInWorld {
 
         // Count regions the player is inside
         int regionsInside = 0;
-        for (RegionToRender region : PacketShowRegionInWorld.CLIENT_BLOCK_CHANGE_REGIONS) {
+        for (RegionToRender region : PacketShowRegionInWorld.CLIENT_REGIONS) {
             if (region.dim != player.dimension) continue;
             if (region.contains(player.dimension, player.posX, player.posY, player.posZ)) {
                 regionsInside++;
@@ -54,7 +54,7 @@ public class HudRenderRegionsInWorld {
         int yOffset = 5;
 
         // Draw descriptor centered at top.
-        if (!PacketShowRegionInWorld.CLIENT_BLOCK_CHANGE_REGIONS.isEmpty()) {
+        if (!PacketShowRegionInWorld.CLIENT_REGIONS.isEmpty()) {
             String descriptorText = StatCollector
                 .translateToLocalFormatted("tempora.HUD.region.descriptor", formatNumber(regionsInside));
             font.drawString(descriptorText, (screenWidth - font.getStringWidth(descriptorText)) / 2, yOffset, 0xFFFFFF);
@@ -63,7 +63,7 @@ public class HudRenderRegionsInWorld {
         // Draw each region below, numbered, with bullets
         int lineHeight = 10;
         int index = 1;
-        for (RegionToRender region : PacketShowRegionInWorld.CLIENT_BLOCK_CHANGE_REGIONS) {
+        for (RegionToRender region : PacketShowRegionInWorld.CLIENT_REGIONS) {
             if (region.dim != player.dimension) continue;
             if (region.contains(player.dimension, player.posX, player.posY, player.posZ)) {
                 String regionText = StatCollector.translateToLocalFormatted(
