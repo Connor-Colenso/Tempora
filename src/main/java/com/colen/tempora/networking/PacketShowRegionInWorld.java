@@ -6,6 +6,7 @@ import java.util.List;
 
 import com.colen.tempora.loggers.block_change.region_registry.RegionToRender;
 
+import cpw.mods.fml.common.network.ByteBufUtils;
 import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import cpw.mods.fml.common.network.simpleimpl.IMessageHandler;
 import cpw.mods.fml.common.network.simpleimpl.MessageContext;
@@ -13,11 +14,19 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
 
+import static com.colen.tempora.Tempora.LOG;
+
 /** Region list sync -> client */
 public final class PacketShowRegionInWorld {
 
     @SideOnly(Side.CLIENT)
-    public static final List<RegionToRender> CLIENT_REGIONS = Collections.synchronizedList(new ArrayList<>());
+    public static final List<RegionToRender> CLIENT_BLOCK_CHANGE_REGIONS = Collections.synchronizedList(new ArrayList<>());
+    public static final String BLOCK_CHANGE_REGION_CHANNEL_ID = "block_change_region";
+
+    @SideOnly(Side.CLIENT)
+    public static final List<RegionToRender> CLIENT_TEMPORA_WAND_REGIONS = Collections.synchronizedList(new ArrayList<>());
+    public static final String TEMPORA_WAND_REGION_CHANNEL_ID = "tempora_wand_region";
+
 
     public static final class RegionMsg implements IMessage {
 
@@ -47,6 +56,7 @@ public final class PacketShowRegionInWorld {
                 buf.writeDouble(r.maxX);
                 buf.writeDouble(r.maxY);
                 buf.writeDouble(r.maxZ);
+                ByteBufUtils.writeUTF8String(buf, r.channel);
             }
         }
 
@@ -55,10 +65,15 @@ public final class PacketShowRegionInWorld {
             int n = buf.readInt();
             list = new ArrayList<>(n);
             for (int i = 0; i < n; i++) {
+
                 int dim = buf.readInt();
-                int x1 = buf.readInt(), y1 = buf.readInt(), z1 = buf.readInt();
-                int x2 = buf.readInt(), y2 = buf.readInt(), z2 = buf.readInt();
-                list.add(new RegionToRender(dim, x1, y1, z1, x2, y2, z2, System.currentTimeMillis()));
+                double x1 = buf.readDouble(), y1 = buf.readDouble(), z1 = buf.readDouble();
+                double x2 = buf.readDouble(), y2 = buf.readDouble(), z2 = buf.readDouble();
+
+                RegionToRender region = new RegionToRender(dim, x1, y1, z1, x2, y2, z2, System.currentTimeMillis());
+                region.channel = ByteBufUtils.readUTF8String(buf);
+
+                list.add(region);
             }
         }
 
@@ -68,8 +83,18 @@ public final class PacketShowRegionInWorld {
             @Override
             @SideOnly(Side.CLIENT)
             public IMessage onMessage(RegionMsg msg, MessageContext ctx) {
-                CLIENT_REGIONS.clear();
-                CLIENT_REGIONS.addAll(msg.list);
+                CLIENT_BLOCK_CHANGE_REGIONS.clear();
+
+                for (RegionToRender r : msg.list) {
+                    if (r.channel.equals(BLOCK_CHANGE_REGION_CHANNEL_ID)) {
+                        CLIENT_BLOCK_CHANGE_REGIONS.add(r);
+                    } else if (r.channel.equals(TEMPORA_WAND_REGION_CHANNEL_ID)) {
+                        CLIENT_TEMPORA_WAND_REGIONS.add(r);
+                    } else {
+                        LOG.error("Unknown channel for tempora region renderer: {}", r.channel);
+                    }
+                }
+
                 return null;
             }
         }

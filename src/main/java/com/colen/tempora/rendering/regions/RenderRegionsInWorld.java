@@ -1,6 +1,6 @@
 package com.colen.tempora.rendering.regions;
 
-import static com.colen.tempora.networking.PacketShowRegionInWorld.CLIENT_REGIONS;
+import static com.colen.tempora.networking.PacketShowRegionInWorld.CLIENT_BLOCK_CHANGE_REGIONS;
 import static com.colen.tempora.rendering.RenderUtils.correctForCamera;
 
 import net.minecraft.client.Minecraft;
@@ -27,7 +27,7 @@ public final class RenderRegionsInWorld {
     public void onRender(RenderWorldLastEvent e) {
         int curDim = Minecraft.getMinecraft().thePlayer.dimension;
 
-        for (RegionToRender r : CLIENT_REGIONS) {
+        for (RegionToRender r : CLIENT_BLOCK_CHANGE_REGIONS) {
             if (r.dim != curDim) continue;
             GL11.glPushMatrix();
             correctForCamera(e);
@@ -60,7 +60,7 @@ public final class RenderRegionsInWorld {
         }
 
         double expiryCutoff = System.currentTimeMillis() - SECONDS_RENDERING_DURATION * 1000L;
-        CLIENT_REGIONS.removeIf(intRegion -> intRegion.posPrintTime < expiryCutoff);
+        CLIENT_BLOCK_CHANGE_REGIONS.removeIf(intRegion -> intRegion.posPrintTime < expiryCutoff);
     }
 
 }
