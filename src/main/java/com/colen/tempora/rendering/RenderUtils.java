@@ -3,7 +3,6 @@ package com.colen.tempora.rendering;
 import java.awt.Color;
 import java.util.List;
 import java.util.Random;
-import java.util.function.IntUnaryOperator;
 
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
@@ -253,18 +252,16 @@ public abstract class RenderUtils {
 
     public static Color getRandomBrightColor() {
         float hue = rand.nextFloat(); // 0.0 to 1.0
-        float saturation = 0.9f;      // Keep saturation high for vivid color
-        float brightness = 1.0f;      // Max brightness
+        float saturation = 0.9f; // Keep saturation high for vivid color
+        float brightness = 1.0f; // Max brightness
         return Color.getHSBColor(hue, saturation, brightness);
     }
 
     /**
      * Assumes called from RenderWorldLastEvent and camera translation already applied.
      */
-    public static void renderBoundingBox(
-        double startX, double startY, double startZ,
-        double endX,   double endY,   double endZ
-    ) {
+    public static void renderBoundingBox(double startX, double startY, double startZ, double endX, double endY,
+        double endZ) {
 
         // Normalize coords (allow start > end) & shrink slightly to prevent z-fighting.
         final double minX = Math.min(startX, endX);

@@ -3,13 +3,13 @@ package com.colen.tempora.rendering.regions;
 import static com.colen.tempora.networking.PacketShowRegionInWorld.CLIENT_REGIONS;
 import static com.colen.tempora.rendering.RenderUtils.correctForCamera;
 
-import com.colen.tempora.rendering.RenderUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 
 import org.lwjgl.opengl.GL11;
 
 import com.colen.tempora.loggers.block_change.region_registry.RegionToRender;
+import com.colen.tempora.rendering.RenderUtils;
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.relauncher.Side;
@@ -23,7 +23,6 @@ public final class RenderRegionsInWorld {
     public static final long SECONDS_RENDERING_DURATION = 20;
     public static final double epsi = 0.002;
 
-
     @SubscribeEvent
     public void onRender(RenderWorldLastEvent e) {
         int curDim = Minecraft.getMinecraft().thePlayer.dimension;
@@ -34,7 +33,13 @@ public final class RenderRegionsInWorld {
             correctForCamera(e);
 
             // todo range limits
-            RenderUtils.renderBoundingBox(r.minX + epsi, r.minY + epsi, r.minZ + epsi, r.maxX - epsi, r.maxY - epsi, r.maxZ - epsi);
+            RenderUtils.renderBoundingBox(
+                r.minX + epsi,
+                r.minY + epsi,
+                r.minZ + epsi,
+                r.maxX - epsi,
+                r.maxY - epsi,
+                r.maxZ - epsi);
 
             // Color region in.
             float[] rgb = r.color.getRGBColorComponents(null);
@@ -53,7 +58,6 @@ public final class RenderRegionsInWorld {
 
             GL11.glPopMatrix();
         }
-
 
         double expiryCutoff = System.currentTimeMillis() - SECONDS_RENDERING_DURATION * 1000L;
         CLIENT_REGIONS.removeIf(intRegion -> intRegion.posPrintTime < expiryCutoff);

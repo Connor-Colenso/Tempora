@@ -1,10 +1,10 @@
 package com.colen.tempora.loggers.block_change.region_registry;
 
-import net.minecraft.nbt.NBTTagCompound;
+import static com.colen.tempora.rendering.RenderUtils.getRandomBrightColor;
 
 import java.awt.Color;
 
-import static com.colen.tempora.rendering.RenderUtils.getRandomBrightColor;
+import net.minecraft.nbt.NBTTagCompound;
 
 public final class RegionToRender {
 
@@ -16,7 +16,8 @@ public final class RegionToRender {
 
     public final Color color = getRandomBrightColor();
 
-    public RegionToRender(int dim, double x1, double y1, double z1, double x2, double y2, double z2, long posPrintTime) {
+    public RegionToRender(int dim, double x1, double y1, double z1, double x2, double y2, double z2,
+        long posPrintTime) {
         this.dim = dim;
         this.minX = Math.min(x1, x2);
         this.minY = Math.min(y1, y2);

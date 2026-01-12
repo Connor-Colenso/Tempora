@@ -53,7 +53,8 @@ public class RemoveRegionCommand extends CommandBase {
         World world = sender.getEntityWorld();
         int dim = world.provider.dimensionId;
 
-        int removed = BlockChangeRegionRegistry.removeRegionsContainingCoordinate(dim, player.posX, player.posY, player.posZ);
+        int removed = BlockChangeRegionRegistry
+            .removeRegionsContainingCoordinate(dim, player.posX, player.posY, player.posZ);
 
         ChatComponentTranslation msg;
         if (removed > 0) {

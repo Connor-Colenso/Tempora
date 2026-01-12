@@ -4,7 +4,6 @@ import static com.colen.tempora.Tempora.LOG;
 import static com.colen.tempora.loggers.generic.GenericEventInfo.teleportChatComponent;
 import static com.colen.tempora.networking.PacketShowRegionInWorld.CLIENT_REGIONS;
 
-import com.colen.tempora.loggers.block_change.region_registry.RegionToRender;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -18,6 +17,7 @@ import net.minecraft.world.World;
 
 import com.colen.tempora.TemporaLoggerManager;
 import com.colen.tempora.TemporaUtils;
+import com.colen.tempora.loggers.block_change.region_registry.RegionToRender;
 import com.colen.tempora.loggers.generic.GenericEventInfo;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.utils.PlayerUtils;
@@ -60,17 +60,17 @@ public class TemporaWand extends Item {
         // If SP, just render the box. If MP, we continue onto further logic.
         if (!(player instanceof EntityPlayerMP entityPlayerMP)) {
 
-            CLIENT_REGIONS.add(new RegionToRender(
-                player.dimension,
-                px + epsi,
-                py + epsi,
-                pz + epsi,
-                px + 1 - epsi,
-                py + 1 - epsi,
-                pz + 1 - epsi,
-                System.currentTimeMillis()));
+            CLIENT_REGIONS.add(
+                new RegionToRender(
+                    player.dimension,
+                    px + epsi,
+                    py + epsi,
+                    pz + epsi,
+                    px + 1 - epsi,
+                    py + 1 - epsi,
+                    pz + 1 - epsi,
+                    System.currentTimeMillis()));
 
-//            RenderUtils.renderBoundingBox(px + epsi, px + epsi, px + epsi, px + 1 - epsi, px + 1 - epsi, px + 1 - epsi);
             return false;
         }
 
