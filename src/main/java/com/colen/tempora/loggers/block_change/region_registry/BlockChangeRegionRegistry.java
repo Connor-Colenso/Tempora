@@ -14,14 +14,14 @@ import net.minecraft.nbt.NBTTagList;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.storage.ISaveHandler;
 
-public final class RegionRegistry {
+public final class BlockChangeRegionRegistry {
 
     private static final String DIR_NAME = "tempora";
     private static final String FILE_NAME = "tempora_blockchange_regions.dat";
 
     private boolean loaded = false;
 
-    private static RegionRegistry instance;
+    private static BlockChangeRegionRegistry instance;
 
     private final Map<Integer, List<RegionToRender>> byDim = new HashMap<>();
     private boolean dirty = false;
@@ -53,7 +53,7 @@ public final class RegionRegistry {
 
     // Call on server startup.
     public static void loadNow() {
-        RegionRegistry r = get();
+        BlockChangeRegionRegistry r = get();
         if (!r.loaded) {
             r.load();
             r.loaded = true;
@@ -161,9 +161,9 @@ public final class RegionRegistry {
 
     // Singleton access
 
-    private static RegionRegistry get() {
+    private static BlockChangeRegionRegistry get() {
         if (instance == null) {
-            instance = new RegionRegistry();
+            instance = new BlockChangeRegionRegistry();
         }
         return instance;
     }

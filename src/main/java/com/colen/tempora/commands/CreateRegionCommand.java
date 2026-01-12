@@ -9,7 +9,7 @@ import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.world.World;
 
-import com.colen.tempora.loggers.block_change.region_registry.RegionRegistry;
+import com.colen.tempora.loggers.block_change.region_registry.BlockChangeRegionRegistry;
 import com.colen.tempora.loggers.block_change.region_registry.RegionToRender;
 import com.colen.tempora.loggers.generic.GenericEventInfo;
 import com.colen.tempora.utils.CommandUtils;
@@ -74,7 +74,7 @@ public class CreateRegionCommand extends CommandBase {
             coords[4],
             coords[5],
             System.currentTimeMillis());
-        RegionRegistry.add(region);
+        BlockChangeRegionRegistry.add(region);
 
         ChatComponentTranslation msg = new ChatComponentTranslation(
             "command.tempora.region.created",

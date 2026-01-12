@@ -17,7 +17,7 @@ import com.colen.tempora.commands.RemoveRegionCommand;
 import com.colen.tempora.commands.TemporaTpCommand;
 import com.colen.tempora.commands.TemporaUndoCommand;
 import com.colen.tempora.commands.TemporaUndoRangedCommand;
-import com.colen.tempora.loggers.block_change.region_registry.RegionRegistry;
+import com.colen.tempora.loggers.block_change.region_registry.BlockChangeRegionRegistry;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 
 import cpw.mods.fml.common.Mod;
@@ -80,7 +80,7 @@ public class Tempora {
             GenericPositionalLogger.onServerStart();
         }
 
-        RegionRegistry.loadNow();
+        BlockChangeRegionRegistry.loadNow();
     }
 
     private void registerNewCommands(FMLServerStartingEvent event) {
@@ -102,7 +102,7 @@ public class Tempora {
     public void serverStopping(FMLServerStoppingEvent event) {
         if (TemporaUtils.isServerSide()) {
             GenericPositionalLogger.onServerClose();
-            RegionRegistry.saveIfDirty();
+            BlockChangeRegionRegistry.saveIfDirty();
         }
     }
 }

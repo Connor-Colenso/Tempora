@@ -33,7 +33,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import com.colen.tempora.TemporaEvents;
 import com.colen.tempora.enums.LoggerEventType;
-import com.colen.tempora.loggers.block_change.region_registry.RegionRegistry;
+import com.colen.tempora.loggers.block_change.region_registry.BlockChangeRegionRegistry;
 import com.colen.tempora.loggers.generic.GenericEventInfo;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.utils.BlockUtils;
@@ -226,7 +226,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
 
         // Only log changes if (x, y, z) is inside a defined region. Unless config has entire world logging on.
         if (!globalBlockChangeLogging
-            && !RegionRegistry.containsBlock(world.provider.dimensionId, (int) x, (int) y, (int) z)) {
+            && !BlockChangeRegionRegistry.containsBlock(world.provider.dimensionId, (int) x, (int) y, (int) z)) {
             return;
         }
 
