@@ -1,17 +1,19 @@
 package com.colen.tempora.rendering.regions;
 
-import com.colen.tempora.loggers.block_change.region_registry.RegionToRender;
-import com.colen.tempora.networking.PacketShowRegionInWorld;
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.entity.EntityClientPlayerMP;
-import net.minecraftforge.client.event.RenderGameOverlayEvent;
-import net.minecraft.util.StatCollector;
-import net.minecraft.client.gui.ScaledResolution;
-
 import static com.gtnewhorizon.gtnhlib.util.numberformatting.NumberFormatUtil.formatNumber;
 import static com.gtnewhorizon.gtnhlib.util.numberformatting.NumberFormatUtil.formatNumberCompact;
+
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.entity.EntityClientPlayerMP;
+import net.minecraft.client.gui.FontRenderer;
+import net.minecraft.client.gui.ScaledResolution;
+import net.minecraft.util.StatCollector;
+import net.minecraftforge.client.event.RenderGameOverlayEvent;
+
+import com.colen.tempora.loggers.block_change.region_registry.RegionToRender;
+import com.colen.tempora.networking.PacketShowRegionInWorld;
+
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
 public class HudRenderRegionsInWorld {
 
@@ -53,7 +55,8 @@ public class HudRenderRegionsInWorld {
 
         // Draw descriptor centered at top.
         if (!PacketShowRegionInWorld.CLIENT_REGIONS.isEmpty()) {
-            String descriptorText = StatCollector.translateToLocalFormatted("tempora.HUD.region.descriptor", formatNumber(regionsInside));
+            String descriptorText = StatCollector
+                .translateToLocalFormatted("tempora.HUD.region.descriptor", formatNumber(regionsInside));
             font.drawString(descriptorText, (screenWidth - font.getStringWidth(descriptorText)) / 2, yOffset, 0xFFFFFF);
         }
 
@@ -63,9 +66,15 @@ public class HudRenderRegionsInWorld {
         for (RegionToRender region : PacketShowRegionInWorld.CLIENT_REGIONS) {
             if (region.dim != player.dimension) continue;
             if (region.contains(player.dimension, player.posX, player.posY, player.posZ)) {
-                String regionText = StatCollector.translateToLocalFormatted("tempora.HUD.region.list", index++, formatNumberCompact(region.getVolume()));
-                font.drawString(regionText, (screenWidth - font.getStringWidth(regionText)) / 2,
-                    yOffset + lineHeight * index, region.color.getRGB() & 0xFFFFFF);
+                String regionText = StatCollector.translateToLocalFormatted(
+                    "tempora.HUD.region.list",
+                    index++,
+                    formatNumberCompact(region.getVolume()));
+                font.drawString(
+                    regionText,
+                    (screenWidth - font.getStringWidth(regionText)) / 2,
+                    yOffset + lineHeight * index,
+                    region.color.getRGB() & 0xFFFFFF);
             }
         }
     }

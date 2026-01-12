@@ -1,11 +1,11 @@
 package com.colen.tempora;
 
-import com.colen.tempora.rendering.regions.HudRenderRegionsInWorld;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.common.MinecraftForge;
 
 import com.colen.tempora.rendering.RenderEventsInWorld;
 import com.colen.tempora.rendering.RenderIDsInWorld;
+import com.colen.tempora.rendering.regions.HudRenderRegionsInWorld;
 import com.colen.tempora.rendering.regions.RenderRegionsInWorld;
 import com.colen.tempora.utils.RenderingUtils;
 
