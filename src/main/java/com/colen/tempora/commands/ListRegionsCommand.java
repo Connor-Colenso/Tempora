@@ -11,7 +11,7 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 
-import com.colen.tempora.loggers.block_change.region_registry.RegionRegistry;
+import com.colen.tempora.loggers.block_change.region_registry.BlockChangeRegionRegistry;
 import com.colen.tempora.loggers.block_change.region_registry.RegionToRender;
 import com.colen.tempora.loggers.generic.GenericEventInfo.CoordFormat;
 import com.colen.tempora.networking.PacketShowRegionInWorld;
@@ -59,7 +59,7 @@ public class ListRegionsCommand extends CommandBase {
             return;
         }
 
-        List<RegionToRender> regions = RegionRegistry.getAll();
+        List<RegionToRender> regions = BlockChangeRegionRegistry.getAll();
 
         if (dimFilter != null) {
             regions.removeIf(r -> r.dim != dimFilter);

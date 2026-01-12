@@ -10,7 +10,7 @@ import net.minecraft.util.ChunkCoordinates;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.world.World;
 
-import com.colen.tempora.loggers.block_change.region_registry.RegionRegistry;
+import com.colen.tempora.loggers.block_change.region_registry.BlockChangeRegionRegistry;
 import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 
 /**
@@ -53,7 +53,7 @@ public class RemoveRegionCommand extends CommandBase {
         World world = sender.getEntityWorld();
         int dim = world.provider.dimensionId;
 
-        int removed = RegionRegistry.removeRegionsContainingCoordinate(dim, player.posX, player.posY, player.posZ);
+        int removed = BlockChangeRegionRegistry.removeRegionsContainingCoordinate(dim, player.posX, player.posY, player.posZ);
 
         ChatComponentTranslation msg;
         if (removed > 0) {
