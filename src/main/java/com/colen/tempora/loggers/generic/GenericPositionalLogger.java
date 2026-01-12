@@ -1,7 +1,7 @@
 package com.colen.tempora.loggers.generic;
 
 import static com.colen.tempora.Tempora.LOG;
-import static com.colen.tempora.rendering.RenderRegionsInWorld.SECONDS_RENDERING_DURATION;
+import static com.colen.tempora.rendering.regions.RenderRegionsInWorld.SECONDS_RENDERING_DURATION;
 
 import java.awt.Color;
 import java.lang.reflect.Field;
@@ -370,7 +370,8 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
             .removeIf(eventPosition -> eventPosition.eventRenderCreationTime < expiryCutoff);
     }
 
-    public Color getColour() {
+    // Begrudgingly American spelling.
+    public Color getColor() {
         return Color.RED;
     }
 

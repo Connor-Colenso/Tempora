@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import com.colen.tempora.loggers.block_change.region_registry.RenderRegionAlternatingCheckers;
+import com.colen.tempora.loggers.block_change.region_registry.RegionToRender;
 
 import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import cpw.mods.fml.common.network.simpleimpl.IMessageHandler;
@@ -17,22 +17,21 @@ import io.netty.buffer.ByteBuf;
 public final class PacketShowRegionInWorld {
 
     @SideOnly(Side.CLIENT)
-    public static final List<RenderRegionAlternatingCheckers> CLIENT_REGIONS = Collections
-        .synchronizedList(new ArrayList<>());
+    public static final List<RegionToRender> CLIENT_REGIONS = Collections.synchronizedList(new ArrayList<>());
 
     public static final class RegionMsg implements IMessage {
 
-        private List<RenderRegionAlternatingCheckers> list = new ArrayList<>();
+        private List<RegionToRender> list = new ArrayList<>();
 
         // Empty constructor required to instantiate from reflection later.
         @SuppressWarnings("unused")
         public RegionMsg() {}
 
-        public RegionMsg(List<RenderRegionAlternatingCheckers> list) {
+        public RegionMsg(List<RegionToRender> list) {
             this.list = list;
         }
 
-        public RegionMsg(RenderRegionAlternatingCheckers region) {
+        public RegionMsg(RegionToRender region) {
             this.list = new ArrayList<>();
             this.list.add(region);
         }
@@ -40,14 +39,14 @@ public final class PacketShowRegionInWorld {
         @Override
         public void toBytes(ByteBuf buf) {
             buf.writeInt(list.size());
-            for (RenderRegionAlternatingCheckers r : list) {
+            for (RegionToRender r : list) {
                 buf.writeInt(r.dim);
-                buf.writeInt(r.minX);
-                buf.writeInt(r.minY);
-                buf.writeInt(r.minZ);
-                buf.writeInt(r.maxX);
-                buf.writeInt(r.maxY);
-                buf.writeInt(r.maxZ);
+                buf.writeDouble(r.minX);
+                buf.writeDouble(r.minY);
+                buf.writeDouble(r.minZ);
+                buf.writeDouble(r.maxX);
+                buf.writeDouble(r.maxY);
+                buf.writeDouble(r.maxZ);
             }
         }
 
@@ -59,7 +58,7 @@ public final class PacketShowRegionInWorld {
                 int dim = buf.readInt();
                 int x1 = buf.readInt(), y1 = buf.readInt(), z1 = buf.readInt();
                 int x2 = buf.readInt(), y2 = buf.readInt(), z2 = buf.readInt();
-                list.add(new RenderRegionAlternatingCheckers(dim, x1, y1, z1, x2, y2, z2, System.currentTimeMillis()));
+                list.add(new RegionToRender(dim, x1, y1, z1, x2, y2, z2, System.currentTimeMillis()));
             }
         }
 

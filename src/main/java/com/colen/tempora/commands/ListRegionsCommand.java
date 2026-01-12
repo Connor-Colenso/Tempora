@@ -12,7 +12,7 @@ import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 
 import com.colen.tempora.loggers.block_change.region_registry.RegionRegistry;
-import com.colen.tempora.loggers.block_change.region_registry.RenderRegionAlternatingCheckers;
+import com.colen.tempora.loggers.block_change.region_registry.RegionToRender;
 import com.colen.tempora.loggers.generic.GenericEventInfo.CoordFormat;
 import com.colen.tempora.networking.PacketShowRegionInWorld;
 import com.colen.tempora.utils.CommandUtils;
@@ -59,7 +59,7 @@ public class ListRegionsCommand extends CommandBase {
             return;
         }
 
-        List<RenderRegionAlternatingCheckers> regions = RegionRegistry.getAll();
+        List<RegionToRender> regions = RegionRegistry.getAll();
 
         if (dimFilter != null) {
             regions.removeIf(r -> r.dim != dimFilter);
@@ -72,7 +72,7 @@ public class ListRegionsCommand extends CommandBase {
 
         /* ---- list every region ---- */
         int idx = 1;
-        for (RenderRegionAlternatingCheckers r : regions) {
+        for (RegionToRender r : regions) {
 
             // Centre of the region for a sensible teleport target
             double cx = (r.minX + r.maxX) / 2.0;

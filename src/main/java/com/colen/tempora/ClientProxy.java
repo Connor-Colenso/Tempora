@@ -1,11 +1,12 @@
 package com.colen.tempora;
 
+import com.colen.tempora.rendering.regions.HudRenderRegionsInWorld;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.common.MinecraftForge;
 
 import com.colen.tempora.rendering.RenderEventsInWorld;
 import com.colen.tempora.rendering.RenderIDsInWorld;
-import com.colen.tempora.rendering.RenderRegionsInWorld;
+import com.colen.tempora.rendering.regions.RenderRegionsInWorld;
 import com.colen.tempora.utils.RenderingUtils;
 
 import codechicken.nei.api.API;
@@ -26,8 +27,11 @@ public class ClientProxy extends CommonProxy {
         super.init(event);
 
         MinecraftForge.EVENT_BUS.register(new RenderEventsInWorld());
-        MinecraftForge.EVENT_BUS.register(new RenderIDsInWorld());
         MinecraftForge.EVENT_BUS.register(new RenderRegionsInWorld());
+        MinecraftForge.EVENT_BUS.register(new HudRenderRegionsInWorld());
+
+        // Debug only.
+        MinecraftForge.EVENT_BUS.register(new RenderIDsInWorld());
     }
 
     @Override

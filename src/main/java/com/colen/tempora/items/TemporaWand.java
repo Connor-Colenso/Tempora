@@ -1,9 +1,10 @@
 package com.colen.tempora.items;
 
 import static com.colen.tempora.Tempora.LOG;
-import static com.colen.tempora.Tempora.NETWORK;
 import static com.colen.tempora.loggers.generic.GenericEventInfo.teleportChatComponent;
+import static com.colen.tempora.networking.PacketShowRegionInWorld.CLIENT_REGIONS;
 
+import com.colen.tempora.loggers.block_change.region_registry.RegionToRender;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -17,13 +18,14 @@ import net.minecraft.world.World;
 
 import com.colen.tempora.TemporaLoggerManager;
 import com.colen.tempora.TemporaUtils;
-import com.colen.tempora.loggers.block_change.region_registry.RenderRegionAlternatingCheckers;
 import com.colen.tempora.loggers.generic.GenericEventInfo;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
-import com.colen.tempora.networking.PacketShowRegionInWorld;
 import com.colen.tempora.utils.PlayerUtils;
 
 public class TemporaWand extends Item {
+
+    // Render shrink (prevents z-fighting).
+    public static final double epsi = 0.001;
 
     public TemporaWand() {
         this.setMaxStackSize(1);
@@ -50,26 +52,29 @@ public class TemporaWand extends Item {
     @Override
     public boolean onItemUse(ItemStack stack, EntityPlayer player, World world, int x, int y, int z, int side,
         float hitX, float hitY, float hitZ) {
-        if (!(player instanceof EntityPlayerMP entityPlayerMP)) return false;
 
         int px = x + Facing.offsetsXForSide[side];
         int py = y + Facing.offsetsYForSide[side];
         int pz = z + Facing.offsetsZForSide[side];
 
+        // If SP, just render the box. If MP, we continue onto further logic.
+        if (!(player instanceof EntityPlayerMP entityPlayerMP)) {
+
+            CLIENT_REGIONS.add(new RegionToRender(
+                player.dimension,
+                px + epsi,
+                py + epsi,
+                pz + epsi,
+                px + 1 - epsi,
+                py + 1 - epsi,
+                pz + 1 - epsi,
+                System.currentTimeMillis()));
+
+//            RenderUtils.renderBoundingBox(px + epsi, px + epsi, px + epsi, px + 1 - epsi, px + 1 - epsi, px + 1 - epsi);
+            return false;
+        }
+
         checkSpot(entityPlayerMP, px, py, pz);
-
-        // Send client render packet to highlight selected coordinate.
-        RenderRegionAlternatingCheckers region = new RenderRegionAlternatingCheckers(
-            entityPlayerMP.dimension,
-            px,
-            py,
-            pz,
-            px + 1,
-            py + 1,
-            pz + 1,
-            System.currentTimeMillis());
-
-        NETWORK.sendTo(new PacketShowRegionInWorld.RegionMsg(region), entityPlayerMP);
 
         return true;
     }

@@ -23,12 +23,12 @@ public final class RegionRegistry {
 
     private static RegionRegistry instance;
 
-    private final Map<Integer, List<RenderRegionAlternatingCheckers>> byDim = new HashMap<>();
+    private final Map<Integer, List<RegionToRender>> byDim = new HashMap<>();
     private boolean dirty = false;
 
     // Public API.
 
-    public static void add(RenderRegionAlternatingCheckers r) {
+    public static void add(RegionToRender r) {
         get().addRegion(r);
     }
 
@@ -40,7 +40,7 @@ public final class RegionRegistry {
         return get().removeContaining(dim, x, y, z);
     }
 
-    public static List<RenderRegionAlternatingCheckers> getAll() {
+    public static List<RegionToRender> getAll() {
         return get().allRegions();
     }
 
@@ -62,28 +62,28 @@ public final class RegionRegistry {
 
     // Internal logic.
 
-    private void addRegion(RenderRegionAlternatingCheckers r) {
+    private void addRegion(RegionToRender r) {
         byDim.computeIfAbsent(r.dim, d -> new ArrayList<>())
             .add(r);
         dirty = true;
     }
 
     private boolean contains(int dim, int x, int y, int z) {
-        List<RenderRegionAlternatingCheckers> list = byDim.get(dim);
+        List<RegionToRender> list = byDim.get(dim);
         if (list == null) return false;
 
-        for (RenderRegionAlternatingCheckers r : list) {
+        for (RegionToRender r : list) {
             if (r.contains(dim, x, y, z)) return true;
         }
         return false;
     }
 
     private int removeContaining(int dim, double x, double y, double z) {
-        List<RenderRegionAlternatingCheckers> list = byDim.get(dim);
+        List<RegionToRender> list = byDim.get(dim);
         if (list == null) return 0;
 
         int removed = 0;
-        for (Iterator<RenderRegionAlternatingCheckers> it = list.iterator(); it.hasNext();) {
+        for (Iterator<RegionToRender> it = list.iterator(); it.hasNext();) {
             if (it.next()
                 .contains(dim, x, y, z)) {
                 it.remove();
@@ -95,8 +95,8 @@ public final class RegionRegistry {
         return removed;
     }
 
-    private List<RenderRegionAlternatingCheckers> allRegions() {
-        List<RenderRegionAlternatingCheckers> out = new ArrayList<>();
+    private List<RegionToRender> allRegions() {
+        List<RegionToRender> out = new ArrayList<>();
         List<Integer> dims = new ArrayList<>(byDim.keySet());
         Collections.sort(dims);
 
@@ -141,7 +141,7 @@ public final class RegionRegistry {
 
         NBTTagList list = tag.getTagList("regions", 10);
         for (int i = 0; i < list.tagCount(); i++) {
-            RenderRegionAlternatingCheckers r = RenderRegionAlternatingCheckers.readNBT(list.getCompoundTagAt(i));
+            RegionToRender r = RegionToRender.readNBT(list.getCompoundTagAt(i));
             byDim.computeIfAbsent(r.dim, d -> new ArrayList<>())
                 .add(r);
         }
@@ -150,8 +150,8 @@ public final class RegionRegistry {
     private void writeToNBT(NBTTagCompound tag) {
         NBTTagList list = new NBTTagList();
 
-        for (List<RenderRegionAlternatingCheckers> regions : byDim.values()) {
-            for (RenderRegionAlternatingCheckers r : regions) {
+        for (List<RegionToRender> regions : byDim.values()) {
+            for (RegionToRender r : regions) {
                 list.appendTag(r.writeNBT());
             }
         }
