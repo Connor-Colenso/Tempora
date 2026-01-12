@@ -10,7 +10,7 @@ import net.minecraft.util.IChatComponent;
 import net.minecraft.world.World;
 
 import com.colen.tempora.loggers.block_change.region_registry.RegionRegistry;
-import com.colen.tempora.loggers.block_change.region_registry.RenderRegionAlternatingCheckers;
+import com.colen.tempora.loggers.block_change.region_registry.RegionToRender;
 import com.colen.tempora.loggers.generic.GenericEventInfo;
 import com.colen.tempora.utils.CommandUtils;
 
@@ -65,7 +65,7 @@ public class CreateRegionCommand extends CommandBase {
         World world = sender.getEntityWorld();
         int dim = world.provider.dimensionId;
 
-        RenderRegionAlternatingCheckers region = new RenderRegionAlternatingCheckers(
+        RegionToRender region = new RegionToRender(
             dim,
             coords[0],
             coords[1],

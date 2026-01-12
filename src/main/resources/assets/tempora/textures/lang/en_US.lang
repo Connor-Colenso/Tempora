@@ -113,3 +113,5 @@ tempora.command.force.must.be.numeric=Force must be a number.
 tempora.command.create.region.non.numeric.coordinate=All coordinates must be integers, found %s.
 
 tempora.uuid.display=UUID: %s
+tempora.HUD.region.descriptor=Currently inside %s regions:
+tempora.HUD.region.list=Region %s - Volume %s blocks.

@@ -24,7 +24,7 @@ import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
 import com.colen.tempora.TemporaLoggerManager;
-import com.colen.tempora.loggers.block_change.region_registry.RenderRegionAlternatingCheckers;
+import com.colen.tempora.loggers.block_change.region_registry.RegionToRender;
 import com.colen.tempora.loggers.generic.GenericEventInfo;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.RenderEventPacket;
@@ -161,7 +161,7 @@ public class TemporaUndoRangedCommand extends CommandBase {
         }
 
         // Renders the checker box region on the client.
-        RenderRegionAlternatingCheckers region = new RenderRegionAlternatingCheckers(
+        RegionToRender region = new RegionToRender(
             player.dimension,
             playerX - radius,
             playerY - radius,
