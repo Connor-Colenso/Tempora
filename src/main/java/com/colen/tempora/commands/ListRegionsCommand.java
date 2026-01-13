@@ -69,10 +69,8 @@ public class ListRegionsCommand extends CommandBase {
         }
 
         regions.sort(
-            Comparator
-                .comparingInt(RegionToRender::getDimID)
-                .thenComparingLong(RegionToRender::getRenderStartTimeMs)
-        );
+            Comparator.comparingInt(RegionToRender::getDimID)
+                .thenComparingLong(RegionToRender::getRenderStartTimeMs));
 
         if (regions.isEmpty()) {
             sender.addChatMessage(new ChatComponentTranslation("tempora.command.listregions.none"));

@@ -16,8 +16,8 @@ public class RegionToRender {
     private final double minX, minY, minZ;
     private final double maxX, maxY, maxZ;
 
-    private long renderStartTimeMs;        // when this object should start rendering
-    private long regionOriginTimeMs;       // when the region itself was defined
+    private long renderStartTimeMs; // when this object should start rendering
+    private long regionOriginTimeMs; // when the region itself was defined
     private String regionUUID;
     private String playerAuthorUUID;
     private Color color;
@@ -27,9 +27,7 @@ public class RegionToRender {
      * Constructor: defines the bounding box coordinates only (x1,y1,z1 -> x2,y2,z2).
      * The rest should be set via setters.
      */
-    public RegionToRender(int dimID,
-                          double x1, double y1, double z1,
-                          double x2, double y2, double z2) {
+    public RegionToRender(int dimID, double x1, double y1, double z1, double x2, double y2, double z2) {
         this.dimID = dimID;
         this.minX = Math.min(x1, x2);
         this.minY = Math.min(y1, y2);
@@ -47,32 +45,77 @@ public class RegionToRender {
         return dimID;
     }
 
-    public double getMinX() { return minX; }
-    public double getMinY() { return minY; }
-    public double getMinZ() { return minZ; }
-    public double getMaxX() { return maxX; }
-    public double getMaxY() { return maxY; }
-    public double getMaxZ() { return maxZ; }
+    public double getMinX() {
+        return minX;
+    }
 
-    public long getRenderStartTimeMs() { return renderStartTimeMs; }
+    public double getMinY() {
+        return minY;
+    }
+
+    public double getMinZ() {
+        return minZ;
+    }
+
+    public double getMaxX() {
+        return maxX;
+    }
+
+    public double getMaxY() {
+        return maxY;
+    }
+
+    public double getMaxZ() {
+        return maxZ;
+    }
+
+    public long getRenderStartTimeMs() {
+        return renderStartTimeMs;
+    }
+
     public void setRenderStartTimeMs(long renderStartTimeMs) {
         this.renderStartTimeMs = renderStartTimeMs;
     }
 
-    public long getRegionOriginTimeMs() { return regionOriginTimeMs; }
-    public void setRegionOriginTimeMs(long regionOriginTimeMs) { this.regionOriginTimeMs = regionOriginTimeMs; }
+    public long getRegionOriginTimeMs() {
+        return regionOriginTimeMs;
+    }
 
-    public String getRegionUUID() { return regionUUID; }
-    public void setRegionUUID(String regionUUID) { this.regionUUID = regionUUID; }
+    public void setRegionOriginTimeMs(long regionOriginTimeMs) {
+        this.regionOriginTimeMs = regionOriginTimeMs;
+    }
 
-    public String getPlayerAuthorUUID() { return playerAuthorUUID; }
-    public void setPlayerAuthorUUID(String playerAuthorUUID) { this.playerAuthorUUID = playerAuthorUUID; }
+    public String getRegionUUID() {
+        return regionUUID;
+    }
 
-    public Color getColor() { return color; }
-    public void setColor(Color color) { this.color = color; }
+    public void setRegionUUID(String regionUUID) {
+        this.regionUUID = regionUUID;
+    }
 
-    public RegionRenderMode getRenderMode() { return renderMode; }
-    public void setRenderMode(RegionRenderMode renderMode) { this.renderMode = renderMode; }
+    public String getPlayerAuthorUUID() {
+        return playerAuthorUUID;
+    }
+
+    public void setPlayerAuthorUUID(String playerAuthorUUID) {
+        this.playerAuthorUUID = playerAuthorUUID;
+    }
+
+    public Color getColor() {
+        return color;
+    }
+
+    public void setColor(Color color) {
+        this.color = color;
+    }
+
+    public RegionRenderMode getRenderMode() {
+        return renderMode;
+    }
+
+    public void setRenderMode(RegionRenderMode renderMode) {
+        this.renderMode = renderMode;
+    }
 
     /* ---------- Helpers ---------- */
 
@@ -87,9 +130,7 @@ public class RegionToRender {
         double dy = y.doubleValue();
         double dz = z.doubleValue();
 
-        return dx >= minX && dx < maxX
-                && dy >= minY && dy < maxY
-                && dz >= minZ && dz < maxZ;
+        return dx >= minX && dx < maxX && dy >= minY && dy < maxY && dz >= minZ && dz < maxZ;
     }
 
     /* ---------- NBT Serialization ---------- */
@@ -113,14 +154,13 @@ public class RegionToRender {
 
     public static RegionToRender readNBT(NBTTagCompound tag) {
         RegionToRender region = new RegionToRender(
-                tag.getInteger("dim"),
-                tag.getDouble("minX"),
-                tag.getDouble("minY"),
-                tag.getDouble("minZ"),
-                tag.getDouble("maxX"),
-                tag.getDouble("maxY"),
-                tag.getDouble("maxZ")
-        );
+            tag.getInteger("dim"),
+            tag.getDouble("minX"),
+            tag.getDouble("minY"),
+            tag.getDouble("minZ"),
+            tag.getDouble("maxX"),
+            tag.getDouble("maxY"),
+            tag.getDouble("maxZ"));
 
         region.renderStartTimeMs = tag.getLong("renderStartTimeMs");
         region.regionOriginTimeMs = tag.getLong("regionOriginTimeMs");

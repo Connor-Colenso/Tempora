@@ -2,13 +2,13 @@ package com.colen.tempora.rendering.regions;
 
 import static com.colen.tempora.rendering.RenderUtils.correctForCamera;
 
-import com.colen.tempora.rendering.ClientRegionStore;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 
 import org.lwjgl.opengl.GL11;
 
 import com.colen.tempora.loggers.block_change.region_registry.RegionToRender;
+import com.colen.tempora.rendering.ClientRegionStore;
 import com.colen.tempora.rendering.RenderUtils;
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
@@ -36,11 +36,11 @@ public final class RenderRegionsInWorld {
                 r.getMinZ() + eps,
                 r.getMaxX() - eps,
                 r.getMaxY() - eps,
-                r.getMaxZ() - eps
-            );
+                r.getMaxZ() - eps);
 
             if (r.getRenderMode() == RegionRenderMode.BLOCK_CHANGE) {
-                float[] rgb = r.getColor().getRGBColorComponents(null);
+                float[] rgb = r.getColor()
+                    .getRGBColorComponents(null);
                 GL11.glColor3f(rgb[0], rgb[1], rgb[2]);
 
                 RenderUtils.renderRegion(
@@ -50,8 +50,9 @@ public final class RenderRegionsInWorld {
                     r.getMaxX() - eps,
                     r.getMaxY() - eps,
                     r.getMaxZ() - eps,
-                    rgb[0], rgb[1], rgb[2]
-                );
+                    rgb[0],
+                    rgb[1],
+                    rgb[2]);
             }
         }
 

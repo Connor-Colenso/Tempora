@@ -63,7 +63,8 @@ public final class BlockChangeRegionRegistry {
     // Internal logic.
 
     private void addRegion(RegionToRender r) {
-        byDim.computeIfAbsent(r.getDimID(), d -> new ArrayList<>()).add(r);
+        byDim.computeIfAbsent(r.getDimID(), d -> new ArrayList<>())
+            .add(r);
         dirty = true;
     }
 

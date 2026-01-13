@@ -5,7 +5,6 @@ import static com.colen.tempora.loggers.generic.GenericEventInfo.teleportChatCom
 
 import java.util.UUID;
 
-import com.colen.tempora.rendering.regions.RegionRenderMode;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -17,6 +16,7 @@ import net.minecraft.world.World;
 import com.colen.tempora.loggers.block_change.region_registry.BlockChangeRegionRegistry;
 import com.colen.tempora.loggers.block_change.region_registry.RegionToRender;
 import com.colen.tempora.loggers.generic.GenericEventInfo;
+import com.colen.tempora.rendering.regions.RegionRenderMode;
 import com.colen.tempora.utils.CommandUtils;
 
 /**
@@ -79,12 +79,16 @@ public class CreateRegionCommand extends CommandBase {
             coords[4],
             coords[5]);
 
-        region.setRegionUUID(UUID.randomUUID().toString());
+        region.setRegionUUID(
+            UUID.randomUUID()
+                .toString());
         region.setRenderMode(RegionRenderMode.BLOCK_CHANGE);
         region.setRegionOriginTimeMs(System.currentTimeMillis());
 
         if (sender instanceof EntityPlayerMP entityPlayerMP) {
-            region.setPlayerAuthorUUID(entityPlayerMP.getUniqueID().toString());
+            region.setPlayerAuthorUUID(
+                entityPlayerMP.getUniqueID()
+                    .toString());
         } else {
             region.setPlayerAuthorUUID(UNKNOWN_PLAYER_NAME);
         }

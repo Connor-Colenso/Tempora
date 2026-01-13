@@ -2,13 +2,13 @@ package com.colen.tempora.networking;
 
 import com.colen.tempora.loggers.block_change.region_registry.RegionToRender;
 import com.colen.tempora.rendering.ClientRegionStore;
-
 import com.colen.tempora.rendering.regions.RegionRenderMode;
+
+import cpw.mods.fml.common.network.ByteBufUtils;
 import cpw.mods.fml.common.network.simpleimpl.*;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
-import cpw.mods.fml.common.network.ByteBufUtils;
 
 public final class PacketShowRegionInWorld {
 
@@ -37,7 +37,10 @@ public final class PacketShowRegionInWorld {
 
             ByteBufUtils.writeUTF8String(buf, region.getRegionUUID());
             ByteBufUtils.writeUTF8String(buf, region.getPlayerAuthorUUID());
-            ByteBufUtils.writeUTF8String(buf, region.getRenderMode().toString());
+            ByteBufUtils.writeUTF8String(
+                buf,
+                region.getRenderMode()
+                    .toString());
         }
 
         @Override
@@ -61,8 +64,8 @@ public final class PacketShowRegionInWorld {
             region.setRenderMode(mode);
         }
 
-
         public static final class Handler implements IMessageHandler<RegionMsg, IMessage> {
+
             @Override
             @SideOnly(Side.CLIENT)
             public IMessage onMessage(RegionMsg msg, MessageContext ctx) {
