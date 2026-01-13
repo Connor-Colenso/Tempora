@@ -15,6 +15,9 @@ import com.colen.tempora.loggers.block_change.region_registry.RegionToRender;
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 public class HudRenderRegionsInWorld {
 
     private final Minecraft mc = Minecraft.getMinecraft();
@@ -42,12 +45,15 @@ public class HudRenderRegionsInWorld {
         ScaledResolution sr = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
         int screenWidth = sr.getScaledWidth();
 
+        List<RegionToRender> blockChangeRegions = ClientRegionStore.all().stream()
+            .filter(r -> r.getRenderMode() == RegionRenderMode.BLOCK_CHANGE)
+            .collect(Collectors.toList());
+
         // Count regions the player is inside
         // todo make neater (compact loops)
         int regionsInside = 0;
-        for (RegionToRender region : ClientRegionStore.all()) {
-            if (region.dim != player.dimension) continue;
-            if (region.renderMode != RegionRenderMode.BLOCK_CHANGE) continue;
+        for (RegionToRender region : blockChangeRegions) {
+            if (region.getDimID() != player.dimension) continue;
             if (region.contains(player.dimension, player.posX, player.posY, player.posZ)) {
                 regionsInside++;
             }
@@ -56,7 +62,7 @@ public class HudRenderRegionsInWorld {
         int yOffset = 5;
 
         // Draw descriptor centered at top.
-        if (!ClientRegionStore.all().isEmpty()) {
+        if (!blockChangeRegions.isEmpty()) {
             String descriptorText = StatCollector
                 .translateToLocalFormatted("tempora.HUD.region.descriptor", formatNumber(regionsInside));
             font.drawString(descriptorText, (screenWidth - font.getStringWidth(descriptorText)) / 2, yOffset, 0xFFFFFF);
@@ -65,9 +71,8 @@ public class HudRenderRegionsInWorld {
         // Draw each region below, numbered, with bullets
         int lineHeight = 10;
         int index = 1;
-        for (RegionToRender region : ClientRegionStore.all()) {
-            if (region.dim != player.dimension) continue;
-            if (region.renderMode != RegionRenderMode.BLOCK_CHANGE) continue;
+        for (RegionToRender region : blockChangeRegions) {
+            if (region.getDimID() != player.dimension) continue;
 
             if (region.contains(player.dimension, player.posX, player.posY, player.posZ)) {
                 String regionText = StatCollector.translateToLocalFormatted(
@@ -78,7 +83,7 @@ public class HudRenderRegionsInWorld {
                     regionText,
                     (screenWidth - font.getStringWidth(regionText)) / 2,
                     yOffset + lineHeight * index,
-                    region.color.getRGB() & 0xFFFFFF);
+                    region.getColor().getRGB() & 0xFFFFFF);
             }
         }
     }

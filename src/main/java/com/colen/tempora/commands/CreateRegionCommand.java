@@ -1,5 +1,6 @@
 package com.colen.tempora.commands;
 
+import static com.colen.tempora.TemporaUtils.UNKNOWN_PLAYER_NAME;
 import static com.colen.tempora.loggers.generic.GenericEventInfo.teleportChatComponent;
 
 import java.util.UUID;
@@ -7,6 +8,7 @@ import java.util.UUID;
 import com.colen.tempora.rendering.regions.RegionRenderMode;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
@@ -75,11 +77,18 @@ public class CreateRegionCommand extends CommandBase {
             coords[2],
             coords[3],
             coords[4],
-            coords[5],
-            System.currentTimeMillis(),
-            UUID.randomUUID()
-                .toString(),
-            RegionRenderMode.BLOCK_CHANGE);
+            coords[5]);
+
+        region.setRegionUUID(UUID.randomUUID().toString());
+        region.setRenderMode(RegionRenderMode.BLOCK_CHANGE);
+        region.setRegionOriginTimeMs(System.currentTimeMillis());
+
+        if (sender instanceof EntityPlayerMP entityPlayerMP) {
+            region.setPlayerAuthorUUID(entityPlayerMP.getUniqueID().toString());
+        } else {
+            region.setPlayerAuthorUUID(UNKNOWN_PLAYER_NAME);
+        }
+
         BlockChangeRegionRegistry.add(region);
 
         ChatComponentTranslation msg = new ChatComponentTranslation(
