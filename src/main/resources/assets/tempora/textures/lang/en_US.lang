@@ -57,7 +57,7 @@ command.tempora.region.created=Region created: %s to %s in dimension %d.
 tempora.command.queryevents.bad_filter=Filter "%s" is invalid.
 
 tempora.command.listregions.none=No regions defined.
-tempora.command.listregions.entry=Region %d: %s to %s in dim %s. Midpoint: %s.
+tempora.command.listregions.entry=Region %d: %s to %s in dim %s. Midpoint: %s. Created %s by %s.
 message.inventorylogger.invalid_interaction=Error: invalid interactionType %s in InventoryLogger DB. Please report this.
 
 message.queryevents.query_failed=Database query failed on %s: %s

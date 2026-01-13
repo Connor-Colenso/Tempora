@@ -62,18 +62,21 @@ public class TemporaWand extends Item {
 
         // If SP, just render the box. If MP, we continue onto further logic.
         if (!(player instanceof EntityPlayerMP entityPlayerMP)) {
-            ClientRegionStore.add(new RegionToRender(
+
+            RegionToRender region = new RegionToRender(
                 player.dimension,
                 px,
                 py,
                 pz,
                 px + 1,
                 py + 1,
-                pz + 1,
-                System.currentTimeMillis(),
-                UUID.randomUUID()
-                    .toString(),
-                RegionRenderMode.TEMPORA_WAND));
+                pz + 1);
+
+            region.setRegionUUID(UUID.randomUUID().toString());
+            region.setRenderMode(RegionRenderMode.TEMPORA_WAND);
+            region.setRenderStartTimeMs(System.currentTimeMillis());
+
+            ClientRegionStore.add(region);
 
             return false;
         }

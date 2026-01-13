@@ -24,15 +24,20 @@ public final class PacketShowRegionInWorld {
 
         @Override
         public void toBytes(ByteBuf buf) {
-            buf.writeInt(region.dim);
-            buf.writeDouble(region.minX);
-            buf.writeDouble(region.minY);
-            buf.writeDouble(region.minZ);
-            buf.writeDouble(region.maxX);
-            buf.writeDouble(region.maxY);
-            buf.writeDouble(region.maxZ);
-            ByteBufUtils.writeUTF8String(buf, region.uuid);
-            ByteBufUtils.writeUTF8String(buf, region.renderMode.name());
+            buf.writeInt(region.getDimID());
+            buf.writeDouble(region.getMinX());
+            buf.writeDouble(region.getMinY());
+            buf.writeDouble(region.getMinZ());
+            buf.writeDouble(region.getMaxX());
+            buf.writeDouble(region.getMaxY());
+            buf.writeDouble(region.getMaxZ());
+
+            buf.writeLong(region.getRenderStartTimeMs());
+            buf.writeLong(region.getRegionOriginTimeMs());
+
+            ByteBufUtils.writeUTF8String(buf, region.getRegionUUID());
+            ByteBufUtils.writeUTF8String(buf, region.getPlayerAuthorUUID());
+            ByteBufUtils.writeUTF8String(buf, region.getRenderMode().toString());
         }
 
         @Override
@@ -40,14 +45,22 @@ public final class PacketShowRegionInWorld {
             int dim = buf.readInt();
             double x1 = buf.readDouble(), y1 = buf.readDouble(), z1 = buf.readDouble();
             double x2 = buf.readDouble(), y2 = buf.readDouble(), z2 = buf.readDouble();
+
+            long renderStartTime = buf.readLong();
+            long regionOriginTime = buf.readLong();
+
             String uuid = ByteBufUtils.readUTF8String(buf);
+            String playerUUID = ByteBufUtils.readUTF8String(buf);
             RegionRenderMode mode = RegionRenderMode.valueOf(ByteBufUtils.readUTF8String(buf));
 
-            region = new RegionToRender(
-                dim, x1, y1, z1, x2, y2, z2,
-                System.currentTimeMillis(), uuid, mode
-            );
+            region = new RegionToRender(dim, x1, y1, z1, x2, y2, z2);
+            region.setRenderStartTimeMs(renderStartTime);
+            region.setRegionOriginTimeMs(regionOriginTime);
+            region.setRegionUUID(uuid);
+            region.setPlayerAuthorUUID(playerUUID);
+            region.setRenderMode(mode);
         }
+
 
         public static final class Handler implements IMessageHandler<RegionMsg, IMessage> {
             @Override

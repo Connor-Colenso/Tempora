@@ -2,7 +2,10 @@ package com.colen.tempora.commands;
 
 import static com.colen.tempora.Tempora.NETWORK;
 import static com.colen.tempora.loggers.generic.GenericEventInfo.teleportChatComponent;
+import static com.colen.tempora.utils.PlayerUtils.playerNameFromUUID;
+import static com.colen.tempora.utils.TimeUtils.formatTime;
 
+import java.util.Comparator;
 import java.util.List;
 
 import net.minecraft.command.CommandBase;
@@ -37,7 +40,7 @@ public class ListRegionsCommand extends CommandBase {
     /** Usage is localised */
     @Override
     public String getCommandUsage(ICommandSender s) {
-        return "/listregions";
+        return "/listregions [Dim ID filter]";
     }
 
     @Override
@@ -62,8 +65,14 @@ public class ListRegionsCommand extends CommandBase {
         List<RegionToRender> regions = BlockChangeRegionRegistry.getAll();
 
         if (dimFilter != null) {
-            regions.removeIf(r -> r.dim != dimFilter);
+            regions.removeIf(r -> r.getDimID() != dimFilter);
         }
+
+        regions.sort(
+            Comparator
+                .comparingInt(RegionToRender::getDimID)
+                .thenComparingLong(RegionToRender::getRenderStartTimeMs)
+        );
 
         if (regions.isEmpty()) {
             sender.addChatMessage(new ChatComponentTranslation("tempora.command.listregions.none"));
@@ -75,26 +84,28 @@ public class ListRegionsCommand extends CommandBase {
         for (RegionToRender r : regions) {
 
             // Centre of the region for a sensible teleport target
-            double cx = (r.minX + r.maxX) / 2.0;
-            double cy = (r.minY + r.maxY) / 2.0;
-            double cz = (r.minZ + r.maxZ) / 2.0;
+            double cx = (r.getMinX() + r.getMaxX()) / 2.0;
+            double cy = (r.getMinY() + r.getMaxY()) / 2.0;
+            double cz = (r.getMinZ() + r.getMaxZ()) / 2.0;
 
             /* Clickable coordinate component */
             ChatComponentTranslation tp = (ChatComponentTranslation) teleportChatComponent(
                 cx,
                 cy,
                 cz,
-                r.dim,
+                r.getDimID(),
                 CoordFormat.INT);
 
             /* Whole entry line */
             ChatComponentTranslation line = new ChatComponentTranslation(
                 "tempora.command.listregions.entry",
                 idx++,
-                teleportChatComponent(r.minX, r.minY, r.minZ, r.dim, CoordFormat.INT),
-                teleportChatComponent(r.maxX, r.maxY, r.maxZ, r.dim, CoordFormat.INT),
-                r.dim,
-                tp);
+                teleportChatComponent(r.getMinX(), r.getMinY(), r.getMinZ(), r.getDimID(), CoordFormat.INT),
+                teleportChatComponent(r.getMaxX(), r.getMaxY(), r.getMaxZ(), r.getDimID(), CoordFormat.INT),
+                r.getDimID(),
+                tp,
+                formatTime(r.getRegionOriginTimeMs()),
+                playerNameFromUUID(r.getPlayerAuthorUUID()));
 
             line.getChatStyle()
                 .setColor(EnumChatFormatting.YELLOW);
