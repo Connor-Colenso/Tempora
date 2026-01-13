@@ -1,8 +1,8 @@
 package com.colen.tempora.rendering.regions;
 
-import static com.colen.tempora.networking.PacketShowRegionInWorld.CLIENT_REGIONS;
 import static com.colen.tempora.rendering.RenderUtils.correctForCamera;
 
+import com.colen.tempora.rendering.ClientRegionStore;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 
@@ -18,49 +18,48 @@ import cpw.mods.fml.relauncher.SideOnly;
 @SideOnly(Side.CLIENT)
 public final class RenderRegionsInWorld {
 
-    // todo config + per "channel" regions, for more fine control.
-    // Tempora wand etc must use differing renderer eventually.
-    public static final long SECONDS_RENDERING_DURATION = 20;
-    public static final double epsi = 0.002;
+    public static final long RENDER_DURATION_SECONDS = 20;
 
     @SubscribeEvent
-    public void onRender(RenderWorldLastEvent e) {
+    public void onRenderWorld(RenderWorldLastEvent e) {
         int curDim = Minecraft.getMinecraft().thePlayer.dimension;
 
-        for (RegionToRender r : CLIENT_REGIONS) {
+        GL11.glPushMatrix();
+        correctForCamera(e);
+
+        for (RegionToRender r : ClientRegionStore.all()) {
             if (r.dim != curDim) continue;
-            GL11.glPushMatrix();
-            correctForCamera(e);
 
-            // todo range limits
+            double eps = RegionToRender.BLOCK_EDGE_EPSILON;
+
             RenderUtils.renderBoundingBox(
-                r.minX + epsi,
-                r.minY + epsi,
-                r.minZ + epsi,
-                r.maxX - epsi,
-                r.maxY - epsi,
-                r.maxZ - epsi);
+                r.minX + eps,
+                r.minY + eps,
+                r.minZ + eps,
+                r.maxX - eps,
+                r.maxY - eps,
+                r.maxZ - eps
+            );
 
-            // Color region in.
-            float[] rgb = r.color.getRGBColorComponents(null);
-            GL11.glColor3f(rgb[0], rgb[1], rgb[2]);
+            if (r.renderMode == RegionRenderMode.BLOCK_CHANGE) {
+                float[] rgb = r.color.getRGBColorComponents(null);
+                GL11.glColor3f(rgb[0], rgb[1], rgb[2]);
 
-            RenderUtils.renderRegion(
-                r.minX + epsi,
-                r.minY + epsi,
-                r.minZ + epsi,
-                r.maxX - epsi,
-                r.maxY - epsi,
-                r.maxZ - epsi,
-                rgb[0],
-                rgb[1],
-                rgb[2]);
-
-            GL11.glPopMatrix();
+                RenderUtils.renderRegion(
+                    r.minX + eps,
+                    r.minY + eps,
+                    r.minZ + eps,
+                    r.maxX - eps,
+                    r.maxY - eps,
+                    r.maxZ - eps,
+                    rgb[0], rgb[1], rgb[2]
+                );
+            }
         }
 
-        double expiryCutoff = System.currentTimeMillis() - SECONDS_RENDERING_DURATION * 1000L;
-        CLIENT_REGIONS.removeIf(intRegion -> intRegion.posPrintTime < expiryCutoff);
-    }
+        GL11.glPopMatrix();
 
+        long cutoff = System.currentTimeMillis() - RENDER_DURATION_SECONDS * 1000L;
+        ClientRegionStore.expire(cutoff);
+    }
 }

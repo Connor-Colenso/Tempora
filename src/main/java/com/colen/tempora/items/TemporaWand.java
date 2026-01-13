@@ -2,8 +2,11 @@ package com.colen.tempora.items;
 
 import static com.colen.tempora.Tempora.LOG;
 import static com.colen.tempora.loggers.generic.GenericEventInfo.teleportChatComponent;
-import static com.colen.tempora.networking.PacketShowRegionInWorld.CLIENT_REGIONS;
 
+import java.util.UUID;
+
+import com.colen.tempora.rendering.ClientRegionStore;
+import com.colen.tempora.rendering.regions.RegionRenderMode;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -59,17 +62,18 @@ public class TemporaWand extends Item {
 
         // If SP, just render the box. If MP, we continue onto further logic.
         if (!(player instanceof EntityPlayerMP entityPlayerMP)) {
-
-            CLIENT_REGIONS.add(
-                new RegionToRender(
-                    player.dimension,
-                    px + epsi,
-                    py + epsi,
-                    pz + epsi,
-                    px + 1 - epsi,
-                    py + 1 - epsi,
-                    pz + 1 - epsi,
-                    System.currentTimeMillis()));
+            ClientRegionStore.add(new RegionToRender(
+                player.dimension,
+                px,
+                py,
+                pz,
+                px + 1,
+                py + 1,
+                pz + 1,
+                System.currentTimeMillis(),
+                UUID.randomUUID()
+                    .toString(),
+                RegionRenderMode.TEMPORA_WAND));
 
             return false;
         }
