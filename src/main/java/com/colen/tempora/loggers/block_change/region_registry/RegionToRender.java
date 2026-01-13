@@ -7,6 +7,7 @@ import java.awt.Color;
 import net.minecraft.nbt.NBTTagCompound;
 
 import com.colen.tempora.rendering.regions.RegionRenderMode;
+import net.minecraft.util.AxisAlignedBB;
 
 public class RegionToRender {
 
@@ -123,7 +124,7 @@ public class RegionToRender {
         return (maxX - minX) * (maxY - minY) * (maxZ - minZ);
     }
 
-    public boolean contains(int dim, Number x, Number y, Number z) {
+    public boolean containsBlock(int dim, Number x, Number y, Number z) {
         if (this.dimID != dim) return false;
 
         double dx = x.doubleValue();
@@ -131,6 +132,19 @@ public class RegionToRender {
         double dz = z.doubleValue();
 
         return dx >= minX && dx < maxX && dy >= minY && dy < maxY && dz >= minZ && dz < maxZ;
+    }
+
+    public boolean intersectsWith(int dim, AxisAlignedBB box) {
+        if (this.dimID != dim) return false;
+
+        // Create an AABB representing this region
+        AxisAlignedBB regionAABB = AxisAlignedBB.getBoundingBox(
+                this.minX, this.minY, this.minZ,
+                this.maxX, this.maxY, this.maxZ
+        );
+
+        // Use Minecraft's built-in intersect check
+        return regionAABB.intersectsWith(box);
     }
 
     /* ---------- NBT Serialization ---------- */

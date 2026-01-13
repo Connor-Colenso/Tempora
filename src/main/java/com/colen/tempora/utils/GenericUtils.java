@@ -13,6 +13,9 @@ import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.ChatStyle;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
+import net.minecraft.world.WorldProvider;
+import net.minecraft.world.WorldServer;
+import net.minecraftforge.common.DimensionManager;
 
 public class GenericUtils {
 
@@ -99,6 +102,13 @@ public class GenericUtils {
 
             System.out.println("Please type 'yes' or 'no'.");
         }
+    }
+
+    public static String getDimensionName(int dimID) {
+        WorldServer provider = DimensionManager.getWorld(dimID);
+        if (provider == null) return null;
+
+        return provider.getWorldInfo().getWorldName();
     }
 
 }

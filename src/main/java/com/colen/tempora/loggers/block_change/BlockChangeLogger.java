@@ -55,7 +55,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
         return TemporaEvents.BLOCK_CHANGE;
     }
 
-    private boolean globalBlockChangeLogging;
+    private static boolean globalBlockChangeLogging;
 
     public static boolean isLogNBTEnabled() {
         return logNBT;
@@ -220,6 +220,10 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
         e.afterEncodedNBT = getEncodedTileEntityNBT(world, x, y, z, BlockChangeLogger.isLogNBTEnabled());
 
         recordSetBlock(e.x, e.y, e.z, e, world);
+    }
+
+    public static boolean isGlobalBlockChangeLoggingEnabled() {
+        return globalBlockChangeLogging;
     }
 
     private void recordSetBlock(double x, double y, double z, BlockChangeEventInfo eventInfo, World world) {
