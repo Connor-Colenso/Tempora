@@ -32,26 +32,28 @@ public class HudRenderRegionsInWorld {
         EntityClientPlayerMP player = mc.thePlayer;
         if (player == null) return;
 
-        // Hide HUD when Tab is held in multiplayer
-        if (!mc.theWorld.isRemote) return; // server safety
-        if (mc.gameSettings.showDebugInfo) return; // hide if F3 debug
-        if (!mc.isSingleplayer() && mc.currentScreen == null) {
-            // Optional: detect if Tab list is visible in MP
-            return;
-        }
+        // Client-side / HUD visibility checks
+        if (!mc.theWorld.isRemote) return;
+        if (mc.gameSettings.showDebugInfo) return;
+        if (!mc.isSingleplayer() && mc.currentScreen == null) return;
 
         FontRenderer font = mc.fontRenderer;
-
         ScaledResolution sr = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
         int screenWidth = sr.getScaledWidth();
 
+        // Collect block-change regions
         List<RegionToRender> blockChangeRegions = ClientRegionStore.all()
             .stream()
             .filter(r -> r.getRenderMode() == RegionRenderMode.BLOCK_CHANGE)
             .collect(Collectors.toList());
 
-        // Count regions the player is inside
-        // todo make neater (compact loops)
+        if (blockChangeRegions.isEmpty()) return;
+
+        // Initial Y position
+        int y = 5;
+        final int lineHeight = font.FONT_HEIGHT + 2;
+
+        // Count intersecting regions
         int regionsInside = 0;
         for (RegionToRender region : blockChangeRegions) {
             if (region.getDimID() != player.dimension) continue;
@@ -60,33 +62,40 @@ public class HudRenderRegionsInWorld {
             }
         }
 
-        int yOffset = 5;
+        // Draw descriptor line
+        String descriptorText = StatCollector.translateToLocalFormatted(
+            "tempora.HUD.region.descriptor",
+            formatNumber(regionsInside)
+        );
 
-        // Draw descriptor centered at top.
-        if (!blockChangeRegions.isEmpty()) {
-            String descriptorText = StatCollector
-                .translateToLocalFormatted("tempora.HUD.region.descriptor", formatNumber(regionsInside));
-            font.drawString(descriptorText, (screenWidth - font.getStringWidth(descriptorText)) / 2, yOffset, 0xFFFFFF);
-        }
+        font.drawString(
+            descriptorText,
+            (screenWidth - font.getStringWidth(descriptorText)) / 2,
+            y,
+            0xFFFFFF
+        );
 
-        // Draw each region below, numbered, with bullets
-        int lineHeight = 10;
-        int index = 1;
+        y += lineHeight;
+
+        // Draw each intersecting region
         for (RegionToRender region : blockChangeRegions) {
             if (region.getDimID() != player.dimension) continue;
+            if (!region.intersectsWith(player.dimension, player.boundingBox)) continue;
 
-            if (region.intersectsWith(player.dimension, player.boundingBox)) {
-                String regionText = StatCollector.translateToLocalFormatted(
-                    "tempora.HUD.region.list",
-                    region.getLabel(),
-                    formatNumberCompact(region.getVolume()));
-                font.drawString(
-                    regionText,
-                    (screenWidth - font.getStringWidth(regionText)) / 2,
-                    yOffset + lineHeight * index,
-                    region.getColor()
-                        .getRGB() & 0xFFFFFF);
-            }
+            String regionText = StatCollector.translateToLocalFormatted(
+                "tempora.HUD.region.list",
+                region.getLabel(),
+                formatNumberCompact(region.getVolume())
+            );
+
+            font.drawString(
+                regionText,
+                (screenWidth - font.getStringWidth(regionText)) / 2,
+                y,
+                region.getColor().getRGB() & 0xFFFFFF
+            );
+
+            y += lineHeight;
         }
     }
 }

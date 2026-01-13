@@ -44,7 +44,7 @@ public class CreateRegionCommand extends CommandBase {
     public void processCommand(ICommandSender sender, String[] args) {
         // label + 6 coords + optional dim
         if (args.length != 7 && args.length != 8) {
-            CommandUtils.wrongUsage(getCommandUsage(sender));
+            sender.addChatMessage(CommandUtils.wrongUsage(getCommandUsage(sender)));
             return;
         }
 
