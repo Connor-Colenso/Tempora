@@ -25,9 +25,7 @@ import net.minecraftforge.common.UsernameCache;
 
 public class PlayerUtils {
 
-    private static String UUIDToName(String UUIDString) {
-        if (UUIDString == null) return UNKNOWN_PLAYER_NAME;
-        if (UUIDString.equals(UNKNOWN_PLAYER_NAME)) return UNKNOWN_PLAYER_NAME;
+    public static String UUIDToName(String UUIDString) {
         if (!isUUID(UUIDString)) return UUIDString;
 
         String userName = UsernameCache.getLastKnownUsername(UUID.fromString(UUIDString));
