@@ -2,12 +2,14 @@ package com.colen.tempora.commands;
 
 import static com.colen.tempora.Tempora.NETWORK;
 import static com.colen.tempora.loggers.generic.GenericEventInfo.teleportChatComponent;
+import static com.colen.tempora.utils.GenericUtils.getDimensionName;
 import static com.colen.tempora.utils.PlayerUtils.playerNameFromUUID;
 import static com.colen.tempora.utils.TimeUtils.formatTime;
 
 import java.util.Comparator;
 import java.util.List;
 
+import com.colen.tempora.loggers.block_change.BlockChangeLogger;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -19,6 +21,7 @@ import com.colen.tempora.loggers.block_change.region_registry.RegionToRender;
 import com.colen.tempora.loggers.generic.GenericEventInfo.CoordFormat;
 import com.colen.tempora.networking.PacketShowRegionInWorld;
 import com.colen.tempora.utils.CommandUtils;
+import net.minecraft.util.IChatComponent;
 
 /**
  * /listregions
@@ -34,7 +37,7 @@ public class ListRegionsCommand extends CommandBase {
 
     @Override
     public int getRequiredPermissionLevel() {
-        return 2;
+        return 2; // OP
     }
 
     /** Usage is localised */
@@ -45,16 +48,9 @@ public class ListRegionsCommand extends CommandBase {
 
     @Override
     public void processCommand(ICommandSender sender, String[] args) {
-        if (args.length > 2) {
+        if (args.length > 1) {
             sender.addChatMessage(CommandUtils.wrongUsage(getCommandUsage(sender)));
             return;
-        }
-
-        Integer dimFilter;
-        if (args.length == 2) {
-            dimFilter = parseInt(sender, args[1]);
-        } else {
-            dimFilter = null;
         }
 
         if (!(sender instanceof EntityPlayerMP player)) {
@@ -64,8 +60,30 @@ public class ListRegionsCommand extends CommandBase {
 
         List<RegionToRender> regions = BlockChangeRegionRegistry.getAll();
 
+        Integer dimFilter;
+        if (args.length == 1) {
+            dimFilter = parseInt(sender, args[0]);
+        } else {
+            dimFilter = null;
+        }
+
         if (dimFilter != null) {
             regions.removeIf(r -> r.getDimID() != dimFilter);
+            if (regions.isEmpty()) {
+                String dimensionName = getDimensionName(dimFilter);
+
+                if (dimensionName == null) {
+                    IChatComponent invalidDim = new ChatComponentTranslation("tempora.command.filtered.listregions.invalid.dimension", dimFilter);
+                    invalidDim.getChatStyle().setColor(EnumChatFormatting.RED);
+                    sender.addChatMessage(invalidDim);
+                } else {
+                    IChatComponent emptyDim = new ChatComponentTranslation("tempora.command.filtered.listregions.empty", dimensionName, dimFilter);
+                    emptyDim.getChatStyle().setColor(EnumChatFormatting.RED);
+                    sender.addChatMessage(emptyDim);
+                }
+
+                return;
+            }
         }
 
         regions.sort(
@@ -105,13 +123,18 @@ public class ListRegionsCommand extends CommandBase {
                 formatTime(r.getRegionOriginTimeMs()),
                 playerNameFromUUID(r.getPlayerAuthorUUID()));
 
-            line.getChatStyle()
-                .setColor(EnumChatFormatting.YELLOW);
+            line.getChatStyle().setColor(EnumChatFormatting.YELLOW);
             sender.addChatMessage(line);
         }
 
         for (RegionToRender regionToSend : regions) {
             NETWORK.sendTo(new PacketShowRegionInWorld.RegionMsg(regionToSend), player);
+        }
+
+        if (BlockChangeLogger.isGlobalBlockChangeLoggingEnabled()) {
+            IChatComponent globalLoggingMessage = new ChatComponentTranslation("tempora.command.listregions.global.logging.enabled");
+            globalLoggingMessage.getChatStyle().setColor(EnumChatFormatting.DARK_RED);
+            player.addChatMessage(globalLoggingMessage);
         }
     }
 }

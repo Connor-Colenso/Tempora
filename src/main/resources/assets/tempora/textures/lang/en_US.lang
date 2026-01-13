@@ -115,3 +115,7 @@ tempora.command.create.region.non.numeric.coordinate=All coordinates must be int
 tempora.uuid.display=UUID: %s
 tempora.HUD.region.descriptor=Currently inside %s regions:
 tempora.HUD.region.list=Region %s - Volume %s blocks.
+tempora.command.listregions.global.logging.enabled=WARNING: globalBlockChangeLogging is enabled, capturing all block changes globally and ignoring regions.
+tempora.command.filtered.listregions.empty=%s (ID %s) has no regions.
+tempora.command.filtered.listregions.invalid.dimension=Dimension with ID %s does not exist.
+

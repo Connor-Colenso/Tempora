@@ -73,7 +73,7 @@ public final class BlockChangeRegionRegistry {
         if (list == null) return false;
 
         for (RegionToRender r : list) {
-            if (r.contains(dim, x, y, z)) return true;
+            if (r.containsBlock(dim, x, y, z)) return true;
         }
         return false;
     }
@@ -85,7 +85,7 @@ public final class BlockChangeRegionRegistry {
         int removed = 0;
         for (Iterator<RegionToRender> it = list.iterator(); it.hasNext();) {
             if (it.next()
-                .contains(dim, x, y, z)) {
+                .containsBlock(dim, x, y, z)) {
                 it.remove();
                 removed++;
             }

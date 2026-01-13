@@ -55,7 +55,7 @@ public class HudRenderRegionsInWorld {
         int regionsInside = 0;
         for (RegionToRender region : blockChangeRegions) {
             if (region.getDimID() != player.dimension) continue;
-            if (region.contains(player.dimension, player.posX, player.posY, player.posZ)) {
+            if (region.intersectsWith(player.dimension, player.boundingBox)) {
                 regionsInside++;
             }
         }
@@ -75,7 +75,7 @@ public class HudRenderRegionsInWorld {
         for (RegionToRender region : blockChangeRegions) {
             if (region.getDimID() != player.dimension) continue;
 
-            if (region.contains(player.dimension, player.posX, player.posY, player.posZ)) {
+            if (region.intersectsWith(player.dimension, player.boundingBox)) {
                 String regionText = StatCollector.translateToLocalFormatted(
                     "tempora.HUD.region.list",
                     index++,
