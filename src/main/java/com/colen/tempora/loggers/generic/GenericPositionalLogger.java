@@ -362,6 +362,7 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
     }
 
     private static final long SECONDS_RENDERING_DURATION = 10;
+
     public void clearOldEventsToRender() {
         double expiryCutoff = System.currentTimeMillis() - SECONDS_RENDERING_DURATION * 1000L;
         transparentEventsToRenderInWorld

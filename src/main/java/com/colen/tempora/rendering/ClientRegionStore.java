@@ -7,6 +7,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import com.colen.tempora.loggers.block_change.region_registry.RegionToRender;
 
 public final class ClientRegionStore {
+
     public static final long RENDER_DURATION_MILLISECONDS = 10_000;
 
     private static final Map<String, RegionToRender> REGIONS = new ConcurrentHashMap<>();

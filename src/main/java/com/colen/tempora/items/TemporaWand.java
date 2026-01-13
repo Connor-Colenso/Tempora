@@ -5,8 +5,6 @@ import static com.colen.tempora.loggers.generic.GenericEventInfo.teleportChatCom
 
 import java.util.UUID;
 
-import com.colen.tempora.rendering.ClientRegionStore;
-import com.colen.tempora.rendering.regions.RegionRenderMode;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -23,6 +21,8 @@ import com.colen.tempora.TemporaUtils;
 import com.colen.tempora.loggers.block_change.region_registry.RegionToRender;
 import com.colen.tempora.loggers.generic.GenericEventInfo;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
+import com.colen.tempora.rendering.ClientRegionStore;
+import com.colen.tempora.rendering.regions.RegionRenderMode;
 import com.colen.tempora.utils.PlayerUtils;
 
 public class TemporaWand extends Item {
@@ -63,16 +63,11 @@ public class TemporaWand extends Item {
         // If SP, just render the box. If MP, we continue onto further logic.
         if (!(player instanceof EntityPlayerMP entityPlayerMP)) {
 
-            RegionToRender region = new RegionToRender(
-                player.dimension,
-                px,
-                py,
-                pz,
-                px + 1,
-                py + 1,
-                pz + 1);
+            RegionToRender region = new RegionToRender(player.dimension, px, py, pz, px + 1, py + 1, pz + 1);
 
-            region.setRegionUUID(UUID.randomUUID().toString());
+            region.setRegionUUID(
+                UUID.randomUUID()
+                    .toString());
             region.setRenderMode(RegionRenderMode.TEMPORA_WAND);
             region.setRenderStartTimeMs(System.currentTimeMillis());
 

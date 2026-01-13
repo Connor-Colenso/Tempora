@@ -3,7 +3,9 @@ package com.colen.tempora.rendering.regions;
 import static com.gtnewhorizon.gtnhlib.util.numberformatting.NumberFormatUtil.formatNumber;
 import static com.gtnewhorizon.gtnhlib.util.numberformatting.NumberFormatUtil.formatNumberCompact;
 
-import com.colen.tempora.rendering.ClientRegionStore;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityClientPlayerMP;
 import net.minecraft.client.gui.FontRenderer;
@@ -12,11 +14,9 @@ import net.minecraft.util.StatCollector;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 
 import com.colen.tempora.loggers.block_change.region_registry.RegionToRender;
+import com.colen.tempora.rendering.ClientRegionStore;
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 public class HudRenderRegionsInWorld {
 
@@ -45,7 +45,8 @@ public class HudRenderRegionsInWorld {
         ScaledResolution sr = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
         int screenWidth = sr.getScaledWidth();
 
-        List<RegionToRender> blockChangeRegions = ClientRegionStore.all().stream()
+        List<RegionToRender> blockChangeRegions = ClientRegionStore.all()
+            .stream()
             .filter(r -> r.getRenderMode() == RegionRenderMode.BLOCK_CHANGE)
             .collect(Collectors.toList());
 
@@ -83,7 +84,8 @@ public class HudRenderRegionsInWorld {
                     regionText,
                     (screenWidth - font.getStringWidth(regionText)) / 2,
                     yOffset + lineHeight * index,
-                    region.getColor().getRGB() & 0xFFFFFF);
+                    region.getColor()
+                        .getRGB() & 0xFFFFFF);
             }
         }
     }
