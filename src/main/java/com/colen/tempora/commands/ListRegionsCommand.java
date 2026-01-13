@@ -19,7 +19,7 @@ import net.minecraft.util.EnumChatFormatting;
 import com.colen.tempora.loggers.block_change.region_registry.BlockChangeRegionRegistry;
 import com.colen.tempora.loggers.block_change.region_registry.RegionToRender;
 import com.colen.tempora.loggers.generic.GenericEventInfo.CoordFormat;
-import com.colen.tempora.networking.PacketShowRegionInWorld;
+import com.colen.tempora.networking.packets.PacketShowRegionInWorld;
 import com.colen.tempora.utils.CommandUtils;
 import net.minecraft.util.IChatComponent;
 

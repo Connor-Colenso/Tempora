@@ -8,10 +8,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.world.storage.ISaveHandler;
 
 public final class BlockChangeRegionRegistry {
@@ -36,9 +38,39 @@ public final class BlockChangeRegionRegistry {
         return get().contains(dim, x, y, z);
     }
 
-    public static int removeRegionsContainingCoordinate(int dim, double x, double y, double z) {
-        return get().removeContaining(dim, x, y, z);
+    public static List<RegionToRender> removeRegionsContainingCoordinate(EntityPlayer player) {
+        return get().removeContaining(player);
     }
+
+    private List<RegionToRender> removeContaining(EntityPlayer player) {
+        List<RegionToRender> list = byDim.get(player.dimension);
+        if (list == null || list.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        List<RegionToRender> removed = new ArrayList<>();
+
+        for (Iterator<RegionToRender> it = list.iterator(); it.hasNext();) {
+            RegionToRender region = it.next();
+
+            if (region.containsBlock(
+                player.dimension,
+                player.posX,
+                player.posY,
+                player.posZ)) {
+
+                it.remove();
+                removed.add(region);
+            }
+        }
+
+        if (!removed.isEmpty()) {
+            dirty = true;
+        }
+
+        return removed;
+    }
+
 
     public static List<RegionToRender> getAll() {
         return get().allRegions();
@@ -76,23 +108,6 @@ public final class BlockChangeRegionRegistry {
             if (r.containsBlock(dim, x, y, z)) return true;
         }
         return false;
-    }
-
-    private int removeContaining(int dim, double x, double y, double z) {
-        List<RegionToRender> list = byDim.get(dim);
-        if (list == null) return 0;
-
-        int removed = 0;
-        for (Iterator<RegionToRender> it = list.iterator(); it.hasNext();) {
-            if (it.next()
-                .containsBlock(dim, x, y, z)) {
-                it.remove();
-                removed++;
-            }
-        }
-
-        if (removed > 0) dirty = true;
-        return removed;
     }
 
     private List<RegionToRender> allRegions() {

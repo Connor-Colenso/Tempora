@@ -1,4 +1,4 @@
-package com.colen.tempora.networking;
+package com.colen.tempora.networking.packets;
 
 import com.colen.tempora.loggers.block_change.region_registry.RegionToRender;
 import com.colen.tempora.rendering.ClientRegionStore;

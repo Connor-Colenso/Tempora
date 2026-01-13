@@ -122,3 +122,4 @@ tempora.command.filtered.listregions.invalid.dimension=Dimension with ID %s does
 tempora.command.create.region.non.numeric.dimension=Dimension '%s' must be an integer.
 tempora.render.regions.author=Created by %s
 tempora.render.regions.created.on=Created %s
+tempora.region.remove.individual=Removed region '%s', former midpoint %s.

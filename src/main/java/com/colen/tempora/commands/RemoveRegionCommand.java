@@ -1,17 +1,24 @@
 package com.colen.tempora.commands;
 
+import com.colen.tempora.loggers.block_change.region_registry.RegionToRender;
+import com.colen.tempora.loggers.generic.GenericEventInfo;
+import com.colen.tempora.networking.packets.PacketRemoveRegionFromClient;
+import com.colen.tempora.utils.CommandUtils;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentTranslation;
-import net.minecraft.util.ChunkCoordinates;
 import net.minecraft.util.EnumChatFormatting;
-import net.minecraft.world.World;
 
 import com.colen.tempora.loggers.block_change.region_registry.BlockChangeRegionRegistry;
 import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
+import net.minecraft.util.IChatComponent;
+
+import java.util.List;
+
+import static com.colen.tempora.Tempora.NETWORK;
 
 /**
  * /removeregion
@@ -43,26 +50,37 @@ public class RemoveRegionCommand extends CommandBase {
             throw new WrongUsageException(getCommandUsage(sender));
         }
 
-        // removeregion only makes sense for a player, because it users a players coords
-        if (!(sender instanceof EntityPlayer player)) {
-            // This could go to an unlocalised client, like a terminal, so don't localise.
-            throw new CommandException("Only players in world may use this command.");
+        // removeregion only makes sense for a player, because it users the players coords
+        if (!(sender instanceof EntityPlayerMP player)) {
+            sender.addChatMessage(CommandUtils.playerOnly());
+            return;
         }
 
-        ChunkCoordinates pos = sender.getPlayerCoordinates();
-        World world = sender.getEntityWorld();
-        int dim = world.provider.dimensionId;
+        List<RegionToRender> removed = BlockChangeRegionRegistry.removeRegionsContainingCoordinate(player);
+        int removedCount = removed.size();
 
-        int removed = BlockChangeRegionRegistry
-            .removeRegionsContainingCoordinate(dim, player.posX, player.posY, player.posZ);
 
         ChatComponentTranslation msg;
-        if (removed > 0) {
+        if (removedCount > 0) {
             // Plural, or not.
-            String key = removed == 1 ? "command.tempora.removeregion.removed.single"
+            String key = removedCount == 1 ? "command.tempora.removeregion.removed.single"
                 : "command.tempora.removeregion.removed.plural";
 
-            msg = new ChatComponentTranslation(key, new ChatComponentNumber(removed));
+            msg = new ChatComponentTranslation(key, new ChatComponentNumber(removedCount));
+
+            for (RegionToRender region : removed) {
+                // Deletes them from the players local renderer immediately.
+                NETWORK.sendTo(new PacketRemoveRegionFromClient(region.getRegionUUID()), player);
+
+                double midX = (region.getMinX()  + region.getMaxX())/2.0;
+                double midY = (region.getMinY()  + region.getMaxY())/2.0;
+                double midZ = (region.getMinZ()  + region.getMaxZ())/2.0;
+
+                IChatComponent teleportComp = GenericEventInfo.teleportChatComponent(midX, midY, midZ, region.getDimID(), GenericEventInfo.CoordFormat.FLOAT_1DP);
+
+                player.addChatMessage(new ChatComponentTranslation("tempora.region.remove.individual", region.getLabel(), teleportComp));
+            }
+
             msg.getChatStyle()
                 .setColor(EnumChatFormatting.GREEN);
             sender.addChatMessage(msg);
