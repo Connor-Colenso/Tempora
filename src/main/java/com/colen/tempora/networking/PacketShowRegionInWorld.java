@@ -32,7 +32,7 @@ public final class PacketShowRegionInWorld {
             buf.writeDouble(region.getMaxY());
             buf.writeDouble(region.getMaxZ());
 
-            buf.writeLong(region.getRenderStartTimeMs());
+            buf.writeLong(System.currentTimeMillis());
             buf.writeLong(region.getRegionOriginTimeMs());
 
             ByteBufUtils.writeUTF8String(buf, region.getRegionUUID());
