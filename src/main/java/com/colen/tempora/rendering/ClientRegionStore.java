@@ -24,7 +24,7 @@ public final class ClientRegionStore {
 
     public static void expire() {
         for (RegionToRender region : REGIONS.values()) {
-            if (region.getRenderStartTimeMs() + RENDER_DURATION_MILLISECONDS >= System.currentTimeMillis()) {
+            if (System.currentTimeMillis() - region.getRenderStartTimeMs() > RENDER_DURATION_MILLISECONDS) {
                 REGIONS.remove(region.getRegionUUID());
             }
         }

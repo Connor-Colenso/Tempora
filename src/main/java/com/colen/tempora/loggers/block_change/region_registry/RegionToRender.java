@@ -144,7 +144,6 @@ public class RegionToRender {
         tag.setDouble("maxX", maxX);
         tag.setDouble("maxY", maxY);
         tag.setDouble("maxZ", maxZ);
-        tag.setLong("renderStartTimeMs", renderStartTimeMs);
         tag.setLong("regionOriginTimeMs", regionOriginTimeMs);
         tag.setString("regionUUID", regionUUID);
         tag.setString("playerAuthorUUID", playerAuthorUUID);
@@ -162,7 +161,6 @@ public class RegionToRender {
             tag.getDouble("maxY"),
             tag.getDouble("maxZ"));
 
-        region.renderStartTimeMs = tag.getLong("renderStartTimeMs");
         region.regionOriginTimeMs = tag.getLong("regionOriginTimeMs");
         region.regionUUID = tag.getString("regionUUID");
         region.playerAuthorUUID = tag.getString("playerAuthorUUID");
