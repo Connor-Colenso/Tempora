@@ -24,11 +24,9 @@ import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
 import com.colen.tempora.TemporaLoggerManager;
-import com.colen.tempora.loggers.block_change.region_registry.RegionToRender;
 import com.colen.tempora.loggers.generic.GenericEventInfo;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.RenderEventPacket;
-import com.colen.tempora.networking.PacketShowRegionInWorld;
 import com.colen.tempora.utils.CommandUtils;
 import com.colen.tempora.utils.TimeUtils;
 import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
@@ -161,17 +159,18 @@ public class TemporaUndoRangedCommand extends CommandBase {
         }
 
         // Renders the checker box region on the client.
-        RegionToRender region = new RegionToRender(
-            player.dimension,
-            playerX - radius,
-            playerY - radius,
-            playerZ - radius,
-            playerX + radius + 1,
-            playerY + radius + 1,
-            playerZ + radius + 1,
-            System.currentTimeMillis());
-
-        NETWORK.sendTo(new PacketShowRegionInWorld.RegionMsg(region), player);
+        // RegionToRender region = new RegionToRender(
+        // player.dimension,
+        // playerX - radius,
+        // playerY - radius,
+        // playerZ - radius,
+        // playerX + radius + 1,
+        // playerY + radius + 1,
+        // playerZ + radius + 1,
+        // System.currentTimeMillis(),
+        // UUID.randomUUID().toString());
+        //
+        // NETWORK.sendTo(new PacketShowRegionInWorld.RegionMsg(region), player);
 
         // Store preview results
         String uuid = UUID.randomUUID()

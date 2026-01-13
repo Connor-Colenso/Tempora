@@ -1,7 +1,6 @@
 package com.colen.tempora.loggers.generic;
 
 import static com.colen.tempora.Tempora.LOG;
-import static com.colen.tempora.rendering.regions.RenderRegionsInWorld.SECONDS_RENDERING_DURATION;
 
 import java.awt.Color;
 import java.lang.reflect.Field;
@@ -362,6 +361,7 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
         return true;
     }
 
+    private static final long SECONDS_RENDERING_DURATION = 10;
     public void clearOldEventsToRender() {
         double expiryCutoff = System.currentTimeMillis() - SECONDS_RENDERING_DURATION * 1000L;
         transparentEventsToRenderInWorld

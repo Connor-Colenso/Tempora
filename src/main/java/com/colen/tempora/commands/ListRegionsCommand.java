@@ -101,6 +101,8 @@ public class ListRegionsCommand extends CommandBase {
             sender.addChatMessage(line);
         }
 
-        NETWORK.sendTo(new PacketShowRegionInWorld.RegionMsg(regions), player);
+        for (RegionToRender regionToSend : regions) {
+            NETWORK.sendTo(new PacketShowRegionInWorld.RegionMsg(regionToSend), player);
+        }
     }
 }

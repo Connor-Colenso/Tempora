@@ -2,6 +2,9 @@ package com.colen.tempora.commands;
 
 import static com.colen.tempora.loggers.generic.GenericEventInfo.teleportChatComponent;
 
+import java.util.UUID;
+
+import com.colen.tempora.rendering.regions.RegionRenderMode;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.util.ChatComponentTranslation;
@@ -73,7 +76,10 @@ public class CreateRegionCommand extends CommandBase {
             coords[3],
             coords[4],
             coords[5],
-            System.currentTimeMillis());
+            System.currentTimeMillis(),
+            UUID.randomUUID()
+                .toString(),
+            RegionRenderMode.BLOCK_CHANGE);
         BlockChangeRegionRegistry.add(region);
 
         ChatComponentTranslation msg = new ChatComponentTranslation(

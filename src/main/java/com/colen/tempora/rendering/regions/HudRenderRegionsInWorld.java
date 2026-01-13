@@ -3,6 +3,7 @@ package com.colen.tempora.rendering.regions;
 import static com.gtnewhorizon.gtnhlib.util.numberformatting.NumberFormatUtil.formatNumber;
 import static com.gtnewhorizon.gtnhlib.util.numberformatting.NumberFormatUtil.formatNumberCompact;
 
+import com.colen.tempora.rendering.ClientRegionStore;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityClientPlayerMP;
 import net.minecraft.client.gui.FontRenderer;
@@ -11,7 +12,6 @@ import net.minecraft.util.StatCollector;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 
 import com.colen.tempora.loggers.block_change.region_registry.RegionToRender;
-import com.colen.tempora.networking.PacketShowRegionInWorld;
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
@@ -43,9 +43,11 @@ public class HudRenderRegionsInWorld {
         int screenWidth = sr.getScaledWidth();
 
         // Count regions the player is inside
+        // todo make neater (compact loops)
         int regionsInside = 0;
-        for (RegionToRender region : PacketShowRegionInWorld.CLIENT_REGIONS) {
+        for (RegionToRender region : ClientRegionStore.all()) {
             if (region.dim != player.dimension) continue;
+            if (region.renderMode != RegionRenderMode.BLOCK_CHANGE) continue;
             if (region.contains(player.dimension, player.posX, player.posY, player.posZ)) {
                 regionsInside++;
             }
@@ -54,7 +56,7 @@ public class HudRenderRegionsInWorld {
         int yOffset = 5;
 
         // Draw descriptor centered at top.
-        if (!PacketShowRegionInWorld.CLIENT_REGIONS.isEmpty()) {
+        if (!ClientRegionStore.all().isEmpty()) {
             String descriptorText = StatCollector
                 .translateToLocalFormatted("tempora.HUD.region.descriptor", formatNumber(regionsInside));
             font.drawString(descriptorText, (screenWidth - font.getStringWidth(descriptorText)) / 2, yOffset, 0xFFFFFF);
@@ -63,8 +65,10 @@ public class HudRenderRegionsInWorld {
         // Draw each region below, numbered, with bullets
         int lineHeight = 10;
         int index = 1;
-        for (RegionToRender region : PacketShowRegionInWorld.CLIENT_REGIONS) {
+        for (RegionToRender region : ClientRegionStore.all()) {
             if (region.dim != player.dimension) continue;
+            if (region.renderMode != RegionRenderMode.BLOCK_CHANGE) continue;
+
             if (region.contains(player.dimension, player.posX, player.posY, player.posZ)) {
                 String regionText = StatCollector.translateToLocalFormatted(
                     "tempora.HUD.region.list",
