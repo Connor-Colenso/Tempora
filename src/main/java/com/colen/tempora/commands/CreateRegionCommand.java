@@ -20,7 +20,6 @@ import com.colen.tempora.rendering.regions.RegionRenderMode;
 import com.colen.tempora.utils.CommandUtils;
 
 /**
- * /createregion <x1> <y1> <z1> <x2> <y2> <z2>
  * Creates an axis‑aligned, integer‑bounded region in the sender’s current dimension
  * and stores it in RegionRegistry.
  */
@@ -33,7 +32,7 @@ public class CreateRegionCommand extends CommandBase {
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/createregion <x1> <y1> <z1> <x2> <y2> <z2>";
+        return "/createregion <label> <x1> <y1> <z1> <x2> <y2> <z2> [dim ID]";
     }
 
     @Override
@@ -43,66 +42,82 @@ public class CreateRegionCommand extends CommandBase {
 
     @Override
     public void processCommand(ICommandSender sender, String[] args) {
-        if (args.length != 6) {
+        // label + 6 coords + optional dim
+        if (args.length != 7 && args.length != 8) {
             CommandUtils.wrongUsage(getCommandUsage(sender));
             return;
         }
 
-        // Parse six integers for xyz start & xyz end.
-        int[] coords = new int[6];
+        final String label = args[0];
 
+        // Parse xyz start & xyz end
+        int[] coords = new int[6];
         for (int i = 0; i < 6; i++) {
             try {
-                coords[i] = parseInt(sender, args[i]);
+                coords[i] = parseInt(sender, args[i + 1]);
             } catch (NumberFormatException e) {
                 IChatComponent msg = new ChatComponentTranslation(
                     "tempora.command.create.region.non.numeric.coordinate",
-                    args[i]);
-
-                msg.getChatStyle()
-                    .setColor(EnumChatFormatting.RED);
+                    args[i + 1]
+                );
+                msg.getChatStyle().setColor(EnumChatFormatting.RED);
                 sender.addChatMessage(msg);
                 return;
             }
         }
 
-        // Build and store region
-        World world = sender.getEntityWorld();
-        int dim = world.provider.dimensionId;
+        // Dimension: optional argument
+        int dim;
+        if (args.length == 8) {
+            try {
+                dim = parseInt(sender, args[7]);
+            } catch (NumberFormatException e) {
+                IChatComponent msg = new ChatComponentTranslation(
+                    "tempora.command.create.region.non.numeric.dimension",
+                    args[7]
+                );
+                msg.getChatStyle().setColor(EnumChatFormatting.RED);
+                sender.addChatMessage(msg);
+                return;
+            }
+        } else {
+            dim = sender.getEntityWorld().provider.dimensionId;
+        }
 
+        // Build region
         RegionToRender region = new RegionToRender(
             dim,
-            coords[0],
-            coords[1],
-            coords[2],
-            coords[3],
-            coords[4],
-            coords[5]);
+            coords[0], coords[1], coords[2],
+            coords[3], coords[4], coords[5]
+        );
 
-        region.setRegionUUID(
-            UUID.randomUUID()
-                .toString());
+        region.setLabel(label);
+        region.setRegionUUID(UUID.randomUUID().toString());
         region.setRenderMode(RegionRenderMode.BLOCK_CHANGE);
         region.setRegionOriginTimeMs(System.currentTimeMillis());
 
-        if (sender instanceof EntityPlayerMP entityPlayerMP) {
-            region.setPlayerAuthorUUID(
-                entityPlayerMP.getUniqueID()
-                    .toString());
+        if (sender instanceof EntityPlayerMP player) {
+            region.setPlayerAuthorUUID(player.getUniqueID().toString());
         } else {
             region.setPlayerAuthorUUID(UNKNOWN_PLAYER_NAME);
         }
 
         BlockChangeRegionRegistry.add(region);
 
+        // Feedback
         ChatComponentTranslation msg = new ChatComponentTranslation(
             "command.tempora.region.created",
-            teleportChatComponent(coords[0], coords[1], coords[2], dim, GenericEventInfo.CoordFormat.INT),
-            teleportChatComponent(coords[3], coords[4], coords[5], dim, GenericEventInfo.CoordFormat.INT),
-            dim); // dimension ID
+            label,
+            teleportChatComponent(
+                coords[0], coords[1], coords[2], dim, GenericEventInfo.CoordFormat.INT
+            ),
+            teleportChatComponent(
+                coords[3], coords[4], coords[5], dim, GenericEventInfo.CoordFormat.INT
+            ),
+            dim
+        );
 
-        msg.getChatStyle()
-            .setColor(EnumChatFormatting.GREEN);
+        msg.getChatStyle().setColor(EnumChatFormatting.GREEN);
         sender.addChatMessage(msg);
     }
 

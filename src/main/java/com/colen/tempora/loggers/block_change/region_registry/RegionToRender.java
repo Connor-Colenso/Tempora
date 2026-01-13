@@ -23,6 +23,7 @@ public class RegionToRender {
     private String playerAuthorUUID;
     private Color color;
     private RegionRenderMode renderMode;
+    private String label;
 
     /**
      * Constructor: defines the bounding box coordinates only (x1,y1,z1 -> x2,y2,z2).
@@ -118,6 +119,14 @@ public class RegionToRender {
         this.renderMode = renderMode;
     }
 
+    public String getLabel() {
+        return label;
+    }
+
+    public void setLabel(String label) {
+        this.label = label;
+    }
+
     /* ---------- Helpers ---------- */
 
     public double getVolume() {
@@ -158,6 +167,7 @@ public class RegionToRender {
         tag.setDouble("maxX", maxX);
         tag.setDouble("maxY", maxY);
         tag.setDouble("maxZ", maxZ);
+        tag.setString("label", label);
         tag.setLong("regionOriginTimeMs", regionOriginTimeMs);
         tag.setString("regionUUID", regionUUID);
         tag.setString("playerAuthorUUID", playerAuthorUUID);
@@ -175,10 +185,12 @@ public class RegionToRender {
             tag.getDouble("maxY"),
             tag.getDouble("maxZ"));
 
+        region.label = tag.getString("label");
         region.regionOriginTimeMs = tag.getLong("regionOriginTimeMs");
         region.regionUUID = tag.getString("regionUUID");
         region.playerAuthorUUID = tag.getString("playerAuthorUUID");
         region.renderMode = RegionRenderMode.valueOf(tag.getString("renderMode"));
         return region;
     }
+
 }

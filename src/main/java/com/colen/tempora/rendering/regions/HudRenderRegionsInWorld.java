@@ -78,7 +78,7 @@ public class HudRenderRegionsInWorld {
             if (region.intersectsWith(player.dimension, player.boundingBox)) {
                 String regionText = StatCollector.translateToLocalFormatted(
                     "tempora.HUD.region.list",
-                    index++,
+                    region.getLabel(),
                     formatNumberCompact(region.getVolume()));
                 font.drawString(
                     regionText,
