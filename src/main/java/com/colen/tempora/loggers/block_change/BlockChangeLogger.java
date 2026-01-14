@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.UUID;
 
+import com.colen.tempora.loggers.generic.UndoResponse;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
@@ -249,12 +250,21 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
     }
 
     @Override
-    public IChatComponent undoEvent(GenericEventInfo eventInfo, EntityPlayer player) {
-        if (!(eventInfo instanceof BlockChangeEventInfo bcqe))
-            return new ChatComponentTranslation("tempora.undo.unknown.error", getLoggerName());
+    public void undoEvent(GenericEventInfo eventInfo, EntityPlayer player) {
 
-        if (bcqe.beforeEncodedNBT.equals(NBT_DISABLED))
-            return new ChatComponentTranslation("tempora.cannot.block.break.undo.nbt.logging.disabled");
+        // This should never occur.
+        if (!(eventInfo instanceof BlockChangeEventInfo bcqe)) {
+            eventInfo.undoResponse.message = new ChatComponentTranslation("tempora.undo.unknown.error", getLoggerName());
+            eventInfo.undoResponse.success = false;
+            return;
+        }
+
+        // Handle if logging NBT was off when this event was logged & it is needed to restore it.
+        if (bcqe.beforeEncodedNBT.equals(NBT_DISABLED)) {
+            eventInfo.undoResponse.message = new ChatComponentTranslation("tempora.cannot.block.break.undo.nbt.logging.disabled");
+            eventInfo.undoResponse.success = false;
+            return;
+        }
 
         int x = (int) bcqe.x;
         int y = (int) bcqe.y;
@@ -266,11 +276,13 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
         Block block = Block.getBlockById(blockID);
         if (block == null) {
             IChatComponent teleportCommand = teleportChatComponent(x, y, z, blockID);
-            return new ChatComponentTranslation(
+            eventInfo.undoResponse.message = new ChatComponentTranslation(
                 "tempora.cannot.block.break.undo.block.not.found",
                 bcqe.beforeBlockID,
                 bcqe.beforeMetadata,
                 teleportCommand);
+
+            eventInfo.undoResponse.success = true;
         }
 
         // Place silently (no physics or callbacks)
@@ -293,14 +305,19 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
                 w.setBlockToAir(x, y, z);
                 w.removeTileEntity(x, y, z);
                 e.printStackTrace();
-                return new ChatComponentTranslation("tempora.undo.unknown.error", getLoggerName());
+
+                eventInfo.undoResponse.message = new ChatComponentTranslation("tempora.undo.unknown.error", getLoggerName());
+                eventInfo.undoResponse.success = false;
+
+                return;
             }
         }
 
         // Client visual + light refresh now that TE is correct
         w.markBlockForUpdate(x, y, z);
 
-        return new ChatComponentTranslation("tempora.undo.success");
+        eventInfo.undoResponse.success = true;
+        eventInfo.undoResponse.message = new ChatComponentTranslation("tempora.undo.success");
     }
 
     @Override
