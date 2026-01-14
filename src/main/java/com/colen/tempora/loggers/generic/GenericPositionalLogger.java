@@ -295,7 +295,7 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
     }
 
     public final void genericConfig(@NotNull Configuration config) {
-        isEnabled = config.getBoolean("isEnabled", getLoggerName(), loggerEnabledByDefault(), "Enables this logger.");
+        isEnabled = config.getBoolean("isEnabled", getLoggerName(), true, "Enables this loggers functionality.");
         databaseManager.genericConfig(config);
     }
 
@@ -355,10 +355,6 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
                 logger.clearEvents();
             }
         }
-    }
-
-    private boolean loggerEnabledByDefault() {
-        return true;
     }
 
     private static final long SECONDS_RENDERING_DURATION = 10;
