@@ -107,7 +107,8 @@ public class ListRegionsCommand extends CommandBase {
                     "tempora.region.dimension.banner.in.chat",
                     getDimensionName(r.getDimID()),
                     r.getDimID());
-                dimBanner.getChatStyle().setColor(EnumChatFormatting.GRAY);
+                dimBanner.getChatStyle()
+                    .setColor(EnumChatFormatting.GRAY);
                 sender.addChatMessage(dimBanner);
             }
             sender.addChatMessage(r.getChatComponent());
