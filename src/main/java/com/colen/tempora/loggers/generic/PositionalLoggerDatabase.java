@@ -2,7 +2,9 @@ package com.colen.tempora.loggers.generic;
 
 import static com.colen.tempora.Tempora.LOG;
 import static com.colen.tempora.Tempora.NETWORK;
-import static com.colen.tempora.TemporaUtils.deleteLoggerDatabase;
+import static com.colen.tempora.utils.DatabaseUtils.databaseDir;
+import static com.colen.tempora.utils.DatabaseUtils.deleteLoggerDatabase;
+import static com.colen.tempora.utils.DatabaseUtils.jdbcUrl;
 import static com.colen.tempora.utils.GenericUtils.parseSizeStringToBytes;
 import static com.gtnewhorizon.gtnhlib.util.numberformatting.NumberFormatUtil.formatNumber;
 
@@ -33,7 +35,6 @@ import net.minecraftforge.common.config.Configuration;
 import org.jetbrains.annotations.NotNull;
 import org.sqlite.SQLiteConfig;
 
-import com.colen.tempora.TemporaUtils;
 import com.colen.tempora.loggers.generic.column.Column;
 import com.colen.tempora.loggers.generic.column.ColumnDef;
 import com.colen.tempora.loggers.generic.column.ColumnType;
@@ -100,7 +101,7 @@ public class PositionalLoggerDatabase {
     }
 
     private void initDbConnection() throws SQLException {
-        String dbUrl = TemporaUtils.jdbcUrl(genericPositionalLogger.getLoggerName() + ".db");
+        String dbUrl = jdbcUrl(genericPositionalLogger.getLoggerName() + ".db");
         positionalLoggerDBConnection = DriverManager.getConnection(dbUrl);
     }
 
@@ -222,7 +223,7 @@ public class PositionalLoggerDatabase {
 
     public Connection getReadOnlyConnection() {
         try {
-            String dbUrl = TemporaUtils.jdbcUrl(genericPositionalLogger.getLoggerName() + ".db");
+            String dbUrl = jdbcUrl(genericPositionalLogger.getLoggerName() + ".db");
 
             SQLiteConfig config = new SQLiteConfig();
             config.setReadOnly(true);
@@ -387,8 +388,7 @@ public class PositionalLoggerDatabase {
     }
 
     public void trimOversizedDatabase() throws SQLException {
-        Path dbPath = TemporaUtils.databaseDir()
-            .resolve(genericPositionalLogger.getLoggerName() + ".db");
+        Path dbPath = databaseDir().resolve(genericPositionalLogger.getLoggerName() + ".db");
         if (!Files.exists(dbPath)) {
             throw new IllegalStateException("Database file not found: " + dbPath);
         }

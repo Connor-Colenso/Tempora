@@ -6,30 +6,18 @@ import java.util.List;
 import java.util.Scanner;
 import java.util.Set;
 
-import net.minecraft.event.ClickEvent;
-import net.minecraft.event.HoverEvent;
-import net.minecraft.util.ChatComponentText;
-import net.minecraft.util.ChatComponentTranslation;
-import net.minecraft.util.ChatStyle;
-import net.minecraft.util.EnumChatFormatting;
-import net.minecraft.util.IChatComponent;
+import net.minecraft.world.WorldProvider;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.DimensionManager;
+
+import com.colen.tempora.config.Config;
+
+import cpw.mods.fml.common.FMLCommonHandler;
+import cpw.mods.fml.relauncher.Side;
 
 public class GenericUtils {
 
     private static final int STACK_TRACE_DEPTH = 3;
-
-    public static IChatComponent entityUUIDChatComponent(String uuid) {
-        IChatComponent clickToCopy = new ChatComponentTranslation("tempora.click.to.copy.uuid");
-        clickToCopy.getChatStyle()
-            .setColor(EnumChatFormatting.GRAY);
-
-        return new ChatComponentText("[UUID]").setChatStyle(
-            new ChatStyle().setColor(EnumChatFormatting.AQUA)
-                .setChatClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, uuid))
-                .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, clickToCopy)));
-    }
 
     public static String getCallingClassChain() {
         StackTraceElement[] stack = Thread.currentThread()
@@ -104,11 +92,22 @@ public class GenericUtils {
     }
 
     public static String getDimensionName(int dimID) {
-        WorldServer provider = DimensionManager.getWorld(dimID);
-        if (provider == null) return null;
+        WorldProvider provider = DimensionManager.createProviderFor(dimID);
+        provider.setDimension(dimID);
+        return provider.getDimensionName();
+    }
 
-        return provider.getWorldInfo()
-            .getWorldName();
+    public static boolean isClientSide() {
+        return FMLCommonHandler.instance()
+            .getEffectiveSide() == Side.CLIENT;
+    }
+
+    public static boolean isServerSide() {
+        return !isClientSide();
+    }
+
+    public static boolean shouldTemporaRun() {
+        return isServerSide() || Config.shouldTemporaRun;
     }
 
 }

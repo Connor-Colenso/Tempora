@@ -2,6 +2,7 @@ package com.colen.tempora.items;
 
 import static com.colen.tempora.Tempora.LOG;
 import static com.colen.tempora.utils.CommandUtils.teleportChatComponent;
+import static com.colen.tempora.utils.GenericUtils.isServerSide;
 
 import java.util.UUID;
 
@@ -17,7 +18,6 @@ import net.minecraft.util.Facing;
 import net.minecraft.world.World;
 
 import com.colen.tempora.TemporaLoggerManager;
-import com.colen.tempora.TemporaUtils;
 import com.colen.tempora.loggers.block_change.region_registry.TemporaWorldRegion;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.rendering.ClientRegionStore;
@@ -38,12 +38,12 @@ public class TemporaWand extends Item {
 
     @Override
     public boolean onBlockStartBreak(ItemStack stack, int x, int y, int z, EntityPlayer player) {
-        if (TemporaUtils.isServerSide()) {
+        if (isServerSide()) {
             checkSpot(player, x, y, z);
         }
 
         // On the client, force a visual refresh so the block doesn't appear broken
-        if (TemporaUtils.isServerSide()) {
+        if (isServerSide()) {
             player.worldObj.markBlockForUpdate(x, y, z);
         }
 

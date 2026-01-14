@@ -30,6 +30,9 @@ import cpw.mods.fml.common.event.FMLServerStoppingEvent;
 import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.network.simpleimpl.SimpleNetworkWrapper;
 
+import static com.colen.tempora.utils.GenericUtils.isServerSide;
+import static com.colen.tempora.utils.GenericUtils.shouldTemporaRun;
+
 @SuppressWarnings("unused")
 @Mod(modid = Tempora.MODID, version = Tags.VERSION, name = Tempora.MODNAME, acceptedMinecraftVersions = "[1.7.10]")
 public class Tempora {
@@ -65,7 +68,7 @@ public class Tempora {
 
     @Mod.EventHandler
     public void serverInit(FMLServerStartingEvent event) {
-        if (TemporaUtils.shouldTemporaRun()) {
+        if (shouldTemporaRun()) {
             for (GenericPositionalLogger<?> logger : TemporaLoggerManager.getLoggerList()) {
                 logger.registerEvent();
             }
@@ -76,7 +79,7 @@ public class Tempora {
     public void serverStarting(FMLServerStartingEvent event) {
         registerNewCommands(event);
 
-        if (TemporaUtils.shouldTemporaRun() && TemporaUtils.isServerSide()) {
+        if (shouldTemporaRun() && isServerSide()) {
             GenericPositionalLogger.onServerStart();
         }
 
@@ -100,7 +103,7 @@ public class Tempora {
 
     @Mod.EventHandler
     public void serverStopping(FMLServerStoppingEvent event) {
-        if (TemporaUtils.isServerSide()) {
+        if (isServerSide()) {
             GenericPositionalLogger.onServerClose();
             BlockChangeRegionRegistry.saveIfDirty();
         }

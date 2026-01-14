@@ -4,6 +4,7 @@ import static com.colen.tempora.Tempora.NETWORK;
 import static com.colen.tempora.utils.GenericUtils.getDimensionName;
 
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 
 import net.minecraft.command.CommandBase;
@@ -39,7 +40,7 @@ public class ListRegionsCommand extends CommandBase {
     /** Usage is localised */
     @Override
     public String getCommandUsage(ICommandSender s) {
-        return "/lis_tregions [Dim ID filter]";
+        return "/list_regions [Dim ID filter]";
     }
 
     @Override
@@ -98,8 +99,17 @@ public class ListRegionsCommand extends CommandBase {
             return;
         }
 
-        /* ---- list every region ---- */
+        // List every region
+        HashSet<Integer> dimIDsSeen = new HashSet<>();
         for (TemporaWorldRegion r : regions) {
+            if (dimIDsSeen.add(r.getDimID())) {
+                IChatComponent dimBanner = new ChatComponentTranslation(
+                    "tempora.region.dimension.banner.in.chat",
+                    getDimensionName(r.getDimID()),
+                    r.getDimID());
+                dimBanner.getChatStyle().setColor(EnumChatFormatting.GRAY);
+                sender.addChatMessage(dimBanner);
+            }
             sender.addChatMessage(r.getChatComponent());
         }
 
