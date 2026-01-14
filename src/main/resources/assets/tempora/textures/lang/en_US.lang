@@ -135,3 +135,4 @@ tempora.region.remove.individual=Removed region %s | Bounds: %s -> %s | Midpoint
 tempora.region.dimension.banner.in.chat=-- Regions in %s (ID %s) --
 
 tempora.hud.render.and.more=And %s more...
+tempora.command.undo.failed.bad.implementation=The logger %s has incorrectly implemented undo functionality on event %S and returned null. Please contact author of this logger.

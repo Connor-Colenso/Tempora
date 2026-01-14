@@ -35,7 +35,10 @@ public abstract class GenericEventInfo {
 
     // These fields purely dictates rendering info, and are not relevant elsewhere.
     public long eventRenderCreationTime;
-    public String loggerName;
+
+    // This is populated by undo logic. Otherwise, it is always null.
+    // It tells us useful info about what occurred during undo.
+    public UndoResponse undoResponse;
 
     public abstract IChatComponent localiseText(String commandIssuerUUID);
 

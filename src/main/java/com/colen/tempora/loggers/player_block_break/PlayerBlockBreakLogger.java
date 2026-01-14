@@ -10,6 +10,7 @@ import static com.colen.tempora.utils.nbt.NBTUtils.getEncodedTileEntityNBT;
 import java.util.List;
 import java.util.UUID;
 
+import com.colen.tempora.loggers.generic.UndoResponse;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -150,19 +151,31 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
     // Todo de-dupe code here and in other block adjacent loggers.
     // todo get rid of the need to cast the class here and use the generic.
     @Override
-    public IChatComponent undoEvent(GenericEventInfo eventInfo, EntityPlayer player) {
-        if (!(eventInfo instanceof PlayerBlockBreakEventInfo pbbqe))
-            return new ChatComponentTranslation("tempora.undo.unknown.error", getLoggerName());
+    public void undoEvent(GenericEventInfo eventInfo, EntityPlayer player) {
+        if (!(eventInfo instanceof PlayerBlockBreakEventInfo pbbqe)) {
+            UndoResponse undoResponse = new UndoResponse();
+            undoResponse.message = new ChatComponentTranslation("tempora.undo.unknown.error", getLoggerName());
+            undoResponse.success = false;
+            return;
+        }
 
         // NBT existed but was not logged, it is not safe to undo this event.
-        if (pbbqe.encodedNBT.equals(NBT_DISABLED))
-            return new ChatComponentTranslation("tempora.cannot.block.break.undo.nbt.logging.disabled");
+        if (pbbqe.encodedNBT.equals(NBT_DISABLED)) {
+            UndoResponse undoResponse = new UndoResponse();
+            undoResponse.message = new ChatComponentTranslation("tempora.cannot.block.break.undo.nbt.logging.disabled");
+            undoResponse.success = false;
+            return;
+        }
 
         World w = MinecraftServer.getServer()
             .worldServerForDimension(eventInfo.dimensionID);
 
         Block block = Block.getBlockById(pbbqe.blockID);
-        if (block == null) return new ChatComponentTranslation("tempora.cannot.block.break.undo.block.not.found");
+        if (block == null) {
+            UndoResponse undoResponse = new UndoResponse();
+            undoResponse.message = new ChatComponentTranslation("tempora.cannot.block.break.undo.block.not.found");
+            undoResponse.success = false;
+        }
 
         // Flag of 2 will update clients nearby.
         w.setBlock((int) pbbqe.x, (int) pbbqe.y, (int) pbbqe.z, block, pbbqe.metadata, 2);
@@ -170,7 +183,11 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
         // Just to ensure meta is being set right, stops blocks interfering.
         w.setBlockMetadataWithNotify((int) pbbqe.x, (int) pbbqe.y, (int) pbbqe.z, pbbqe.metadata, 2);
         // Block had no NBT.
-        if (pbbqe.encodedNBT.equals(NO_NBT)) return new ChatComponentTranslation("tempora.undo.success");
+        if (pbbqe.encodedNBT.equals(NO_NBT)) {
+            UndoResponse undoResponse = new UndoResponse();
+            undoResponse.message = new ChatComponentTranslation("tempora.undo.success");
+            undoResponse.success = true;
+        }
 
         try {
             TileEntity tileEntity = TileEntity.createAndLoadEntity(NBTUtils.decodeFromString(pbbqe.encodedNBT));
@@ -181,9 +198,14 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
             w.removeTileEntity((int) pbbqe.x, (int) pbbqe.y, (int) pbbqe.z);
 
             e.printStackTrace();
-            return new ChatComponentTranslation("tempora.undo.unknown.error", getLoggerName());
+            UndoResponse undoResponse = new UndoResponse();
+            undoResponse.message = new ChatComponentTranslation("tempora.undo.unknown.error", getLoggerName());
+            undoResponse.success = false;
+            return;
         }
 
-        return new ChatComponentTranslation("tempora.undo.success");
+        UndoResponse undoResponse = new UndoResponse();
+        undoResponse.message = new ChatComponentTranslation("tempora.undo.success");
+        undoResponse.success = true;
     }
 }

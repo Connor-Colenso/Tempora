@@ -2,16 +2,19 @@ package com.colen.tempora.commands;
 
 import java.util.List;
 
+import com.colen.tempora.utils.ChatUtils;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.util.IChatComponent;
 
 import com.colen.tempora.TemporaLoggerManager;
 import com.colen.tempora.loggers.generic.GenericEventInfo;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.utils.CommandUtils;
+import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.IChatComponent;
 
 public class TemporaUndoCommand extends CommandBase {
 
@@ -41,10 +44,18 @@ public class TemporaUndoCommand extends CommandBase {
         if (genericLogger == null) {
             throw new WrongUsageException("tempora.command.undo.wrong.logger", loggerName);
         } else if (genericLogger.isUndoEnabled()) {
-            GenericEventInfo eventInfo = genericLogger.getDatabaseManager()
-                .queryEventByEventID(eventID);
-            IChatComponent chatMessage = genericLogger.undoEvent(eventInfo, (EntityPlayer) sender);
-            sender.addChatMessage(chatMessage);
+            GenericEventInfo eventInfo = genericLogger.getDatabaseManager().queryEventByEventID(eventID);
+            genericLogger.undoEvent(eventInfo, (EntityPlayer) sender);
+
+            // Tell the user the response from the undo command.
+            if (eventInfo.undoResponse != null && eventInfo.undoResponse.message != null) {
+                sender.addChatMessage(eventInfo.undoResponse.message);
+            } else {
+                // Something gone wrong with the undo implementation. This may not be tempora's fault, depending on the origin of this logger.
+                IChatComponent errorMsg = new ChatComponentTranslation("tempora.command.undo.failed.bad.implementation", loggerName, ChatUtils.createHoverableClickable("[UUID]", eventID));
+                errorMsg.getChatStyle().setColor(EnumChatFormatting.RED);
+                sender.addChatMessage(errorMsg);
+            }
         } else {
             throw new WrongUsageException("tempora.command.undo.not_undoable", loggerName);
         }

@@ -377,13 +377,14 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
     }
 
     // Todo also return if succeed or not, to tally up and return to user. Reasons also, then present them all?
-    public IChatComponent undoEvent(GenericEventInfo eventInfo, EntityPlayer player) {
+    public void undoEvent(GenericEventInfo eventInfo, EntityPlayer player) {
         throw new UnsupportedOperationException(
             "The class " + getLoggerName() + " supports undo but has no implementation.");
     }
 
     public final void undoEvents(List<? extends GenericEventInfo> results, EntityPlayer player) {
         for (GenericEventInfo element : results) {
+            element.undoResponse = new UndoResponse();
             undoEvent(element, player);
         }
     }
