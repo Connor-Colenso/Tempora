@@ -15,8 +15,9 @@ public class ChatUtils {
     public static IChatComponent createHoverableClickable(String displayText, String hoverText) {
         // Base text component that appears in chat
         ChatComponentText component = new ChatComponentText(displayText);
-        IChatComponent hoverComponent =  new ChatComponentText(hoverText);
-        hoverComponent.getChatStyle().setColor(EnumChatFormatting.GRAY);
+        IChatComponent hoverComponent = new ChatComponentText(hoverText);
+        hoverComponent.getChatStyle()
+            .setColor(EnumChatFormatting.GRAY);
 
         // Style for hover and click events
         component.setChatStyle(

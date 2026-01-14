@@ -1,5 +1,8 @@
 package com.colen.tempora;
 
+import static com.colen.tempora.utils.GenericUtils.isServerSide;
+import static com.colen.tempora.utils.GenericUtils.shouldTemporaRun;
+
 import net.minecraft.block.Block;
 import net.minecraftforge.common.config.Configuration;
 
@@ -29,9 +32,6 @@ import cpw.mods.fml.common.event.FMLServerStartingEvent;
 import cpw.mods.fml.common.event.FMLServerStoppingEvent;
 import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.network.simpleimpl.SimpleNetworkWrapper;
-
-import static com.colen.tempora.utils.GenericUtils.isServerSide;
-import static com.colen.tempora.utils.GenericUtils.shouldTemporaRun;
 
 @SuppressWarnings("unused")
 @Mod(modid = Tempora.MODID, version = Tags.VERSION, name = Tempora.MODNAME, acceptedMinecraftVersions = "[1.7.10]")

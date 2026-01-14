@@ -7,7 +7,6 @@ import java.util.Scanner;
 import java.util.Set;
 
 import net.minecraft.world.WorldProvider;
-import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.DimensionManager;
 
 import com.colen.tempora.config.Config;
