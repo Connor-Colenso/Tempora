@@ -2,8 +2,8 @@ package com.colen.tempora.loggers.block_change;
 
 import static com.colen.tempora.Tempora.LOG;
 import static com.colen.tempora.TemporaUtils.UNKNOWN_PLAYER_NAME;
-import static com.colen.tempora.loggers.generic.GenericEventInfo.teleportChatComponent;
 import static com.colen.tempora.utils.BlockUtils.getPickBlockSafe;
+import static com.colen.tempora.utils.CommandUtils.teleportChatComponent;
 import static com.colen.tempora.utils.RenderingUtils.CLIENT_EVENT_RENDER_DISTANCE;
 import static com.colen.tempora.utils.nbt.NBTUtils.NBT_DISABLED;
 import static com.colen.tempora.utils.nbt.NBTUtils.NO_NBT;
@@ -265,7 +265,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
 
         Block block = Block.getBlockById(blockID);
         if (block == null) {
-            IChatComponent teleportCommand = teleportChatComponent(x, y, z, blockID, GenericEventInfo.CoordFormat.INT);
+            IChatComponent teleportCommand = teleportChatComponent(x, y, z, blockID);
             return new ChatComponentTranslation(
                 "tempora.cannot.block.break.undo.block.not.found",
                 bcqe.beforeBlockID,

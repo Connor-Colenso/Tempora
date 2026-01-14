@@ -1,5 +1,7 @@
 package com.colen.tempora.loggers.player_block_place;
 
+import static com.colen.tempora.utils.CommandUtils.teleportChatComponent;
+
 import net.minecraft.block.Block;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
@@ -62,7 +64,7 @@ public class PlayerBlockPlaceEventInfo extends GenericEventInfo {
         IChatComponent block = BlockUtils.getUnlocalisedChatComponent(pickBlockID, pickBlockMeta);
 
         // Clickable coords component
-        IChatComponent coords = teleportChatComponent(x, y, z, dimensionID, CoordFormat.INT);
+        IChatComponent coords = teleportChatComponent(x, y, z, dimensionID);
 
         // Relative time component
         IChatComponent timeAgo = TimeUtils.formatTime(timestamp);

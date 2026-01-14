@@ -13,7 +13,7 @@ import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.world.storage.ISaveHandler;
 
 public final class BlockChangeRegionRegistry {
@@ -25,12 +25,12 @@ public final class BlockChangeRegionRegistry {
 
     private static BlockChangeRegionRegistry instance;
 
-    private final Map<Integer, List<RegionToRender>> byDim = new HashMap<>();
+    private final Map<Integer, List<TemporaWorldRegion>> byDim = new HashMap<>();
     private boolean dirty = false;
 
     // Public API.
 
-    public static void add(RegionToRender r) {
+    public static void add(TemporaWorldRegion r) {
         get().addRegion(r);
     }
 
@@ -38,26 +38,56 @@ public final class BlockChangeRegionRegistry {
         return get().contains(dim, x, y, z);
     }
 
-    public static List<RegionToRender> removeRegionsContainingCoordinate(EntityPlayer player) {
-        return get().removeContaining(player);
+    public static List<TemporaWorldRegion> removeRegionsIntersectingPlayer(EntityPlayer player) {
+        return get().removeIntersecting(player);
     }
 
-    private List<RegionToRender> removeContaining(EntityPlayer player) {
-        List<RegionToRender> list = byDim.get(player.dimension);
+    private List<TemporaWorldRegion> removeIntersecting(EntityPlayer player) {
+        List<TemporaWorldRegion> list = byDim.get(player.dimension);
         if (list == null || list.isEmpty()) {
             return Collections.emptyList();
         }
 
-        List<RegionToRender> removed = new ArrayList<>();
+        AxisAlignedBB playerBB = player.boundingBox;
+        List<TemporaWorldRegion> removed = new ArrayList<>();
 
-        for (Iterator<RegionToRender> it = list.iterator(); it.hasNext();) {
-            RegionToRender region = it.next();
+        for (Iterator<TemporaWorldRegion> it = list.iterator(); it.hasNext();) {
+            TemporaWorldRegion region = it.next();
 
-            if (region.containsBlock(
-                player.dimension,
-                player.posX,
-                player.posY,
-                player.posZ)) {
+            // Build region AABB (block-aligned; expand by 1 if your regions are inclusive)
+            AxisAlignedBB regionBB = AxisAlignedBB.getBoundingBox(
+                region.getMinX(),
+                region.getMinY(),
+                region.getMinZ(),
+                region.getMaxX(),
+                region.getMaxY(),
+                region.getMaxZ());
+
+            if (regionBB.intersectsWith(playerBB)) {
+                it.remove();
+                removed.add(region);
+            }
+        }
+
+        if (!removed.isEmpty()) {
+            dirty = true;
+        }
+
+        return removed;
+    }
+
+    private List<TemporaWorldRegion> removeContaining(EntityPlayer player) {
+        List<TemporaWorldRegion> list = byDim.get(player.dimension);
+        if (list == null || list.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        List<TemporaWorldRegion> removed = new ArrayList<>();
+
+        for (Iterator<TemporaWorldRegion> it = list.iterator(); it.hasNext();) {
+            TemporaWorldRegion region = it.next();
+
+            if (region.containsBlock(player.dimension, player.posX, player.posY, player.posZ)) {
 
                 it.remove();
                 removed.add(region);
@@ -71,8 +101,7 @@ public final class BlockChangeRegionRegistry {
         return removed;
     }
 
-
-    public static List<RegionToRender> getAll() {
+    public static List<TemporaWorldRegion> getAll() {
         return get().allRegions();
     }
 
@@ -94,24 +123,24 @@ public final class BlockChangeRegionRegistry {
 
     // Internal logic.
 
-    private void addRegion(RegionToRender r) {
+    private void addRegion(TemporaWorldRegion r) {
         byDim.computeIfAbsent(r.getDimID(), d -> new ArrayList<>())
             .add(r);
         dirty = true;
     }
 
     private boolean contains(int dim, int x, int y, int z) {
-        List<RegionToRender> list = byDim.get(dim);
+        List<TemporaWorldRegion> list = byDim.get(dim);
         if (list == null) return false;
 
-        for (RegionToRender r : list) {
+        for (TemporaWorldRegion r : list) {
             if (r.containsBlock(dim, x, y, z)) return true;
         }
         return false;
     }
 
-    private List<RegionToRender> allRegions() {
-        List<RegionToRender> out = new ArrayList<>();
+    private List<TemporaWorldRegion> allRegions() {
+        List<TemporaWorldRegion> out = new ArrayList<>();
         List<Integer> dims = new ArrayList<>(byDim.keySet());
         Collections.sort(dims);
 
@@ -156,7 +185,7 @@ public final class BlockChangeRegionRegistry {
 
         NBTTagList list = tag.getTagList("regions", 10);
         for (int i = 0; i < list.tagCount(); i++) {
-            RegionToRender r = RegionToRender.readNBT(list.getCompoundTagAt(i));
+            TemporaWorldRegion r = TemporaWorldRegion.readNBT(list.getCompoundTagAt(i));
             byDim.computeIfAbsent(r.getDimID(), d -> new ArrayList<>())
                 .add(r);
         }
@@ -165,8 +194,8 @@ public final class BlockChangeRegionRegistry {
     private void writeToNBT(NBTTagCompound tag) {
         NBTTagList list = new NBTTagList();
 
-        for (List<RegionToRender> regions : byDim.values()) {
-            for (RegionToRender r : regions) {
+        for (List<TemporaWorldRegion> regions : byDim.values()) {
+            for (TemporaWorldRegion r : regions) {
                 list.appendTag(r.writeNBT());
             }
         }

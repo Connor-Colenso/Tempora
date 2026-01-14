@@ -20,6 +20,13 @@ time.ago.hours=%s hours ago
 time.ago.minutes=%s minutes ago
 time.ago.seconds=%s seconds ago
 
+time.ago.decade=%s decade ago
+time.ago.year=%s year ago
+time.ago.day=%s day ago
+time.ago.hour=%s hour ago
+time.ago.minute=%s minute ago
+time.ago.second=%s second ago
+
 # Usage / help
 tempora.command.querysql.usage=Usage: %s.
 tempora.command.querysql.query_quotes=SQL query must be wrapped in quotes.
@@ -41,7 +48,7 @@ item.tempora_wand.name=Tempora Wand
 tempora.command.averagehome.no_db=Unable to query movement data – database unavailable.
 tempora.command.averagehome.usage=Usage: %s
 tempora.teleport.display=[%s %s %s]
-tempora.teleport.hover=Click to teleport [dim %s]
+tempora.teleport.hover=Click to teleport [%s, ID %s]
 tempora.command.averagehome.result=Player %s is most active in dim %s, click %s to visit location.
 tempora.command.averagehome.unknown_player=No location data for player %s available.
 tempora.command.averagehome.no_data=No movement data found for that query.
@@ -50,14 +57,15 @@ tempora.command.homechunk.bad_dim=Bad <dim> value, must be an integer.
 
 command.tempora.removeregion.removed.single=Removed %d region at your position.
 command.tempora.removeregion.removed.plural=Removed %d regions at your position.
-command.tempora.removeregion.no_region=No region found at your position.
+command.tempora.removeregion.no_region=No region(s) found at your position.
 
-command.tempora.region.created=Region created: %s to %s in dimension %d.
+command.tempora.region.created=Created region %s | Bounds: %s -> %s | Midpoint: %s.
+
 
 tempora.command.queryevents.bad_filter=Filter "%s" is invalid.
 
 tempora.command.listregions.none=No regions defined.
-tempora.command.listregions.entry=Region %d: %s to %s in dim %s. Midpoint: %s. Created %s by %s.
+tempora.command.listregions.entry=Region %s | Bounds: %s -> %s | Midpoint: %s | Created %s by %s.
 message.inventorylogger.invalid_interaction=Error: invalid interactionType %s in InventoryLogger DB. Please report this.
 
 message.queryevents.query_failed=Database query failed on %s: %s
@@ -68,7 +76,7 @@ message.queryevents.too_many_pending=Warning, due to high volume, there are stil
 event.command.executed=%s executed
 
 tile.renderingErrorBlock.name=Tempora Rendering Error
-tooltip.temporasRenderingBlockError=If you are seeing this, something has likely gone wrong with Temporas event rendering. Please report it to Colen. Thanks!
+tooltip.temporasRenderingBlockError=If you are seeing this, something has likely gone wrong with Temporas event rendering. Please report it, thanks!
 tempora.range.negative=Range cannot be negative, stop trying to break me!
 
 # === Tempora Undo Messages ===
@@ -113,7 +121,8 @@ tempora.command.force.must.be.numeric=Force must be a number.
 tempora.command.create.region.non.numeric.coordinate=All coordinates must be integers, found %s.
 
 tempora.uuid.display=UUID: %s
-tempora.HUD.region.descriptor=Currently inside %s regions:
+tempora.HUD.region.descriptor.plural=Currently inside %s regions:
+tempora.HUD.region.descriptor.singular=Currently inside %s region:
 tempora.HUD.region.list='%s' - Volume %s blocks.
 tempora.command.listregions.global.logging.enabled=WARNING: globalBlockChangeLogging is enabled, capturing all block changes globally and ignoring regions.
 tempora.command.filtered.listregions.empty=%s (ID %s) has no regions.
@@ -122,4 +131,6 @@ tempora.command.filtered.listregions.invalid.dimension=Dimension with ID %s does
 tempora.command.create.region.non.numeric.dimension=Dimension '%s' must be an integer.
 tempora.render.regions.author=Created by %s
 tempora.render.regions.created.on=Created %s
-tempora.region.remove.individual=Removed region '%s', former midpoint %s.
+tempora.region.remove.individual=Removed region %s | Bounds: %s -> %s | Midpoint: %s.
+
+tempora.hud.render.and.more=And %s more...

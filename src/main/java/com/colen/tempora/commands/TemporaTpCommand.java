@@ -13,12 +13,12 @@ public class TemporaTpCommand extends CommandBase {
 
     @Override
     public String getCommandName() {
-        return "temporatp";
+        return "tempora_tp";
     }
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/temporatp <x> <y> <z> [dim]";
+        return "/tempora_tp <x> <y> <z> [dim]";
     }
 
     @Override

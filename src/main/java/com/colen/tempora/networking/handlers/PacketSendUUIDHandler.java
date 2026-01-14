@@ -2,6 +2,7 @@ package com.colen.tempora.networking.handlers;
 
 import com.colen.tempora.networking.packets.PacketRemoveRegionFromClient;
 import com.colen.tempora.rendering.ClientRegionStore;
+
 import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import cpw.mods.fml.common.network.simpleimpl.IMessageHandler;
 import cpw.mods.fml.common.network.simpleimpl.MessageContext;

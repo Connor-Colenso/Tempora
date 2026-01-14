@@ -2,25 +2,24 @@ package com.colen.tempora.rendering.regions;
 
 import static com.colen.tempora.rendering.RenderUtils.correctForCamera;
 
-import com.colen.tempora.chat.ChatComponentTimeRelative;
-import com.colen.tempora.utils.PlayerUtils;
-import com.colen.tempora.utils.TimeUtils;
+import java.util.ArrayList;
+import java.util.List;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.StatCollector;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 
 import org.lwjgl.opengl.GL11;
 
-import com.colen.tempora.loggers.block_change.region_registry.RegionToRender;
+import com.colen.tempora.chat.ChatComponentTimeRelative;
+import com.colen.tempora.loggers.block_change.region_registry.TemporaWorldRegion;
 import com.colen.tempora.rendering.ClientRegionStore;
 import com.colen.tempora.rendering.RenderUtils;
+import com.colen.tempora.utils.PlayerUtils;
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @SideOnly(Side.CLIENT)
 public final class RenderRegionsInWorld {
@@ -32,10 +31,10 @@ public final class RenderRegionsInWorld {
         GL11.glPushMatrix();
         correctForCamera(e);
 
-        for (RegionToRender r : ClientRegionStore.all()) {
+        for (TemporaWorldRegion r : ClientRegionStore.all()) {
             if (r.getDimID() != curDim) continue;
 
-            double eps = RegionToRender.BLOCK_EDGE_EPSILON;
+            double eps = TemporaWorldRegion.BLOCK_EDGE_EPSILON;
 
             RenderUtils.renderBoundingBox(
                 r.getMinX() + eps,
@@ -64,14 +63,17 @@ public final class RenderRegionsInWorld {
                 // Render text info in region.
                 List<String> renderText = new ArrayList<>();
                 renderText.add(r.getLabel());
-                renderText.add(StatCollector.translateToLocalFormatted("tempora.render.regions.author", PlayerUtils.playerNameFromUUID(r.getPlayerAuthorUUID()).getFormattedText()));
-                renderText.add(StatCollector.translateToLocalFormatted("tempora.render.regions.created.on", new ChatComponentTimeRelative(r.getRegionOriginTimeMs()).getFormattedText()));
+                renderText.add(
+                    StatCollector.translateToLocalFormatted(
+                        "tempora.render.regions.author",
+                        PlayerUtils.playerNameFromUUID(r.getPlayerAuthorUUID())
+                            .getFormattedText()));
+                renderText.add(
+                    StatCollector.translateToLocalFormatted(
+                        "tempora.render.regions.created.on",
+                        new ChatComponentTimeRelative(r.getRegionOriginTimeMs()).getFormattedText()));
 
-                double midX = (r.getMinX() + r.getMaxX()) / 2;
-                double midY = (r.getMinY() + r.getMaxY()) / 2;
-                double midZ = (r.getMinZ() + r.getMaxZ()) / 2;
-
-                RenderUtils.renderFloatingText(renderText, midX, midY, midZ);
+                RenderUtils.renderFloatingText(renderText, r.getMidX(), r.getMidY(), r.getMidZ());
             }
         }
 

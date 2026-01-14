@@ -5,6 +5,7 @@ import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import io.netty.buffer.ByteBuf;
 
 public class PacketRemoveRegionFromClient implements IMessage {
+
     private String uuid;
 
     // Required empty constructor

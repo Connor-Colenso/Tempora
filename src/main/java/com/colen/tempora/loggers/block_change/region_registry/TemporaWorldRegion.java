@@ -1,15 +1,22 @@
 package com.colen.tempora.loggers.block_change.region_registry;
 
 import static com.colen.tempora.rendering.RenderUtils.getRandomBrightColor;
+import static com.colen.tempora.utils.ChatUtils.createHoverableClickable;
+import static com.colen.tempora.utils.CommandUtils.teleportChatComponent;
+import static com.colen.tempora.utils.PlayerUtils.playerNameFromUUID;
+import static com.colen.tempora.utils.TimeUtils.formatTime;
 
 import java.awt.Color;
 
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.IChatComponent;
 
 import com.colen.tempora.rendering.regions.RegionRenderMode;
-import net.minecraft.util.AxisAlignedBB;
 
-public class RegionToRender {
+public class TemporaWorldRegion {
 
     public static final double BLOCK_EDGE_EPSILON = 0.002;
 
@@ -29,7 +36,7 @@ public class RegionToRender {
      * Constructor: defines the bounding box coordinates only (x1,y1,z1 -> x2,y2,z2).
      * The rest should be set via setters.
      */
-    public RegionToRender(int dimID, double x1, double y1, double z1, double x2, double y2, double z2) {
+    public TemporaWorldRegion(int dimID, double x1, double y1, double z1, double x2, double y2, double z2) {
         this.dimID = dimID;
         this.minX = Math.min(x1, x2);
         this.minY = Math.min(y1, y2);
@@ -69,6 +76,18 @@ public class RegionToRender {
 
     public double getMaxZ() {
         return maxZ;
+    }
+
+    public double getMidX() {
+        return (minX + maxX) / 2.0;
+    }
+
+    public double getMidY() {
+        return (minY + maxY) / 2.0;
+    }
+
+    public double getMidZ() {
+        return (minZ + maxZ) / 2.0;
     }
 
     public long getRenderStartTimeMs() {
@@ -147,10 +166,8 @@ public class RegionToRender {
         if (this.dimID != dim) return false;
 
         // Create an AABB representing this region
-        AxisAlignedBB regionAABB = AxisAlignedBB.getBoundingBox(
-                this.minX, this.minY, this.minZ,
-                this.maxX, this.maxY, this.maxZ
-        );
+        AxisAlignedBB regionAABB = AxisAlignedBB
+            .getBoundingBox(this.minX, this.minY, this.minZ, this.maxX, this.maxY, this.maxZ);
 
         // Use Minecraft's built-in intersect check
         return regionAABB.intersectsWith(box);
@@ -175,8 +192,8 @@ public class RegionToRender {
         return tag;
     }
 
-    public static RegionToRender readNBT(NBTTagCompound tag) {
-        RegionToRender region = new RegionToRender(
+    public static TemporaWorldRegion readNBT(NBTTagCompound tag) {
+        TemporaWorldRegion region = new TemporaWorldRegion(
             tag.getInteger("dim"),
             tag.getDouble("minX"),
             tag.getDouble("minY"),
@@ -193,4 +210,28 @@ public class RegionToRender {
         return region;
     }
 
+    public IChatComponent getChatComponent() {
+        // Centre of the region for a sensible teleport target
+        double cx = (minX + maxX) / 2.0;
+        double cy = (minY + maxY) / 2.0;
+        double cz = (minZ + maxZ) / 2.0;
+
+        /* Clickable coordinate component */
+        ChatComponentTranslation tp = (ChatComponentTranslation) teleportChatComponent(cx, cy, cz, dimID);
+
+        /* Whole entry line */
+        ChatComponentTranslation line = new ChatComponentTranslation(
+            "tempora.command.listregions.entry",
+            createHoverableClickable(label, regionUUID),
+            teleportChatComponent(minX, minY, minZ, dimID),
+            teleportChatComponent(maxX, maxY, maxZ, dimID),
+            tp,
+            formatTime(regionOriginTimeMs),
+            playerNameFromUUID(playerAuthorUUID));
+
+        line.getChatStyle()
+            .setColor(EnumChatFormatting.YELLOW);
+
+        return line;
+    }
 }

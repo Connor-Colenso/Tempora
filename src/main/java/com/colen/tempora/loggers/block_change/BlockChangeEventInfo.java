@@ -1,5 +1,8 @@
 package com.colen.tempora.loggers.block_change;
 
+import static com.colen.tempora.utils.CommandUtils.generateUndoCommand;
+import static com.colen.tempora.utils.CommandUtils.teleportChatComponent;
+
 import net.minecraft.block.Block;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
@@ -66,7 +69,7 @@ public class BlockChangeEventInfo extends GenericEventInfo {
         IChatComponent afterBlockName = BlockUtils.getUnlocalisedChatComponent(afterPickBlockID, afterPickBlockMeta);
 
         // Coordinates component
-        IChatComponent coords = teleportChatComponent(x, y, z, dimensionID, CoordFormat.INT);
+        IChatComponent coords = teleportChatComponent(x, y, z, dimensionID);
 
         // Time ago
         IChatComponent timeAgo = TimeUtils.formatTime(timestamp);

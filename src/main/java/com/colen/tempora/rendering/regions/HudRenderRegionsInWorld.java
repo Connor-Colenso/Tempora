@@ -13,7 +13,7 @@ import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.util.StatCollector;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 
-import com.colen.tempora.loggers.block_change.region_registry.RegionToRender;
+import com.colen.tempora.loggers.block_change.region_registry.TemporaWorldRegion;
 import com.colen.tempora.rendering.ClientRegionStore;
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
@@ -22,17 +22,14 @@ public class HudRenderRegionsInWorld {
 
     private final Minecraft mc = Minecraft.getMinecraft();
 
-    // todo review the fact that rendered region seems 1 block too large in every direction.
-
+    // Probably very inefficient, but it's fine for now.
     @SubscribeEvent
     public void onRenderText(RenderGameOverlayEvent.Text event) {
-        // Only render HUD text
         if (event.type != RenderGameOverlayEvent.ElementType.TEXT) return;
 
         EntityClientPlayerMP player = mc.thePlayer;
         if (player == null) return;
 
-        // Client-side / HUD visibility checks
         if (!mc.theWorld.isRemote) return;
         if (mc.gameSettings.showDebugInfo) return;
         if (!mc.isSingleplayer() && mc.currentScreen == null) return;
@@ -42,60 +39,64 @@ public class HudRenderRegionsInWorld {
         int screenWidth = sr.getScaledWidth();
 
         // Collect block-change regions
-        List<RegionToRender> blockChangeRegions = ClientRegionStore.all()
+        List<TemporaWorldRegion> blockChangeRegions = ClientRegionStore.all()
             .stream()
             .filter(r -> r.getRenderMode() == RegionRenderMode.BLOCK_CHANGE)
             .collect(Collectors.toList());
 
         if (blockChangeRegions.isEmpty()) return;
 
-        // Initial Y position
+        // Filter to regions intersecting the player
+        List<TemporaWorldRegion> intersectingRegions = blockChangeRegions.stream()
+            .filter(r -> r.getDimID() == player.dimension)
+            .filter(r -> r.intersectsWith(player.dimension, player.boundingBox))
+            .collect(Collectors.toList());
+
+        if (intersectingRegions.isEmpty()) return;
+
         int y = 5;
         final int lineHeight = font.FONT_HEIGHT + 2;
 
-        // Count intersecting regions
-        int regionsInside = 0;
-        for (RegionToRender region : blockChangeRegions) {
-            if (region.getDimID() != player.dimension) continue;
-            if (region.intersectsWith(player.dimension, player.boundingBox)) {
-                regionsInside++;
-            }
+        // Draw descriptor line
+        String descriptorText;
+        if (intersectingRegions.size() == 1) {
+            descriptorText = StatCollector.translateToLocalFormatted(
+                "tempora.HUD.region.descriptor.singular",
+                formatNumber(intersectingRegions.size()));
+        } else {
+            descriptorText = StatCollector.translateToLocalFormatted(
+                "tempora.HUD.region.descriptor.plural",
+                formatNumber(intersectingRegions.size()));
         }
 
-        // Draw descriptor line
-        String descriptorText = StatCollector.translateToLocalFormatted(
-            "tempora.HUD.region.descriptor",
-            formatNumber(regionsInside)
-        );
-
-        font.drawString(
-            descriptorText,
-            (screenWidth - font.getStringWidth(descriptorText)) / 2,
-            y,
-            0xFFFFFF
-        );
-
+        font.drawString(descriptorText, (screenWidth - font.getStringWidth(descriptorText)) / 2, y, 0xFFFFFF);
         y += lineHeight;
 
-        // Draw each intersecting region
-        for (RegionToRender region : blockChangeRegions) {
-            if (region.getDimID() != player.dimension) continue;
-            if (!region.intersectsWith(player.dimension, player.boundingBox)) continue;
+        // Draw up to MAX_REGIONS_TO_SHOW_ON_HUD intersecting regions
+        final int MAX_REGIONS_TO_SHOW_ON_HUD = 10;
+        int indexEnd = Math.min(intersectingRegions.size(), MAX_REGIONS_TO_SHOW_ON_HUD);
 
+        for (TemporaWorldRegion region : intersectingRegions.subList(0, indexEnd)) {
             String regionText = StatCollector.translateToLocalFormatted(
                 "tempora.HUD.region.list",
                 region.getLabel(),
-                formatNumberCompact(region.getVolume())
-            );
+                formatNumberCompact(region.getVolume()));
 
             font.drawString(
                 regionText,
                 (screenWidth - font.getStringWidth(regionText)) / 2,
                 y,
-                region.getColor().getRGB() & 0xFFFFFF
-            );
-
+                region.getColor()
+                    .getRGB() & 0xFFFFFF);
             y += lineHeight;
+        }
+
+        // Show "..." if there are more regions beyond those displayed
+        int remaining = intersectingRegions.size() - MAX_REGIONS_TO_SHOW_ON_HUD;
+        if (remaining > 0) {
+            String moreText = StatCollector.translateToLocalFormatted("tempora.hud.render.and.more", remaining);
+
+            font.drawString(moreText, (screenWidth - font.getStringWidth(moreText)) / 2, y, 0xFFFFFF);
         }
     }
 }

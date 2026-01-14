@@ -1,5 +1,7 @@
 package com.colen.tempora.utils;
 
+import static com.gtnewhorizon.gtnhlib.util.numberformatting.NumberFormatUtil.formatNumber;
+
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Locale;
@@ -71,29 +73,7 @@ public class TimeUtils {
         };
     }
 
-    public static DurationParts relativeTimeAgoFormatter(long pastUnixEpochTimestampMillis) {
-
-        double seconds = (Instant.now()
-            .toEpochMilli() - pastUnixEpochTimestampMillis) / 1000.0;
-        if (seconds < 60) {
-            return new DurationParts(seconds, "time.ago.seconds");
-        }
-
-        double minutes = seconds / 60.0;
-        if (minutes < 60) {
-            return new DurationParts(minutes, "time.ago.minutes");
-        }
-
-        double hours = minutes / 60.0;
-        if (hours < 24) {
-            return new DurationParts(hours, "time.ago.hours");
-        }
-
-        double days = hours / 24.0;
-        return new DurationParts(days, "time.ago.days");
-    }
-
-    // Utility class
+    // Utility classes
     public static class DurationParts {
 
         public final double time;
@@ -103,6 +83,49 @@ public class TimeUtils {
             this.time = time;
             this.translationKey = translationKey;
         }
+    }
+
+    private static class TimeUnit {
+
+        public final double threshold; // max value before moving to next unit
+        public final double inSeconds; // how many seconds this unit represents
+        public final String singularKey;
+        public final String pluralKey;
+
+        public TimeUnit(double threshold, double inSeconds, String singularKey, String pluralKey) {
+            this.threshold = threshold;
+            this.inSeconds = inSeconds;
+            this.singularKey = singularKey;
+            this.pluralKey = pluralKey;
+        }
+    }
+
+    private static final TimeUnit[] TIME_UNITS = new TimeUnit[] {
+        new TimeUnit(60, 1, "time.ago.second", "time.ago.seconds"),
+        new TimeUnit(60, 60, "time.ago.minute", "time.ago.minutes"),
+        new TimeUnit(24, 3600, "time.ago.hour", "time.ago.hours"),
+        new TimeUnit(7, 86400, "time.ago.day", "time.ago.days"),
+        new TimeUnit(4, 604800, "time.ago.week", "time.ago.weeks"),
+        new TimeUnit(12, 604800 * 12, "time.ago.month", "time.ago.months"),
+        new TimeUnit(10, 86400 * 365, "time.ago.year", "time.ago.years"),
+        new TimeUnit(Double.MAX_VALUE, 86400 * 365 * 10, "time.ago.decade", "time.ago.decades") };
+
+    public static DurationParts relativeTimeAgoFormatter(long pastUnixEpochMillis) {
+        double elapsedSeconds = (Instant.now()
+            .toEpochMilli() - pastUnixEpochMillis) / 1000.0;
+
+        for (TimeUnit unit : TIME_UNITS) {
+            double value = elapsedSeconds / unit.inSeconds;
+            if (value < unit.threshold) {
+                // A bit of a hack, but we want to know how this number will render to the user.
+                String key = (formatNumber(value).equals("1")) ? unit.singularKey : unit.pluralKey;
+                return new DurationParts(value, key);
+            }
+            elapsedSeconds = value; // scale down to next unit
+        }
+
+        // fallback (should never reach)
+        return new DurationParts(elapsedSeconds, "time.ago.years");
     }
 
     // Conversion map for all our units.

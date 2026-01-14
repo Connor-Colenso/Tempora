@@ -3,6 +3,8 @@ package com.colen.tempora.utils;
 import java.util.List;
 
 import net.minecraft.command.CommandBase;
+import net.minecraft.event.ClickEvent;
+import net.minecraft.event.HoverEvent;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
@@ -11,8 +13,12 @@ import net.minecraft.util.IChatComponent;
 import org.jetbrains.annotations.NotNull;
 
 import com.colen.tempora.TemporaLoggerManager;
+import com.colen.tempora.commands.TemporaUndoCommand;
+import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 
 public class CommandUtils {
+
+    public static final int OP_ONLY = 2;
 
     @NotNull
     public static List<String> completeLoggerNames(String[] args) {
@@ -37,5 +43,50 @@ public class CommandUtils {
         errorMessage.getChatStyle()
             .setColor(EnumChatFormatting.RED);
         return errorMessage;
+    }
+
+    public static IChatComponent teleportChatComponent(double x, double y, double z, int dimID) {
+
+        // Translation‑driven teleport options.
+        IChatComponent display = new ChatComponentTranslation(
+            "tempora.teleport.display",
+            new ChatComponentNumber(x),
+            new ChatComponentNumber(y),
+            new ChatComponentNumber(z));
+
+        String cmd = "/tempora_tp " + x + " " + y + " " + z + " " + dimID;
+
+        IChatComponent hoverText = new ChatComponentTranslation(
+            "tempora.teleport.hover",
+            GenericUtils.getDimensionName(dimID),
+            dimID);
+        hoverText.getChatStyle()
+            .setColor(EnumChatFormatting.GRAY);
+
+        display.getChatStyle()
+            .setColor(EnumChatFormatting.AQUA)
+            .setChatClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, cmd))
+            .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hoverText));
+
+        return display;
+    }
+
+    public static IChatComponent generateUndoCommand(String loggerName, String eventID) {
+
+        // Translation‑driven teleport options.
+        IChatComponent display = new ChatComponentTranslation("tempora.undo.query.display");
+
+        String cmd = "/" + new TemporaUndoCommand().getCommandName() + " " + loggerName + " " + eventID;
+
+        IChatComponent hoverText = new ChatComponentTranslation("tempora.undo.query.hover");
+        hoverText.getChatStyle()
+            .setColor(EnumChatFormatting.GRAY);
+
+        display.getChatStyle()
+            .setColor(EnumChatFormatting.AQUA)
+            .setChatClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, cmd))
+            .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hoverText));
+
+        return display;
     }
 }

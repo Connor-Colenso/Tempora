@@ -1,5 +1,8 @@
 package com.colen.tempora.loggers.player_block_break;
 
+import static com.colen.tempora.utils.CommandUtils.generateUndoCommand;
+import static com.colen.tempora.utils.CommandUtils.teleportChatComponent;
+
 import net.minecraft.block.Block;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
@@ -59,7 +62,7 @@ public class PlayerBlockBreakEventInfo extends GenericEventInfo {
     @Override
     public IChatComponent localiseText(String commandIssuerUUID) {
         IChatComponent block = BlockUtils.getUnlocalisedChatComponent(pickBlockID, pickBlockMeta);
-        IChatComponent coords = teleportChatComponent(x, y, z, dimensionID, CoordFormat.INT);
+        IChatComponent coords = teleportChatComponent(x, y, z, dimensionID);
 
         IChatComponent timeAgo = TimeUtils.formatTime(timestamp);
 

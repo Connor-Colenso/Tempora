@@ -1,6 +1,7 @@
 package com.colen.tempora.loggers.explosion;
 
 import static com.colen.tempora.utils.ChatUtils.ONE_DP;
+import static com.colen.tempora.utils.CommandUtils.teleportChatComponent;
 import static com.gtnewhorizon.gtnhlib.util.numberformatting.NumberFormatUtil.formatNumber;
 import static cpw.mods.fml.common.network.ByteBufUtils.readVarInt;
 import static cpw.mods.fml.common.network.ByteBufUtils.varIntByteCount;
@@ -72,7 +73,7 @@ public class ExplosionEventInfo extends GenericEventInfo {
 
     @Override
     public IChatComponent localiseText(String commandIssuerUUID) {
-        IChatComponent coords = teleportChatComponent(x, y, z, dimensionID, CoordFormat.FLOAT_1DP);
+        IChatComponent coords = teleportChatComponent(x, y, z, dimensionID);
         IChatComponent timeAgo = TimeUtils.formatTime(timestamp);
 
         return new ChatComponentTranslation(
