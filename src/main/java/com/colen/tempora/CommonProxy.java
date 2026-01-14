@@ -4,8 +4,6 @@ import static com.colen.tempora.Tempora.NETWORK;
 import static com.colen.tempora.Tempora.renderingErrorBlock;
 import static com.colen.tempora.config.Config.synchronizeConfiguration;
 
-import com.colen.tempora.networking.packets.PacketRemoveRegionFromClient;
-import com.colen.tempora.networking.handlers.PacketSendUUIDHandler;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
 
@@ -17,6 +15,8 @@ import com.colen.tempora.items.TemporaWand;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.GenericRenderEventPacketHandler;
 import com.colen.tempora.loggers.generic.RenderEventPacket;
+import com.colen.tempora.networking.handlers.PacketSendUUIDHandler;
+import com.colen.tempora.networking.packets.PacketRemoveRegionFromClient;
 import com.colen.tempora.networking.packets.PacketShowRegionInWorld;
 
 import cpw.mods.fml.common.event.FMLInitializationEvent;
@@ -53,12 +53,7 @@ public class CommonProxy {
             2,
             Side.CLIENT);
 
-        NETWORK.registerMessage(
-            PacketSendUUIDHandler.class,
-            PacketRemoveRegionFromClient.class,
-            3,
-            Side.CLIENT
-        );
+        NETWORK.registerMessage(PacketSendUUIDHandler.class, PacketRemoveRegionFromClient.class, 3, Side.CLIENT);
 
         TemporaEvents.registerAll();
 

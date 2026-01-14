@@ -1,5 +1,7 @@
 package com.colen.tempora.loggers.player_movement;
 
+import static com.colen.tempora.utils.CommandUtils.teleportChatComponent;
+
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 
@@ -37,7 +39,7 @@ public class PlayerMovementEventInfo extends GenericEventInfo {
     @Override
     public IChatComponent localiseText(String commandIssuerUUID) {
         IChatComponent formattedTime = TimeUtils.formatTime(timestamp);
-        IChatComponent coords = teleportChatComponent(x, y, z, dimensionID, CoordFormat.FLOAT_1DP);
+        IChatComponent coords = teleportChatComponent(x, y, z, dimensionID);
 
         return new ChatComponentTranslation(
             "message.player_movement",

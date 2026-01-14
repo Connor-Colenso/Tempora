@@ -1,5 +1,6 @@
 package com.colen.tempora.loggers.item_use;
 
+import static com.colen.tempora.utils.CommandUtils.teleportChatComponent;
 import static com.colen.tempora.utils.ItemUtils.getNameOfItemStack;
 
 import net.minecraft.util.ChatComponentTranslation;
@@ -43,7 +44,7 @@ public class ItemUseEventInfo extends GenericEventInfo {
 
     @Override
     public IChatComponent localiseText(String commandIssuerUUID) {
-        IChatComponent coords = teleportChatComponent(x, y, z, dimensionID, CoordFormat.FLOAT_1DP);
+        IChatComponent coords = teleportChatComponent(x, y, z, dimensionID);
         IChatComponent timeAgo = TimeUtils.formatTime(timestamp);
 
         return new ChatComponentTranslation(

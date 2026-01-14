@@ -1,5 +1,6 @@
 package com.colen.tempora.loggers.entity_spawn;
 
+import static com.colen.tempora.utils.CommandUtils.teleportChatComponent;
 import static com.colen.tempora.utils.GenericUtils.entityUUIDChatComponent;
 
 import net.minecraft.util.ChatComponentTranslation;
@@ -43,7 +44,7 @@ public class EntitySpawnEventInfo extends GenericEventInfo {
 
     @Override
     public IChatComponent localiseText(String commandIssuerUUID) {
-        IChatComponent coords = teleportChatComponent(x, y, z, dimensionID, CoordFormat.FLOAT_1DP);
+        IChatComponent coords = teleportChatComponent(x, y, z, dimensionID);
         IChatComponent timeAgo = TimeUtils.formatTime(timestamp);
         IChatComponent uuidChatComponent = entityUUIDChatComponent(entityUUID);
 

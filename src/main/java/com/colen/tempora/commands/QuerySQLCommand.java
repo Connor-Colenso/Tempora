@@ -31,12 +31,12 @@ public class QuerySQLCommand extends CommandBase {
 
     @Override
     public String getCommandName() {
-        return "querysql";
+        return "query_sql";
     }
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/querysql <LoggerName> \"<SQL SELECT query>\"";
+        return "/query_sql <LoggerName> \"<SQL SELECT query>\"";
     }
 
     @Override

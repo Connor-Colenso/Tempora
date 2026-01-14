@@ -1,5 +1,7 @@
 package com.colen.tempora.loggers.inventory;
 
+import static com.colen.tempora.utils.CommandUtils.teleportChatComponent;
+
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ChatComponentTranslation;
@@ -64,7 +66,7 @@ public class InventoryEventInfo extends GenericEventInfo {
         ItemStack itemStack = new ItemStack(Item.getItemById(itemId), stackSize, itemMetadata);
         IChatComponent itemDetails = new ChatComponentTranslation(itemStack.getDisplayName());
 
-        IChatComponent coords = teleportChatComponent(x, y, z, dimensionID, CoordFormat.INT);
+        IChatComponent coords = teleportChatComponent(x, y, z, dimensionID);
 
         InventoryLogger.Direction dir = InventoryLogger.Direction.fromOrdinal(interactionType);
 

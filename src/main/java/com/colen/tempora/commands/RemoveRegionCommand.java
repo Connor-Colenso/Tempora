@@ -1,9 +1,10 @@
 package com.colen.tempora.commands;
 
-import com.colen.tempora.loggers.block_change.region_registry.RegionToRender;
-import com.colen.tempora.loggers.generic.GenericEventInfo;
-import com.colen.tempora.networking.packets.PacketRemoveRegionFromClient;
-import com.colen.tempora.utils.CommandUtils;
+import static com.colen.tempora.Tempora.NETWORK;
+import static com.colen.tempora.utils.CommandUtils.teleportChatComponent;
+
+import java.util.List;
+
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
@@ -11,14 +12,13 @@ import net.minecraft.command.WrongUsageException;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
-
-import com.colen.tempora.loggers.block_change.region_registry.BlockChangeRegionRegistry;
-import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 import net.minecraft.util.IChatComponent;
 
-import java.util.List;
-
-import static com.colen.tempora.Tempora.NETWORK;
+import com.colen.tempora.loggers.block_change.region_registry.BlockChangeRegionRegistry;
+import com.colen.tempora.loggers.block_change.region_registry.TemporaWorldRegion;
+import com.colen.tempora.networking.packets.PacketRemoveRegionFromClient;
+import com.colen.tempora.utils.CommandUtils;
+import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 
 /**
  * /removeregion
@@ -30,12 +30,12 @@ public class RemoveRegionCommand extends CommandBase {
 
     @Override
     public String getCommandName() {
-        return "removeregion";
+        return "remove_region";
     }
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/removeregion";
+        return "/remove_region";
     }
 
     @Override
@@ -56,9 +56,8 @@ public class RemoveRegionCommand extends CommandBase {
             return;
         }
 
-        List<RegionToRender> removed = BlockChangeRegionRegistry.removeRegionsContainingCoordinate(player);
+        List<TemporaWorldRegion> removed = BlockChangeRegionRegistry.removeRegionsIntersectingPlayer(player);
         int removedCount = removed.size();
-
 
         ChatComponentTranslation msg;
         if (removedCount > 0) {
@@ -68,17 +67,21 @@ public class RemoveRegionCommand extends CommandBase {
 
             msg = new ChatComponentTranslation(key, new ChatComponentNumber(removedCount));
 
-            for (RegionToRender region : removed) {
+            for (TemporaWorldRegion region : removed) {
                 // Deletes them from the players local renderer immediately.
                 NETWORK.sendTo(new PacketRemoveRegionFromClient(region.getRegionUUID()), player);
 
-                double midX = (region.getMinX()  + region.getMaxX())/2.0;
-                double midY = (region.getMinY()  + region.getMaxY())/2.0;
-                double midZ = (region.getMinZ()  + region.getMaxZ())/2.0;
+                IChatComponent removedMessageOfRegion = new ChatComponentTranslation(
+                    "tempora.region.remove.individual",
+                    region.getLabel(),
+                    teleportChatComponent(region.getMinX(), region.getMinY(), region.getMinZ(), region.getDimID()),
+                    teleportChatComponent(region.getMaxX(), region.getMaxY(), region.getMaxZ(), region.getDimID()),
+                    teleportChatComponent(region.getMidX(), region.getMidY(), region.getMidZ(), region.getDimID()));
 
-                IChatComponent teleportComp = GenericEventInfo.teleportChatComponent(midX, midY, midZ, region.getDimID(), GenericEventInfo.CoordFormat.FLOAT_1DP);
+                removedMessageOfRegion.getChatStyle()
+                    .setColor(EnumChatFormatting.GREEN);
 
-                player.addChatMessage(new ChatComponentTranslation("tempora.region.remove.individual", region.getLabel(), teleportComp));
+                player.addChatMessage(removedMessageOfRegion);
             }
 
             msg.getChatStyle()

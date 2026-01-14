@@ -2,7 +2,7 @@ package com.colen.tempora.commands;
 
 import static com.colen.tempora.Tempora.LOG;
 import static com.colen.tempora.TemporaEvents.PLAYER_MOVEMENT;
-import static com.colen.tempora.loggers.generic.GenericEventInfo.teleportChatComponent;
+import static com.colen.tempora.utils.CommandUtils.teleportChatComponent;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -18,14 +18,11 @@ import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 
 import com.colen.tempora.TemporaLoggerManager;
-import com.colen.tempora.loggers.generic.GenericEventInfo;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.utils.PlayerUtils;
 import com.colen.tempora.utils.TimeUtils;
 
 /**
- * /homechunk <player> [<look‑back>] [<dim>]
- *
  * Finds the chunk with the most position samples for <player>
  * (optionally filtered by time‑window and/or dimension) and
  * teleports to the centre of that chunk.
@@ -34,7 +31,7 @@ public class HomeChunkCommand extends CommandBase {
 
     @Override
     public String getCommandName() {
-        return "homechunk";
+        return "home_chunk";
     }
 
     @Override
@@ -44,7 +41,7 @@ public class HomeChunkCommand extends CommandBase {
 
     @Override
     public String getCommandUsage(ICommandSender s) {
-        return "/homechunk <player> [<look-back>] [<dim>]";
+        return "/home_chunk <player> [<look-back>] [<dim>]";
     }
 
     @Override
@@ -165,12 +162,7 @@ public class HomeChunkCommand extends CommandBase {
                 double homeZ = rs.getDouble("home_z");
                 int dim = rs.getInt("dimensionID");
 
-                IChatComponent tpLink = teleportChatComponent(
-                    homeX,
-                    homeY,
-                    homeZ,
-                    dim,
-                    GenericEventInfo.CoordFormat.FLOAT_1DP);
+                IChatComponent tpLink = teleportChatComponent(homeX, homeY, homeZ, dim);
 
                 sender.addChatMessage(
                     new ChatComponentTranslation(

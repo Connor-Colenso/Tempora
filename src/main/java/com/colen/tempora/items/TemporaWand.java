@@ -1,7 +1,7 @@
 package com.colen.tempora.items;
 
 import static com.colen.tempora.Tempora.LOG;
-import static com.colen.tempora.loggers.generic.GenericEventInfo.teleportChatComponent;
+import static com.colen.tempora.utils.CommandUtils.teleportChatComponent;
 
 import java.util.UUID;
 
@@ -18,8 +18,7 @@ import net.minecraft.world.World;
 
 import com.colen.tempora.TemporaLoggerManager;
 import com.colen.tempora.TemporaUtils;
-import com.colen.tempora.loggers.block_change.region_registry.RegionToRender;
-import com.colen.tempora.loggers.generic.GenericEventInfo;
+import com.colen.tempora.loggers.block_change.region_registry.TemporaWorldRegion;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.rendering.ClientRegionStore;
 import com.colen.tempora.rendering.regions.RegionRenderMode;
@@ -63,7 +62,7 @@ public class TemporaWand extends Item {
         // If SP, just render the box. If MP, we continue onto further logic.
         if (!(player instanceof EntityPlayerMP entityPlayerMP)) {
 
-            RegionToRender region = new RegionToRender(player.dimension, px, py, pz, px + 1, py + 1, pz + 1);
+            TemporaWorldRegion region = new TemporaWorldRegion(player.dimension, px, py, pz, px + 1, py + 1, pz + 1);
 
             region.setRegionUUID(
                 UUID.randomUUID()
@@ -95,7 +94,7 @@ public class TemporaWand extends Item {
             player.addChatMessage(
                 new ChatComponentTranslation(
                     "msg.tempora.wand.checking.pos",
-                    teleportChatComponent(x, y, z, player.dimension, GenericEventInfo.CoordFormat.INT),
+                    teleportChatComponent(x, y, z, player.dimension),
                     player.dimension).setChatStyle(new ChatStyle().setColor(EnumChatFormatting.RED)));
 
             for (GenericPositionalLogger<?> logger : TemporaLoggerManager.getLoggerList()) {

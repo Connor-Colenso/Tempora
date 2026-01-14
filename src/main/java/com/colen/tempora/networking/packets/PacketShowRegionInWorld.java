@@ -1,6 +1,6 @@
 package com.colen.tempora.networking.packets;
 
-import com.colen.tempora.loggers.block_change.region_registry.RegionToRender;
+import com.colen.tempora.loggers.block_change.region_registry.TemporaWorldRegion;
 import com.colen.tempora.rendering.ClientRegionStore;
 import com.colen.tempora.rendering.regions.RegionRenderMode;
 
@@ -14,11 +14,11 @@ public final class PacketShowRegionInWorld {
 
     public static final class RegionMsg implements IMessage {
 
-        private RegionToRender region;
+        private TemporaWorldRegion region;
 
         public RegionMsg() {}
 
-        public RegionMsg(RegionToRender region) {
+        public RegionMsg(TemporaWorldRegion region) {
             this.region = region;
         }
 
@@ -42,7 +42,10 @@ public final class PacketShowRegionInWorld {
             // Metadata
             ByteBufUtils.writeUTF8String(buf, region.getRegionUUID());
             ByteBufUtils.writeUTF8String(buf, region.getPlayerAuthorUUID());
-            ByteBufUtils.writeUTF8String(buf, region.getRenderMode().name());
+            ByteBufUtils.writeUTF8String(
+                buf,
+                region.getRenderMode()
+                    .name());
             ByteBufUtils.writeUTF8String(buf, region.getLabel());
         }
 
@@ -66,12 +69,11 @@ public final class PacketShowRegionInWorld {
             // Metadata
             String regionUUID = ByteBufUtils.readUTF8String(buf);
             String playerUUID = ByteBufUtils.readUTF8String(buf);
-            RegionRenderMode renderMode =
-                RegionRenderMode.valueOf(ByteBufUtils.readUTF8String(buf));
+            RegionRenderMode renderMode = RegionRenderMode.valueOf(ByteBufUtils.readUTF8String(buf));
             String label = ByteBufUtils.readUTF8String(buf);
 
             // Build region
-            region = new RegionToRender(dim, minX, minY, minZ, maxX, maxY, maxZ);
+            region = new TemporaWorldRegion(dim, minX, minY, minZ, maxX, maxY, maxZ);
             region.setRenderStartTimeMs(renderStartTime);
             region.setRegionOriginTimeMs(regionOriginTime);
             region.setRegionUUID(regionUUID);

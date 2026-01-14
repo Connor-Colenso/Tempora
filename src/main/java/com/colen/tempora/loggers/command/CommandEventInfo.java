@@ -1,5 +1,7 @@
 package com.colen.tempora.loggers.command;
 
+import static com.colen.tempora.utils.CommandUtils.teleportChatComponent;
+
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 
@@ -50,7 +52,7 @@ public class CommandEventInfo extends GenericEventInfo {
         IChatComponent timeAgo = TimeUtils.formatTime(timestamp);
 
         // Clickable coordinates with limited float precision
-        IChatComponent coords = teleportChatComponent(x, y, z, dimensionID, CoordFormat.FLOAT_1DP);
+        IChatComponent coords = teleportChatComponent(x, y, z, dimensionID);
 
         return new ChatComponentTranslation(
             "message.command_issued",
