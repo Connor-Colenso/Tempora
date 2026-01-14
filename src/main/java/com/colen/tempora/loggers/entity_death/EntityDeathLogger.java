@@ -1,6 +1,6 @@
 package com.colen.tempora.loggers.entity_death;
 
-import static com.colen.tempora.TemporaUtils.isClientSide;
+import static com.colen.tempora.utils.GenericUtils.isClientSide;
 
 import java.util.UUID;
 

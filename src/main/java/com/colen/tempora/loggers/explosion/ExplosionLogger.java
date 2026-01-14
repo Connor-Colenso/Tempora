@@ -1,7 +1,8 @@
 package com.colen.tempora.loggers.explosion;
 
-import static com.colen.tempora.TemporaUtils.UNKNOWN_CAUSE;
-import static com.colen.tempora.TemporaUtils.isClientSide;
+import static com.colen.tempora.utils.GenericUtils.isClientSide;
+import static com.colen.tempora.utils.PlayerUtils.UNKNOWN_CAUSE;
+import static com.colen.tempora.utils.PlayerUtils.UNKNOWN_PLAYER_NAME;
 
 import java.awt.Color;
 import java.util.List;
@@ -23,7 +24,6 @@ import org.jetbrains.annotations.NotNull;
 import org.lwjgl.opengl.GL11;
 
 import com.colen.tempora.TemporaEvents;
-import com.colen.tempora.TemporaUtils;
 import com.colen.tempora.enums.LoggerEventType;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.rendering.RenderUtils;
@@ -167,7 +167,7 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionEventInfo>
         eventInfo.exploderUUID = exploderName;
 
         eventInfo.closestPlayerUUID = closestPlayer != null ? closestPlayer.getUniqueID()
-            .toString() : TemporaUtils.UNKNOWN_PLAYER_NAME;
+            .toString() : UNKNOWN_PLAYER_NAME;
 
         eventInfo.closestPlayerDistance = closestPlayer != null ? closestPlayer.getDistance(x, y, z) : -1;
 

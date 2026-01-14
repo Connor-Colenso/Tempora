@@ -132,5 +132,6 @@ tempora.command.create.region.non.numeric.dimension=Dimension '%s' must be an in
 tempora.render.regions.author=Created by %s
 tempora.render.regions.created.on=Created %s
 tempora.region.remove.individual=Removed region %s | Bounds: %s -> %s | Midpoint: %s.
+tempora.region.dimension.banner.in.chat=-- Regions in %s (ID %s) --
 
 tempora.hud.render.and.more=And %s more...

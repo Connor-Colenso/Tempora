@@ -1,7 +1,8 @@
 package com.colen.tempora.loggers.player_block_break;
 
-import static com.colen.tempora.TemporaUtils.isClientSide;
 import static com.colen.tempora.utils.BlockUtils.getPickBlockSafe;
+import static com.colen.tempora.utils.GenericUtils.isClientSide;
+import static com.colen.tempora.utils.PlayerUtils.UNKNOWN_PLAYER_NAME;
 import static com.colen.tempora.utils.nbt.NBTUtils.NBT_DISABLED;
 import static com.colen.tempora.utils.nbt.NBTUtils.NO_NBT;
 import static com.colen.tempora.utils.nbt.NBTUtils.getEncodedTileEntityNBT;
@@ -26,7 +27,6 @@ import net.minecraftforge.event.world.BlockEvent;
 import org.jetbrains.annotations.NotNull;
 
 import com.colen.tempora.TemporaEvents;
-import com.colen.tempora.TemporaUtils;
 import com.colen.tempora.enums.LoggerEventType;
 import com.colen.tempora.loggers.generic.GenericEventInfo;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
@@ -141,7 +141,7 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
                 .getUniqueID()
                 .toString();
         } else {
-            eventInfo.playerUUID = TemporaUtils.UNKNOWN_PLAYER_NAME;
+            eventInfo.playerUUID = UNKNOWN_PLAYER_NAME;
         }
 
         queueEventInfo(eventInfo);

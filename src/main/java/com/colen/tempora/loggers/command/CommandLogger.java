@@ -1,8 +1,8 @@
 package com.colen.tempora.loggers.command;
 
-import static com.colen.tempora.TemporaUtils.isClientSide;
 import static com.colen.tempora.rendering.RenderUtils.renderFloatingText;
 import static com.colen.tempora.utils.ChatUtils.ONE_DP;
+import static com.colen.tempora.utils.GenericUtils.isClientSide;
 
 import java.util.ArrayList;
 import java.util.List;

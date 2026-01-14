@@ -2,10 +2,16 @@ package com.colen.tempora.utils;
 
 import static com.colen.tempora.Tempora.LOG;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+
+import net.minecraftforge.common.DimensionManager;
 
 public class DatabaseUtils {
 
@@ -44,5 +50,42 @@ public class DatabaseUtils {
 
             return true;
         }
+    }
+
+    public static Path databaseDir() {
+        // Works for both dedicated and integrated servers.
+        File worldDir = DimensionManager.getCurrentSaveRootDirectory();
+        if (worldDir == null) throw new NullPointerException("worldDir is null");
+        Path dir = worldDir.toPath()
+            .resolve("TemporaDatabases");
+
+        try {
+            Files.createDirectories(dir);
+        } catch (IOException e) {
+            throw new RuntimeException("Cannot create database directory: " + dir, e);
+        }
+        return dir;
+    }
+
+    public static void deleteLoggerDatabase(String loggerName) {
+        Path dbPath = databaseDir().resolve(loggerName + ".db");
+
+        try {
+            if (Files.exists(dbPath)) {
+                Files.delete(dbPath);
+                LOG.info("Deleted Tempora database: {}", dbPath.toString());
+            } else {
+                LOG.warn("Database file does not exist: {}", dbPath.toString());
+            }
+        } catch (IOException e) {
+            LOG.error("Failed to delete Tempora database: {}", dbPath.toString(), e);
+            throw new RuntimeException("Unable to delete database file: " + dbPath, e);
+        }
+    }
+
+    /** Absolute JDBC URL for the given database file (e.g. "blocks.db"). */
+    public static String jdbcUrl(String fileName) {
+        return "jdbc:sqlite:" + databaseDir().resolve(fileName)
+            .toAbsolutePath();
     }
 }

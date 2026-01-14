@@ -1,7 +1,7 @@
 package com.colen.tempora.loggers.entity_spawn;
 
 import static com.colen.tempora.utils.CommandUtils.teleportChatComponent;
-import static com.colen.tempora.utils.GenericUtils.entityUUIDChatComponent;
+import static com.colen.tempora.utils.PlayerUtils.entityUUIDChatComponent;
 
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;

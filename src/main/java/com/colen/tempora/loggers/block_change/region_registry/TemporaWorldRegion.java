@@ -32,6 +32,9 @@ public class TemporaWorldRegion {
     private RegionRenderMode renderMode;
     private String label;
 
+    // Todo introduce regions for other concepts, such as allowing/disallowing other loggers.
+    // This could be useful for stopping it logging e.g. mob deaths in a mob farm.
+
     /**
      * Constructor: defines the bounding box coordinates only (x1,y1,z1 -> x2,y2,z2).
      * The rest should be set via setters.

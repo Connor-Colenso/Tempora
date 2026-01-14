@@ -1,9 +1,5 @@
 package com.colen.tempora.utils;
 
-import static com.colen.tempora.TemporaUtils.ERROR;
-import static com.colen.tempora.TemporaUtils.UNKNOWN_CAUSE;
-import static com.colen.tempora.TemporaUtils.UNKNOWN_PLAYER_NAME;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -14,16 +10,33 @@ import javax.annotation.Nullable;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.event.ClickEvent;
 import net.minecraft.event.HoverEvent;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.management.ServerConfigurationManager;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.ChatStyle;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 import net.minecraftforge.common.UsernameCache;
 
 public class PlayerUtils {
+
+    public static final String UNKNOWN_PLAYER_NAME = "tempora.unknown.player";
+    public static final String UNKNOWN_CAUSE = "tempora.unknown.cause"; // todo use
+    public static final String ERROR = "tempora.unknown.uuid.to.player.error";
+
+    public static IChatComponent entityUUIDChatComponent(String uuid) {
+        IChatComponent clickToCopy = new ChatComponentTranslation("tempora.click.to.copy.uuid");
+        clickToCopy.getChatStyle()
+            .setColor(EnumChatFormatting.GRAY);
+
+        return new ChatComponentText("[UUID]").setChatStyle(
+            new ChatStyle().setColor(EnumChatFormatting.AQUA)
+                .setChatClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, uuid))
+                .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, clickToCopy)));
+    }
 
     private static String UUIDToName(String UUIDString) {
         if (!isUUID(UUIDString)) return UUIDString;
