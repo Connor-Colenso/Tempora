@@ -9,7 +9,7 @@ import cpw.mods.fml.common.network.simpleimpl.MessageContext;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-public class PacketSendUUIDHandler implements IMessageHandler<PacketRemoveRegionFromClient, IMessage> {
+public class PacketRemoveClientRegionByUUID implements IMessageHandler<PacketRemoveRegionFromClient, IMessage> {
 
     @Override
     @SideOnly(Side.CLIENT)
