@@ -38,7 +38,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 public class InventoryLogger extends GenericPositionalLogger<InventoryEventInfo> {
 
     @Override
-    public String getLoggerName() {
+    public @NotNull String getLoggerName() {
         return TemporaEvents.INVENTORY;
     }
 

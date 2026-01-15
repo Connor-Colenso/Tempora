@@ -28,7 +28,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathEventInfo> {
 
     @Override
-    public String getLoggerName() {
+    public @NotNull String getLoggerName() {
         return TemporaEvents.ENTITY_DEATH;
     }
 

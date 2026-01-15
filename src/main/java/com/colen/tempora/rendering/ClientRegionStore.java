@@ -33,4 +33,8 @@ public final class ClientRegionStore {
     public static void remove(String uuid) {
         REGIONS.remove(uuid);
     }
+
+    public static void onServerClose() {
+        REGIONS.clear();
+    }
 }

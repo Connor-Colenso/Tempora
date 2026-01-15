@@ -30,7 +30,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovementEventInfo> {
 
     @Override
-    public String getLoggerName() {
+    public @NotNull String getLoggerName() {
         return TemporaEvents.PLAYER_MOVEMENT;
     }
 

@@ -22,6 +22,7 @@ import com.colen.tempora.commands.TemporaUndoCommand;
 import com.colen.tempora.commands.TemporaUndoRangedCommand;
 import com.colen.tempora.loggers.block_change.region_registry.BlockChangeRegionRegistry;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
+import com.colen.tempora.rendering.ClientRegionStore;
 
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.SidedProxy;
@@ -107,5 +108,8 @@ public class Tempora {
             GenericPositionalLogger.onServerClose();
             BlockChangeRegionRegistry.saveIfDirty();
         }
+
+        TemporaUndoRangedCommand.onServerClose();
+        ClientRegionStore.onServerClose();
     }
 }

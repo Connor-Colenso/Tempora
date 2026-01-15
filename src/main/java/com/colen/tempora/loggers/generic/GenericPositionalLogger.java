@@ -17,9 +17,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.MinecraftForge;
@@ -30,6 +33,7 @@ import org.jetbrains.annotations.NotNull;
 import com.colen.tempora.TemporaLoggerManager;
 import com.colen.tempora.enums.LoggerEventType;
 import com.colen.tempora.loggers.generic.column.Column;
+import com.colen.tempora.utils.ChatUtils;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.relauncher.Side;
@@ -47,6 +51,7 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
     protected List<EventInfo> nonTransparentEventsToRenderInWorld = new ArrayList<>();
 
     private boolean isEnabled;
+    private Thread queueWorkerThread;
 
     public void addEventToRender(EventInfo event) {
         event.eventRenderCreationTime = System.currentTimeMillis();
@@ -221,7 +226,7 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
     }
 
     // Logger name is also the SQL table name. So choose it careful and never rename it.
-    public abstract String getLoggerName();
+    public abstract @NotNull String getLoggerName();
 
     public void handleCustomLoggerConfig(Configuration config) {}
 
@@ -246,14 +251,14 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
 
         running = true;
 
-        Thread t = new Thread(() -> queueLoop(sqlTableName), "Tempora-" + sqlTableName);
-        t.setDaemon(false);
-        t.setUncaughtExceptionHandler((thr, ex) -> {
+        queueWorkerThread = new Thread(() -> queueLoop(sqlTableName), "Tempora-" + sqlTableName);
+        queueWorkerThread.setDaemon(false);
+        queueWorkerThread.setUncaughtExceptionHandler((thr, ex) -> {
             LOG.error("Tempora queue-worker '{}' crashed – halting JVM!", thr.getName(), ex);
             FMLCommonHandler.instance()
                 .exitJava(-1, false);
         });
-        t.start();
+        queueWorkerThread.start();
     }
 
     private static final int LARGE_QUEUE_THRESHOLD = 5_000;
@@ -264,9 +269,11 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
         try {
             while (running || !concurrentEventQueue.isEmpty()) {
                 // This blocks until at least one event is available.
-                buffer.add(concurrentEventQueue.take());
+                EventInfo event = concurrentEventQueue.poll(1, TimeUnit.SECONDS);
+                if (event == null) continue;
 
-                // Drain any additional available events into the buffer
+                // Drain any available events into the buffer
+                buffer.add(event);
                 concurrentEventQueue.drainTo(buffer);
 
                 if (concurrentEventQueue.size() > LARGE_QUEUE_THRESHOLD) {
@@ -345,6 +352,7 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
 
             for (GenericPositionalLogger<?> logger : TemporaLoggerManager.getLoggerList()) {
                 logger.databaseManager.shutdownDatabase();
+                logger.queueWorkerThread.join();
             }
 
         } catch (Exception e) {
@@ -377,15 +385,69 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
     }
 
     // Todo also return if succeed or not, to tally up and return to user. Reasons also, then present them all?
-    public void undoEvent(GenericEventInfo eventInfo, EntityPlayer player) {
+    public UndoResponse undoEvent(GenericEventInfo eventInfo, EntityPlayer player) {
         throw new UnsupportedOperationException(
             "The class " + getLoggerName() + " supports undo but has no implementation.");
     }
 
-    public final void undoEvents(List<? extends GenericEventInfo> results, EntityPlayer player) {
+    public final List<UndoResponse> undoEvents(List<? extends GenericEventInfo> results, EntityPlayer player) {
+        List<UndoResponse> undoResponses = new ArrayList<>(results.size());
+
         for (GenericEventInfo element : results) {
-            element.undoResponse = new UndoResponse();
-            undoEvent(element, player);
+            try {
+                UndoResponse response = undoEvent(element, player);
+
+                // Strict validation of third-party implementations.
+                if (response == null) {
+                    throw new IllegalStateException(
+                        "undoEvent returned null for" + getLoggerName() + " and eventID " + element.eventID);
+                }
+
+                if (response.success == null) {
+                    throw new IllegalStateException(
+                        "UndoResponse.success was null for " + getLoggerName() + " and eventID " + element.eventID);
+                }
+
+                if (response.message == null) {
+                    throw new IllegalStateException(
+                        "Failure UndoResponse had no message for " + getLoggerName()
+                            + " and eventID "
+                            + element.eventID);
+                }
+
+                undoResponses.add(response);
+
+            } catch (UnsupportedOperationException e) {
+                // Abort the entire undo operation, undoEvent has not been implemented, but was called.
+                throw e;
+
+            } catch (Throwable t) {
+                // Any other throwable is a bad logger implementation.
+                LOG.error(
+                    "Logger {} failed during undo for event {}. This is a logger implementation error.",
+                    getLoggerName(),
+                    element.eventID,
+                    t);
+
+                // Something gone wrong with the undo implementation. This may not be tempora's fault, depending on the
+                // origin of this logger.
+
+                IChatComponent errorMsg = new ChatComponentTranslation(
+                    "tempora.command.undo.failed.bad.implementation",
+                    getLoggerName(),
+                    ChatUtils.createHoverableClickable("[UUID]", element.eventID));
+                errorMsg.getChatStyle()
+                    .setColor(EnumChatFormatting.RED);
+
+                UndoResponse undoResponse = new UndoResponse();
+                undoResponse.message = errorMsg;
+                undoResponse.success = false;
+
+                undoResponses.add(undoResponse);
+            }
         }
+
+        return undoResponses;
     }
+
 }
