@@ -208,6 +208,10 @@ public abstract class RenderUtils {
     }
 
     public static void renderFloatingText(List<String> textLines, double x, double y, double z) {
+        renderFloatingText(textLines, x, y, z, 0xFFFFFF);
+    }
+
+    public static void renderFloatingText(List<String> textLines, double x, double y, double z, int color) {
         RenderManager renderManager = RenderManager.instance;
         FontRenderer fontrenderer = Minecraft.getMinecraft().fontRenderer;
         if (fontrenderer == null) return;
@@ -227,7 +231,7 @@ public abstract class RenderUtils {
         int yOffset = -totalHeight / 2;
 
         for (String line : textLines) {
-            fontrenderer.drawString(line, -fontrenderer.getStringWidth(line) / 2, yOffset, 0xFFFFFF);
+            fontrenderer.drawString(line, -fontrenderer.getStringWidth(line) / 2, yOffset, color);
             yOffset += fontHeight;
         }
 
