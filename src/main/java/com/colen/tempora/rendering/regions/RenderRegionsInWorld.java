@@ -73,7 +73,13 @@ public final class RenderRegionsInWorld {
                         "tempora.render.regions.created.on",
                         new ChatComponentTimeRelative(r.getRegionOriginTimeMs()).getFormattedText()));
 
-                RenderUtils.renderFloatingText(renderText, r.getMidX(), r.getMidY(), r.getMidZ(), r.getColor().getRGB() & 0xFFFFFF);
+                RenderUtils.renderFloatingText(
+                    renderText,
+                    r.getMidX(),
+                    r.getMidY(),
+                    r.getMidZ(),
+                    r.getColor()
+                        .getRGB() & 0xFFFFFF);
             }
         }
 
