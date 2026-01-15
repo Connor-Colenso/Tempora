@@ -15,7 +15,7 @@ import com.colen.tempora.items.TemporaWand;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.GenericRenderEventPacketHandler;
 import com.colen.tempora.loggers.generic.RenderEventPacket;
-import com.colen.tempora.networking.handlers.PacketSendUUIDHandler;
+import com.colen.tempora.networking.handlers.PacketRemoveClientRegionByUUID;
 import com.colen.tempora.networking.packets.PacketRemoveRegionFromClient;
 import com.colen.tempora.networking.packets.PacketShowRegionInWorld;
 
@@ -53,7 +53,7 @@ public class CommonProxy {
             2,
             Side.CLIENT);
 
-        NETWORK.registerMessage(PacketSendUUIDHandler.class, PacketRemoveRegionFromClient.class, 3, Side.CLIENT);
+        NETWORK.registerMessage(PacketRemoveClientRegionByUUID.class, PacketRemoveRegionFromClient.class, 3, Side.CLIENT);
 
         TemporaEvents.registerAll();
 
