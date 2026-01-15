@@ -29,7 +29,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 public class EntityPositionLogger extends GenericPositionalLogger<EntityPositionEventInfo> {
 
     @Override
-    public String getLoggerName() {
+    public @NotNull String getLoggerName() {
         return TemporaEvents.ENTITY_POSITION;
     }
 

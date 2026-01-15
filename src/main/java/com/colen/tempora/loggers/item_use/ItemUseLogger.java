@@ -26,7 +26,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 public class ItemUseLogger extends GenericPositionalLogger<ItemUseEventInfo> {
 
     @Override
-    public String getLoggerName() {
+    public @NotNull String getLoggerName() {
         return TemporaEvents.ITEM_USE;
     }
 

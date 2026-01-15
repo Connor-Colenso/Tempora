@@ -27,13 +27,13 @@ import com.colen.tempora.TemporaLoggerManager;
 import com.colen.tempora.loggers.generic.GenericEventInfo;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.RenderEventPacket;
+import com.colen.tempora.loggers.generic.UndoResponse;
 import com.colen.tempora.utils.CommandUtils;
 import com.colen.tempora.utils.TimeUtils;
 import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 
 public class TemporaUndoRangedCommand extends CommandBase {
 
-    // Todo clear on world exit.
     private static final Map<String, List<? extends GenericEventInfo>> PENDING_UNDOS = new ConcurrentHashMap<>();
     private static final Map<String, String> PENDING_UNDOS_LOGGER_NAMES = new ConcurrentHashMap<>();
 
@@ -178,12 +178,13 @@ public class TemporaUndoRangedCommand extends CommandBase {
         PENDING_UNDOS.put(uuid, results);
         PENDING_UNDOS_LOGGER_NAMES.put(uuid, loggerName);
 
+        IChatComponent hoverText = new ChatComponentTranslation("tempora.undo.preview.highlight");
+        hoverText.getChatStyle()
+            .setColor(EnumChatFormatting.DARK_RED);
+
         IChatComponent click = new ChatComponentTranslation("tempora.undo.preview.confirm").setChatStyle(
             new ChatStyle().setColor(EnumChatFormatting.AQUA)
-                .setChatHoverEvent(
-                    new HoverEvent(
-                        HoverEvent.Action.SHOW_TEXT,
-                        new ChatComponentTranslation("tempora.undo.preview.highlight")))
+                .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hoverText))
                 .setChatClickEvent(
                     new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/tempora_undo_ranged confirm " + uuid)));
 
@@ -210,16 +211,31 @@ public class TemporaUndoRangedCommand extends CommandBase {
             return;
         }
 
-        long start = System.currentTimeMillis();
-        logger.undoEvents(stored, sender);
-        long duration = System.currentTimeMillis() - start;
+        long startMs = System.currentTimeMillis();
+        List<UndoResponse> undoResponses = logger.undoEvents(stored, sender);
+        long durationMs = System.currentTimeMillis() - startMs;
 
-        sender.addChatMessage(
-            new ChatComponentTranslation(
-                "tempora.undo.success.ranged",
-                new ChatComponentNumber(stored.size()),
-                new ChatComponentNumber(duration),
-                new ChatComponentTranslation("time.unit.milliseconds")));
+        int successCounter = 0;
+        for (UndoResponse undoResponse : undoResponses) {
+            if (!undoResponse.success) {
+                sender.addChatMessage(undoResponse.message);
+            } else {
+                successCounter++;
+            }
+        }
+
+        IChatComponent successRanged = new ChatComponentTranslation(
+            "tempora.undo.success.ranged",
+            new ChatComponentNumber(successCounter),
+            new ChatComponentNumber(undoResponses.size()),
+            new ChatComponentNumber(successCounter * 100.0 / undoResponses.size()),
+            new ChatComponentNumber(durationMs),
+            new ChatComponentTranslation("time.unit.milliseconds"));
+
+        successRanged.getChatStyle()
+            .setColor(EnumChatFormatting.GREEN);
+
+        sender.addChatMessage(successRanged);
     }
 
     @Override
@@ -228,5 +244,9 @@ public class TemporaUndoRangedCommand extends CommandBase {
             return CommandUtils.completeLoggerNames(args);
         }
         return null;
+    }
+
+    public static void onServerClose() {
+        PENDING_UNDOS.clear();
     }
 }

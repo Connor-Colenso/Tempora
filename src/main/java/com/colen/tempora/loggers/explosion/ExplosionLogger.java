@@ -114,7 +114,7 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionEventInfo>
     }
 
     @Override
-    public String getLoggerName() {
+    public @NotNull String getLoggerName() {
         return TemporaEvents.EXPLOSION;
     }
 

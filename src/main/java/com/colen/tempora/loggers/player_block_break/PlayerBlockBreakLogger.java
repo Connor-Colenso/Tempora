@@ -10,7 +10,6 @@ import static com.colen.tempora.utils.nbt.NBTUtils.getEncodedTileEntityNBT;
 import java.util.List;
 import java.util.UUID;
 
-import com.colen.tempora.loggers.generic.UndoResponse;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -19,7 +18,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ChatComponentTranslation;
-import net.minecraft.util.IChatComponent;
 import net.minecraft.world.World;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.config.Configuration;
@@ -31,6 +29,7 @@ import com.colen.tempora.TemporaEvents;
 import com.colen.tempora.enums.LoggerEventType;
 import com.colen.tempora.loggers.generic.GenericEventInfo;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
+import com.colen.tempora.loggers.generic.UndoResponse;
 import com.colen.tempora.utils.RenderingUtils;
 import com.colen.tempora.utils.nbt.NBTUtils;
 
@@ -42,7 +41,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockBreakEventInfo> {
 
     @Override
-    public String getLoggerName() {
+    public @NotNull String getLoggerName() {
         return TemporaEvents.PLAYER_BLOCK_BREAK;
     }
 
@@ -151,12 +150,12 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
     // Todo de-dupe code here and in other block adjacent loggers.
     // todo get rid of the need to cast the class here and use the generic.
     @Override
-    public void undoEvent(GenericEventInfo eventInfo, EntityPlayer player) {
+    public UndoResponse undoEvent(GenericEventInfo eventInfo, EntityPlayer player) {
         if (!(eventInfo instanceof PlayerBlockBreakEventInfo pbbqe)) {
             UndoResponse undoResponse = new UndoResponse();
             undoResponse.message = new ChatComponentTranslation("tempora.undo.unknown.error", getLoggerName());
             undoResponse.success = false;
-            return;
+            return undoResponse;
         }
 
         // NBT existed but was not logged, it is not safe to undo this event.
@@ -164,7 +163,7 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
             UndoResponse undoResponse = new UndoResponse();
             undoResponse.message = new ChatComponentTranslation("tempora.cannot.block.break.undo.nbt.logging.disabled");
             undoResponse.success = false;
-            return;
+            return undoResponse;
         }
 
         World w = MinecraftServer.getServer()
@@ -175,6 +174,7 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
             UndoResponse undoResponse = new UndoResponse();
             undoResponse.message = new ChatComponentTranslation("tempora.cannot.block.break.undo.block.not.found");
             undoResponse.success = false;
+            return undoResponse;
         }
 
         // Flag of 2 will update clients nearby.
@@ -187,6 +187,7 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
             UndoResponse undoResponse = new UndoResponse();
             undoResponse.message = new ChatComponentTranslation("tempora.undo.success");
             undoResponse.success = true;
+            return undoResponse;
         }
 
         try {
@@ -201,11 +202,12 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
             UndoResponse undoResponse = new UndoResponse();
             undoResponse.message = new ChatComponentTranslation("tempora.undo.unknown.error", getLoggerName());
             undoResponse.success = false;
-            return;
+            return undoResponse;
         }
 
         UndoResponse undoResponse = new UndoResponse();
         undoResponse.message = new ChatComponentTranslation("tempora.undo.success");
         undoResponse.success = true;
+        return undoResponse;
     }
 }

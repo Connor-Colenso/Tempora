@@ -31,7 +31,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 public class PlayerBlockPlaceLogger extends GenericPositionalLogger<PlayerBlockPlaceEventInfo> {
 
     @Override
-    public String getLoggerName() {
+    public @NotNull String getLoggerName() {
         return TemporaEvents.PLAYER_BLOCK_PLACE;
     }
 
