@@ -54,7 +54,7 @@ public class BlockUtils {
 
     /**
      * Worldgen-style block set: writes directly into the chunk storage with
-     * no block updates, no onBlockAdded, no neighbor notifications.
+     * no block updates, no onBlockAdded, no neighbor notifications. Note that this DOES bypass logging as well.
      *
      * Does NOT touch TileEntities. If you are changing a TE block, handle
      * TE creation/removal separately. THIS WILL CORRUPT WORLDS IF IGNORED!
