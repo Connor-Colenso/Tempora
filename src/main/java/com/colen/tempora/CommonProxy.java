@@ -53,7 +53,8 @@ public class CommonProxy {
             2,
             Side.CLIENT);
 
-        NETWORK.registerMessage(PacketRemoveClientRegionByUUID.class, PacketRemoveRegionFromClient.class, 3, Side.CLIENT);
+        NETWORK
+            .registerMessage(PacketRemoveClientRegionByUUID.class, PacketRemoveRegionFromClient.class, 3, Side.CLIENT);
 
         TemporaEvents.registerAll();
 
