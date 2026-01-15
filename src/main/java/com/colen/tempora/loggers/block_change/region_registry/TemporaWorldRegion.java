@@ -192,6 +192,9 @@ public class TemporaWorldRegion {
         tag.setString("regionUUID", regionUUID);
         tag.setString("playerAuthorUUID", playerAuthorUUID);
         tag.setString("renderMode", renderMode.toString());
+        tag.setInteger("colorRed", color.getRed());
+        tag.setInteger("colorGreen", color.getGreen());
+        tag.setInteger("colorBlue", color.getBlue());
         return tag;
     }
 
@@ -210,6 +213,12 @@ public class TemporaWorldRegion {
         region.regionUUID = tag.getString("regionUUID");
         region.playerAuthorUUID = tag.getString("playerAuthorUUID");
         region.renderMode = RegionRenderMode.valueOf(tag.getString("renderMode"));
+
+        int colorRed = tag.getInteger("colorRed");
+        int colorGreen = tag.getInteger("colorGreen");
+        int colorBlue = tag.getInteger("colorBlue");
+        region.color = new Color(colorRed, colorGreen, colorBlue);
+
         return region;
     }
 

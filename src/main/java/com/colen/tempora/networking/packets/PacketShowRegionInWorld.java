@@ -1,5 +1,7 @@
 package com.colen.tempora.networking.packets;
 
+import java.awt.Color;
+
 import com.colen.tempora.loggers.block_change.region_registry.TemporaWorldRegion;
 import com.colen.tempora.rendering.ClientRegionStore;
 import com.colen.tempora.rendering.regions.RegionRenderMode;
@@ -47,6 +49,12 @@ public final class PacketShowRegionInWorld {
                 region.getRenderMode()
                     .name());
             ByteBufUtils.writeUTF8String(buf, region.getLabel());
+
+            // Color
+            Color color = region.getColor();
+            buf.writeInt(color.getRed());
+            buf.writeInt(color.getGreen());
+            buf.writeInt(color.getBlue());
         }
 
         @Override
@@ -80,6 +88,12 @@ public final class PacketShowRegionInWorld {
             region.setPlayerAuthorUUID(playerUUID);
             region.setRenderMode(renderMode);
             region.setLabel(label);
+
+            // Color
+            int red = buf.readInt();
+            int green = buf.readInt();
+            int blue = buf.readInt();
+            region.setColor(new Color(red, green, blue));
         }
 
         public static final class Handler implements IMessageHandler<RegionMsg, IMessage> {
