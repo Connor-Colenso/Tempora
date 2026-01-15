@@ -64,7 +64,7 @@ public class TemporaUndoCommand extends CommandBase {
                 sender.addChatMessage(errorMsg);
             }
         } else {
-            throw new WrongUsageException("tempora.command.undo.not_undoable", loggerName);
+            throw new WrongUsageException("tempora.command.undo.not.enabled", loggerName);
         }
     }
 

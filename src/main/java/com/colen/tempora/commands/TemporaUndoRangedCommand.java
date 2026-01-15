@@ -2,6 +2,7 @@ package com.colen.tempora.commands;
 
 import static com.colen.tempora.Tempora.LOG;
 import static com.colen.tempora.Tempora.NETWORK;
+import static com.colen.tempora.utils.CommandUtils.ONLY_IN_GAME;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -58,7 +59,7 @@ public class TemporaUndoRangedCommand extends CommandBase {
     public void processCommand(ICommandSender sender, String[] args) {
 
         if (!(sender instanceof EntityPlayerMP player)) {
-            sender.addChatMessage(new ChatComponentTranslation("This command may only be used by a player in-game."));
+            sender.addChatMessage(new ChatComponentTranslation(ONLY_IN_GAME));
             return;
         }
 
@@ -88,13 +89,9 @@ public class TemporaUndoRangedCommand extends CommandBase {
         }
 
         GenericPositionalLogger<?> logger = TemporaLoggerManager.getLogger(loggerName);
-        if (logger == null) {
-            sender.addChatMessage(new ChatComponentTranslation("tempora.command.undo.wrong.logger", loggerName));
-            return;
-        }
 
         if (!logger.isUndoEnabled()) {
-            sender.addChatMessage(new ChatComponentTranslation("tempora.command.undo.not_undoable", loggerName));
+            sender.addChatMessage(new ChatComponentTranslation("tempora.command.undo.not.enabled", loggerName));
             return;
         }
 
@@ -207,7 +204,7 @@ public class TemporaUndoRangedCommand extends CommandBase {
         GenericPositionalLogger<?> logger = TemporaLoggerManager.getLogger(loggerName);
 
         if (!logger.isUndoEnabled()) {
-            sender.addChatMessage(new ChatComponentTranslation("tempora.command.undo.not_undoable", loggerName));
+            sender.addChatMessage(new ChatComponentTranslation("tempora.command.undo.not.enabled", loggerName));
             return;
         }
 
