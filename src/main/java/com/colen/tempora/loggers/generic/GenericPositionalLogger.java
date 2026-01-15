@@ -384,10 +384,10 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
         return false;
     }
 
-    // Todo also return if succeed or not, to tally up and return to user. Reasons also, then present them all?
+    // If you enable undo support via isUndoEnabled override, then you MUST also override this and implement its logic.
     public UndoResponse undoEvent(GenericEventInfo eventInfo, EntityPlayer player) {
         throw new UnsupportedOperationException(
-            "The class " + getLoggerName() + " supports undo but has no implementation.");
+            "The class " + getLoggerName() + " supports undo but has no implementation. This is a bug!");
     }
 
     public final List<UndoResponse> undoEvents(List<? extends GenericEventInfo> results, EntityPlayer player) {
