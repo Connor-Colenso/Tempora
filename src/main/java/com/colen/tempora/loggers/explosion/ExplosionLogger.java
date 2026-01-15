@@ -37,7 +37,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 public class ExplosionLogger extends GenericPositionalLogger<ExplosionEventInfo> {
 
     @Override
-    public @NotNull ExplosionEventInfo getEventInfoInstance() {
+    public @NotNull ExplosionEventInfo newEventInfo() {
         return new ExplosionEventInfo();
     }
 

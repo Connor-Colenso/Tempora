@@ -145,7 +145,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
     }
 
     @Override
-    public @NotNull BlockChangeEventInfo getEventInfoInstance() {
+    public @NotNull BlockChangeEventInfo newEventInfo() {
         return new BlockChangeEventInfo();
     }
 

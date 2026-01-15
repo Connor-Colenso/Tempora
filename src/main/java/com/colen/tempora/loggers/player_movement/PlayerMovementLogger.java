@@ -35,7 +35,7 @@ public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovement
     }
 
     @Override
-    public @NotNull PlayerMovementEventInfo getEventInfoInstance() {
+    public @NotNull PlayerMovementEventInfo newEventInfo() {
         return new PlayerMovementEventInfo();
     }
 
