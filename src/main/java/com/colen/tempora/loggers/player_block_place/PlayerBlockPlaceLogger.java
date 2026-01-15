@@ -36,7 +36,7 @@ public class PlayerBlockPlaceLogger extends GenericPositionalLogger<PlayerBlockP
     }
 
     @Override
-    public @NotNull PlayerBlockPlaceEventInfo getEventInfoInstance() {
+    public @NotNull PlayerBlockPlaceEventInfo newEventInfo() {
         return new PlayerBlockPlaceEventInfo();
     }
 

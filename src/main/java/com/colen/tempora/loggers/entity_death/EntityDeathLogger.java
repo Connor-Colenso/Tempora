@@ -33,7 +33,7 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathEventI
     }
 
     @Override
-    public @NotNull EntityDeathEventInfo getEventInfoInstance() {
+    public @NotNull EntityDeathEventInfo newEventInfo() {
         return new EntityDeathEventInfo();
     }
 

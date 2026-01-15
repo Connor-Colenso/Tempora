@@ -137,7 +137,7 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
         throw new IllegalStateException("Unsupported field type: " + type);
     }
 
-    public abstract @NotNull EventInfo getEventInfoInstance();
+    public abstract @NotNull EventInfo newEventInfo();
 
     public @NotNull List<EventInfo> generateQueryResults(ResultSet resultSet) throws SQLException {
 
@@ -147,7 +147,7 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
             List<Field> fields = getAllAnnotatedFieldsAlphabetically();
 
             while (resultSet.next()) {
-                EventInfo element = getEventInfoInstance();
+                EventInfo element = newEventInfo();
 
                 // Populate base fields once
                 element.populateDefaultFieldsFromResultSet(resultSet);

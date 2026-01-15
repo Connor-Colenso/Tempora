@@ -43,7 +43,7 @@ public class InventoryLogger extends GenericPositionalLogger<InventoryEventInfo>
     }
 
     @Override
-    public @NotNull InventoryEventInfo getEventInfoInstance() {
+    public @NotNull InventoryEventInfo newEventInfo() {
         return new InventoryEventInfo();
     }
 

@@ -34,7 +34,7 @@ public class EntityPositionLogger extends GenericPositionalLogger<EntityPosition
     }
 
     @Override
-    public @NotNull EntityPositionEventInfo getEventInfoInstance() {
+    public @NotNull EntityPositionEventInfo newEventInfo() {
         return new EntityPositionEventInfo();
     }
 

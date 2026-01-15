@@ -33,6 +33,7 @@ public final class ModpackVersionData extends WorldSavedData {
 
     /* ------------------------------------------------------------ */
 
+    @SuppressWarnings("unused")
     public ModpackVersionData() {
         super(DATA_NAME);
     }
@@ -84,8 +85,7 @@ public final class ModpackVersionData extends WorldSavedData {
         versions.clear();
         NBTTagCompound tag = nbt.getCompoundTag("Versions");
 
-        for (Object keyObj : tag.func_150296_c()) {
-            String key = (String) keyObj;
+        for (String key : tag.func_150296_c()) {
             versions.put(Integer.parseInt(key), tag.getString(key));
         }
     }

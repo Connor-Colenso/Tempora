@@ -34,7 +34,7 @@ public class EntitySpawnLogger extends GenericPositionalLogger<EntitySpawnEventI
     }
 
     @Override
-    public @NotNull EntitySpawnEventInfo getEventInfoInstance() {
+    public @NotNull EntitySpawnEventInfo newEventInfo() {
         return new EntitySpawnEventInfo();
     }
 
