@@ -86,8 +86,13 @@ public final class TemporaLoggerManager {
 
     /* ---------------- LOGGER ACCESS ---------------- */
 
-    public static GenericPositionalLogger<?> getLogger(String loggerName) {
-        return LOGGERS.get(loggerName);
+    public static @NotNull GenericPositionalLogger<?> getLogger(String loggerName) {
+        GenericPositionalLogger<?> logger = LOGGERS.get(loggerName);
+        if (logger == null) {
+            throw new IllegalStateException("Unknown logger name: " + loggerName);
+        } else {
+            return logger;
+        }
     }
 
     public static Collection<GenericPositionalLogger<?>> getLoggerList() {

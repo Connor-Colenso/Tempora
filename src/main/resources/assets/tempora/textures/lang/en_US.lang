@@ -88,13 +88,13 @@ tempora.event.not.found.undo.ranged=Could not find event group. Has the server r
 tempora.undo.query.display=[UNDO]
 tempora.undo.query.hover=Clicking this will revert the events effect on the world.
 
-tempora.command.undo.not_undoable=The event type %s does not support undo operations.
+tempora.command.undo.not.enabled=The event type %s does not support undo operations.
 tempora.command.undo.wrong.logger=The event type %s does not exist.
 tempora.event.not.found=No event with the ID %s could be found in %s.
 tempora.undo.success=Undo completed successfully.
 tempora.undo.success.ranged=Successfully reverted %s/%s events (%s%%) in %s%s.
 tempora.command.undo.nothing=No events found within the range and time specified for %s.
-tempora.undo.failed=Undo failed: %s
+tempora.undo.failed=Undo failed: %s.
 tempora.undo.preview=Previewing undo operation, click %s to undo events.
 tempora.undo.preview.highlight=WARNING: This operation is irreversible.
 tempora.undo.preview.confirm=[HERE]

@@ -242,9 +242,14 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
         }
     }
 
-    public final void queueEventInfo(EventInfo event) {
+    public final void queueEventInfo(EventInfo eventInfo) {
         if (!isEnabled) return;
-        concurrentEventQueue.offer(event); // Non-blocking, thread-safe
+
+        // Populate this automatically, as it is fixed per world for all events.
+        eventInfo.versionID = ModpackVersionData.CURRENT_VERSION;
+
+        // Non-blocking, thread-safe
+        concurrentEventQueue.offer(eventInfo);
     }
 
     private void startQueueWorker(String sqlTableName) {
