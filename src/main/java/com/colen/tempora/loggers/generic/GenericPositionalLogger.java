@@ -44,7 +44,7 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
 
     protected PositionalLoggerDatabase databaseManager = new PositionalLoggerDatabase(this);
 
-    private static volatile boolean running = true;
+    private volatile boolean running = true;
 
     private final LinkedBlockingQueue<EventInfo> concurrentEventQueue = new LinkedBlockingQueue<>();
     protected List<EventInfo> transparentEventsToRenderInWorld = new ArrayList<>();
@@ -52,6 +52,8 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
 
     private boolean isEnabled;
     private Thread queueWorkerThread;
+    private int maxShutdownTimeoutMilliseconds;
+    private static final int queuePollTimeoutSeconds = 1;
 
     public void addEventToRender(EventInfo event) {
         event.eventRenderCreationTime = System.currentTimeMillis();
@@ -252,11 +254,11 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
         concurrentEventQueue.offer(eventInfo);
     }
 
-    private void startQueueWorker(String sqlTableName) {
+    private void startQueueWorker() {
 
         running = true;
 
-        queueWorkerThread = new Thread(() -> queueLoop(sqlTableName), "Tempora-" + sqlTableName);
+        queueWorkerThread = new Thread(() -> queueLoop(), "Tempora-" + getLoggerName());
         queueWorkerThread.setDaemon(false);
         queueWorkerThread.setUncaughtExceptionHandler((thr, ex) -> {
             LOG.error("Tempora queue-worker '{}' crashed – halting JVM!", thr.getName(), ex);
@@ -268,13 +270,13 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
 
     private static final int LARGE_QUEUE_THRESHOLD = 5_000;
 
-    private void queueLoop(String sqlTableName) {
+    private void queueLoop() {
         List<EventInfo> buffer = new ArrayList<>();
 
         try {
             while (running || !concurrentEventQueue.isEmpty()) {
                 // This blocks until at least one event is available.
-                EventInfo event = concurrentEventQueue.poll(1, TimeUnit.SECONDS);
+                EventInfo event = concurrentEventQueue.poll(queuePollTimeoutSeconds, TimeUnit.SECONDS);
                 if (event == null) continue;
 
                 // Drain any available events into the buffer
@@ -282,7 +284,7 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
                 concurrentEventQueue.drainTo(buffer);
 
                 if (concurrentEventQueue.size() > LARGE_QUEUE_THRESHOLD) {
-                    LOG.warn("{} has {} events pending, possible slowdown.", sqlTableName, concurrentEventQueue.size());
+                    LOG.warn("{} has {} events pending, possible slowdown.", getLoggerName(), concurrentEventQueue.size());
                 }
 
                 // Insert the batch into DB and commit
@@ -292,13 +294,10 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
                 buffer.clear();
             }
         } catch (InterruptedException e) {
-            Thread.currentThread()
-                .interrupt();
-            LOG.error(
-                "Queue worker interrupted for {} from external source. This is not meant to happen!",
-                sqlTableName);
+            Thread.currentThread().interrupt();
+            LOG.error("Queue worker interrupted for {} from external manager. The eventQueue was discarded with {} events remaining.", getLoggerName(), concurrentEventQueue.size());
         } catch (Exception e) {
-            throw new RuntimeException("DB failure in " + sqlTableName, e);
+            throw new RuntimeException("DB failure in " + getLoggerName(), e);
         }
 
         if (running) {
@@ -308,6 +307,14 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
 
     public final void genericConfig(@NotNull Configuration config) {
         isEnabled = config.getBoolean("isEnabled", getLoggerName(), true, "Enables this loggers functionality.");
+        maxShutdownTimeoutMilliseconds = config.getInt(
+            "maxShutdownTimeoutMs",
+            getLoggerName(),
+            queuePollTimeoutSeconds * 1_000 * 5, // 1000 seconds/millisecond & x5 to ensure polling can complete and database saves.
+            0,
+            Integer.MAX_VALUE,
+            "Maximum time (in milliseconds) to wait for this logger to flush and stop during shutdown. Use 0 to wait forever until all queued events are written."
+        );
         databaseManager.genericConfig(config);
     }
 
@@ -324,7 +331,7 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
             clearEvents();
             databaseManager = new PositionalLoggerDatabase(this);
             databaseManager.initialiseDatabase();
-            startQueueWorker(getLoggerName());
+            startQueueWorker();
 
         } catch (SQLException e) {
             throw new RuntimeException("[Tempora] Failed to initialise database for logger " + getLoggerName(), e);
@@ -353,11 +360,9 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
 
     public static void onServerClose() {
         try {
-            running = false; // Signal worker thread to stop
-
             for (GenericPositionalLogger<?> logger : TemporaLoggerManager.getLoggerList()) {
+                logger.shutdownQueueWorkerThreads();
                 logger.databaseManager.shutdownDatabase();
-                logger.queueWorkerThread.join();
             }
 
         } catch (Exception e) {
@@ -367,6 +372,17 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
             for (GenericPositionalLogger<?> logger : TemporaLoggerManager.getLoggerList()) {
                 logger.clearEvents();
             }
+        }
+    }
+
+    private void shutdownQueueWorkerThreads() throws InterruptedException {
+        running = false; // Signal worker thread to stop
+
+        queueWorkerThread.join(maxShutdownTimeoutMilliseconds);
+
+        if (queueWorkerThread.isAlive()) {
+            queueWorkerThread.interrupt();
+            LOG.error("Queue worker {} for logger {} did not stop in time. Tempora discarded {} events.", queueWorkerThread.getName(), getLoggerName(), concurrentEventQueue.size());
         }
     }
 
