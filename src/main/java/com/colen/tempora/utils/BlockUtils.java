@@ -2,7 +2,6 @@ package com.colen.tempora.utils;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockFlowerPot;
-import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
@@ -12,6 +11,8 @@ import net.minecraft.util.IChatComponent;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
+
+import org.jetbrains.annotations.NotNull;
 
 public class BlockUtils {
 
@@ -55,14 +56,11 @@ public class BlockUtils {
     /**
      * Worldgen-style block set: writes directly into the chunk storage with
      * no block updates, no onBlockAdded, no neighbor notifications. Note that this DOES bypass logging as well.
-     *
+     * <p>
      * Does NOT touch TileEntities. If you are changing a TE block, handle
      * TE creation/removal separately. THIS WILL CORRUPT WORLDS IF IGNORED!
      */
-    public static boolean setBlockNoUpdate(World world, int x, int y, int z, Block block, int meta) {
-        if (block == null) {
-            block = Blocks.air;
-        }
+    public static boolean setBlockNoUpdate(World world, int x, int y, int z, @NotNull Block block, int meta) {
 
         // Vanilla hard bounds
         if (y < 0 || y >= world.getHeight()) {

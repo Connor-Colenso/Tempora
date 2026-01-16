@@ -2,7 +2,7 @@ package com.colen.tempora.loggers.block_change;
 
 import static com.colen.tempora.Tempora.LOG;
 import static com.colen.tempora.utils.BlockUtils.getPickBlockSafe;
-import static com.colen.tempora.utils.CommandUtils.teleportChatComponent;
+import static com.colen.tempora.utils.ChatUtils.createHoverableClickable;
 import static com.colen.tempora.utils.PlayerUtils.UNKNOWN_PLAYER_NAME;
 import static com.colen.tempora.utils.RenderingUtils.CLIENT_EVENT_RENDER_DISTANCE;
 import static com.colen.tempora.utils.nbt.NBTUtils.NBT_DISABLED;
@@ -252,10 +252,15 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
     @Override
     public UndoResponse undoEvent(GenericEventInfo eventInfo, EntityPlayer player) {
 
+        IChatComponent eventUUID = createHoverableClickable("[UUID]", eventInfo.eventID);
+
         // This should never occur.
         if (!(eventInfo instanceof BlockChangeEventInfo bcqe)) {
             UndoResponse undoResponse = new UndoResponse();
-            undoResponse.message = new ChatComponentTranslation("tempora.undo.unknown.error", getLoggerName());
+            undoResponse.message = new ChatComponentTranslation(
+                "tempora.undo.unknown.error",
+                eventUUID,
+                getLoggerName());
             undoResponse.success = false;
             return undoResponse;
         }
@@ -263,7 +268,9 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
         // Handle if logging NBT was off when this event was logged & it is needed to restore it.
         if (bcqe.beforeEncodedNBT.equals(NBT_DISABLED)) {
             UndoResponse undoResponse = new UndoResponse();
-            undoResponse.message = new ChatComponentTranslation("tempora.cannot.block.break.undo.nbt.logging.disabled");
+            undoResponse.message = new ChatComponentTranslation(
+                "tempora.cannot.block.break.undo.nbt.logging.disabled",
+                eventUUID);
             undoResponse.success = false;
             return undoResponse;
         }
@@ -279,21 +286,31 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
         if (block == null) {
             UndoResponse undoResponse = new UndoResponse();
 
-            IChatComponent teleportCommand = teleportChatComponent(x, y, z, blockID);
             undoResponse.message = new ChatComponentTranslation(
                 "tempora.cannot.block.break.undo.block.not.found",
+                eventUUID,
                 bcqe.beforeBlockID,
-                bcqe.beforeMetadata,
-                teleportCommand);
+                bcqe.beforeMetadata);
 
             undoResponse.success = false;
             return undoResponse;
         }
 
-        // Place silently (no physics or callbacks)
         World w = MinecraftServer.getServer()
             .worldServerForDimension(dimID);
-        BlockUtils.setBlockNoUpdate(w, x, y, z, block, meta); // todo use this in other undos.
+
+        // todo use this in other undos.
+        // Place silently (no physics or callbacks). Direct edit of chunk data.
+        if (BlockUtils.setBlockNoUpdate(w, x, y, z, block, meta)) {
+            UndoResponse undoResponse = new UndoResponse();
+            undoResponse.success = false;
+            undoResponse.message = new ChatComponentTranslation(
+                "tempora.undo.set.block.failed",
+                eventUUID,
+                getLoggerName());
+
+            return undoResponse;
+        }
 
         if (!bcqe.beforeEncodedNBT.equals(NO_NBT)) {
             try {
@@ -312,7 +329,10 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
                 e.printStackTrace();
 
                 UndoResponse undoResponse = new UndoResponse();
-                undoResponse.message = new ChatComponentTranslation("tempora.undo.unknown.error", getLoggerName());
+                undoResponse.message = new ChatComponentTranslation(
+                    "tempora.undo.unknown.error",
+                    eventUUID,
+                    getLoggerName());
                 undoResponse.success = false;
 
                 return undoResponse;
