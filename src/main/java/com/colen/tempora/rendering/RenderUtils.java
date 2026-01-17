@@ -86,7 +86,7 @@ public abstract class RenderUtils {
         GL11.glPushMatrix();
         GL11.glTranslated(x - RenderManager.renderPosX, y - RenderManager.renderPosY, z - RenderManager.renderPosZ);
 
-        // Draw bounding box relative to the position
+        // Draw a bounding box relative to the position
         renderRegion(
             aabb.minX - x,
             aabb.minY - y,
@@ -178,7 +178,7 @@ public abstract class RenderUtils {
 
         // === Absolutely necessary for correct vanilla/forge rendering: ===
         GL11.glColor4f(1, 1, 1, 1); // Always restore color
-        GL13.glActiveTexture(GL13.GL_TEXTURE0); // Set main texture unit (block textures)
+        GL13.glActiveTexture(GL13.GL_TEXTURE0); // Set the main texture unit (block textures)
         mc.renderEngine.bindTexture(TextureMap.locationBlocksTexture); // Bind MC block atlas
         OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, prevBrightnessX, prevBrightnessY);
         GL11.glEnable(GL11.GL_LIGHTING); // Vanilla expects this on
@@ -290,7 +290,7 @@ public abstract class RenderUtils {
         GL11.glEnable(GL11.GL_BLEND);
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 
-        // Keep depth test so it clips against terrain, but don't write to depth buffer (typical for translucent)
+        // Keep the depth test so it clips against terrain, but don't write to depth buffer (typical for translucent)
         GL11.glEnable(GL11.GL_DEPTH_TEST);
         GL11.glDepthMask(false);
 

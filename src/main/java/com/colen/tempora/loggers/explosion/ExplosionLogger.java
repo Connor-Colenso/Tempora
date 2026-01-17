@@ -57,23 +57,23 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionEventInfo>
         double py = player.lastTickPosY + (player.posY - player.lastTickPosY) * renderEvent.partialTicks;
         double pz = player.lastTickPosZ + (player.posZ - player.lastTickPosZ) * renderEvent.partialTicks;
 
-        for (ExplosionEventInfo exqe : sortedList) {
-            // Draw explosion center as TNT block
+        for (ExplosionEventInfo exp_ev_info : sortedList) {
+            // Draw explosion centre as a TNT block
             RenderUtils.renderBlockInWorld(
                 renderEvent,
-                exqe.x - 0.5,
-                exqe.y - 0.5,
-                exqe.z - 0.5,
+                exp_ev_info.x - 0.5,
+                exp_ev_info.y - 0.5,
+                exp_ev_info.z - 0.5,
                 Block.getIdFromBlock(Blocks.tnt),
                 0,
                 null,
                 this);
 
             // Draw purple lines to affected blocks
-            for (ChunkPosition chunkPosition : ChunkPositionUtils.decodePositions(exqe.affectedBlockCoordinates)) {
-                double startX = exqe.x;
-                double startY = exqe.y;
-                double startZ = exqe.z;
+            for (ChunkPosition chunkPosition : ChunkPositionUtils.decodePositions(exp_ev_info.affectedBlockCoordinates)) {
+                double startX = exp_ev_info.x;
+                double startY = exp_ev_info.y;
+                double startZ = exp_ev_info.z;
 
                 double endX = chunkPosition.chunkPosX + 0.5;
                 double endY = chunkPosition.chunkPosY + 0.5;

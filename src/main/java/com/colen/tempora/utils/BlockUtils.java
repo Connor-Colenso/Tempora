@@ -32,7 +32,7 @@ public class BlockUtils {
 
         ItemStack stack = new ItemStack(item, 1, meta);
 
-        // Use getUnlocalizedName() instead of getDisplayName(), append ".name" for translation key
+        // Use getUnlocalizedName() instead of getDisplayName(), append ".name" for a translation key
         String key = stack.getUnlocalizedName() + ".name";
         return new ChatComponentTranslation(key);
     }
@@ -49,7 +49,7 @@ public class BlockUtils {
         Block theBlock = item instanceof ItemBlock && !(block instanceof BlockFlowerPot) ? Block.getBlockFromItem(item)
             : block;
 
-        // Return ItemStack with correct damage value
+        // Return ItemStack with a correct damage value
         return new ItemStack(item, 1, theBlock.getDamageValue(world, x, y, z));
     }
 

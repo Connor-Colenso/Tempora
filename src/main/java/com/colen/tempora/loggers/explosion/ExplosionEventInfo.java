@@ -58,7 +58,7 @@ public class ExplosionEventInfo extends GenericEventInfo {
     // To bypass string encoding limits, for large quantities of affectedBlockCoordinates. Todo: review this
     public static void writeUTF8String(ByteBuf to, String string) {
         byte[] utf8Bytes = string.getBytes(Charsets.UTF_8);
-        // Allow up to 4 bytes for the length varint (~268 MB of data)
+        // Allow up to 4 bytes for the length VarInt (~268 MB of data)
         Validate.isTrue(varIntByteCount(utf8Bytes.length) <= 3, "The string is too long for this encoding.");
         writeVarInt(to, utf8Bytes.length, 3);
         to.writeBytes(utf8Bytes);

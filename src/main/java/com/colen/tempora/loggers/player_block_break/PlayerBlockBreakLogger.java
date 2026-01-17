@@ -59,25 +59,25 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
             transparentEventsToRenderInWorld,
             renderEvent);
 
-        for (PlayerBlockBreakEventInfo pbbqe : sortedList) {
+        for (PlayerBlockBreakEventInfo pbbEventInfo : sortedList) {
             RenderingUtils.quickRenderBlockWithHighlightAndChecks(
                 renderEvent,
-                pbbqe,
-                pbbqe.blockID,
-                pbbqe.metadata,
-                pbbqe.encodedNBT,
-                pbbqe.playerUUID,
+                pbbEventInfo,
+                pbbEventInfo.blockID,
+                pbbEventInfo.metadata,
+                pbbEventInfo.encodedNBT,
+                pbbEventInfo.playerUUID,
                 this);
         }
 
-        for (PlayerBlockBreakEventInfo pbbqe : nonTransparentEventsToRenderInWorld) {
+        for (PlayerBlockBreakEventInfo pbbEventInfo : nonTransparentEventsToRenderInWorld) {
             RenderingUtils.quickRenderBlockWithHighlightAndChecks(
                 renderEvent,
-                pbbqe,
-                pbbqe.blockID,
-                pbbqe.metadata,
-                pbbqe.encodedNBT,
-                pbbqe.playerUUID,
+                pbbEventInfo,
+                pbbEventInfo.blockID,
+                pbbEventInfo.metadata,
+                pbbEventInfo.encodedNBT,
+                pbbEventInfo.playerUUID,
                 this);
         }
     }
@@ -151,7 +151,7 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
     // todo get rid of the need to cast the class here and use the generic.
     @Override
     public UndoResponse undoEvent(GenericEventInfo eventInfo, EntityPlayer player) {
-        if (!(eventInfo instanceof PlayerBlockBreakEventInfo pbbqe)) {
+        if (!(eventInfo instanceof PlayerBlockBreakEventInfo pbbEventInfo)) {
             UndoResponse undoResponse = new UndoResponse();
             undoResponse.message = new ChatComponentTranslation("tempora.undo.unknown_error", getLoggerName());
             undoResponse.success = false;
@@ -159,7 +159,7 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
         }
 
         // NBT existed but was not logged, it is not safe to undo this event.
-        if (pbbqe.encodedNBT.equals(NBT_DISABLED)) {
+        if (pbbEventInfo.encodedNBT.equals(NBT_DISABLED)) {
             UndoResponse undoResponse = new UndoResponse();
             undoResponse.message = new ChatComponentTranslation("tempora.undo.cannot_block_break.nbt_logging_disabled");
             undoResponse.success = false;
@@ -169,7 +169,7 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
         World w = MinecraftServer.getServer()
             .worldServerForDimension(eventInfo.dimensionID);
 
-        Block block = Block.getBlockById(pbbqe.blockID);
+        Block block = Block.getBlockById(pbbEventInfo.blockID);
         if (block == null) {
             UndoResponse undoResponse = new UndoResponse();
             undoResponse.message = new ChatComponentTranslation("tempora.undo.cannot_block_break.block_not_found");
@@ -178,12 +178,12 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
         }
 
         // Flag of 2 will update clients nearby.
-        w.setBlock((int) pbbqe.x, (int) pbbqe.y, (int) pbbqe.z, block, pbbqe.metadata, 2);
+        w.setBlock((int) pbbEventInfo.x, (int) pbbEventInfo.y, (int) pbbEventInfo.z, block, pbbEventInfo.metadata, 2);
 
         // Just to ensure meta is being set right, stops blocks interfering.
-        w.setBlockMetadataWithNotify((int) pbbqe.x, (int) pbbqe.y, (int) pbbqe.z, pbbqe.metadata, 2);
+        w.setBlockMetadataWithNotify((int) pbbEventInfo.x, (int) pbbEventInfo.y, (int) pbbEventInfo.z, pbbEventInfo.metadata, 2);
         // Block had no NBT.
-        if (pbbqe.encodedNBT.equals(NO_NBT)) {
+        if (pbbEventInfo.encodedNBT.equals(NO_NBT)) {
             UndoResponse undoResponse = new UndoResponse();
             undoResponse.message = new ChatComponentTranslation("tempora.undo.success.normal");
             undoResponse.success = true;
@@ -191,12 +191,12 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
         }
 
         try {
-            TileEntity tileEntity = TileEntity.createAndLoadEntity(NBTUtils.decodeFromString(pbbqe.encodedNBT));
-            w.setTileEntity((int) pbbqe.x, (int) pbbqe.y, (int) pbbqe.z, tileEntity);
+            TileEntity tileEntity = TileEntity.createAndLoadEntity(NBTUtils.decodeFromString(pbbEventInfo.encodedNBT));
+            w.setTileEntity((int) pbbEventInfo.x, (int) pbbEventInfo.y, (int) pbbEventInfo.z, tileEntity);
         } catch (Exception e) {
-            // Erase the block. Try stop world state having issues.
-            w.setBlockToAir((int) pbbqe.x, (int) pbbqe.y, (int) pbbqe.z);
-            w.removeTileEntity((int) pbbqe.x, (int) pbbqe.y, (int) pbbqe.z);
+            // Erase the block. Try to stop world state having issues.
+            w.setBlockToAir((int) pbbEventInfo.x, (int) pbbEventInfo.y, (int) pbbEventInfo.z);
+            w.removeTileEntity((int) pbbEventInfo.x, (int) pbbEventInfo.y, (int) pbbEventInfo.z);
 
             e.printStackTrace();
             UndoResponse undoResponse = new UndoResponse();

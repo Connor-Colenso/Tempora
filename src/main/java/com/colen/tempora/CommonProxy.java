@@ -64,7 +64,7 @@ public class CommonProxy {
             logger.genericConfig(Tempora.config);
         }
 
-        // After all config handling is done.
+        // After the config handling is done.
         if (Tempora.config.hasChanged()) {
             Tempora.config.save();
         }

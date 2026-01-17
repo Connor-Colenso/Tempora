@@ -68,10 +68,7 @@ public class BlockChangeEventInfo extends GenericEventInfo {
         IChatComponent beforeBlockName = BlockUtils.getUnlocalisedChatComponent(beforePickBlockID, beforePickBlockMeta);
         IChatComponent afterBlockName = BlockUtils.getUnlocalisedChatComponent(afterPickBlockID, afterPickBlockMeta);
 
-        // Coordinates component
         IChatComponent coords = teleportChatComponent(x, y, z, dimensionID);
-
-        // Time ago
         IChatComponent timeAgo = TimeUtils.formatTime(timestamp);
 
         // Closest player info

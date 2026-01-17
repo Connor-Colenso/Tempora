@@ -49,7 +49,7 @@ public class PlayerUtils {
 
     /**
      * Generates a chat component showing the player's name,
-     * with a hover showing the UUID. Invalid UUIDs will return relevant translation code.
+     * with a hover showing the UUID. Invalid UUIDs will return a relevant translation code.
      */
     public static IChatComponent playerNameFromUUID(String uuid) {
         if (uuid == null) {
