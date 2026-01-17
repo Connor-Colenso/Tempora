@@ -285,7 +285,7 @@ public class PositionalLoggerDatabase {
 
                 if (eventDataList.isEmpty()) {
                     IChatComponent noResults = new ChatComponentTranslation(
-                        "message.query_events.no_results",
+                        "tempora.command.query_events.no_results",
                         genericPositionalLogger.getLoggerName());
                     noResults.getChatStyle()
                         .setColor(EnumChatFormatting.GRAY);
