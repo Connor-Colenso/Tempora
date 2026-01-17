@@ -2,6 +2,8 @@ package com.colen.tempora.loggers.generic;
 
 import static com.colen.tempora.Tempora.LOG;
 import static com.colen.tempora.Tempora.NETWORK;
+import static com.colen.tempora.TemporaLoggerManager.getColumnAccessors;
+import static com.colen.tempora.TemporaLoggerManager.getColumnFieldsAlphabetically;
 import static com.colen.tempora.utils.DatabaseUtils.databaseDir;
 import static com.colen.tempora.utils.DatabaseUtils.deleteLoggerDatabase;
 import static com.colen.tempora.utils.DatabaseUtils.jdbcUrl;
@@ -36,6 +38,7 @@ import org.jetbrains.annotations.NotNull;
 import org.sqlite.SQLiteConfig;
 
 import com.colen.tempora.loggers.generic.column.Column;
+import com.colen.tempora.loggers.generic.column.ColumnAccessor;
 import com.colen.tempora.loggers.generic.column.ColumnDef;
 import com.colen.tempora.loggers.generic.column.ColumnType;
 import com.colen.tempora.utils.DatabaseUtils;
@@ -538,7 +541,7 @@ public class PositionalLoggerDatabase {
     public List<ColumnDef> getAllTableColumns() {
         List<ColumnDef> columns = new ArrayList<>();
 
-        for (Field field : genericPositionalLogger.getAllAnnotatedFieldsAlphabetically()) {
+        for (Field field : getColumnFieldsAlphabetically(genericPositionalLogger)) {
             Column col = field.getAnnotation(Column.class);
 
             String name = col.name()
@@ -569,41 +572,26 @@ public class PositionalLoggerDatabase {
             .getLoggerName() + " (" + columnList + ") VALUES (" + placeholders + ")";
     }
 
-    // This is responsible for logging the actual events
+    // This is responsible for logging the actual events. It seems rather convoluted,
+    // but is trying to optimise and minimise the impact of heavy reflection usage.
     public <EventInfo extends GenericEventInfo> void insertBatch(List<EventInfo> eventInfoQueue) throws SQLException {
+
         if (eventInfoQueue == null || eventInfoQueue.isEmpty()) return;
 
         final String sql = generateInsertSQL();
+        final List<ColumnAccessor> accessors = getColumnAccessors(genericPositionalLogger);
 
         try (PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(sql)) {
 
             for (EventInfo eventInfo : eventInfoQueue) {
                 int index = 1;
 
-                // genericPositionalLogger.inferEventToLogClass()
-                for (Field field : genericPositionalLogger.getAllAnnotatedFieldsAlphabetically()) {
-                    Object value;
+                for (ColumnAccessor acc : accessors) {
                     try {
-                        value = field.get(eventInfo);
+                        Object value = acc.field.get(eventInfo);
+                        acc.binder.bind(pstmt, index++, value);
                     } catch (IllegalAccessException e) {
                         throw new RuntimeException(e);
-                    }
-
-                    // Bind value according to type
-                    if (value instanceof Integer val) {
-                        pstmt.setInt(index++, val);
-                    } else if (value instanceof Long val) {
-                        pstmt.setLong(index++, val);
-                    } else if (value instanceof Double val) {
-                        pstmt.setDouble(index++, val);
-                    } else if (value instanceof Float val) {
-                        pstmt.setFloat(index++, val);
-                    } else if (value instanceof String val) {
-                        pstmt.setString(index++, val);
-                    } else if (value instanceof Boolean val) {
-                        pstmt.setInt(index++, val ? 1 : 0);
-                    } else {
-                        throw new IllegalStateException("Unsupported field type: " + field.getType());
                     }
                 }
 
