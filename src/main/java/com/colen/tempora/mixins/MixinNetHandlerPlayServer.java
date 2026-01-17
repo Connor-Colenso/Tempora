@@ -25,7 +25,7 @@ public class MixinNetHandlerPlayServer {
 
     @Inject(method = "processClickWindow", at = @At("HEAD"))
     private void onProcessClickWindowHead(C0EPacketClickWindow packetIn, CallbackInfo ci) {
-        if (playerEntity.worldObj.isRemote) return; // ignore client side
+        if (playerEntity.worldObj.isRemote) return; // ignore on the client side
         snapshot = new HashMap<>();
         for (Slot s : playerEntity.openContainer.inventorySlots) {
             snapshot.put(

@@ -20,7 +20,7 @@ public final class WorldGenPhaseTracker {
         int depth = DEPTH.get();
         DEPTH.set(depth + 1);
 
-        // Only set phase on outermost entry
+        // Only set phase on the outermost entry
         if (depth == 0) {
             CURRENT_PHASE.set(phase);
         }

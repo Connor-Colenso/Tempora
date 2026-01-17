@@ -92,14 +92,14 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
             filteredNonTransparentBuffer.add(event);
         }
 
-        for (BlockChangeEventInfo bcqe : filteredNonTransparentBuffer) {
+        for (BlockChangeEventInfo bcEventInfo : filteredNonTransparentBuffer) {
             RenderingUtils.quickRenderBlockWithHighlightAndChecks(
                 renderEvent,
-                bcqe,
-                bcqe.beforeBlockID,
-                bcqe.beforeMetadata,
-                bcqe.beforeEncodedNBT,
-                bcqe.closestPlayerUUID,
+                bcEventInfo,
+                bcEventInfo.beforeBlockID,
+                bcEventInfo.beforeMetadata,
+                bcEventInfo.beforeEncodedNBT,
+                bcEventInfo.closestPlayerUUID,
                 this);
         }
 
@@ -110,14 +110,14 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
             filteredTransparentBuffer.add(event);
         }
 
-        for (BlockChangeEventInfo bcqe : getSortedLatestEventsByDistance(filteredTransparentBuffer, renderEvent)) {
+        for (BlockChangeEventInfo bcEventInfo : getSortedLatestEventsByDistance(filteredTransparentBuffer, renderEvent)) {
             RenderingUtils.quickRenderBlockWithHighlightAndChecks(
                 renderEvent,
-                bcqe,
-                bcqe.beforeBlockID,
-                bcqe.beforeMetadata,
-                bcqe.beforeEncodedNBT,
-                bcqe.closestPlayerUUID,
+                bcEventInfo,
+                bcEventInfo.beforeBlockID,
+                bcEventInfo.beforeMetadata,
+                bcEventInfo.beforeEncodedNBT,
+                bcEventInfo.closestPlayerUUID,
                 this);
         }
     }
@@ -229,7 +229,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
 
     private void recordSetBlock(double x, double y, double z, BlockChangeEventInfo eventInfo, World world) {
 
-        // Only log changes if (x, y, z) is inside a defined region. Unless config has entire world logging on.
+        // Only log changes if (x, y, z) is inside a defined region. Unless config has the entire world logging on.
         if (!globalBlockChangeLogging
             && !BlockChangeRegionRegistry.containsBlock(world.provider.dimensionId, (int) x, (int) y, (int) z)) {
             return;
@@ -255,7 +255,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
         IChatComponent eventUUID = createHoverableClickable("[UUID]", eventInfo.eventID);
 
         // This should never occur.
-        if (!(eventInfo instanceof BlockChangeEventInfo bcqe)) {
+        if (!(eventInfo instanceof BlockChangeEventInfo bcEventInfo)) {
             UndoResponse undoResponse = new UndoResponse();
             undoResponse.message = new ChatComponentTranslation(
                 "tempora.undo.unknown_error",
@@ -265,8 +265,8 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
             return undoResponse;
         }
 
-        // Handle if logging NBT was off when this event was logged & it is needed to restore it.
-        if (bcqe.beforeEncodedNBT.equals(NBT_DISABLED)) {
+        // Handle if logging NBT was off when this event was logged & it is necessary to restore it.
+        if (bcEventInfo.beforeEncodedNBT.equals(NBT_DISABLED)) {
             UndoResponse undoResponse = new UndoResponse();
             undoResponse.message = new ChatComponentTranslation(
                 "tempora.undo.cannot_block_break.nbt_logging_disabled",
@@ -275,11 +275,11 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
             return undoResponse;
         }
 
-        int x = (int) bcqe.x;
-        int y = (int) bcqe.y;
-        int z = (int) bcqe.z;
-        int blockID = bcqe.beforeBlockID;
-        int meta = bcqe.beforeMetadata;
+        int x = (int) bcEventInfo.x;
+        int y = (int) bcEventInfo.y;
+        int z = (int) bcEventInfo.z;
+        int blockID = bcEventInfo.beforeBlockID;
+        int meta = bcEventInfo.beforeMetadata;
         int dimID = eventInfo.dimensionID;
 
         Block block = Block.getBlockById(blockID);
@@ -289,8 +289,8 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
             undoResponse.message = new ChatComponentTranslation(
                 "tempora.undo.cannot_block_break.block_not_found",
                 eventUUID,
-                bcqe.beforeBlockID,
-                bcqe.beforeMetadata);
+                bcEventInfo.beforeBlockID,
+                bcEventInfo.beforeMetadata);
 
             undoResponse.success = false;
             return undoResponse;
@@ -312,9 +312,9 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
             return undoResponse;
         }
 
-        if (!bcqe.beforeEncodedNBT.equals(NO_NBT)) {
+        if (!bcEventInfo.beforeEncodedNBT.equals(NO_NBT)) {
             try {
-                TileEntity te = TileEntity.createAndLoadEntity(NBTUtils.decodeFromString(bcqe.beforeEncodedNBT));
+                TileEntity te = TileEntity.createAndLoadEntity(NBTUtils.decodeFromString(bcEventInfo.beforeEncodedNBT));
                 if (te != null) {
                     te.setWorldObj(w);
                     te.xCoord = x;

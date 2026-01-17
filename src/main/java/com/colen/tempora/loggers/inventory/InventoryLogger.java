@@ -79,7 +79,7 @@ public class InventoryLogger extends GenericPositionalLogger<InventoryEventInfo>
         GL11.glPopMatrix();
     }
 
-    // This only exists so debug breakpoints can be used, as we are no longer inside of the mixin itself.
+    // This only exists so that the debug breakpoints can be used, as we are no longer inside the mixin itself.
     public static void preLogLogic(EntityPlayer player, Container container, List<Slot> inventorySlots,
         Map<Integer, ItemStack> snapshot) {
         for (Slot s : inventorySlots) {

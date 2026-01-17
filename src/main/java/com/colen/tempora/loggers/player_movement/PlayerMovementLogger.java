@@ -23,10 +23,10 @@ import cpw.mods.fml.relauncher.SideOnly;
 
 // This class logs three items to the same database.
 // 1. Player movement every n ticks. By default, n = 200 ticks.
-// 2. Player teleportation between dimensions. Prevents users from evading the above detector by switching dims very
-// quickly.
-// 3. Player login, prevents the user from being logged into a dimension and quickly switching dims, this would
-// cause the dimension to load, which we want to keep track of.
+// 2. Player teleportation between dimensions. Prevents users from evading the above detector by switching dimensions
+// very quickly.
+// 3. Player login: This prevents the user from being logged into a dimension and quickly switching dimensions, this
+// would cause the dimension to load, which we want to keep track of.
 public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovementEventInfo> {
 
     @Override

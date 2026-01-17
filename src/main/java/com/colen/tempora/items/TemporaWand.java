@@ -25,10 +25,6 @@ import com.colen.tempora.rendering.regions.RegionRenderMode;
 import com.colen.tempora.utils.PlayerUtils;
 
 public class TemporaWand extends Item {
-
-    // Render shrink (prevents z-fighting).
-    public static final double epsi = 0.001;
-
     public TemporaWand() {
         this.setMaxStackSize(1);
         this.setCreativeTab(CreativeTabs.tabTools);

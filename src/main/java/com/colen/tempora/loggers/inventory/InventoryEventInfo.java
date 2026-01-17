@@ -22,7 +22,7 @@ public class InventoryEventInfo extends GenericEventInfo {
     public String containerName;
 
     @Column(constraints = "NOT NULL")
-    public int interactionType; // Note: DB column is TEXT, but field is int – consider changing either to match
+    public int interactionType; // Note: DB column is TEXT, but the field is an int – consider changing either to match
 
     @Column(constraints = "NOT NULL")
     public String playerUUID;

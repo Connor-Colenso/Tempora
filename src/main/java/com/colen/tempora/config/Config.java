@@ -7,7 +7,7 @@ public class Config {
     private static final String DEBUG_CATEGORY = "Debug";
     public static final String formatCategory = "Format";
 
-    // This is more of a debug option, but can be used in single player if you really want.
+    // This is more of a debug option but can be used in a singleplayer world if you really want.
     public static boolean shouldTemporaRun;
     public static boolean shouldTemporaAlwaysWait;
 

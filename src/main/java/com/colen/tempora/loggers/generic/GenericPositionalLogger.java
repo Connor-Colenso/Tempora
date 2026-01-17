@@ -167,7 +167,7 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
     @SideOnly(Side.CLIENT)
     public abstract void renderEventsInWorld(RenderWorldLastEvent renderEvent);
 
-    // Logger name is also the SQL table name. So choose it careful and never rename it.
+    // Logger name is also the SQL table name. So choose it and be careful not to rename it.
     public abstract @NotNull String getLoggerName();
 
     public void handleCustomLoggerConfig(Configuration config) {}
@@ -258,14 +258,14 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
             "maxShutdownTimeoutMs",
             getLoggerName(),
             queuePollTimeoutSeconds * 1_000 * 5, // 1000 seconds/millisecond & x5 to ensure polling can complete and
-                                                 // database saves.
+                                                 // the database saves.
             0,
             Integer.MAX_VALUE,
             "Maximum time (in milliseconds) to wait for this logger to flush and stop during shutdown. Use 0 to wait forever until all queued events are written.");
         databaseManager.genericConfig(config);
     }
 
-    // Run on server start up/world load.
+    // Run on server startup/world load.
     private void initialiseLogger() {
         try {
             // Clear events and initialise connection.
@@ -401,7 +401,7 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
                     element.eventID,
                     t);
 
-                // Something gone wrong with the undo implementation. This may not be tempora's fault, depending on the
+                // Something gone wrong with the undo implementation. This may not be Tempora's fault, depending on the
                 // origin of this logger.
 
                 IChatComponent errorMsg = new ChatComponentTranslation(

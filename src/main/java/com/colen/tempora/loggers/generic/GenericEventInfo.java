@@ -33,7 +33,7 @@ public abstract class GenericEventInfo {
     @Column(constraints = "NOT NULL")
     public int versionID;
 
-    // These fields purely dictates rendering info, and are not relevant elsewhere.
+    // These fields purely dictate rendering info and are not relevant elsewhere.
     public long eventRenderCreationTime;
 
     public abstract IChatComponent localiseText(String commandIssuerUUID);
@@ -55,7 +55,7 @@ public abstract class GenericEventInfo {
         dimensionID = buf.readInt();
         timestamp = buf.readLong();
         eventID = ByteBufUtils.readUTF8String(buf);
-        // versionID Not applicable for client.
+        // versionID Not applicable for the client.
     }
 
     public void toBytes(ByteBuf buf) {
@@ -65,7 +65,7 @@ public abstract class GenericEventInfo {
         buf.writeInt(dimensionID);
         buf.writeLong(timestamp);
         ByteBufUtils.writeUTF8String(buf, eventID);
-        // versionID Not applicable for client.
+        // versionID Not applicable for the client.
     }
 
     public boolean needsTransparencyToRender() {
