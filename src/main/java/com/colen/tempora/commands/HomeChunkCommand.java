@@ -55,14 +55,14 @@ public class HomeChunkCommand extends CommandBase {
         // Validate
         if (args.length < 1) {
             sender.addChatMessage(
-                new ChatComponentTranslation("tempora.command.averagehome.usage", getCommandUsage(sender)));
+                new ChatComponentTranslation("tempora.command.home_chunk.usage", getCommandUsage(sender)));
             return;
         }
 
         // Player to UUID.
         final String uuid = PlayerUtils.uuidForName(args[0]);
         if (uuid == null) {
-            sender.addChatMessage(new ChatComponentTranslation("tempora.command.averagehome.unknown_player", args[0]));
+            sender.addChatMessage(new ChatComponentTranslation("tempora.command.home_chunk.unknown_player", args[0]));
             return;
         }
 
@@ -87,7 +87,7 @@ public class HomeChunkCommand extends CommandBase {
         GenericPositionalLogger<?> movementLogger = TemporaLoggerManager.getLogger(PLAYER_MOVEMENT);
         if (movementLogger == null || movementLogger.getDatabaseManager()
             .getReadOnlyConnection() == null) {
-            sender.addChatMessage(new ChatComponentTranslation("tempora.command.averagehome.no_db"));
+            sender.addChatMessage(new ChatComponentTranslation("tempora.command.home_chunk.no_db"));
             return;
         }
         Connection conn = movementLogger.getDatabaseManager()
@@ -153,7 +153,7 @@ public class HomeChunkCommand extends CommandBase {
 
             try (ResultSet rs = stmt.executeQuery()) {
                 if (!rs.next() || rs.getObject("home_x") == null) {
-                    sender.addChatMessage(new ChatComponentTranslation("tempora.command.averagehome.no_data"));
+                    sender.addChatMessage(new ChatComponentTranslation("tempora.command.home_chunk.no_data"));
                     return;
                 }
 
@@ -166,7 +166,7 @@ public class HomeChunkCommand extends CommandBase {
 
                 sender.addChatMessage(
                     new ChatComponentTranslation(
-                        "tempora.command.averagehome.result",
+                        "tempora.command.home_chunk.result",
                         PlayerUtils.playerNameFromUUID(uuid),
                         dim,
                         tpLink));
@@ -174,7 +174,7 @@ public class HomeChunkCommand extends CommandBase {
 
         } catch (SQLException e) {
             LOG.error("HomeChunkCommand SQL failed: {}. With stack trace: {}", e.getMessage(), e);
-            sender.addChatMessage(new ChatComponentTranslation("tempora.command.averagehome.sql_error"));
+            sender.addChatMessage(new ChatComponentTranslation("tempora.command.home_chunk.sql_error"));
         }
     }
 
@@ -188,7 +188,7 @@ public class HomeChunkCommand extends CommandBase {
         try {
             return Integer.parseInt(s);
         } catch (NumberFormatException ex) {
-            throw new CommandException("tempora.command.homechunk.bad_dim");
+            throw new CommandException("tempora.command.home_chunk.bad_dim");
         }
     }
 }

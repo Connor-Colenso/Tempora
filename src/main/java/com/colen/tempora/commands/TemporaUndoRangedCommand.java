@@ -91,7 +91,7 @@ public class TemporaUndoRangedCommand extends CommandBase {
         GenericPositionalLogger<?> logger = TemporaLoggerManager.getLogger(loggerName);
 
         if (!logger.isUndoEnabled()) {
-            sender.addChatMessage(new ChatComponentTranslation("tempora.command.undo.not.enabled", loggerName));
+            sender.addChatMessage(new ChatComponentTranslation("tempora.undo.not_enabled", loggerName));
             return;
         }
 
@@ -141,12 +141,12 @@ public class TemporaUndoRangedCommand extends CommandBase {
             }
         } catch (Exception e) {
             LOG.error("Undo preview DB error", e);
-            sender.addChatMessage(new ChatComponentTranslation("tempora.undo.failed", e.getMessage()));
+            sender.addChatMessage(new ChatComponentTranslation("tempora.undo.generic_fail", e.getMessage()));
             return;
         }
 
         if (results.isEmpty()) {
-            sender.addChatMessage(new ChatComponentTranslation("tempora.command.undo.nothing", loggerName));
+            sender.addChatMessage(new ChatComponentTranslation("tempora.undo.nothing_to_undo", loggerName));
             return;
         }
 
@@ -204,7 +204,7 @@ public class TemporaUndoRangedCommand extends CommandBase {
         GenericPositionalLogger<?> logger = TemporaLoggerManager.getLogger(loggerName);
 
         if (!logger.isUndoEnabled()) {
-            sender.addChatMessage(new ChatComponentTranslation("tempora.command.undo.not.enabled", loggerName));
+            sender.addChatMessage(new ChatComponentTranslation("tempora.undo.not_enabled", loggerName));
             return;
         }
 

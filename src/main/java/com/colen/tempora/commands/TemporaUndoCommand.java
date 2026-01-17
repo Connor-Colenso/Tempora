@@ -43,7 +43,7 @@ public class TemporaUndoCommand extends CommandBase {
 
         GenericPositionalLogger<?> genericLogger = TemporaLoggerManager.getLogger(loggerName);
         if (genericLogger == null) {
-            throw new WrongUsageException("tempora.command.undo.wrong.logger", loggerName);
+            throw new WrongUsageException("tempora.undo.wrong_logger", loggerName);
         } else if (genericLogger.isUndoEnabled()) {
             GenericEventInfo eventInfo = genericLogger.getDatabaseManager()
                 .queryEventByEventID(eventID);
@@ -56,7 +56,7 @@ public class TemporaUndoCommand extends CommandBase {
                 // Something gone wrong with the undo implementation. This may not be tempora's fault, depending on the
                 // origin of this logger.
                 IChatComponent errorMsg = new ChatComponentTranslation(
-                    "tempora.command.undo.failed.bad.implementation",
+                    "tempora.undo.bad_implementation",
                     loggerName,
                     ChatUtils.createHoverableClickable("[UUID]", eventID));
                 errorMsg.getChatStyle()
@@ -64,7 +64,7 @@ public class TemporaUndoCommand extends CommandBase {
                 sender.addChatMessage(errorMsg);
             }
         } else {
-            throw new WrongUsageException("tempora.command.undo.not.enabled", loggerName);
+            throw new WrongUsageException("tempora.undo.not_enabled", loggerName);
         }
     }
 

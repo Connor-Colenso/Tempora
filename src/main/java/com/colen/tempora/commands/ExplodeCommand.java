@@ -44,7 +44,7 @@ public class ExplodeCommand extends CommandBase {
         try {
             strength = Float.parseFloat(args[0]);
         } catch (NumberFormatException e) {
-            sender.addChatMessage(new ChatComponentTranslation("tempora.command.force.must.be.numeric"));
+            sender.addChatMessage(new ChatComponentTranslation("tempora.command.explode.force.must.be.numeric"));
             return;
         }
 
@@ -61,7 +61,7 @@ public class ExplodeCommand extends CommandBase {
         MovingObjectPosition hit = world.rayTraceBlocks(start, end, false);
 
         if (hit == null) {
-            sender.addChatMessage(new ChatComponentTranslation("explode.command.no.block.in.sight"));
+            sender.addChatMessage(new ChatComponentTranslation("tempora.command.explode.no_block_in_sight"));
             return;
         }
 

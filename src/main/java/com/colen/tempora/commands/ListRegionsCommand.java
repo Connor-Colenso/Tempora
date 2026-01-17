@@ -71,14 +71,14 @@ public class ListRegionsCommand extends CommandBase {
 
                 if (dimensionName == null) {
                     IChatComponent invalidDim = new ChatComponentTranslation(
-                        "tempora.command.filtered.listregions.invalid.dimension",
+                        "tempora.command.list_regions.filtered.invalid_dimension",
                         dimFilter);
                     invalidDim.getChatStyle()
                         .setColor(EnumChatFormatting.RED);
                     sender.addChatMessage(invalidDim);
                 } else {
                     IChatComponent emptyDim = new ChatComponentTranslation(
-                        "tempora.command.filtered.listregions.empty",
+                        "tempora.command.list_regions.filtered.no_regions",
                         dimensionName,
                         dimFilter);
                     emptyDim.getChatStyle()
@@ -95,7 +95,7 @@ public class ListRegionsCommand extends CommandBase {
                 .thenComparingLong(TemporaWorldRegion::getRenderStartTimeMs));
 
         if (regions.isEmpty()) {
-            sender.addChatMessage(new ChatComponentTranslation("tempora.command.listregions.none"));
+            sender.addChatMessage(new ChatComponentTranslation("tempora.command.list_regions.none"));
             return;
         }
 
@@ -104,7 +104,7 @@ public class ListRegionsCommand extends CommandBase {
         for (TemporaWorldRegion r : regions) {
             if (dimIDsSeen.add(r.getDimID())) {
                 IChatComponent dimBanner = new ChatComponentTranslation(
-                    "tempora.region.dimension.banner.in.chat",
+                    "tempora.region.dimension_banner",
                     getDimensionName(r.getDimID()),
                     r.getDimID());
                 dimBanner.getChatStyle()
@@ -120,7 +120,7 @@ public class ListRegionsCommand extends CommandBase {
 
         if (BlockChangeLogger.isGlobalBlockChangeLoggingEnabled()) {
             IChatComponent globalLoggingMessage = new ChatComponentTranslation(
-                "tempora.command.listregions.global.logging.enabled");
+                "tempora.command.list_regions.global.logging.enabled");
             globalLoggingMessage.getChatStyle()
                 .setColor(EnumChatFormatting.DARK_RED);
             player.addChatMessage(globalLoggingMessage);

@@ -20,13 +20,13 @@ time.ago.minutes=il y a %s minutes
 time.ago.seconds=il y a %s secondes
 
 # Usage / aide
-tempora.command.querysql.usage=Utilisation : %s
-tempora.command.querysql.query_quotes=La requête SQL doit être entourée de guillemets.
-tempora.command.querysql.logger_not_found=Logger '%s' introuvable.
-tempora.command.querysql.select_only=Seules les requêtes SELECT sont autorisées.
-tempora.command.querysql.missing_columns=Colonnes manquantes dans la requête : %s
-tempora.command.querysql.missing_columns.advice=Il est fortement recommandé d'utiliser SELECT * au lieu de spécifier les colonnes.
-tempora.command.querysql.no_results_in=Aucun résultat trouvé dans %s.
-tempora.command.querysql.query_display=Requête : %s
-tempora.command.querysql.results=Résultats de la requête :
-tempora.command.querysql.error=Erreur : %s
+tempora.command.query_sql.usage=Utilisation : %s
+tempora.command.query_sql.query_quotes=La requête SQL doit être entourée de guillemets.
+tempora.command.query_sql.logger_not_found=Logger '%s' introuvable.
+tempora.command.query_sql.select_only=Seules les requêtes SELECT sont autorisées.
+tempora.command.query_sql.missing_columns=Colonnes manquantes dans la requête : %s
+tempora.command.query_sql.missing_columns.advice=Il est fortement recommandé d'utiliser SELECT * au lieu de spécifier les colonnes.
+tempora.command.query_sql.no_results_in=Aucun résultat trouvé dans %s.
+tempora.command.query_sql.query_display=Requête : %s
+tempora.command.query_sql.results=Résultats de la requête :
+tempora.command.query_sql.error=Erreur : %s
