@@ -49,7 +49,7 @@ public class CommandUtils {
 
         // Translation‑driven teleport options.
         IChatComponent display = new ChatComponentTranslation(
-            "tempora.teleport.display",
+            "tempora.command.teleport.display",
             new ChatComponentNumber(x),
             new ChatComponentNumber(y),
             new ChatComponentNumber(z));
@@ -57,7 +57,7 @@ public class CommandUtils {
         String cmd = "/tempora_tp " + x + " " + y + " " + z + " " + dimID;
 
         IChatComponent hoverText = new ChatComponentTranslation(
-            "tempora.teleport.hover",
+            "tempora.command.teleport.hover",
             GenericUtils.getDimensionName(dimID),
             dimID);
         hoverText.getChatStyle()

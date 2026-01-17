@@ -185,7 +185,7 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
         // Block had no NBT.
         if (pbbqe.encodedNBT.equals(NO_NBT)) {
             UndoResponse undoResponse = new UndoResponse();
-            undoResponse.message = new ChatComponentTranslation("tempora.undo.success");
+            undoResponse.message = new ChatComponentTranslation("tempora.undo.success.normal");
             undoResponse.success = true;
             return undoResponse;
         }
@@ -206,7 +206,7 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
         }
 
         UndoResponse undoResponse = new UndoResponse();
-        undoResponse.message = new ChatComponentTranslation("tempora.undo.success");
+        undoResponse.message = new ChatComponentTranslation("tempora.undo.success.normal");
         undoResponse.success = true;
         return undoResponse;
     }

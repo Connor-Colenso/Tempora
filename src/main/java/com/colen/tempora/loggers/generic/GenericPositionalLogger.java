@@ -405,7 +405,7 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
                 // origin of this logger.
 
                 IChatComponent errorMsg = new ChatComponentTranslation(
-                    "tempora.command.undo.failed.bad.implementation",
+                    "tempora.undo.bad_implementation",
                     getLoggerName(),
                     ChatUtils.createHoverableClickable("[UUID]", element.eventID));
                 errorMsg.getChatStyle()

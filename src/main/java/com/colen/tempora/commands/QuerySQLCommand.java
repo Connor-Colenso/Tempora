@@ -66,7 +66,7 @@ public class QuerySQLCommand extends CommandBase {
 
         if (targetLogger == null) {
             ChatComponentTranslation msg = new ChatComponentTranslation(
-                "tempora.command.querysql.invalid_table",
+                "tempora.command.query_sql.invalid_table",
                 TemporaLoggerManager.getAllLoggerNames());
             msg.getChatStyle()
                 .setColor(EnumChatFormatting.RED);
@@ -75,7 +75,7 @@ public class QuerySQLCommand extends CommandBase {
         }
 
         if (!isSelectQuery(rawQuery)) {
-            ChatComponentTranslation msg = new ChatComponentTranslation("tempora.command.querysql.select_only");
+            ChatComponentTranslation msg = new ChatComponentTranslation("tempora.command.query_sql.select_only");
             msg.getChatStyle()
                 .setColor(EnumChatFormatting.RED);
             sender.addChatMessage(msg);
@@ -91,14 +91,14 @@ public class QuerySQLCommand extends CommandBase {
             List<String> missing = findMissingColumns(rawQuery, columns);
             if (!missing.isEmpty()) {
                 ChatComponentTranslation missingColsMsg = new ChatComponentTranslation(
-                    "tempora.command.querysql.missing_columns",
+                    "tempora.command.query_sql.missing_columns",
                     String.join(", ", missing));
                 missingColsMsg.getChatStyle()
                     .setColor(EnumChatFormatting.RED);
                 sender.addChatMessage(missingColsMsg);
 
                 ChatComponentTranslation adviceMsg = new ChatComponentTranslation(
-                    "tempora.command.querysql.missing_columns.advice");
+                    "tempora.command.query_sql.missing_columns.advice");
                 adviceMsg.getChatStyle()
                     .setColor(EnumChatFormatting.RED);
                 sender.addChatMessage(adviceMsg);
@@ -120,21 +120,21 @@ public class QuerySQLCommand extends CommandBase {
             }
 
             ChatComponentTranslation queryFeedbackMsg = new ChatComponentTranslation(
-                "tempora.command.querysql.query_display",
+                "tempora.command.query_sql.query_display",
                 rawQuery);
             queryFeedbackMsg.getChatStyle()
                 .setColor(EnumChatFormatting.GRAY);
 
             if (output.isEmpty()) {
                 ChatComponentTranslation noResultsMsg = new ChatComponentTranslation(
-                    "tempora.command.querysql.no_results_in",
+                    "tempora.command.query_sql.no_results_in",
                     targetLogger.getLoggerName());
                 noResultsMsg.getChatStyle()
                     .setColor(EnumChatFormatting.GRAY);
                 sender.addChatMessage(noResultsMsg);
             } else if (output.size() == MAX_RESULTS_TO_SHOW) {
                 ChatComponentTranslation queryMsg = new ChatComponentTranslation(
-                    "tempora.command.querysql.query_quantity_if_max",
+                    "tempora.command.query_sql.query_quantity_if_max",
                     output.size(),
                     MAX_RESULTS_TO_SHOW);
                 queryMsg.getChatStyle()
@@ -142,7 +142,7 @@ public class QuerySQLCommand extends CommandBase {
                 sender.addChatMessage(queryMsg);
             } else {
                 ChatComponentTranslation queryMsg = new ChatComponentTranslation(
-                    "tempora.command.querysql.query_quantity",
+                    "tempora.command.query_sql.query_quantity",
                     output.size());
                 queryMsg.getChatStyle()
                     .setColor(EnumChatFormatting.GRAY);
@@ -151,14 +151,14 @@ public class QuerySQLCommand extends CommandBase {
 
         } catch (SQLException e) {
             ChatComponentTranslation errorMsg = new ChatComponentTranslation(
-                "tempora.command.querysql.error",
+                "tempora.command.query_sql.error",
                 e.getMessage());
             errorMsg.getChatStyle()
                 .setColor(EnumChatFormatting.RED);
             sender.addChatMessage(errorMsg);
         } catch (Exception e) {
             ChatComponentTranslation errorMsg = new ChatComponentTranslation(
-                "tempora.command.querysql.generic_unknown_error",
+                "tempora.command.query_sql.generic_unknown_error",
                 e.getMessage());
             errorMsg.getChatStyle()
                 .setColor(EnumChatFormatting.RED);

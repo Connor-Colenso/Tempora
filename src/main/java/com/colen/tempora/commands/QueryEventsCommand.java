@@ -64,7 +64,7 @@ public class QueryEventsCommand extends CommandBase {
                 return option;
             }
         }
-        throw new WrongUsageException("tempora.command.queryevents.bad_filter", input);
+        throw new WrongUsageException("tempora.command.query_events.bad_filter", input);
     }
 
     @Override

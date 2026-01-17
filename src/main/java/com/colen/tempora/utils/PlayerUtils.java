@@ -25,10 +25,10 @@ public class PlayerUtils {
 
     public static final String UNKNOWN_PLAYER_NAME = "tempora.unknown.player";
     public static final String UNKNOWN_CAUSE = "tempora.unknown.cause"; // todo use
-    public static final String ERROR = "tempora.unknown.uuid.to.player.error";
+    public static final String ERROR = "tempora.unknown.error";
 
     public static IChatComponent entityUUIDChatComponent(String uuid) {
-        IChatComponent clickToCopy = new ChatComponentTranslation("tempora.click_to_copy_uuid");
+        IChatComponent clickToCopy = new ChatComponentTranslation("tempora.uuid.click_to_copy");
         clickToCopy.getChatStyle()
             .setColor(EnumChatFormatting.GRAY);
 

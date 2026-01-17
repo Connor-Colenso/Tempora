@@ -233,7 +233,7 @@ public class TemporaWorldRegion {
 
         /* Whole entry line */
         ChatComponentTranslation line = new ChatComponentTranslation(
-            "tempora.command.listregions.entry",
+            "tempora.command.list_regions.entry",
             createHoverableClickable(label, regionUUID),
             teleportChatComponent(minX, minY, minZ, dimID),
             teleportChatComponent(maxX, maxY, maxZ, dimID),

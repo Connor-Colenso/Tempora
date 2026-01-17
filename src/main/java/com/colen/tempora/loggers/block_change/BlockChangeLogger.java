@@ -344,7 +344,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
 
         UndoResponse undoResponse = new UndoResponse();
         undoResponse.success = true;
-        undoResponse.message = new ChatComponentTranslation("tempora.undo.success");
+        undoResponse.message = new ChatComponentTranslation("tempora.undo.success.normal");
 
         return undoResponse;
     }

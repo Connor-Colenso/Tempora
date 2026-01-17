@@ -55,7 +55,7 @@ public class CreateRegionCommand extends CommandBase {
                 coords[i] = parseInt(sender, args[i + 1]);
             } catch (NumberFormatException e) {
                 IChatComponent msg = new ChatComponentTranslation(
-                    "tempora.command.create.region.non.numeric.coordinate",
+                    "tempora.command.create_region.non_numeric_coordinate",
                     args[i + 1]);
                 msg.getChatStyle()
                     .setColor(EnumChatFormatting.RED);
@@ -71,7 +71,7 @@ public class CreateRegionCommand extends CommandBase {
                 dim = parseInt(sender, args[7]);
             } catch (NumberFormatException e) {
                 IChatComponent msg = new ChatComponentTranslation(
-                    "tempora.command.create.region.non.numeric.dimension",
+                    "tempora.command.create_region.non.numeric.dimension",
                     args[7]);
                 msg.getChatStyle()
                     .setColor(EnumChatFormatting.RED);
@@ -111,7 +111,7 @@ public class CreateRegionCommand extends CommandBase {
 
         // Feedback
         ChatComponentTranslation msg = new ChatComponentTranslation(
-            "command.tempora.region.created",
+            "tempora.command.create_region.success",
             label,
             teleportChatComponent(region.getMinX(), region.getMinY(), region.getMinZ(), dim),
             teleportChatComponent(region.getMaxX(), region.getMaxY(), region.getMaxZ(), dim),
