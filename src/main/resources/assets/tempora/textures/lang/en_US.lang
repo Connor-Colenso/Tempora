@@ -10,8 +10,9 @@ message.player_movement=%s was at %s (%s).
 message.inventory_interaction_added=%s added %dx%s (%d:%d) to %s at %s (%s).
 message.inventory_interaction_removed=%s removed %dx%s (%d:%d) from %s at %s (%s).
 message.block_change=%s was set at %s by %s (%s). The closest player was %s (%s blocks away).
-player.tempora.wand.unauthorised=§c[ALERT]§r %s attempted to use a Tempora wand without authorisation.
-msg.tempora.wand.checking.pos=Checking %s in dimension %s.
+message.tempora_wand.checking_pos=Checking %s in dimension %s.
+
+player.tempora_wand.unauthorised=§c[ALERT]§r %s attempted to use a Tempora wand without authorisation.
 
 time.ago.decades=%s decades ago
 time.ago.years=%s years ago
@@ -41,7 +42,7 @@ tempora.command.querysql.query_quantity=Found %s matching results.
 tempora.command.querysql.query_quantity_if_max=Showing the first %s results (server limit: %s). Additional matches may be hidden.
 tempora.command.querysql.invalid_table=Couldn't find table. Choices are, %s.
 
-tempora.click.to.copy.uuid=Click to copy UUID.
+tempora.click_to_copy_uuid=Click to copy UUID.
 
 item.tempora_wand.name=Tempora Wand
 
@@ -61,7 +62,6 @@ command.tempora.removeregion.no_region=No region(s) found at your position.
 
 command.tempora.region.created=Created region %s | Bounds: %s -> %s | Midpoint: %s.
 
-
 tempora.command.queryevents.bad_filter=Filter "%s" is invalid.
 
 tempora.command.listregions.none=No regions defined.
@@ -80,11 +80,11 @@ tooltip.temporasRenderingBlockError=If you are seeing this, something has likely
 tempora.range.negative=Range cannot be negative, stop trying to break me!
 
 # === Tempora Undo Messages ===
-tempora.cannot.block.break.undo.nbt.logging.disabled=Cannot undo %s, the block had NBT data, but NBT logging was disabled when it was logged.
-tempora.cannot.block.break.undo.block.not.found=Cannot undo %s, the block %s:%s no longer exists. An updated mod may have removed it.
-tempora.undo.set.block.failed=Cannot undo %s, an error occurred while setting the block in world memory for %s.
-tempora.undo.unknown.error=An unknown error occurred while undoing event with %s in %s.
-tempora.event.not.found.undo.ranged=Could not find event group. Has the server restarted?
+tempora.undo.cannot_block_break.nbt_logging_disabled=Cannot undo %s, the block had NBT data, but NBT logging was disabled when it was logged.
+tempora.undo.cannot_block_break.block_not_found=Cannot undo %s, the block %s:%s no longer exists. An updated mod may have removed it.
+tempora.undo.set_block_failed=Cannot undo %s, an error occurred while setting the block in world memory for %s.
+tempora.undo.unknown_error=An unknown error occurred while undoing event with %s in %s.
+tempora.undo.event_not_found=Could not find event group. Has the server restarted?
 
 tempora.undo.query.display=[UNDO]
 tempora.undo.query.hover=Clicking this will revert the events effect on the world.

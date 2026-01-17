@@ -197,7 +197,7 @@ public class TemporaUndoRangedCommand extends CommandBase {
         String loggerName = PENDING_UNDOS_LOGGER_NAMES.get(uuid);
 
         if (stored == null || loggerName == null) {
-            sender.addChatMessage(new ChatComponentTranslation("tempora.event.not.found.undo.ranged", uuid));
+            sender.addChatMessage(new ChatComponentTranslation("tempora.undo.event_not_found", uuid));
             return;
         }
 
