@@ -258,7 +258,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
         if (!(eventInfo instanceof BlockChangeEventInfo bcqe)) {
             UndoResponse undoResponse = new UndoResponse();
             undoResponse.message = new ChatComponentTranslation(
-                "tempora.undo.unknown.error",
+                "tempora.undo.unknown_error",
                 eventUUID,
                 getLoggerName());
             undoResponse.success = false;
@@ -269,7 +269,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
         if (bcqe.beforeEncodedNBT.equals(NBT_DISABLED)) {
             UndoResponse undoResponse = new UndoResponse();
             undoResponse.message = new ChatComponentTranslation(
-                "tempora.cannot.block.break.undo.nbt.logging.disabled",
+                "tempora.undo.cannot_block_break.nbt_logging_disabled",
                 eventUUID);
             undoResponse.success = false;
             return undoResponse;
@@ -287,7 +287,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
             UndoResponse undoResponse = new UndoResponse();
 
             undoResponse.message = new ChatComponentTranslation(
-                "tempora.cannot.block.break.undo.block.not.found",
+                "tempora.undo.cannot_block_break.block_not_found",
                 eventUUID,
                 bcqe.beforeBlockID,
                 bcqe.beforeMetadata);
@@ -305,7 +305,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
             UndoResponse undoResponse = new UndoResponse();
             undoResponse.success = false;
             undoResponse.message = new ChatComponentTranslation(
-                "tempora.undo.set.block.failed",
+                "tempora.undo.set_block_failed",
                 eventUUID,
                 getLoggerName());
 
@@ -330,7 +330,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
 
                 UndoResponse undoResponse = new UndoResponse();
                 undoResponse.message = new ChatComponentTranslation(
-                    "tempora.undo.unknown.error",
+                    "tempora.undo.unknown_error",
                     eventUUID,
                     getLoggerName());
                 undoResponse.success = false;
@@ -344,7 +344,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
 
         UndoResponse undoResponse = new UndoResponse();
         undoResponse.success = true;
-        undoResponse.message = new ChatComponentTranslation("tempora.undo.success");
+        undoResponse.message = new ChatComponentTranslation("tempora.undo.success.normal");
 
         return undoResponse;
     }

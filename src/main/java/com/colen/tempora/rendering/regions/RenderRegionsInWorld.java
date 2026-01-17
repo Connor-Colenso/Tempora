@@ -70,7 +70,7 @@ public final class RenderRegionsInWorld {
                             .getFormattedText()));
                 renderText.add(
                     StatCollector.translateToLocalFormatted(
-                        "tempora.render.regions.created.on",
+                        "tempora.render.regions.created_on",
                         new ChatComponentTimeRelative(r.getRegionOriginTimeMs()).getFormattedText()));
 
                 RenderUtils.renderFloatingText(

@@ -22,7 +22,6 @@ import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 
 /**
  * /removeregion
- *
  * Deletes every stored region that currently contains the issuing player.
  * (If regions overlap, they are all removed.)
  */
@@ -62,8 +61,8 @@ public class RemoveRegionCommand extends CommandBase {
         ChatComponentTranslation msg;
         if (removedCount > 0) {
             // Plural, or not.
-            String key = removedCount == 1 ? "command.tempora.removeregion.removed.single"
-                : "command.tempora.removeregion.removed.plural";
+            String key = removedCount == 1 ? "tempora.command.remove_region.removed.single"
+                : "tempora.command.remove_region.removed.plural";
 
             msg = new ChatComponentTranslation(key, new ChatComponentNumber(removedCount));
 
@@ -88,7 +87,7 @@ public class RemoveRegionCommand extends CommandBase {
                 .setColor(EnumChatFormatting.GREEN);
             sender.addChatMessage(msg);
         } else {
-            msg = new ChatComponentTranslation("command.tempora.removeregion.no_region");
+            msg = new ChatComponentTranslation("tempora.command.remove_region.no_region");
             msg.getChatStyle()
                 .setColor(EnumChatFormatting.RED);
         }
