@@ -48,7 +48,7 @@ public class CommandEventInfo extends GenericEventInfo {
 
     @Override
     public IChatComponent localiseText(String commandIssuerUUID) {
-        // Relative time (as chat component with hover info)
+        // Relative time (as a chat component with hover info)
         IChatComponent timeAgo = TimeUtils.formatTime(timestamp);
 
         // Clickable coordinates with limited float precision

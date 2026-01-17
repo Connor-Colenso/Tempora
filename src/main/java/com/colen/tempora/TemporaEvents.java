@@ -29,7 +29,7 @@ public class TemporaEvents {
     public static InventoryLogger inventoryLogger = new InventoryLogger();
     public static BlockChangeLogger blockChangeLogger = new BlockChangeLogger();
 
-    // Logger names. DO NOT RENAME. This WILL break all past data.
+    // Logger names. DO NOT RENAME IT. This WILL break all past data.
     public static final String BLOCK_CHANGE = "BlockChangeLogger";
     public static final String COMMAND = "CommandLogger";
     public static final String ENTITY_DEATH = "EntityDeathLogger";

@@ -21,7 +21,7 @@ public class TimeUtils {
 
     /**
      * Formats a given timestamp (in milliseconds) to a string saying how long ago it was, e.g. 1 hour ago.
-     * Hovering over it will reveal string based on the default system timezone.
+     * Hovering over it will reveal a string based on the default system timezone.
      * The format used is "yyyy-MM-dd HH:mm:ss z".
      *
      * @param epochMillis The unix epoch timestamp to format, in milliseconds.
@@ -41,7 +41,7 @@ public class TimeUtils {
         return text;
     }
 
-    // E.g. 1hour, 2days, 1d etc
+    // E.g. 1hour, 2days, 1d, etc...
     public static long convertToSeconds(String timeDescription) {
         Matcher matcher = Pattern.compile("(\\d+)\\s*([a-zA-Z]+)")
             .matcher(timeDescription);
@@ -87,7 +87,7 @@ public class TimeUtils {
 
     private static class TimeUnit {
 
-        public final double threshold; // max value before moving to next unit
+        public final double threshold; // max value before moving to the next unit
         public final double inSeconds; // how many seconds this unit represents
         public final String singularKey;
         public final String pluralKey;
@@ -121,7 +121,7 @@ public class TimeUtils {
                 String key = (formatNumber(value).equals("1")) ? unit.singularKey : unit.pluralKey;
                 return new DurationParts(value, key);
             }
-            elapsedSeconds = value; // scale down to next unit
+            elapsedSeconds = value; // scale down to the next unit
         }
 
         // fallback (should never reach)

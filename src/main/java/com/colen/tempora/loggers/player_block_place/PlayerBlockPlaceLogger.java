@@ -61,25 +61,25 @@ public class PlayerBlockPlaceLogger extends GenericPositionalLogger<PlayerBlockP
             transparentEventsToRenderInWorld,
             renderEvent);
 
-        for (PlayerBlockPlaceEventInfo pbbqe : sortedList) {
+        for (PlayerBlockPlaceEventInfo pbpEventInfo : sortedList) {
             RenderingUtils.quickRenderBlockWithHighlightAndChecks(
                 renderEvent,
-                pbbqe,
-                pbbqe.blockID,
-                pbbqe.metadata,
-                pbbqe.encodedNBT,
-                pbbqe.playerUUID,
+                pbpEventInfo,
+                pbpEventInfo.blockID,
+                pbpEventInfo.metadata,
+                pbpEventInfo.encodedNBT,
+                pbpEventInfo.playerUUID,
                 this);
         }
 
-        for (PlayerBlockPlaceEventInfo pbbqe : nonTransparentEventsToRenderInWorld) {
+        for (PlayerBlockPlaceEventInfo pbpEventInfo : nonTransparentEventsToRenderInWorld) {
             RenderingUtils.quickRenderBlockWithHighlightAndChecks(
                 renderEvent,
-                pbbqe,
-                pbbqe.blockID,
-                pbbqe.metadata,
-                pbbqe.encodedNBT,
-                pbbqe.playerUUID,
+                pbpEventInfo,
+                pbpEventInfo.blockID,
+                pbpEventInfo.metadata,
+                pbpEventInfo.encodedNBT,
+                pbpEventInfo.playerUUID,
                 this);
         }
     }

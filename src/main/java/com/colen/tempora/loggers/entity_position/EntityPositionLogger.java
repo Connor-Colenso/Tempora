@@ -43,14 +43,14 @@ public class EntityPositionLogger extends GenericPositionalLogger<EntityPosition
     public void renderEventsInWorld(RenderWorldLastEvent renderEvent) {
         sortByDistanceDescending(transparentEventsToRenderInWorld, renderEvent);
 
-        for (EntityPositionEventInfo epqh : transparentEventsToRenderInWorld) {
-            Entity entity = EntityList.createEntityByName(epqh.entityName, Minecraft.getMinecraft().theWorld);
+        for (EntityPositionEventInfo epEventInfo : transparentEventsToRenderInWorld) {
+            Entity entity = EntityList.createEntityByName(epEventInfo.entityName, Minecraft.getMinecraft().theWorld);
 
             // Render mob
-            RenderUtils.renderEntityInWorld(entity, epqh.x, epqh.y, epqh.z, epqh.rotationYaw, epqh.rotationPitch);
+            RenderUtils.renderEntityInWorld(entity, epEventInfo.x, epEventInfo.y, epEventInfo.z, epEventInfo.rotationYaw, epEventInfo.rotationPitch);
 
             // Render bounding box (optional, matches location)
-            RenderUtils.renderEntityAABBInWorld(entity, epqh.x, epqh.y, epqh.z, 0, 1.0, 0);
+            RenderUtils.renderEntityAABBInWorld(entity, epEventInfo.x, epEventInfo.y, epEventInfo.z, 0, 1.0, 0);
         }
     }
 
