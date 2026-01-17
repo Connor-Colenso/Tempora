@@ -153,7 +153,7 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
     public UndoResponse undoEvent(GenericEventInfo eventInfo, EntityPlayer player) {
         if (!(eventInfo instanceof PlayerBlockBreakEventInfo pbbqe)) {
             UndoResponse undoResponse = new UndoResponse();
-            undoResponse.message = new ChatComponentTranslation("tempora.undo.unknown.error", getLoggerName());
+            undoResponse.message = new ChatComponentTranslation("tempora.undo.unknown_error", getLoggerName());
             undoResponse.success = false;
             return undoResponse;
         }
@@ -161,7 +161,7 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
         // NBT existed but was not logged, it is not safe to undo this event.
         if (pbbqe.encodedNBT.equals(NBT_DISABLED)) {
             UndoResponse undoResponse = new UndoResponse();
-            undoResponse.message = new ChatComponentTranslation("tempora.cannot.block.break.undo.nbt.logging.disabled");
+            undoResponse.message = new ChatComponentTranslation("tempora.undo.cannot_block_break.nbt_logging_disabled");
             undoResponse.success = false;
             return undoResponse;
         }
@@ -172,7 +172,7 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
         Block block = Block.getBlockById(pbbqe.blockID);
         if (block == null) {
             UndoResponse undoResponse = new UndoResponse();
-            undoResponse.message = new ChatComponentTranslation("tempora.cannot.block.break.undo.block.not.found");
+            undoResponse.message = new ChatComponentTranslation("tempora.undo.cannot_block_break.block_not_found");
             undoResponse.success = false;
             return undoResponse;
         }
@@ -200,7 +200,7 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
 
             e.printStackTrace();
             UndoResponse undoResponse = new UndoResponse();
-            undoResponse.message = new ChatComponentTranslation("tempora.undo.unknown.error", getLoggerName());
+            undoResponse.message = new ChatComponentTranslation("tempora.undo.unknown_error", getLoggerName());
             undoResponse.success = false;
             return undoResponse;
         }

@@ -10,7 +10,7 @@ message.player_movement=%s s'est déplacé vers %s (%s).
 message.inventory_interaction_added=%s a ajouté %dx%s (%d:%d) à %s à %s (%s).
 message.inventory_interaction_removed=%s a retiré %dx%s (%d:%d) de %s à %s (%s).
 message.block_change=%s a été placé à %s par %s (%s). Le joueur le plus proche était %s (%s blocs de distance).
-player.tempora.wand.unauthorised=§c[ALERTE]§r %s a tenté d'utiliser une baguette Tempora sans autorisation.
+player.tempora_wand.unauthorised=§c[ALERTE]§r %s a tenté d'utiliser une baguette Tempora sans autorisation.
 
 time.ago.decades=il y a %s décennies
 time.ago.years=il y a %s ans

@@ -82,7 +82,7 @@ public class TemporaWand extends Item {
 
     private static void checkSpot(EntityPlayer player, int x, int y, int z) {
         if (!PlayerUtils.isPlayerOp(player)) {
-            PlayerUtils.sendMessageToOps("player.tempora.wand.unauthorised", player.getDisplayName());
+            PlayerUtils.sendMessageToOps("player.tempora_wand.unauthorised", player.getDisplayName());
             LOG.warn(
                 "[TemporaWand] Unauthorised use attempt by player '{}' at ({}, {}, {}) in dimension {}.",
                 player.getDisplayName(),
@@ -93,7 +93,7 @@ public class TemporaWand extends Item {
         } else {
             player.addChatMessage(
                 new ChatComponentTranslation(
-                    "msg.tempora.wand.checking.pos",
+                    "message.tempora_wand.checking_pos",
                     teleportChatComponent(x, y, z, player.dimension),
                     player.dimension).setChatStyle(new ChatStyle().setColor(EnumChatFormatting.RED)));
 

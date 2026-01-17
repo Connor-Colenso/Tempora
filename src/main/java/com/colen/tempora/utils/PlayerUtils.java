@@ -28,7 +28,7 @@ public class PlayerUtils {
     public static final String ERROR = "tempora.unknown.uuid.to.player.error";
 
     public static IChatComponent entityUUIDChatComponent(String uuid) {
-        IChatComponent clickToCopy = new ChatComponentTranslation("tempora.click.to.copy.uuid");
+        IChatComponent clickToCopy = new ChatComponentTranslation("tempora.click_to_copy_uuid");
         clickToCopy.getChatStyle()
             .setColor(EnumChatFormatting.GRAY);
 

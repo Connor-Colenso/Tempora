@@ -51,7 +51,7 @@ public class EntityPositionEventInfo extends GenericEventInfo {
         IChatComponent coords = teleportChatComponent(x, y, z, dimensionID);
         IChatComponent timeAgo = TimeUtils.formatTime(timestamp);
 
-        IChatComponent clickToCopy = new ChatComponentTranslation("tempora.click.to.copy.uuid");
+        IChatComponent clickToCopy = new ChatComponentTranslation("tempora.click_to_copy_uuid");
         clickToCopy.getChatStyle()
             .setColor(EnumChatFormatting.GRAY);
 
