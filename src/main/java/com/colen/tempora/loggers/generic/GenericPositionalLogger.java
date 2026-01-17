@@ -1,18 +1,14 @@
 package com.colen.tempora.loggers.generic;
 
 import static com.colen.tempora.Tempora.LOG;
+import static com.colen.tempora.TemporaLoggerManager.getColumnFieldsAlphabetically;
 
 import java.awt.Color;
 import java.lang.reflect.Field;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Comparator;
-import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -146,7 +142,7 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
         List<EventInfo> eventList = new ArrayList<>();
 
         try {
-            List<Field> fields = getAllAnnotatedFieldsAlphabetically();
+            List<Field> fields = getColumnFieldsAlphabetically(this);
 
             while (resultSet.next()) {
                 EventInfo element = newEventInfo();
@@ -177,55 +173,6 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
 
     @SideOnly(Side.CLIENT)
     public abstract void renderEventsInWorld(RenderWorldLastEvent renderEvent);
-
-    // todo move
-    public List<Field> getAllAnnotatedFieldsAlphabetically() {
-        List<Field> fields = new ArrayList<>();
-        Deque<Class<?>> hierarchy = new ArrayDeque<>();
-
-        Class<?> clazz = inferEventToLogClass();
-
-        while (clazz != null && clazz != Object.class) {
-            hierarchy.push(clazz);
-            clazz = clazz.getSuperclass();
-        }
-
-        while (!hierarchy.isEmpty()) {
-            Class<?> current = hierarchy.pop();
-
-            List<Field> declared = new ArrayList<>();
-            for (Field field : current.getDeclaredFields()) {
-                if (field.isAnnotationPresent(Column.class)) {
-                    declared.add(field);
-                }
-            }
-
-            // Bring some stability to ordering. todo move sorting to be per class, not overall.
-            declared.sort(Comparator.comparing(Field::getName));
-
-            fields.addAll(declared);
-        }
-
-        return fields;
-    }
-
-    // Annoying!
-    @SuppressWarnings("unchecked")
-    protected Class<EventInfo> inferEventToLogClass() {
-        Type type = getClass().getGenericSuperclass();
-
-        if (!(type instanceof ParameterizedType)) {
-            throw new IllegalStateException("Logger must directly extend GenericPositionalLogger<EventToLog>.");
-        }
-
-        Type arg = ((ParameterizedType) type).getActualTypeArguments()[0];
-
-        if (arg instanceof Class<?>) {
-            return (Class<EventInfo>) arg;
-        }
-
-        throw new IllegalStateException("Cannot determine event class: " + arg);
-    }
 
     // Logger name is also the SQL table name. So choose it careful and never rename it.
     public abstract @NotNull String getLoggerName();
@@ -284,7 +231,10 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
                 concurrentEventQueue.drainTo(buffer);
 
                 if (concurrentEventQueue.size() > LARGE_QUEUE_THRESHOLD) {
-                    LOG.warn("{} has {} events pending, possible slowdown.", getLoggerName(), concurrentEventQueue.size());
+                    LOG.warn(
+                        "{} has {} events pending, possible slowdown.",
+                        getLoggerName(),
+                        concurrentEventQueue.size());
                 }
 
                 // Insert the batch into DB and commit
@@ -294,8 +244,12 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
                 buffer.clear();
             }
         } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            LOG.error("Queue worker interrupted for {} from external manager. The eventQueue was discarded with {} events remaining.", getLoggerName(), concurrentEventQueue.size());
+            Thread.currentThread()
+                .interrupt();
+            LOG.error(
+                "Queue worker interrupted for {} from external manager. The eventQueue was discarded with {} events remaining.",
+                getLoggerName(),
+                concurrentEventQueue.size());
         } catch (Exception e) {
             throw new RuntimeException("DB failure in " + getLoggerName(), e);
         }
@@ -310,11 +264,11 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
         maxShutdownTimeoutMilliseconds = config.getInt(
             "maxShutdownTimeoutMs",
             getLoggerName(),
-            queuePollTimeoutSeconds * 1_000 * 5, // 1000 seconds/millisecond & x5 to ensure polling can complete and database saves.
+            queuePollTimeoutSeconds * 1_000 * 5, // 1000 seconds/millisecond & x5 to ensure polling can complete and
+                                                 // database saves.
             0,
             Integer.MAX_VALUE,
-            "Maximum time (in milliseconds) to wait for this logger to flush and stop during shutdown. Use 0 to wait forever until all queued events are written."
-        );
+            "Maximum time (in milliseconds) to wait for this logger to flush and stop during shutdown. Use 0 to wait forever until all queued events are written.");
         databaseManager.genericConfig(config);
     }
 
@@ -382,7 +336,11 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
 
         if (queueWorkerThread.isAlive()) {
             queueWorkerThread.interrupt();
-            LOG.error("Queue worker {} for logger {} did not stop in time. Tempora discarded {} events.", queueWorkerThread.getName(), getLoggerName(), concurrentEventQueue.size());
+            LOG.error(
+                "Queue worker {} for logger {} did not stop in time. Tempora discarded {} events.",
+                queueWorkerThread.getName(),
+                getLoggerName(),
+                concurrentEventQueue.size());
         }
     }
 
