@@ -16,7 +16,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import com.colen.tempora.loggers.generic.column.Binder;
 import org.jetbrains.annotations.NotNull;
 
 import com.colen.tempora.loggers.generic.GenericEventInfo;
@@ -136,7 +135,7 @@ public final class TemporaLoggerManager {
         for (Field field : getColumnFieldsAlphabetically(logger)) {
             Class<?> type = field.getType();
 
-            final Binder binder;
+            final ColumnAccessor.Binder binder;
             if (type == int.class || type == Integer.class) {
                 binder = (ps, i, v) -> ps.setInt(i, (Integer) v);
             } else if (type == long.class || type == Long.class) {
