@@ -2,15 +2,13 @@ package com.colen.tempora.loggers.generic;
 
 import static com.colen.tempora.Tempora.LOG;
 import static com.colen.tempora.Tempora.NETWORK;
-import static com.colen.tempora.TemporaLoggerManager.getColumnAccessors;
-import static com.colen.tempora.TemporaLoggerManager.getColumnFieldsAlphabetically;
 import static com.colen.tempora.utils.DatabaseUtils.databaseDir;
 import static com.colen.tempora.utils.DatabaseUtils.deleteLoggerDatabase;
 import static com.colen.tempora.utils.DatabaseUtils.jdbcUrl;
 import static com.colen.tempora.utils.GenericUtils.parseSizeStringToBytes;
+import static com.colen.tempora.utils.ReflectionUtils.getAllTableColumns;
 import static com.gtnewhorizon.gtnhlib.util.numberformatting.NumberFormatUtil.formatNumber;
 
-import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.Connection;
@@ -20,7 +18,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -37,10 +34,7 @@ import net.minecraftforge.common.config.Configuration;
 import org.jetbrains.annotations.NotNull;
 import org.sqlite.SQLiteConfig;
 
-import com.colen.tempora.loggers.generic.column.Column;
-import com.colen.tempora.loggers.generic.column.ColumnAccessor;
 import com.colen.tempora.loggers.generic.column.ColumnDef;
-import com.colen.tempora.loggers.generic.column.ColumnType;
 import com.colen.tempora.utils.DatabaseUtils;
 import com.colen.tempora.utils.GenericUtils;
 import com.colen.tempora.utils.TimeUtils;
@@ -114,7 +108,7 @@ public class PositionalLoggerDatabase {
 
     private void initTable() throws SQLException {
         String tableName = genericPositionalLogger.getLoggerName();
-        List<ColumnDef> columns = getAllTableColumns();
+        List<ColumnDef> columns = getAllTableColumns(genericPositionalLogger);
 
         // Create the table, if it doesn't exist.
         StringBuilder createSQL = new StringBuilder();
@@ -538,25 +532,10 @@ public class PositionalLoggerDatabase {
         return durabilityMode == LogWriteSafety.HIGH_RISK;
     }
 
-    public List<ColumnDef> getAllTableColumns() {
-        List<ColumnDef> columns = new ArrayList<>();
-
-        for (Field field : getColumnFieldsAlphabetically(genericPositionalLogger)) {
-            Column col = field.getAnnotation(Column.class);
-
-            String name = col.name()
-                .isEmpty() ? field.getName() : col.name();
-
-            ColumnType type = col.type() == ColumnType.AUTO ? ColumnType.inferFrom(field) : col.type();
-
-            columns.add(new ColumnDef(name, type.getSqlType(), col.constraints()));
-        }
-
-        return columns;
-    }
+    private List<ColumnDef> cachedColumnDefs;
 
     public String generateInsertSQL() {
-        List<ColumnDef> columns = getAllTableColumns();
+        List<ColumnDef> columns = getAllTableColumns(genericPositionalLogger);
 
         // Join the column names for the INSERT clause
         String columnList = columns.stream()
@@ -576,23 +555,22 @@ public class PositionalLoggerDatabase {
     // but is trying to optimise and minimise the impact of heavy reflection usage.
     public <EventInfo extends GenericEventInfo> void insertBatch(List<EventInfo> eventInfoQueue) throws SQLException {
 
-        if (eventInfoQueue == null || eventInfoQueue.isEmpty()) return;
+        if (eventInfoQueue == null || eventInfoQueue.isEmpty()) {
+            return;
+        }
 
         final String sql = generateInsertSQL();
-        final List<ColumnAccessor> accessors = getColumnAccessors(genericPositionalLogger);
+        final List<ColumnDef> columnDefs = getAllTableColumns(genericPositionalLogger);
 
         try (PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(sql)) {
 
             for (EventInfo eventInfo : eventInfoQueue) {
                 int index = 1;
 
-                for (ColumnAccessor acc : accessors) {
-                    try {
-                        Object value = acc.field.get(eventInfo);
-                        acc.binder.bind(pstmt, index++, value);
-                    } catch (IllegalAccessException e) {
-                        throw new RuntimeException(e);
-                    }
+                for (ColumnDef columnDef : columnDefs) {
+                    Object value = columnDef.columnAccessor.get(eventInfo);
+
+                    columnDef.columnAccessor.binder.bind(pstmt, index++, value);
                 }
 
                 pstmt.addBatch();
