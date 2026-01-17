@@ -98,7 +98,7 @@ public class TemporaUndoRangedCommand extends CommandBase {
         Timestamp cutoff = new Timestamp(System.currentTimeMillis() - seconds * 1000L);
         String table = logger.getLoggerName();
 
-        // Attempt at optimised SQL query
+        // Attempt at an optimised SQL query
         String sql = "SELECT t.* FROM " + table
             + " t "
             + "JOIN (SELECT x,y,z,MIN(timestamp) ts FROM "

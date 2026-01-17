@@ -69,7 +69,7 @@ public class PlayerBlockBreakEventInfo extends GenericEventInfo {
         return new ChatComponentTranslation(
             "message.block_break",
             PlayerUtils.playerNameFromUUID(commandIssuerUUID),
-            block, // block localized name
+            block, // block localised name
             blockID, // block ID
             metadata, // metadata
             coords, // clickable coordinates

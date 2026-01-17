@@ -17,10 +17,8 @@ import cpw.mods.fml.common.ModContainer;
 
 /**
  * World-global modpack/environment version registry.
- *
  * Stores a stable mapping of environment-hash -> int ID.
- *
- * Access CURRENT_VERSION after world load.
+ * Access CURRENT_VERSION after the world loads.
  */
 public final class ModpackVersionData extends WorldSavedData {
 

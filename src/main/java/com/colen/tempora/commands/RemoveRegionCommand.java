@@ -49,7 +49,7 @@ public class RemoveRegionCommand extends CommandBase {
             throw new WrongUsageException(getCommandUsage(sender));
         }
 
-        // removeregion only makes sense for a player, because it users the players coords
+        // remove_region only makes sense for a player because it users the players coords
         if (!(sender instanceof EntityPlayerMP player)) {
             sender.addChatMessage(CommandUtils.playerOnly());
             return;
@@ -67,7 +67,7 @@ public class RemoveRegionCommand extends CommandBase {
             msg = new ChatComponentTranslation(key, new ChatComponentNumber(removedCount));
 
             for (TemporaWorldRegion region : removed) {
-                // Deletes them from the players local renderer immediately.
+                // Deletes them from the players' local renderer immediately.
                 NETWORK.sendTo(new PacketRemoveRegionFromClient(region.getRegionUUID()), player);
 
                 IChatComponent removedMessageOfRegion = new ChatComponentTranslation(

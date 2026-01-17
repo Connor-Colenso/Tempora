@@ -49,7 +49,7 @@ public class PositionalLoggerDatabase {
 
     private static final int MAX_DATA_ROWS_PER_DB = 5;
     private Connection positionalLoggerDBConnection;
-    private GenericPositionalLogger<?> genericPositionalLogger;
+    private final GenericPositionalLogger<?> genericPositionalLogger;
     private boolean initialised = false;
 
     public PositionalLoggerDatabase(GenericPositionalLogger<?> eventToLogGenericPositionalLogger) {
@@ -110,7 +110,7 @@ public class PositionalLoggerDatabase {
         String tableName = genericPositionalLogger.getLoggerName();
         List<ColumnDef> columns = getAllTableColumns(genericPositionalLogger);
 
-        // Create the table, if it doesn't exist.
+        // Create the table if it doesn't exist.
         StringBuilder createSQL = new StringBuilder();
         createSQL.append("CREATE TABLE IF NOT EXISTS ")
             .append(tableName)
@@ -170,18 +170,18 @@ public class PositionalLoggerDatabase {
         }
     }
 
-    // This is not strictly thread safe but since we are doing this before the server has even started properly
+    // This is not strictly thread safe, but since we are doing this before the server has even started properly,
     // nothing else is interacting with the db, so it's fine for now.
     private void eraseAllDataBeforeTime(long time) {
         // Prepare SQL statement with the safe table name
         String sql = "DELETE FROM " + genericPositionalLogger.getLoggerName() + " WHERE timestamp < ?";
 
-        try (PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(sql)) {
+        try (PreparedStatement p_stmt = positionalLoggerDBConnection.prepareStatement(sql)) {
             // Set the parameter for the PreparedStatement
-            pstmt.setLong(1, time);
+            p_stmt.setLong(1, time);
 
             // Execute the update
-            pstmt.executeUpdate();
+            p_stmt.executeUpdate();
         } catch (SQLException e) {
             LOG.error("SQL error, could not erase old data.", e);
         }
@@ -310,7 +310,7 @@ public class PositionalLoggerDatabase {
                         sender.addChatMessage(tooMany);
                     }
 
-                    // EntityPlayerMP specific stuff, like sending animation positions to user and the text
+                    // EntityPlayerMP specific stuff, like sending animation positions to the user and the text
                     // itself.
                     EntityPlayerMP player = (EntityPlayerMP) sender;
 
@@ -321,7 +321,7 @@ public class PositionalLoggerDatabase {
                         .toString();
                     eventDataList.forEach(p -> sender.addChatMessage(p.localiseText(uuid)));
 
-                    // This tells the client what to render in world.
+                    // This tells the client what to render in the world.
                     for (GenericEventInfo eventData : eventDataList) {
                         NETWORK.sendTo(new RenderEventPacket(eventData), player);
                     }
@@ -375,7 +375,7 @@ public class PositionalLoggerDatabase {
             tableName);
         stmt.execute(createCompositeIndex);
 
-        // Creating an index for timestamp alone to optimize for queries primarily sorting or filtering on
+        // Creating an index for timestamp alone to optimise for queries primarily sorting or filtering on
         // timestamp
         String createTimestampIndex = String
             .format("CREATE INDEX IF NOT EXISTS idx_%s_timestamp ON %s (timestamp DESC);", tableName, tableName);
@@ -405,14 +405,14 @@ public class PositionalLoggerDatabase {
             return;
         }
 
-        // Calculate how many rows to delete to get under limit
+        // Calculate how many rows to delete to get under the limit
         double overshoot = (double) usedBytes / largestDatabaseSizeInBytes;
         long rowsToDelete = Math.max(1, (long) Math.ceil(totalRows * (overshoot - 1) / overshoot));
 
         String sql = "DELETE FROM " + genericPositionalLogger.getLoggerName()
             + " WHERE rowid IN (SELECT rowid FROM "
             + genericPositionalLogger.getLoggerName()
-            + " ORDER BY timestamp ASC LIMIT ?)";
+            + " ORDER BY timestamp LIMIT ?)";
         try (PreparedStatement ps = positionalLoggerDBConnection.prepareStatement(sql)) {
             ps.setLong(1, rowsToDelete);
             ps.executeUpdate();
@@ -562,7 +562,7 @@ public class PositionalLoggerDatabase {
         final String sql = generateInsertSQL();
         final List<ColumnDef> columnDefs = getAllTableColumns(genericPositionalLogger);
 
-        try (PreparedStatement pstmt = positionalLoggerDBConnection.prepareStatement(sql)) {
+        try (PreparedStatement p_stmt = positionalLoggerDBConnection.prepareStatement(sql)) {
 
             for (EventInfo eventInfo : eventInfoQueue) {
                 int index = 1;
@@ -570,13 +570,13 @@ public class PositionalLoggerDatabase {
                 for (ColumnDef columnDef : columnDefs) {
                     Object value = columnDef.columnAccessor.get(eventInfo);
 
-                    columnDef.columnAccessor.binder.bind(pstmt, index++, value);
+                    columnDef.columnAccessor.binder.bind(p_stmt, index++, value);
                 }
 
-                pstmt.addBatch();
+                p_stmt.addBatch();
             }
 
-            pstmt.executeBatch();
+            p_stmt.executeBatch();
         }
     }
 
