@@ -285,7 +285,7 @@ public class PositionalLoggerDatabase {
 
                 if (eventDataList.isEmpty()) {
                     IChatComponent noResults = new ChatComponentTranslation(
-                        "message.queryevents.no_results",
+                        "message.query_events.no_results",
                         genericPositionalLogger.getLoggerName());
                     noResults.getChatStyle()
                         .setColor(EnumChatFormatting.GRAY);
@@ -293,7 +293,7 @@ public class PositionalLoggerDatabase {
 
                 } else {
                     IChatComponent showingResults = new ChatComponentTranslation(
-                        "message.queryevents.showing_results",
+                        "message.query_events.showing_results",
                         eventDataList.size(),
                         genericPositionalLogger.getLoggerName());
                     showingResults.getChatStyle()
@@ -302,7 +302,7 @@ public class PositionalLoggerDatabase {
                     if (genericPositionalLogger.getConcurrentEventQueue()
                         .size() > 100) {
                         IChatComponent tooMany = new ChatComponentTranslation(
-                            "message.queryevents.too_many_pending",
+                            "message.query_events.too_many_pending",
                             genericPositionalLogger.getConcurrentEventQueue()
                                 .size());
                         tooMany.getChatStyle()
@@ -330,7 +330,7 @@ public class PositionalLoggerDatabase {
         } catch (SQLException e) {
             sender.addChatMessage(
                 new ChatComponentTranslation(
-                    "message.queryevents.query_failed",
+                    "message.query_events.query_failed",
                     genericPositionalLogger.getLoggerName(),
                     e.getMessage()));
         }

@@ -1,3 +1,4 @@
+# === Messages ===
 message.block_break=%s broke %s (%d:%d) at %s (%s), %s.
 message.block_place=%s placed %s (%d:%d) at %s (%s).
 message.command_issued=%s issued command /%s %s at %s (%s).
@@ -9,10 +10,19 @@ message.item_use=%s used %s (%d:%d) at %s (%s).
 message.player_movement=%s was at %s (%s).
 message.inventory_interaction_added=%s added %dx%s (%d:%d) to %s at %s (%s).
 message.inventory_interaction_removed=%s removed %dx%s (%d:%d) from %s at %s (%s).
-message.block_change=%s was set at %s by %s (%s). The closest player was %s (%s blocks away).
-player.tempora.wand.unauthorised=§c[ALERT]§r %s attempted to use a Tempora wand without authorisation.
-msg.tempora.wand.checking.pos=Checking %s in dimension %s.
+message.tempora_wand.checking_pos=Checking %s in dimension %s.
+message.block_change=The block at %s was set from %s (%d:%d) to %s (%d:%d) (%s). Closest player %s (%s blocks away). %s.
+message.inventorylogger.invalid_interaction=Error: invalid interactionType %s in InventoryLogger DB. Please report this.
 
+player.tempora_wand.unauthorised=§c[ALERT]§r %s attempted to use a Tempora wand without authorisation.
+item.tempora_wand.name=Tempora Wand
+
+
+# This does not exist in vanilla MC sadly.
+tile.air.name=Air
+
+
+# === Plural time frames ===
 time.ago.decades=%s decades ago
 time.ago.years=%s years ago
 time.ago.days=%s days ago
@@ -20,6 +30,8 @@ time.ago.hours=%s hours ago
 time.ago.minutes=%s minutes ago
 time.ago.seconds=%s seconds ago
 
+
+# === Singular time frames ===
 time.ago.decade=%s decade ago
 time.ago.year=%s year ago
 time.ago.day=%s day ago
@@ -27,113 +39,113 @@ time.ago.hour=%s hour ago
 time.ago.minute=%s minute ago
 time.ago.second=%s second ago
 
-# Usage / help
-tempora.command.querysql.usage=Usage: %s.
-tempora.command.querysql.query_quotes=SQL query must be wrapped in quotes.
-tempora.command.querysql.select_only=Only SELECT queries are allowed.
-tempora.command.querysql.missing_columns=Query missing required columns: %s
-tempora.command.querysql.missing_columns.advice=It is highly recommended to use SELECT * instead of specifying columns.
-tempora.command.querysql.no_results_in=No results found in %s.
-tempora.command.querysql.query_display=Query: %s.
-tempora.command.querysql.error=SQL Error: %s.
-tempora.command.querysql.generic_unknown_error=Generic unknown error (Please report).
-tempora.command.querysql.query_quantity=Found %s matching results.
-tempora.command.querysql.query_quantity_if_max=Showing the first %s results (server limit: %s). Additional matches may be hidden.
-tempora.command.querysql.invalid_table=Couldn't find table. Choices are, %s.
 
-tempora.click.to.copy.uuid=Click to copy UUID.
-
-item.tempora_wand.name=Tempora Wand
-
-tempora.command.averagehome.no_db=Unable to query movement data – database unavailable.
-tempora.command.averagehome.usage=Usage: %s
-tempora.teleport.display=[%s %s %s]
-tempora.teleport.hover=Click to teleport [%s, ID %s]
-tempora.command.averagehome.result=Player %s is most active in dim %s, click %s to visit location.
-tempora.command.averagehome.unknown_player=No location data for player %s available.
-tempora.command.averagehome.no_data=No movement data found for that query.
-tempora.command.averagehome.sql_error=Database error while querying movement data, see console for details.
-tempora.command.homechunk.bad_dim=Bad <dim> value, must be an integer.
-
-command.tempora.removeregion.removed.single=Removed %d region at your position.
-command.tempora.removeregion.removed.plural=Removed %d regions at your position.
-command.tempora.removeregion.no_region=No region(s) found at your position.
-
-command.tempora.region.created=Created region %s | Bounds: %s -> %s | Midpoint: %s.
-
-
-tempora.command.queryevents.bad_filter=Filter "%s" is invalid.
-
-tempora.command.listregions.none=No regions defined.
-tempora.command.listregions.entry=Region %s | Bounds: %s -> %s | Midpoint: %s | Created %s by %s.
-message.inventorylogger.invalid_interaction=Error: invalid interactionType %s in InventoryLogger DB. Please report this.
-
-message.queryevents.query_failed=Database query failed on %s: %s
-message.queryevents.no_results=No results found for %s.
-message.queryevents.showing_results=Showing latest %s results for %s:
-message.queryevents.too_many_pending=Warning, due to high volume, there are still %s events pending. Query results may be outdated.
-
-event.command.executed=%s executed
-
-tile.renderingErrorBlock.name=Tempora rendering error
-tooltip.temporasRenderingBlockError=If you are seeing this, something has likely gone wrong with Temporas event rendering. Please report it, thanks!
-tempora.range.negative=Range cannot be negative, stop trying to break me!
-
-# === Tempora Undo Messages ===
-tempora.cannot.block.break.undo.nbt.logging.disabled=Cannot undo %s, the block had NBT data, but NBT logging was disabled when it was logged.
-tempora.cannot.block.break.undo.block.not.found=Cannot undo %s, the block %s:%s no longer exists. An updated mod may have removed it.
-tempora.undo.set.block.failed=Cannot undo %s, an error occurred while setting the block in world memory for %s.
-tempora.undo.unknown.error=An unknown error occurred while undoing event with %s in %s.
-tempora.event.not.found.undo.ranged=Could not find event group. Has the server restarted?
-
-tempora.undo.query.display=[UNDO]
-tempora.undo.query.hover=Clicking this will revert the events effect on the world.
-
-tempora.command.undo.not.enabled=The event type %s does not support undo operations.
-tempora.command.undo.wrong.logger=The event type %s does not exist.
-tempora.event.not.found=No event with the ID %s could be found in %s.
-tempora.undo.success=Undo completed successfully.
-tempora.undo.success.ranged=Successfully reverted %s/%s events (%s%%) in %s%s.
-tempora.command.undo.nothing=No events found within the range and time specified for %s.
-tempora.undo.failed=Undo failed: %s.
-tempora.undo.preview=Previewing undo operation, click %s to undo events.
-tempora.undo.preview.highlight=WARNING: This operation is irreversible.
-tempora.undo.preview.confirm=[HERE]
-tempora.undo.range.too_large=Server config limits undo range to %s. Your requested range has been capped.
-
-tempora.unknown.player=[UNKNOWN PLAYER]
-tempora.unknown.cause=[UNKNOWN CAUSE]
-tempora.unknown.uuid.to.player.error=[UNKNOWN ERROR]
-
+# === Time units ===
 time.unit.milliseconds=ms
 time.unit.seconds=s
 time.unit.minutes=mins
 time.unit.hours=hrs
 time.unit.days=days
 
-message.block_change=The block at %s was set from %s (%d:%d) to %s (%d:%d) (%s). Closest player %s (%s blocks away). %s.
 
-# This does not exist in vanilla MC sadly.
-tile.air.name=Air
-
-explode.command.no.block.in.sight=No block in sight.
-tempora.command.usage=Usage: %s
-tempora.command.force.must.be.numeric=Force must be a number.
-tempora.command.create.region.non.numeric.coordinate=All coordinates must be integers, found %s.
-
+# === UUID ===
 tempora.uuid.display=UUID: %s
+tempora.uuid.click_to_copy=Click to copy UUID.
+
+
+# === Generic errors ===
+tempora.range.negative=Range cannot be negative, stop trying to break me!
+
+tempora.unknown.player=[UNKNOWN PLAYER]
+tempora.unknown.cause=[UNKNOWN CAUSE]
+tempora.unknown.error=[UNKNOWN ERROR]
+
+
+# === Command messages ===
+tempora.command.usage=Usage: %s
+event.command.executed=%s executed
+
+tempora.command.query_sql.usage=Usage: %s.
+tempora.command.query_sql.query_quotes=SQL query must be wrapped in quotes.
+tempora.command.query_sql.select_only=Only SELECT queries are allowed.
+tempora.command.query_sql.missing_columns=Query missing required columns: %s
+tempora.command.query_sql.missing_columns.advice=It is highly recommended to use SELECT * instead of specifying columns.
+tempora.command.query_sql.no_results_in=No results found in %s.
+tempora.command.query_sql.query_display=Query: %s.
+tempora.command.query_sql.error=SQL Error: %s.
+tempora.command.query_sql.generic_unknown_error=Generic unknown error (Please report).
+tempora.command.query_sql.query_quantity=Found %s matching results.
+tempora.command.query_sql.query_quantity_if_max=Showing the first %s results (server limit: %s). Additional matches may be hidden.
+tempora.command.query_sql.invalid_table=Couldn't find table. Choices are, %s.
+
+tempora.command.home_chunk.no_db=Unable to query movement data – database unavailable.
+tempora.command.home_chunk.usage=Usage: %s
+tempora.command.home_chunk.result=Player %s is most active in dim %s, click %s to visit location.
+tempora.command.home_chunk.unknown_player=No location data for player %s available.
+tempora.command.home_chunk.no_data=No movement data found for that query.
+tempora.command.home_chunk.sql_error=Database error while querying movement data, see console for details.
+tempora.command.home_chunk.bad_dim=Bad <dim> value, must be an integer.
+
+tempora.command.teleport.display=[%s %s %s]
+tempora.command.teleport.hover=Click to teleport [%s, ID %s]
+
+tempora.command.remove_region.removed.single=Removed %d region at your position.
+tempora.command.remove_region.removed.plural=Removed %d regions at your position.
+tempora.command.remove_region.no_region=No region(s) found at your position.
+tempora.region.remove.individual=Removed region %s | Bounds: %s -> %s | Midpoint: %s.
+
+tempora.command.create_region.success=Created region %s | Bounds: %s -> %s | Midpoint: %s.
+tempora.command.create_region.non_numeric_coordinate=All coordinates must be integers, found %s.
+tempora.command.create_region.non.numeric.dimension=Dimension '%s' must be an integer.
+
+tempora.command.list_regions.global.logging.enabled=WARNING: globalBlockChangeLogging is enabled, capturing all block changes globally and ignoring regions.
+tempora.command.list_regions.none=No regions defined.
+tempora.command.list_regions.entry=Region %s | Bounds: %s -> %s | Midpoint: %s | Created %s by %s.
+tempora.command.list_regions.filtered.no_regions=%s (ID %s) has no regions.
+tempora.command.list_regions.filtered.invalid_dimension=Dimension with ID %s does not exist.
+tempora.region.dimension_banner=-- Regions in %s (ID %s) --
+
+tempora.command.query_events.bad_filter=Filter "%s" is invalid.
+tempora.command.query_events.query_failed=Database query failed on %s: %s
+tempora.command.query_events.no_results=No results found for %s.
+tempora.command.query_events.showing_results=Showing latest %s results for %s:
+tempora.command.query_events.too_many_pending=Warning, due to high volume, there are still %s events pending. Query results may be outdated.
+
+tempora.command.explode.no_block_in_sight=No block in sight.
+tempora.command.explode.force.must.be.numeric=Force must be a number.
+
+
+# === Undo Messages ===
+tempora.undo.cannot_block_break.nbt_logging_disabled=Cannot undo %s, the block had NBT data, but NBT logging was disabled when it was logged.
+tempora.undo.cannot_block_break.block_not_found=Cannot undo %s, the block %s:%s no longer exists. An updated mod may have removed it.
+tempora.undo.set_block_failed=Cannot undo %s, an error occurred while setting the block in world memory for %s.
+tempora.undo.unknown_error=An unknown error occurred while undoing event with %s in %s.
+tempora.undo.event_not_found=Could not find event group. Has the server restarted?
+tempora.undo.query.display=[UNDO]
+tempora.undo.query.hover=Clicking this will revert the events effect on the world.
+tempora.undo.not_enabled=The event type %s does not support undo operations.
+tempora.undo.wrong_logger=The event type %s does not exist.
+tempora.undo.success.normal=Undo completed successfully.
+tempora.undo.success.ranged=Successfully reverted %s/%s events (%s%%) in %s%s.
+tempora.undo.nothing_to_undo=No events found within the range and time specified for %s.
+tempora.undo.generic_fail=Undo failed: %s.
+tempora.undo.preview=Previewing undo operation, click %s to undo events.
+tempora.undo.preview.highlight=WARNING: This operation is irreversible.
+tempora.undo.preview.confirm=[HERE]
+tempora.undo.range.too_large=Server config limits undo range to %s. Your requested range has been capped.
+tempora.undo.bad_implementation=The logger %s has incorrectly implemented undo functionality and event %S and failed. Please contact author of this logger.
+
+
+# === HUD ===
 tempora.HUD.region.descriptor.plural=Currently inside %s regions:
 tempora.HUD.region.descriptor.singular=Currently inside %s region:
 tempora.HUD.region.list='%s' - Volume %s blocks.
-tempora.command.listregions.global.logging.enabled=WARNING: globalBlockChangeLogging is enabled, capturing all block changes globally and ignoring regions.
-tempora.command.filtered.listregions.empty=%s (ID %s) has no regions.
-tempora.command.filtered.listregions.invalid.dimension=Dimension with ID %s does not exist.
+tempora.HUD.render.and_more=And %s more...
 
-tempora.command.create.region.non.numeric.dimension=Dimension '%s' must be an integer.
+
+# === Renderer ===
 tempora.render.regions.author=Created by %s
-tempora.render.regions.created.on=Created %s
-tempora.region.remove.individual=Removed region %s | Bounds: %s -> %s | Midpoint: %s.
-tempora.region.dimension.banner.in.chat=-- Regions in %s (ID %s) --
+tempora.render.regions.created_on=Created %s
 
-tempora.hud.render.and.more=And %s more...
-tempora.command.undo.failed.bad.implementation=The logger %s has incorrectly implemented undo functionality and event %S and failed. Please contact author of this logger.
+tile.renderingErrorBlock.name=Tempora rendering error
+tooltip.temporasRenderingBlockError=If you are seeing this, something has likely gone wrong with Temporas event rendering. Please report it, thanks!

@@ -94,7 +94,7 @@ public class HudRenderRegionsInWorld {
         // Show "..." if there are more regions beyond those displayed
         int remaining = intersectingRegions.size() - MAX_REGIONS_TO_SHOW_ON_HUD;
         if (remaining > 0) {
-            String moreText = StatCollector.translateToLocalFormatted("tempora.hud.render.and.more", remaining);
+            String moreText = StatCollector.translateToLocalFormatted("tempora.HUD.render.and_more", remaining);
 
             font.drawString(moreText, (screenWidth - font.getStringWidth(moreText)) / 2, y, 0xFFFFFF);
         }
