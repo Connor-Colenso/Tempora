@@ -1,6 +1,7 @@
 package com.colen.tempora.commands;
 
 import static com.colen.tempora.Tempora.NETWORK;
+import static com.colen.tempora.utils.ReflectionUtils.getAllTableColumns;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -85,8 +86,7 @@ public class QuerySQLCommand extends CommandBase {
         // Execute the query read-only
         try {
             // Ensure the user has all the columns needed
-            List<ColumnDef> columns = targetLogger.getDatabaseManager()
-                .getAllTableColumns();
+            List<ColumnDef> columns = getAllTableColumns(targetLogger);
 
             List<String> missing = findMissingColumns(rawQuery, columns);
             if (!missing.isEmpty()) {

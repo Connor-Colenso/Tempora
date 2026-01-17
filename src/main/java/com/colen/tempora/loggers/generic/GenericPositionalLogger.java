@@ -1,10 +1,9 @@
 package com.colen.tempora.loggers.generic;
 
 import static com.colen.tempora.Tempora.LOG;
-import static com.colen.tempora.TemporaLoggerManager.getColumnFieldsAlphabetically;
+import static com.colen.tempora.utils.ReflectionUtils.getAllTableColumns;
 
 import java.awt.Color;
-import java.lang.reflect.Field;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -28,7 +27,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.colen.tempora.TemporaLoggerManager;
 import com.colen.tempora.enums.LoggerEventType;
-import com.colen.tempora.loggers.generic.column.Column;
+import com.colen.tempora.loggers.generic.column.ColumnDef;
 import com.colen.tempora.utils.ChatUtils;
 
 import cpw.mods.fml.common.FMLCommonHandler;
@@ -141,31 +140,25 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
 
         List<EventInfo> eventList = new ArrayList<>();
 
-        try {
-            List<Field> fields = getColumnFieldsAlphabetically(this);
+        // Cached, immutable column definitions
+        List<ColumnDef> columns = getAllTableColumns(this);
 
-            while (resultSet.next()) {
-                EventInfo element = newEventInfo();
+        while (resultSet.next()) {
 
-                // Populate base fields once
-                element.populateDefaultFieldsFromResultSet(resultSet);
+            EventInfo element = newEventInfo();
 
-                for (Field field : fields) {
-                    Column col = field.getAnnotation(Column.class);
-                    if (col == null) continue;
+            // Populate shared/base fields
+            element.populateDefaultFieldsFromResultSet(resultSet);
 
-                    String columnName = col.name()
-                        .isEmpty() ? field.getName() : col.name();
+            // Populate column-mapped fields
+            for (ColumnDef col : columns) {
+                ColumnDef.ColumnAccessor accessor = col.columnAccessor;
 
-                    Object value = readColumn(resultSet, field.getType(), columnName);
-
-                    field.set(element, value);
-                }
-
-                eventList.add(element);
+                Object value = accessor.reader.read(resultSet, col.name);
+                accessor.set(element, value);
             }
-        } catch (ReflectiveOperationException e) {
-            throw new RuntimeException("Failed to create event instance", e);
+
+            eventList.add(element);
         }
 
         return eventList;
