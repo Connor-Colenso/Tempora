@@ -67,14 +67,14 @@ public class HomeChunkCommand extends CommandBase {
         }
 
         // Optional params
-        Long lookbackCutoffEpoch = null;
+        Long lookBackCutoffEpoch = null;
         Integer forcedDim = null;
 
         if (args.length >= 2) {
             String p = args[1];
             if (containsLetter(p)) {
                 long seconds = TimeUtils.convertToSeconds(p);
-                lookbackCutoffEpoch = System.currentTimeMillis() - seconds * 1000L;
+                lookBackCutoffEpoch = System.currentTimeMillis() - seconds * 1000L;
             } else {
                 forcedDim = parseDim(p);
             }
@@ -83,7 +83,7 @@ public class HomeChunkCommand extends CommandBase {
             forcedDim = parseDim(args[2]);
         }
 
-        // Get read only db conn
+        // Get read-only db conn
         GenericPositionalLogger<?> movementLogger = TemporaLoggerManager.getLogger(PLAYER_MOVEMENT);
         if (movementLogger == null || movementLogger.getDatabaseManager()
             .getReadOnlyConnection() == null) {
@@ -109,7 +109,7 @@ public class HomeChunkCommand extends CommandBase {
         //
         // Optional filters are used to:
         // - restrict to a single dimension (forcedDim)
-        // - only include recent data (lookbackCutoffEpoch)
+        // - only include recent data (lookBackCutoffEpoch)
         //
         // The player's UUID is passed in twice, once for each part of the query
         final String tbl = movementLogger.getLoggerName();
@@ -121,7 +121,7 @@ public class HomeChunkCommand extends CommandBase {
             .append("  WHERE playerUUID = ? ");
 
         if (forcedDim != null) sql.append("AND dimensionID = ? ");
-        if (lookbackCutoffEpoch != null) sql.append("AND timestamp >= ? ");
+        if (lookBackCutoffEpoch != null) sql.append("AND timestamp >= ? ");
         sql.append("  GROUP BY cx, cz, dimensionID ")
             .append("  ORDER BY hits DESC LIMIT 1")
             .append(") ")
@@ -135,7 +135,7 @@ public class HomeChunkCommand extends CommandBase {
             .append(" m ")
             .append("  ON   (m.x>>4)=hot.cx AND (m.z>>4)=hot.cz AND m.dimensionID=hot.dimensionID ")
             .append("WHERE  m.playerUUID = ? ");
-        if (lookbackCutoffEpoch != null) sql.append("AND m.timestamp >= ? ");
+        if (lookBackCutoffEpoch != null) sql.append("AND m.timestamp >= ? ");
 
         // Run query
         try (PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
@@ -145,11 +145,11 @@ public class HomeChunkCommand extends CommandBase {
             // params for hot CTE
             stmt.setString(i++, uuid);
             if (forcedDim != null) stmt.setInt(i++, forcedDim);
-            if (lookbackCutoffEpoch != null) stmt.setLong(i++, lookbackCutoffEpoch);
+            if (lookBackCutoffEpoch != null) stmt.setLong(i++, lookBackCutoffEpoch);
 
             // params for outer WHERE
             stmt.setString(i++, uuid);
-            if (lookbackCutoffEpoch != null) stmt.setLong(i, lookbackCutoffEpoch);
+            if (lookBackCutoffEpoch != null) stmt.setLong(i, lookBackCutoffEpoch);
 
             try (ResultSet rs = stmt.executeQuery()) {
                 if (!rs.next() || rs.getObject("home_x") == null) {
