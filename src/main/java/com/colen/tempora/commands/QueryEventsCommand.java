@@ -22,7 +22,7 @@ public class QueryEventsCommand extends CommandBase {
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/query_events <radius> <time> [filter]";
+        return "/query_events <radius> <time> <filter>";
     }
 
     @Override
@@ -33,7 +33,7 @@ public class QueryEventsCommand extends CommandBase {
             return;
         }
 
-        if (args.length < 2) {
+        if (args.length < 3) {
             sender.addChatMessage(new ChatComponentText(getCommandUsage(sender)));
             return;
         }
