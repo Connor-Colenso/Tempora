@@ -16,6 +16,8 @@ import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.column.Column;
 import com.colen.tempora.loggers.generic.column.ColumnDef;
 import com.colen.tempora.loggers.generic.column.ColumnType;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 
 public class ReflectionUtils {
 
@@ -121,5 +123,12 @@ public class ReflectionUtils {
         }
 
         return result;
+    }
+
+    public static double squaredDistance(GenericEventInfo e, double x, double y, double z) {
+        double dx = e.x - x;
+        double dy = e.y - y;
+        double dz = e.z - z;
+        return dx * dx + dy * dy + dz * dz;
     }
 }
