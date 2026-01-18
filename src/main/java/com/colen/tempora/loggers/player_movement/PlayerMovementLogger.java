@@ -64,6 +64,7 @@ public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovement
 
     @SubscribeEvent
     public void onDimensionChange(PlayerEvent.PlayerChangedDimensionEvent event) {
+        if (!isLoggerEnabled) return;
         if (!(event.player instanceof EntityPlayerMP player)) return;
 
         logPosition(player);
@@ -71,6 +72,7 @@ public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovement
 
     @SubscribeEvent
     public void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent event) {
+        if (!isLoggerEnabled) return;
         if (!(event.player instanceof EntityPlayerMP player)) return;
 
         logPosition(player);
@@ -79,6 +81,7 @@ public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovement
     @SubscribeEvent
     @SuppressWarnings("unused")
     public void onPlayerTick(final @NotNull PlayerTickEvent event) {
+        if (!isLoggerEnabled) return;
         if (event.phase != TickEvent.Phase.START) return;
         if (!(event.player instanceof EntityPlayerMP player)) return;
         if (FMLCommonHandler.instance()

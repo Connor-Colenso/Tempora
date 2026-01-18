@@ -121,6 +121,7 @@ public class InventoryLogger extends GenericPositionalLogger<InventoryEventInfo>
 
     public void playerInteractedWithInventory(EntityPlayer playerMP, int delta, ItemStack itemStack, Direction dir,
         TileEntity tileEntity, IInventory inventory, Container container) {
+        if (!isLoggerEnabled) return;
         if (itemStack == null || delta == 0) return; // Nothing to log
         if (dir == Direction.OUT_OF_PLAYER || dir == Direction.IN_TO_PLAYER) return;
 

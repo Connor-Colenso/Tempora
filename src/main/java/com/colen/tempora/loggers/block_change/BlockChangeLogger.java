@@ -156,6 +156,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
         .withInitial(ArrayDeque::new);
 
     public void onSetBlockHead(int x, int y, int z, World world) {
+        if (!isLoggerEnabled) return;
 
         Deque<BlockChangeEventInfo> stack = BLOCK_STACK.get();
 
@@ -191,6 +192,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
     }
 
     public void onSetBlockReturn(int x, int y, int z, World world, CallbackInfoReturnable<Boolean> cir) {
+        if (!isLoggerEnabled) return;
 
         Deque<BlockChangeEventInfo> stack = BLOCK_STACK.get();
 
@@ -231,7 +233,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
 
     private void recordSetBlock(double x, double y, double z, BlockChangeEventInfo eventInfo, World world) {
 
-        if (eventInfo.isWorldGen) return;
+        if (eventInfo.isWorldGen) return; // todo log this separately?
 
         // Only log changes if (x, y, z) is inside a defined region. Unless config has the entire world logging on.
         if (!globalBlockChangeLogging
