@@ -2,7 +2,7 @@ package com.colen.tempora.loggers.generic;
 
 import static com.colen.tempora.Tempora.LOG;
 import static com.colen.tempora.utils.ReflectionUtils.getAllTableColumns;
-import static com.colen.tempora.utils.ReflectionUtils.squaredDistance;
+import static com.colen.tempora.utils.RenderingUtils.squaredDistance;
 
 import java.awt.Color;
 import java.sql.ResultSet;

@@ -122,11 +122,4 @@ public class ReflectionUtils {
 
         return result;
     }
-
-    public static double squaredDistance(GenericEventInfo e, double x, double y, double z) {
-        double dx = e.x - x;
-        double dy = e.y - y;
-        double dz = e.z - z;
-        return dx * dx + dy * dy + dz * dz;
-    }
 }
