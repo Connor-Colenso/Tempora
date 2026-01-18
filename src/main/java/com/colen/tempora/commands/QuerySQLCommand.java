@@ -32,12 +32,12 @@ public class QuerySQLCommand extends CommandBase {
 
     @Override
     public String getCommandName() {
-        return "query_sql";
+        return "tempora_query_sql";
     }
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/query_sql <LoggerName> \"<SQL SELECT query>\"";
+        return "/tempora_query_sql <LoggerName> \"<SQL SELECT query>\"";
     }
 
     @Override

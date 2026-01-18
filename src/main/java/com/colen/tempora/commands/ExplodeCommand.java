@@ -1,25 +1,30 @@
 package com.colen.tempora.commands;
 
+import com.colen.tempora.utils.TemporaCommandBase;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.IChatComponent;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 
 import com.colen.tempora.utils.CommandUtils;
 
-public class ExplodeCommand extends CommandBase {
+import java.util.ArrayList;
+import java.util.List;
+
+public class ExplodeCommand extends TemporaCommandBase {
 
     @Override
     public String getCommandName() {
-        return "explode";
+        return "tempora_explode";
     }
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/explode <force>";
+        return "§2/tempora_explode §6<force>";
     }
 
     @Override
@@ -79,5 +84,24 @@ public class ExplodeCommand extends CommandBase {
             false, // Causes fire
             true // Damages blocks
         );
+    }
+
+    @Override
+    public IChatComponent getCommandDescription() {
+        return new ChatComponentTranslation("tempora.command.explode.help.description");
+    }
+
+    @Override
+    public IChatComponent getCommandExample() {
+        return new ChatComponentTranslation("tempora.command.explode.help.example");
+    }
+
+    @Override
+    public List<IChatComponent> getArgsDescriptions() {
+        ArrayList<IChatComponent> argsDescriptions = new ArrayList<>();
+
+        argsDescriptions.add(new ChatComponentTranslation("tempora.command.explode.help.arg1"));
+
+        return argsDescriptions;
     }
 }

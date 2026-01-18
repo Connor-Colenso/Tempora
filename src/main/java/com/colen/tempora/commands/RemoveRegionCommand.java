@@ -29,12 +29,12 @@ public class RemoveRegionCommand extends CommandBase {
 
     @Override
     public String getCommandName() {
-        return "remove_region";
+        return "tempora_remove_regions";
     }
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/remove_region";
+        return "/tempora_remove_regions";
     }
 
     @Override

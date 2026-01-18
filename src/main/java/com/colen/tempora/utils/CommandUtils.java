@@ -3,6 +3,7 @@ package com.colen.tempora.utils;
 import java.util.List;
 
 import net.minecraft.command.CommandBase;
+import net.minecraft.command.ICommandSender;
 import net.minecraft.event.ClickEvent;
 import net.minecraft.event.HoverEvent;
 import net.minecraft.util.ChatComponentText;
@@ -26,6 +27,10 @@ public class CommandUtils {
             args,
             TemporaLoggerManager.getAllLoggerNames()
                 .toArray(new String[0]));
+    }
+
+    public static void sendNewLine(ICommandSender sender){
+        sender.addChatMessage(new ChatComponentText(""));
     }
 
     public static IChatComponent wrongUsage(String commandUsage) {

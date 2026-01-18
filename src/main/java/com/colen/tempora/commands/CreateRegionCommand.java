@@ -3,9 +3,11 @@ package com.colen.tempora.commands;
 import static com.colen.tempora.utils.CommandUtils.teleportChatComponent;
 import static com.colen.tempora.utils.PlayerUtils.UNKNOWN_PLAYER_NAME;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
-import net.minecraft.command.CommandBase;
+import com.colen.tempora.utils.TemporaCommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentTranslation;
@@ -21,16 +23,39 @@ import com.colen.tempora.utils.CommandUtils;
  * Creates an axis‑aligned, integer‑bounded region in the sender’s current dimension
  * and stores it in RegionRegistry.
  */
-public class CreateRegionCommand extends CommandBase {
+public class CreateRegionCommand extends TemporaCommandBase {
 
     @Override
     public String getCommandName() {
         return "tempora_create_region";
     }
 
+
+    @Override
+    public IChatComponent getCommandDescription() {
+        return new ChatComponentTranslation("tempora.command.create_region.help.description");
+    }
+
+    @Override
+    public IChatComponent getCommandExample() {
+        return new ChatComponentTranslation("tempora.command.create_region.help.example");
+    }
+
+    @Override
+    public List<IChatComponent> getArgsDescriptions() {
+        ArrayList<IChatComponent> argsDescriptions = new ArrayList<>();
+
+        argsDescriptions.add(new ChatComponentTranslation("tempora.command.create_region.help.arg1"));
+        argsDescriptions.add(new ChatComponentTranslation("tempora.command.create_region.help.arg2"));
+        argsDescriptions.add(new ChatComponentTranslation("tempora.command.create_region.help.arg3"));
+        argsDescriptions.add(new ChatComponentTranslation("tempora.command.create_region.help.arg4"));
+
+        return argsDescriptions;
+    }
+
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/tempora_create_region <label> <x1> <y1> <z1> <x2> <y2> <z2> [dim ID]";
+        return "§a/tempora_create_region §6<label> §c<x1> <y1> <z1> §5<x2> <y2> <z2> §d[dim ID]";
     }
 
     @Override

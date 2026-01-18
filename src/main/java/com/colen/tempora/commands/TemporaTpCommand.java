@@ -27,6 +27,11 @@ public class TemporaTpCommand extends CommandBase {
     }
 
     @Override
+    public boolean isUsernameIndex(String[] args, int index) {
+        return super.isUsernameIndex(args, index);
+    }
+
+    @Override
     public void processCommand(ICommandSender sender, String[] args) {
         if (!(sender instanceof EntityPlayerMP player)) {
             sender.addChatMessage(CommandUtils.playerOnly());
