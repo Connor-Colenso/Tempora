@@ -2,6 +2,7 @@ package com.colen.tempora.loggers.generic;
 
 import static com.colen.tempora.Tempora.LOG;
 import static com.colen.tempora.utils.ReflectionUtils.getAllTableColumns;
+import static com.colen.tempora.utils.ReflectionUtils.squaredDistance;
 
 import java.awt.Color;
 import java.sql.ResultSet;
@@ -42,11 +43,13 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
     private final LinkedBlockingQueue<EventInfo> concurrentEventQueue = new LinkedBlockingQueue<>();
     protected List<EventInfo> transparentEventsToRenderInWorld = new ArrayList<>();
     protected List<EventInfo> nonTransparentEventsToRenderInWorld = new ArrayList<>();
+    private static final long SECONDS_RENDERING_DURATION = 10;
 
     protected boolean isLoggerEnabled;
     private Thread queueWorkerThread;
     private int maxShutdownTimeoutMilliseconds;
     private static final int queuePollTimeoutMilliseconds = 100;
+    private static final int LARGE_QUEUE_THRESHOLD = 5_000;
 
     public void addEventToRender(EventInfo event) {
         event.eventRenderCreationTime = System.currentTimeMillis();
@@ -89,14 +92,6 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
         double pz = mc.thePlayer.lastTickPosZ + (mc.thePlayer.posZ - mc.thePlayer.lastTickPosZ) * e.partialTicks;
 
         list.sort((a, b) -> Double.compare(squaredDistance(b, px, py, pz), squaredDistance(a, px, py, pz)));
-    }
-
-    @SideOnly(Side.CLIENT)
-    private static double squaredDistance(GenericEventInfo e, double x, double y, double z) {
-        double dx = e.x - x;
-        double dy = e.y - y;
-        double dz = e.z - z;
-        return dx * dx + dy * dy + dz * dz;
     }
 
     protected LogWriteSafety defaultLogWriteSafetyMode() {
@@ -180,8 +175,6 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
         });
         queueWorkerThread.start();
     }
-
-    private static final int LARGE_QUEUE_THRESHOLD = 5_000;
 
     private void queueLoop() {
         List<EventInfo> buffer = new ArrayList<>();
@@ -327,8 +320,6 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
         }
     }
 
-    private static final long SECONDS_RENDERING_DURATION = 10;
-
     public void clearOldEventsToRender() {
         double expiryCutoff = System.currentTimeMillis() - SECONDS_RENDERING_DURATION * 1000L;
         transparentEventsToRenderInWorld
@@ -337,8 +328,7 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
             .removeIf(eventPosition -> eventPosition.eventRenderCreationTime < expiryCutoff);
     }
 
-    // Begrudgingly American spelling.
-    public Color getColor() {
+    public Color getColour() {
         return Color.RED;
     }
 

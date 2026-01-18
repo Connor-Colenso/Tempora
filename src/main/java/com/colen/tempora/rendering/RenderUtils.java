@@ -168,7 +168,7 @@ public abstract class RenderUtils {
 
         // Optionally render logger regions
         if (System.currentTimeMillis() / 500 % 2 == 0) {
-            Color color = logger.getColor();
+            Color color = logger.getColour();
             renderRegion(0, 0, 0, 1, 1, 1, color.getRed(), color.getGreen(), color.getBlue());
         }
 

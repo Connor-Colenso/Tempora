@@ -120,7 +120,7 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionEventInfo>
     }
 
     @Override
-    public Color getColor() {
+    public Color getColour() {
         return Color.MAGENTA;
     }
 
