@@ -303,7 +303,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
 
         // todo use this in other undos.
         // Place silently (no physics or callbacks). Direct edit of chunk data.
-        if (BlockUtils.setBlockNoUpdate(w, x, y, z, block, meta)) {
+        if (!BlockUtils.setBlockNoUpdate(w, x, y, z, block, meta)) {
             UndoResponse undoResponse = new UndoResponse();
             undoResponse.success = false;
             undoResponse.message = new ChatComponentTranslation(
