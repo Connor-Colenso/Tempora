@@ -1,7 +1,5 @@
 package com.colen.tempora.loggers.player_movement;
 
-import static com.colen.tempora.utils.GenericUtils.isClientSide;
-
 import java.util.UUID;
 
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -16,6 +14,7 @@ import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.common.gameevent.PlayerEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.common.gameevent.TickEvent.PlayerTickEvent;
 import cpw.mods.fml.relauncher.Side;
@@ -64,17 +63,34 @@ public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovement
     }
 
     @SubscribeEvent
+    public void onDimensionChange(PlayerEvent.PlayerChangedDimensionEvent event) {
+        if (!(event.player instanceof EntityPlayerMP player)) return;
+
+        logPosition(player);
+    }
+
+    @SubscribeEvent
+    public void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent event) {
+        if (!(event.player instanceof EntityPlayerMP player)) return;
+
+        logPosition(player);
+    }
+
+    @SubscribeEvent
     @SuppressWarnings("unused")
     public void onPlayerTick(final @NotNull PlayerTickEvent event) {
-        if (isClientSide()) return;
-        if (event.isCanceled()) return;
         if (event.phase != TickEvent.Phase.START) return;
         if (!(event.player instanceof EntityPlayerMP player)) return;
         if (FMLCommonHandler.instance()
             .getMinecraftServerInstance()
             .getTickCounter() % playerMovementLoggingInterval != 0) return;
 
+        logPosition(player);
+    }
+
+    private void logPosition(EntityPlayerMP player) {
         PlayerMovementEventInfo eventInfo = new PlayerMovementEventInfo();
+
         eventInfo.eventID = UUID.randomUUID()
             .toString();
         eventInfo.x = player.posX;
@@ -82,7 +98,6 @@ public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovement
         eventInfo.z = player.posZ;
         eventInfo.dimensionID = player.worldObj.provider.dimensionId;
         eventInfo.timestamp = System.currentTimeMillis();
-
         eventInfo.playerUUID = player.getUniqueID()
             .toString();
 
