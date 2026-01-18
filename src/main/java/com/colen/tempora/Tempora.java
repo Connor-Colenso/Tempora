@@ -20,10 +20,12 @@ import com.colen.tempora.commands.RemoveRegionCommand;
 import com.colen.tempora.commands.TemporaTpCommand;
 import com.colen.tempora.commands.TemporaUndoCommand;
 import com.colen.tempora.commands.TemporaUndoRangedCommand;
+import com.colen.tempora.events.ServerTickHandler;
 import com.colen.tempora.loggers.block_change.region_registry.BlockChangeRegionRegistry;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.rendering.ClientRegionStore;
 
+import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.SidedProxy;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
@@ -60,6 +62,9 @@ public class Tempora {
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
         proxy.init(event);
+        FMLCommonHandler.instance()
+            .bus()
+            .register(new ServerTickHandler());
     }
 
     @Mod.EventHandler
