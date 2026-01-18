@@ -12,7 +12,8 @@
     "MixinFMLNetworkHandler",
     "MixinGameRegistry",
     "MixinNetHandlerPlayServer",
-    "MixinNetworkMonitor"
+    "MixinNetworkMonitor",
+    "MixinStructureStart"
   ],
   "client": [],
   "server": [

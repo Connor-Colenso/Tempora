@@ -5,7 +5,6 @@ public final class WorldGenPhaseTracker {
     public enum Phase {
         NONE,
         BASE_TERRAIN, // ChunkProviderGenerate.populate
-        // DECORATION, // BiomeDecorator.decorate / similar
         MOD_FEATURES // GameRegistry.generateWorld (mod hooks)
     }
 

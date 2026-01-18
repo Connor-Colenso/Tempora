@@ -231,6 +231,8 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
 
     private void recordSetBlock(double x, double y, double z, BlockChangeEventInfo eventInfo, World world) {
 
+        if (eventInfo.isWorldGen) return;
+
         // Only log changes if (x, y, z) is inside a defined region. Unless config has the entire world logging on.
         if (!globalBlockChangeLogging
             && !BlockChangeRegionRegistry.containsBlock(world.provider.dimensionId, (int) x, (int) y, (int) z)) {
