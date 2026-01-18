@@ -70,7 +70,8 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionEventInfo>
                 this);
 
             // Draw purple lines to affected blocks
-            for (ChunkPosition chunkPosition : ChunkPositionUtils.decodePositions(exp_ev_info.affectedBlockCoordinates)) {
+            for (ChunkPosition chunkPosition : ChunkPositionUtils
+                .decodePositions(exp_ev_info.affectedBlockCoordinates)) {
                 double startX = exp_ev_info.x;
                 double startY = exp_ev_info.y;
                 double startZ = exp_ev_info.z;

@@ -2,6 +2,7 @@ package com.colen.tempora.items;
 
 import static com.colen.tempora.Tempora.LOG;
 import static com.colen.tempora.utils.CommandUtils.teleportChatComponent;
+import static com.colen.tempora.utils.GenericUtils.getDimensionName;
 import static com.colen.tempora.utils.GenericUtils.isServerSide;
 
 import java.util.UUID;
@@ -25,6 +26,7 @@ import com.colen.tempora.rendering.regions.RegionRenderMode;
 import com.colen.tempora.utils.PlayerUtils;
 
 public class TemporaWand extends Item {
+
     public TemporaWand() {
         this.setMaxStackSize(1);
         this.setCreativeTab(CreativeTabs.tabTools);
@@ -91,6 +93,7 @@ public class TemporaWand extends Item {
                 new ChatComponentTranslation(
                     "message.tempora_wand.checking_pos",
                     teleportChatComponent(x, y, z, player.dimension),
+                    getDimensionName(player.dimension),
                     player.dimension).setChatStyle(new ChatStyle().setColor(EnumChatFormatting.RED)));
 
             for (GenericPositionalLogger<?> logger : TemporaLoggerManager.getLoggerList()) {

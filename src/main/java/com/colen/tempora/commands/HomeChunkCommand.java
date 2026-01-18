@@ -3,6 +3,7 @@ package com.colen.tempora.commands;
 import static com.colen.tempora.Tempora.LOG;
 import static com.colen.tempora.TemporaEvents.PLAYER_MOVEMENT;
 import static com.colen.tempora.utils.CommandUtils.teleportChatComponent;
+import static com.colen.tempora.utils.PlayerUtils.UNKNOWN_PLAYER_NAME;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -60,9 +61,9 @@ public class HomeChunkCommand extends CommandBase {
         }
 
         // Player to UUID.
-        final String uuid = PlayerUtils.uuidForName(args[0]);
-        if (uuid == null) {
-            sender.addChatMessage(new ChatComponentTranslation("tempora.command.home_chunk.unknown_player", args[0]));
+        final String uuid = PlayerUtils.UUIDToName(args[0]);
+        if (uuid.equals(UNKNOWN_PLAYER_NAME)) {
+            sender.addChatMessage(new ChatComponentTranslation("tempora.command.home_chunk.unknown_player", uuid));
             return;
         }
 

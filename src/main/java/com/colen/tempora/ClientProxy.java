@@ -3,11 +3,14 @@ package com.colen.tempora;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.common.MinecraftForge;
 
+import com.colen.tempora.config.DebugConfig;
 import com.colen.tempora.rendering.RenderEventsInWorld;
 import com.colen.tempora.rendering.RenderIDsInWorld;
 import com.colen.tempora.rendering.regions.HudRenderRegionsInWorld;
 import com.colen.tempora.rendering.regions.RenderRegionsInWorld;
 import com.colen.tempora.utils.RenderingUtils;
+import com.gtnewhorizon.gtnhlib.config.ConfigException;
+import com.gtnewhorizon.gtnhlib.config.ConfigurationManager;
 
 import codechicken.nei.api.API;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
@@ -20,6 +23,12 @@ public class ClientProxy extends CommonProxy {
     @Override
     public void preInit(FMLPreInitializationEvent event) {
         super.preInit(event);
+
+        try {
+            ConfigurationManager.registerConfig(DebugConfig.class);
+        } catch (ConfigException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
