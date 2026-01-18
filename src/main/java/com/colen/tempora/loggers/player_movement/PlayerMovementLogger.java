@@ -60,7 +60,7 @@ public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovement
 
     @Override
     public @NotNull LoggerEventType getLoggerEventType() {
-        return LoggerEventType.ForgeEvent;
+        return LoggerEventType.MinecraftEvent;
     }
 
     @SubscribeEvent
