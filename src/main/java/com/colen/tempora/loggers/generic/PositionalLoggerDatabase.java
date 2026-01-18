@@ -38,6 +38,7 @@ import com.colen.tempora.loggers.generic.column.ColumnDef;
 import com.colen.tempora.utils.DatabaseUtils;
 import com.colen.tempora.utils.GenericUtils;
 import com.colen.tempora.utils.TimeUtils;
+import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 
 public class PositionalLoggerDatabase {
 
@@ -292,21 +293,29 @@ public class PositionalLoggerDatabase {
                     sender.addChatMessage(noResults);
 
                 } else {
+                    int eventsFound = eventDataList.size();
+                    // Plural or not.
+                    String langKey = (eventsFound == 1) ? "message.query_events.showing_result"
+                        : "message.query_events.showing_results";
+
                     IChatComponent showingResults = new ChatComponentTranslation(
-                        "message.query_events.showing_results",
-                        eventDataList.size(),
+                        langKey,
+                        new ChatComponentNumber(eventsFound),
                         genericPositionalLogger.getLoggerName());
                     showingResults.getChatStyle()
                         .setColor(EnumChatFormatting.GRAY);
                     sender.addChatMessage(showingResults);
-                    if (genericPositionalLogger.getConcurrentEventQueue()
-                        .size() > 100) {
+
+                    // If events waiting to process is large, then warn the user.
+                    // Shouldn't really be happening.
+                    int queuedEventsFound = genericPositionalLogger.getConcurrentEventQueue()
+                        .size();
+                    if (queuedEventsFound > 100) {
                         IChatComponent tooMany = new ChatComponentTranslation(
                             "message.query_events.too_many_pending",
-                            genericPositionalLogger.getConcurrentEventQueue()
-                                .size());
+                            new ChatComponentNumber(queuedEventsFound));
                         tooMany.getChatStyle()
-                            .setColor(EnumChatFormatting.RED);
+                            .setColor(EnumChatFormatting.DARK_RED);
                         sender.addChatMessage(tooMany);
                     }
 
@@ -321,7 +330,7 @@ public class PositionalLoggerDatabase {
                         .toString();
                     eventDataList.forEach(p -> sender.addChatMessage(p.localiseText(uuid)));
 
-                    // This tells the client what to render in the world.
+                    // This tells the client what to render in the world, if anything.
                     for (GenericEventInfo eventData : eventDataList) {
                         NETWORK.sendTo(new RenderEventPacket(eventData), player);
                     }

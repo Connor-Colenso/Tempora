@@ -43,10 +43,17 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathEventI
         sortByDistanceDescending(transparentEventsToRenderInWorld, renderEvent);
 
         for (EntityDeathEventInfo bcEventInfo : transparentEventsToRenderInWorld) {
-            Entity entity = EntityList.createEntityByName(bcEventInfo.nameOfDeadEntity, Minecraft.getMinecraft().theWorld);
+            Entity entity = EntityList
+                .createEntityByName(bcEventInfo.nameOfDeadEntity, Minecraft.getMinecraft().theWorld);
 
             // Render mob
-            RenderUtils.renderEntityInWorld(entity, bcEventInfo.x, bcEventInfo.y, bcEventInfo.z, bcEventInfo.rotationYaw, bcEventInfo.rotationPitch);
+            RenderUtils.renderEntityInWorld(
+                entity,
+                bcEventInfo.x,
+                bcEventInfo.y,
+                bcEventInfo.z,
+                bcEventInfo.rotationYaw,
+                bcEventInfo.rotationPitch);
 
             // Render bounding box (optional, matches location)
             RenderUtils.renderEntityAABBInWorld(entity, bcEventInfo.x, bcEventInfo.y, bcEventInfo.z, 1.0, 0, 0);

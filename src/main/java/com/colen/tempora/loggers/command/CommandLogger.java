@@ -56,7 +56,7 @@ public class CommandLogger extends GenericPositionalLogger<CommandEventInfo> {
 
             toRender.add(
                 StatCollector
-                    .translateToLocalFormatted("event.command.executed", PlayerUtils.uuidForName(cqe.playerUUID)));
+                    .translateToLocalFormatted("event.command.executed", PlayerUtils.UUIDToName(cqe.playerUUID)));
             toRender.add("/" + cqe.commandName + " " + cqe.arguments);
 
             TimeUtils.DurationParts formattedTime = TimeUtils.relativeTimeAgoFormatter(cqe.timestamp);

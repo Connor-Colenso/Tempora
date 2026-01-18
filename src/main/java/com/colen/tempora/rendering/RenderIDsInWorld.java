@@ -1,5 +1,8 @@
 package com.colen.tempora.rendering;
 
+import static com.colen.tempora.config.DebugConfig.IDMetaRenderingRadius;
+import static com.colen.tempora.config.DebugConfig.showIDMetaRenderInBlocksNearby;
+
 import java.util.Collections;
 
 import net.minecraft.block.Block;
@@ -16,19 +19,17 @@ import cpw.mods.fml.relauncher.SideOnly;
 @SideOnly(Side.CLIENT)
 public final class RenderIDsInWorld {
 
-    // Tune this carefully – cube of this cost
-    private static final int RADIUS = 6;
-
     @SubscribeEvent
     public void onRender(RenderWorldLastEvent e) {
-        if (true) return; // todo config or client side command maybe.
+        if (!showIDMetaRenderInBlocksNearby) return;
+
         Minecraft mc = Minecraft.getMinecraft();
         EntityPlayerSP player = mc.thePlayer;
         World world = mc.theWorld;
 
         if (player == null || world == null) return;
 
-        // Interpolated camera position
+        // Interpolated camera position+
         double camX = player.lastTickPosX + (player.posX - player.lastTickPosX) * e.partialTicks;
         double camY = player.lastTickPosY + (player.posY - player.lastTickPosY) * e.partialTicks;
         double camZ = player.lastTickPosZ + (player.posZ - player.lastTickPosZ) * e.partialTicks;
@@ -37,9 +38,9 @@ public final class RenderIDsInWorld {
         int py = MathHelper.floor_double(player.posY);
         int pz = MathHelper.floor_double(player.posZ);
 
-        for (int dx = -RADIUS; dx <= RADIUS; dx++) {
-            for (int dy = -RADIUS; dy <= RADIUS; dy++) {
-                for (int dz = -RADIUS; dz <= RADIUS; dz++) {
+        for (int dx = -IDMetaRenderingRadius; dx <= IDMetaRenderingRadius; dx++) {
+            for (int dy = -IDMetaRenderingRadius; dy <= IDMetaRenderingRadius; dy++) {
+                for (int dz = -IDMetaRenderingRadius; dz <= IDMetaRenderingRadius; dz++) {
 
                     int x = px + dx;
                     int y = py + dy;

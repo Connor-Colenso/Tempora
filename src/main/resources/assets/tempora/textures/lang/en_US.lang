@@ -10,9 +10,12 @@ message.item_use=%s used %s (%d:%d) at %s (%s).
 message.player_movement=%s was at %s (%s).
 message.inventory_interaction_added=%s added %dx%s (%d:%d) to %s at %s (%s).
 message.inventory_interaction_removed=%s removed %dx%s (%d:%d) from %s at %s (%s).
-message.tempora_wand.checking_pos=Checking %s in dimension %s.
+message.tempora_wand.checking_pos=Checking %s in %s (ID %s).
 message.block_change=The block at %s was set from %s (%d:%d) to %s (%d:%d) (%s). Closest player %s (%s blocks away). %s.
 message.inventorylogger.invalid_interaction=Error: invalid interactionType %s in InventoryLogger DB. Please report this.
+message.query_events.showing_results=Found %s results for %s.
+message.query_events.showing_result=Found %s result for %s.
+message.query_events.too_many_pending=Warning: There are %s events waiting to be processed. This may affect the accuracy of the results, as the server may be under heavy load.
 
 player.tempora_wand.unauthorised=§c[ALERT]§r %s attempted to use a Tempora wand without authorisation.
 item.tempora_wand.name=Tempora Wand

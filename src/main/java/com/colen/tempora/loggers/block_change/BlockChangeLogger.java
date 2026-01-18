@@ -110,7 +110,9 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
             filteredTransparentBuffer.add(event);
         }
 
-        for (BlockChangeEventInfo bcEventInfo : getSortedLatestEventsByDistance(filteredTransparentBuffer, renderEvent)) {
+        for (BlockChangeEventInfo bcEventInfo : getSortedLatestEventsByDistance(
+            filteredTransparentBuffer,
+            renderEvent)) {
             RenderingUtils.quickRenderBlockWithHighlightAndChecks(
                 renderEvent,
                 bcEventInfo,

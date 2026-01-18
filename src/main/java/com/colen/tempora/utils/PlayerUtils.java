@@ -6,8 +6,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
-import javax.annotation.Nullable;
-
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.event.ClickEvent;
@@ -38,7 +36,7 @@ public class PlayerUtils {
                 .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, clickToCopy)));
     }
 
-    private static String UUIDToName(String UUIDString) {
+    public static String UUIDToName(String UUIDString) {
         if (!isUUID(UUIDString)) return UUIDString;
 
         String userName = UsernameCache.getLastKnownUsername(UUID.fromString(UUIDString));
@@ -103,19 +101,6 @@ public class PlayerUtils {
                 obj.addChatMessage(chat);
             }
         }
-    }
-
-    @Nullable
-    public static String uuidForName(String name) {
-        Map<UUID, String> map = UsernameCache.getMap();
-        for (Map.Entry<UUID, String> entry : map.entrySet()) {
-            if (entry.getValue()
-                .equalsIgnoreCase(name)) {
-                return entry.getKey()
-                    .toString();
-            }
-        }
-        return null;
     }
 
     // Warning! This is tab completion for every player who has ever been on the server, not just those online!

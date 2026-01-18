@@ -181,7 +181,12 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
         w.setBlock((int) pbbEventInfo.x, (int) pbbEventInfo.y, (int) pbbEventInfo.z, block, pbbEventInfo.metadata, 2);
 
         // Just to ensure meta is being set right, stops blocks interfering.
-        w.setBlockMetadataWithNotify((int) pbbEventInfo.x, (int) pbbEventInfo.y, (int) pbbEventInfo.z, pbbEventInfo.metadata, 2);
+        w.setBlockMetadataWithNotify(
+            (int) pbbEventInfo.x,
+            (int) pbbEventInfo.y,
+            (int) pbbEventInfo.z,
+            pbbEventInfo.metadata,
+            2);
         // Block had no NBT.
         if (pbbEventInfo.encodedNBT.equals(NO_NBT)) {
             UndoResponse undoResponse = new UndoResponse();
