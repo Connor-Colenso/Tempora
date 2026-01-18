@@ -68,6 +68,16 @@ tempora.unknown.error=[UNKNOWN ERROR]
 tempora.command.usage=Usage: %s
 event.command.executed=%s executed
 
+tempora.command.help.help.description=Describes the usage of the provided Tempora command with an example.
+tempora.command.help.help.arg1=§6<command_name>:§r The name of the Tempora command to get help with.
+tempora.command.help.help.example=§a/tempora_help §6tempora_explode§r This would give you help on the usage of the explode command from Tempora.
+tempora.command.help.command_not_found=Tempora command '%s' was not found.
+tempora.command.help.command_not_from_tempora='%s' is a command, but is not from Tempora.
+tempora.command.help.label.usage=Usage:
+tempora.command.help.label.description=Description:
+tempora.command.help.label.arguments=Arguments:
+tempora.command.help.label.example=Example:
+
 tempora.command.query_sql.usage=Usage: %s.
 tempora.command.query_sql.query_quotes=SQL query must be wrapped in quotes.
 tempora.command.query_sql.select_only=Only SELECT queries are allowed.
@@ -88,6 +98,11 @@ tempora.command.home_chunk.unknown_player=No location data for player %s availab
 tempora.command.home_chunk.no_data=No movement data found for that query.
 tempora.command.home_chunk.sql_error=Database error while querying movement data, see console for details.
 tempora.command.home_chunk.bad_dim=Bad <dim> value, must be an integer.
+tempora.command.home_chunk.help.description=A WIP command that determines what locations a player spends the most time at.
+tempora.command.home_chunk.help.arg1=§6<player>:§r WIP
+tempora.command.home_chunk.help.arg2=§c[<look-back>]:§r WIP
+tempora.command.home_chunk.help.arg3=§5[<dim>]:§r WIP
+tempora.command.home_chunk.help.example=Command is in active development and WILL be changed/removed in a future update.
 
 tempora.command.teleport.display=[%s %s %s]
 tempora.command.teleport.hover=Click to teleport [%s, ID %s]
@@ -100,6 +115,12 @@ tempora.region.remove.individual=Removed region %s | Bounds: %s -> %s | Midpoint
 tempora.command.create_region.success=Created region %s | Bounds: %s -> %s | Midpoint: %s.
 tempora.command.create_region.non_numeric_coordinate=All coordinates must be integers, found %s.
 tempora.command.create_region.non.numeric.dimension=Dimension '%s' must be an integer.
+tempora.command.create_region.help.description=Creates a cube region in the specified dimension that can be used for various Tempora commands to set their area of effect.
+tempora.command.create_region.help.arg1=§6<label>:§r The name of the new region to create.
+tempora.command.create_region.help.arg2=§c<x1> <y1> <z1>:§r Co-ordinate 1 of the cube region.
+tempora.command.create_region.help.arg3=§5<x2> <y2> <z2>:§r Co-ordinate 2 of the cube region. Needs to have at least ±1 difference on all axis from co-ordinate 1.
+tempora.command.create_region.help.arg4=§d[dim ID]:§r The dimension ID (e.g. 0 = overworld) that the region should be created in, when left undefined it will default to the dimension the caller is in.
+tempora.command.create_region.help.example=§a/tempora_create_region §6test §c0 0 0 §55 5 5 §d0§r This will create a region called test from the co-ordinates 0 0 0 to 5 5 5 (a cube with a volume of 125 blocks) in the overworld.
 
 tempora.command.list_regions.global.logging.enabled=WARNING: globalBlockChangeLogging is enabled, capturing all block changes globally and ignoring regions.
 tempora.command.list_regions.none=No regions defined.
@@ -107,16 +128,24 @@ tempora.command.list_regions.entry=Region %s | Bounds: %s -> %s | Midpoint: %s |
 tempora.command.list_regions.filtered.no_regions=%s (ID %s) has no regions.
 tempora.command.list_regions.filtered.invalid_dimension=Dimension with ID %s does not exist.
 tempora.region.dimension_banner=-- Regions in %s (ID %s) --
+tempora.command.list_regions.help.description=Lists the current regions that have been created either in all dimensions of the specified one. 
+tempora.command.list_regions.help.arg1=§5[Dim ID filter]:§r The ID of the dimension (e.g. 0 = overworld) to list regions from
+tempora.command.list_regions.help.example=§a/tempora_list_regions §6-1§r This will list all the regions created in the End. 
 
 tempora.command.query_events.bad_filter=Filter "%s" is invalid.
 tempora.command.query_events.query_failed=Database query failed on %s: %s
 tempora.command.query_events.no_results=No results found for %s.
 tempora.command.query_events.showing_results=Showing latest %s results for %s:
 tempora.command.query_events.too_many_pending=Warning, due to high volume, there are still %s events pending. Query results may be outdated.
+tempora.command.query_events.help.description=Creates an explosion where the player is currently looking with a desired strength.
+tempora.command.query_events.help.arg1=§6<force>:§r The explosion strength of the explosion to summon, Exponential drop-off in power with higher values.
+tempora.command.query_events.help.example=§a/tempora_explode 5§r This would summon an explosion where the player is looking with a strength of 5.
 
 tempora.command.explode.no_block_in_sight=No block in sight.
 tempora.command.explode.force.must.be.numeric=Force must be a number.
-
+tempora.command.explode.help.description=Creates an explosion where the player is currently looking with a desired strength.
+tempora.command.explode.help.arg1=§6<force>:§r The explosion strength of the explosion to summon, Exponential drop-off in power with higher values.
+tempora.command.explode.help.example=§a/tempora_explode 5§r This would summon an explosion where the player is looking with a strength of 5.
 
 # === Undo Messages ===
 tempora.undo.cannot_block_break.nbt_logging_disabled=Cannot undo %s, the block had NBT data, but NBT logging was disabled when it was logged.

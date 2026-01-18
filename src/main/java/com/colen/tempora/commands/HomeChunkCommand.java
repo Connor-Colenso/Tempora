@@ -9,10 +9,11 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import net.minecraft.command.CommandBase;
+import com.colen.tempora.utils.TemporaCommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.util.ChatComponentTranslation;
@@ -28,11 +29,11 @@ import com.colen.tempora.utils.TimeUtils;
  * (optionally filtered by time‑window and/or dimension) and
  * teleports to the centre of that chunk.
  */
-public class HomeChunkCommand extends CommandBase {
+public class HomeChunkCommand extends TemporaCommandBase {
 
     @Override
     public String getCommandName() {
-        return "home_chunk";
+        return "tempora_home_chunk";
     }
 
     @Override
@@ -42,7 +43,7 @@ public class HomeChunkCommand extends CommandBase {
 
     @Override
     public String getCommandUsage(ICommandSender s) {
-        return "/home_chunk <player> [<look-back>] [<dim>]";
+        return "§2/tempora_home_chunk §6<player> §c[<look-back>] §5[<dim>]";
     }
 
     @Override
@@ -191,5 +192,26 @@ public class HomeChunkCommand extends CommandBase {
         } catch (NumberFormatException ex) {
             throw new CommandException("tempora.command.home_chunk.bad_dim");
         }
+    }
+
+    @Override
+    public IChatComponent getCommandDescription() {
+        return new ChatComponentTranslation("tempora.command.home_chunk.help.description");
+    }
+
+    @Override
+    public IChatComponent getCommandExample() {
+        return new ChatComponentTranslation("tempora.command.home_chunk.help.example");
+    }
+
+    @Override
+    public List<IChatComponent> getArgsDescriptions() {
+        ArrayList<IChatComponent> argsDescriptions = new ArrayList<>();
+
+        argsDescriptions.add(new ChatComponentTranslation("tempora.command.home_chunk.help.arg1"));
+        argsDescriptions.add(new ChatComponentTranslation("tempora.command.home_chunk.help.arg2"));
+        argsDescriptions.add(new ChatComponentTranslation("tempora.command.home_chunk.help.arg3"));
+
+        return argsDescriptions;
     }
 }

@@ -17,12 +17,12 @@ public class QueryEventsCommand extends CommandBase {
 
     @Override
     public String getCommandName() {
-        return "query_events";
+        return "tempora_query_events";
     }
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/query_events <radius> <time> <filter>";
+        return "/tempora_query_events <radius> <time> <filter>";
     }
 
     @Override

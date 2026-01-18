@@ -3,10 +3,12 @@ package com.colen.tempora.commands;
 import static com.colen.tempora.Tempora.NETWORK;
 import static com.colen.tempora.utils.GenericUtils.getDimensionName;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 
+import com.colen.tempora.utils.TemporaCommandBase;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -25,11 +27,11 @@ import com.colen.tempora.utils.CommandUtils;
  * Lists every stored region and provides a clickable coordinate that
  * teleports the issuer to the centre of that region.
  */
-public class ListRegionsCommand extends CommandBase {
+public class ListRegionsCommand extends TemporaCommandBase {
 
     @Override
     public String getCommandName() {
-        return "list_regions";
+        return "tempora_list_regions";
     }
 
     @Override
@@ -40,7 +42,7 @@ public class ListRegionsCommand extends CommandBase {
     /** Usage is localised */
     @Override
     public String getCommandUsage(ICommandSender s) {
-        return "/list_regions [Dim ID filter]";
+        return "§a/tempora_list_regions §6[Dim ID filter]";
     }
 
     @Override
@@ -125,5 +127,24 @@ public class ListRegionsCommand extends CommandBase {
                 .setColor(EnumChatFormatting.DARK_RED);
             player.addChatMessage(globalLoggingMessage);
         }
+    }
+
+    @Override
+    public IChatComponent getCommandDescription() {
+        return new ChatComponentTranslation("tempora.command.list_regions.help.description");
+    }
+
+    @Override
+    public IChatComponent getCommandExample() {
+        return new ChatComponentTranslation("tempora.command.list_regions.help.example");
+    }
+
+    @Override
+    public List<IChatComponent> getArgsDescriptions() {
+        ArrayList<IChatComponent> argsDescriptions = new ArrayList<>();
+
+        argsDescriptions.add(new ChatComponentTranslation("tempora.command.create_region.help.arg1"));
+
+        return argsDescriptions;
     }
 }
