@@ -39,16 +39,14 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
 
     protected PositionalLoggerDatabase databaseManager = new PositionalLoggerDatabase(this);
 
-    private volatile boolean running = true;
-
     private final LinkedBlockingQueue<EventInfo> concurrentEventQueue = new LinkedBlockingQueue<>();
     protected List<EventInfo> transparentEventsToRenderInWorld = new ArrayList<>();
     protected List<EventInfo> nonTransparentEventsToRenderInWorld = new ArrayList<>();
 
-    private boolean isEnabled;
+    protected boolean isLoggerEnabled;
     private Thread queueWorkerThread;
     private int maxShutdownTimeoutMilliseconds;
-    private static final int queuePollTimeoutSeconds = 1;
+    private static final int queuePollTimeoutMilliseconds = 100;
 
     public void addEventToRender(EventInfo event) {
         event.eventRenderCreationTime = System.currentTimeMillis();
@@ -111,29 +109,6 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
 
     public abstract @NotNull LoggerEventType getLoggerEventType();
 
-    private Object readColumn(ResultSet rs, Class<?> type, String column) throws SQLException {
-        if (type == int.class || type == Integer.class) {
-            return rs.getInt(column);
-        }
-        if (type == long.class || type == Long.class) {
-            return rs.getLong(column);
-        }
-        if (type == double.class || type == Double.class) {
-            return rs.getDouble(column);
-        }
-        if (type == float.class || type == Float.class) {
-            return rs.getFloat(column);
-        }
-        if (type == boolean.class || type == Boolean.class) {
-            return rs.getInt(column) != 0;
-        }
-        if (type == String.class) {
-            return rs.getString(column);
-        }
-
-        throw new IllegalStateException("Unsupported field type: " + type);
-    }
-
     public abstract @NotNull EventInfo newEventInfo();
 
     public @NotNull List<EventInfo> generateQueryResults(ResultSet resultSet) throws SQLException {
@@ -185,7 +160,7 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
     }
 
     public final void queueEventInfo(EventInfo eventInfo) {
-        if (!isEnabled) return;
+        if (!isLoggerEnabled) return;
 
         // Populate this automatically, as it is fixed per world for all events.
         eventInfo.versionID = ModpackVersionData.CURRENT_VERSION;
@@ -195,8 +170,6 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
     }
 
     private void startQueueWorker() {
-
-        running = true;
 
         queueWorkerThread = new Thread(() -> queueLoop(), "Tempora-" + getLoggerName());
         queueWorkerThread.setDaemon(false);
@@ -212,14 +185,27 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
 
     private void queueLoop() {
         List<EventInfo> buffer = new ArrayList<>();
+        boolean sawPoisonPill = false;
 
         try {
-            while (running || !concurrentEventQueue.isEmpty()) {
-                // This blocks until at least one event is available.
-                EventInfo event = concurrentEventQueue.poll(queuePollTimeoutSeconds, TimeUnit.SECONDS);
-                if (event == null) continue;
+            while (true) {
+                // Block for an event, but wake periodically to re-check state
+                EventInfo event = concurrentEventQueue.poll(queuePollTimeoutMilliseconds, TimeUnit.MILLISECONDS);
 
-                // Drain any available events into the buffer
+                if (event == null) {
+                    // No event received
+                    if (sawPoisonPill && concurrentEventQueue.isEmpty()) {
+                        break; // Clean shutdown: poison seen + fully drained
+                    }
+                    continue;
+                }
+
+                if (event.poisonPill) {
+                    sawPoisonPill = true;
+                    continue; // Do NOT break, finish draining if possible.
+                }
+
+                // Normal event processing
                 buffer.add(event);
                 concurrentEventQueue.drainTo(buffer);
 
@@ -230,7 +216,6 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
                         concurrentEventQueue.size());
                 }
 
-                // Insert the batch into DB and commit
                 databaseManager.insertBatch(buffer);
                 databaseManager.getDBConn()
                     .commit();
@@ -247,18 +232,18 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
             throw new RuntimeException("DB failure in " + getLoggerName(), e);
         }
 
-        if (running) {
+        // If we exit without having seen a poison pill, something is wrong
+        if (!sawPoisonPill) {
             throw new IllegalStateException("Queue worker terminated unexpectedly.");
         }
     }
 
     public final void genericConfig(@NotNull Configuration config) {
-        isEnabled = config.getBoolean("isEnabled", getLoggerName(), true, "Enables this loggers functionality.");
+        isLoggerEnabled = config.getBoolean("isEnabled", getLoggerName(), true, "Enables this loggers functionality.");
         maxShutdownTimeoutMilliseconds = config.getInt(
             "maxShutdownTimeoutMs",
             getLoggerName(),
-            queuePollTimeoutSeconds * 1_000 * 5, // 1000 seconds/millisecond & x5 to ensure polling can complete and
-                                                 // the database saves.
+            queuePollTimeoutMilliseconds * 5,
             0,
             Integer.MAX_VALUE,
             "Maximum time (in milliseconds) to wait for this logger to flush and stop during shutdown. Use 0 to wait forever until all queued events are written.");
@@ -268,14 +253,6 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
     // Run on server startup/world load.
     private void initialiseLogger() {
         try {
-            // Clear events and initialise connection.
-            if (!concurrentEventQueue.isEmpty()) {
-                LOG.warn(
-                    "Tempora log for {} was not empty upon initialisation. This may suggest state leakage has occurred. Please report this.",
-                    getLoggerName());
-            }
-
-            clearEvents();
             databaseManager = new PositionalLoggerDatabase(this);
             databaseManager.initialiseDatabase();
             startQueueWorker();
@@ -301,15 +278,22 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
         LOG.info("Opening Tempora databases.");
 
         for (GenericPositionalLogger<?> logger : TemporaLoggerManager.getLoggerList()) {
-            logger.initialiseLogger();
+            if (logger.isLoggerEnabled) logger.initialiseLogger();
         }
     }
 
     public static void onServerClose() {
         try {
+            // Poison pill each logger, to prepare for shutdown, instead of waiting on each one sequentially.
             for (GenericPositionalLogger<?> logger : TemporaLoggerManager.getLoggerList()) {
-                logger.shutdownQueueWorkerThreads();
-                logger.databaseManager.shutdownDatabase();
+                logger.poisonPillQueue();
+            }
+
+            for (GenericPositionalLogger<?> logger : TemporaLoggerManager.getLoggerList()) {
+                if (logger.isLoggerEnabled) {
+                    logger.shutdownQueueWorkerThreads();
+                    logger.databaseManager.shutdownDatabase();
+                }
             }
 
         } catch (Exception e) {
@@ -322,9 +306,14 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
         }
     }
 
-    private void shutdownQueueWorkerThreads() throws InterruptedException {
-        running = false; // Signal worker thread to stop
+    private void poisonPillQueue() {
+        EventInfo poisonedEventInfo = newEventInfo();
+        poisonedEventInfo.poisonPill = true;
+        concurrentEventQueue.add(poisonedEventInfo);
+    }
 
+    private void shutdownQueueWorkerThreads() throws InterruptedException {
+        // Wait to shutdown, should be near instant if queue is low.
         queueWorkerThread.join(maxShutdownTimeoutMilliseconds);
 
         if (queueWorkerThread.isAlive()) {
@@ -334,6 +323,7 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
                 queueWorkerThread.getName(),
                 getLoggerName(),
                 concurrentEventQueue.size());
+            clearEvents();
         }
     }
 

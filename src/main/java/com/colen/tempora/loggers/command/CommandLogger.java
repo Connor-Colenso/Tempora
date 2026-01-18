@@ -79,6 +79,7 @@ public class CommandLogger extends GenericPositionalLogger<CommandEventInfo> {
     @SuppressWarnings("unused")
     public void onCommand(final CommandEvent event) {
         // Server side only.
+        if (!isLoggerEnabled) return;
         if (isClientSide()) return;
         if (event.isCanceled()) return;
 

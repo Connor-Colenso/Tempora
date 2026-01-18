@@ -81,6 +81,7 @@ public class EntityPositionLogger extends GenericPositionalLogger<EntityPosition
     @SubscribeEvent(priority = EventPriority.LOWEST)
     @SuppressWarnings("unused")
     public void onEntityUpdate(LivingUpdateEvent event) {
+        if (!isLoggerEnabled) return;
         if (isClientSide()) return;
         if (event.isCanceled()) return;
         if (event.entityLiving.ticksExisted % entityMovementLoggingInterval != 0) return; // As an example, track every
