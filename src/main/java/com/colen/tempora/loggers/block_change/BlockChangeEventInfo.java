@@ -85,6 +85,7 @@ public class BlockChangeEventInfo extends GenericEventInfo {
             afterBlockID, // %d: block after ID
             afterMetadata, // %d: block after metadata
             timeAgo, // %s: time ago
+            stackTrace,
             closestPlayerName, // %s: closest player
             closestPlayerDist, // %s: distance
             generateUndoCommand(getLoggerName(), eventID) // %s: Undo operation.
