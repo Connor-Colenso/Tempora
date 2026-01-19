@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.UUID;
 
+import com.colen.tempora.loggers.generic.undo.UndoResponse;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
@@ -36,7 +37,7 @@ import com.colen.tempora.enums.LoggerEventType;
 import com.colen.tempora.loggers.block_change.region_registry.BlockChangeRegionRegistry;
 import com.colen.tempora.loggers.generic.GenericEventInfo;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
-import com.colen.tempora.loggers.generic.UndoResponse;
+import com.colen.tempora.loggers.generic.undo.UndoEventInfo;
 import com.colen.tempora.utils.BlockUtils;
 import com.colen.tempora.utils.GenericUtils;
 import com.colen.tempora.utils.RenderingUtils;
@@ -256,29 +257,29 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
     }
 
     @Override
-    public UndoResponse undoEvent(GenericEventInfo eventInfo, EntityPlayer player) {
+    public UndoEventInfo undoEvent(GenericEventInfo eventInfo, EntityPlayer player) {
 
         IChatComponent eventUUID = createHoverableClickable("[UUID]", eventInfo.eventID);
 
         // This should never occur.
         if (!(eventInfo instanceof BlockChangeEventInfo bcEventInfo)) {
-            UndoResponse undoResponse = new UndoResponse();
-            undoResponse.message = new ChatComponentTranslation(
+            UndoEventInfo undoEventInfo = new UndoEventInfo();
+            undoEventInfo.message = new ChatComponentTranslation(
                 "tempora.undo.unknown_error",
                 eventUUID,
                 getLoggerName());
-            undoResponse.success = false;
-            return undoResponse;
+            undoEventInfo.state = UndoResponse.ERROR;
+            return undoEventInfo;
         }
 
         // Handle if logging NBT was off when this event was logged & it is necessary to restore it.
         if (bcEventInfo.beforeEncodedNBT.equals(NBT_DISABLED)) {
-            UndoResponse undoResponse = new UndoResponse();
-            undoResponse.message = new ChatComponentTranslation(
+            UndoEventInfo undoEventInfo = new UndoEventInfo();
+            undoEventInfo.message = new ChatComponentTranslation(
                 "tempora.undo.cannot_block_break.nbt_logging_disabled",
                 eventUUID);
-            undoResponse.success = false;
-            return undoResponse;
+            undoEventInfo.state = UndoResponse.MISSING_DATA;
+            return undoEventInfo;
         }
 
         int x = (int) bcEventInfo.x;
@@ -290,16 +291,16 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
 
         Block block = Block.getBlockById(blockID);
         if (block == null) {
-            UndoResponse undoResponse = new UndoResponse();
+            UndoEventInfo undoEventInfo = new UndoEventInfo();
 
-            undoResponse.message = new ChatComponentTranslation(
+            undoEventInfo.message = new ChatComponentTranslation(
                 "tempora.undo.cannot_block_break.block_not_found",
                 eventUUID,
                 bcEventInfo.beforeBlockID,
                 bcEventInfo.beforeMetadata);
 
-            undoResponse.success = false;
-            return undoResponse;
+            undoEventInfo.state = UndoResponse.MISSING_DATA;
+            return undoEventInfo;
         }
 
         World w = MinecraftServer.getServer()
@@ -308,14 +309,14 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
         // todo use this in other undos.
         // Place silently (no physics or callbacks). Direct edit of chunk data.
         if (!BlockUtils.setBlockNoUpdate(w, x, y, z, block, meta)) {
-            UndoResponse undoResponse = new UndoResponse();
-            undoResponse.success = false;
-            undoResponse.message = new ChatComponentTranslation(
+            UndoEventInfo undoEventInfo = new UndoEventInfo();
+            undoEventInfo.state = UndoResponse.ERROR;
+            undoEventInfo.message = new ChatComponentTranslation(
                 "tempora.undo.set_block_failed",
                 eventUUID,
                 getLoggerName());
 
-            return undoResponse;
+            return undoEventInfo;
         }
 
         if (!bcEventInfo.beforeEncodedNBT.equals(NO_NBT)) {
@@ -334,25 +335,25 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
                 w.removeTileEntity(x, y, z);
                 e.printStackTrace();
 
-                UndoResponse undoResponse = new UndoResponse();
-                undoResponse.message = new ChatComponentTranslation(
+                UndoEventInfo undoEventInfo = new UndoEventInfo();
+                undoEventInfo.message = new ChatComponentTranslation(
                     "tempora.undo.unknown_error",
                     eventUUID,
                     getLoggerName());
-                undoResponse.success = false;
+                undoEventInfo.state = UndoResponse.ERROR;
 
-                return undoResponse;
+                return undoEventInfo;
             }
         }
 
         // Client visual + light refresh now that TE is correct
         w.markBlockForUpdate(x, y, z);
 
-        UndoResponse undoResponse = new UndoResponse();
-        undoResponse.success = true;
-        undoResponse.message = new ChatComponentTranslation("tempora.undo.success.normal");
+        UndoEventInfo undoEventInfo = new UndoEventInfo();
+        undoEventInfo.state = UndoResponse.SAFE;
+        undoEventInfo.message = new ChatComponentTranslation("tempora.undo.success.normal");
 
-        return undoResponse;
+        return undoEventInfo;
     }
 
     @Override

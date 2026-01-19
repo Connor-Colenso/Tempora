@@ -13,6 +13,8 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.colen.tempora.loggers.generic.undo.UndoResponse;
+import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -28,7 +30,7 @@ import com.colen.tempora.commands.command_base.TemporaCommandBase;
 import com.colen.tempora.loggers.generic.GenericEventInfo;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.RenderEventPacket;
-import com.colen.tempora.loggers.generic.UndoResponse;
+import com.colen.tempora.loggers.generic.undo.UndoEventInfo;
 import com.colen.tempora.utils.CommandUtils;
 import com.colen.tempora.utils.TimeUtils;
 import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
@@ -204,13 +206,13 @@ public class TemporaUndoRangedCommand extends TemporaCommandBase {
         }
 
         long startMs = System.currentTimeMillis();
-        List<UndoResponse> undoResponses = logger.undoEvents(stored, sender);
+        List<UndoEventInfo> undoRespons = logger.undoEvents(stored, sender);
         long durationMs = System.currentTimeMillis() - startMs;
 
         int successCounter = 0;
-        for (UndoResponse undoResponse : undoResponses) {
-            if (!undoResponse.success) {
-                sender.addChatMessage(undoResponse.message);
+        for (UndoEventInfo undoEventInfo : undoRespons) {
+            if (undoEventInfo.state != UndoResponse.SAFE) {
+                sender.addChatMessage(undoEventInfo.message);
             } else {
                 successCounter++;
             }
@@ -219,8 +221,8 @@ public class TemporaUndoRangedCommand extends TemporaCommandBase {
         IChatComponent successRanged = new ChatComponentTranslation(
             "tempora.undo.success.ranged",
             new ChatComponentNumber(successCounter),
-            new ChatComponentNumber(undoResponses.size()),
-            new ChatComponentNumber(successCounter * 100.0 / undoResponses.size()),
+            new ChatComponentNumber(undoRespons.size()),
+            new ChatComponentNumber(successCounter * 100.0 / undoRespons.size()),
             new ChatComponentNumber(durationMs),
             new ChatComponentTranslation("time.unit.milliseconds"));
 

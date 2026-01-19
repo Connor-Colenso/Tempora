@@ -68,16 +68,6 @@ tempora.unknown.error=[UNKNOWN ERROR]
 tempora.command.usage=Usage: %s
 event.command.executed=%s executed
 
-tempora.command.help.help.description=Describes the usage of the provided Tempora command with an example.
-tempora.command.help.help.arg0=The name of the Tempora command to get help with.
-tempora.command.help.help.example_description=This would give you help on the usage of the explode command from Tempora.
-tempora.command.help.command_not_found=Tempora command '%s' was not found.
-tempora.command.help.command_not_from_tempora='%s' is a command, but is not from Tempora.
-tempora.command.help.label.usage=Usage: %s
-tempora.command.help.label.description=Description: %s
-tempora.command.help.label.arguments=Arguments:
-tempora.command.help.label.example=Example:
-
 tempora.command.query_sql.usage=Usage: %s.
 tempora.command.query_sql.query_quotes=SQL query must be wrapped in quotes.
 tempora.command.query_sql.select_only=Only SELECT queries are allowed.
@@ -90,9 +80,6 @@ tempora.command.query_sql.generic_unknown_error=Generic unknown error (Please re
 tempora.command.query_sql.query_quantity=Found %s matching results.
 tempora.command.query_sql.query_quantity_if_max=Showing the first %s results (server limit: %s). Additional matches may be hidden.
 tempora.command.query_sql.invalid_table=Couldn't find table. Choices are, %s.
-tempora.command.query_sql.help.description=Executes a read-only SQL SELECT query against a Tempora event table and displays the matching results in-game. This is capped at %s results, due to server side configuration.
-tempora.command.query_sql.help.arg0=The SELECT SQL statement, does not need enclosing in quotes.
-tempora.command.query_sql.help.example_description=This command will output All tracked instances of the player defined by their UUID being above a y position of 80. This will go into the chat with interactable boxes to teleport to the locations found.
 
 tempora.command.home_chunk.no_db=Unable to query movement data – database unavailable.
 tempora.command.home_chunk.usage=Usage: %s
@@ -101,35 +88,18 @@ tempora.command.home_chunk.unknown_player=No location data for player %s availab
 tempora.command.home_chunk.no_data=No movement data found for that query.
 tempora.command.home_chunk.sql_error=Database error while querying movement data, see console for details.
 tempora.command.home_chunk.bad_dim=Bad <dim> value, must be an integer.
-tempora.command.home_chunk.help.description=A WIP command that determines what locations a player spends the most time at.
-tempora.command.home_chunk.help.arg0=WIP
-tempora.command.home_chunk.help.arg1=WIP
-tempora.command.home_chunk.help.arg2=WIP
-tempora.command.home_chunk.help.example_description=Command is in active development and WILL be changed/removed in a future update.
 
 tempora.command.teleport.display=[%s %s %s]
 tempora.command.teleport.hover=Click to teleport [%s, ID %s]
-tempora.command.teleport.help.description=Teleports the caller to the given co-ordinates, can specify a dimension.
-tempora.command.teleport.help.arg0=x, y, z co-ordinates of the location to teleport to.
-tempora.command.teleport.help.arg1=ID of the dimension to teleport to.
-tempora.command.teleport.help.example_description=This will teleport the caller to the provided co-ordinates in the End.
 
 tempora.command.remove_region.removed.single=Removed %d region at your position.
 tempora.command.remove_region.removed.plural=Removed %d regions at your position.
 tempora.command.remove_region.no_region=No region(s) found at your position.
 tempora.region.remove.individual=Removed region %s | Bounds: %s -> %s | Midpoint: %s.
-tempora.command.remove_region.help.description=Removes all the regions the player is currently standing inside of.
-tempora.command.remove_region.help.example_description=Removes all the regions the player is currently standing inside of.
 
 tempora.command.create_region.success=Created region %s | Bounds: %s -> %s | Midpoint: %s.
 tempora.command.create_region.non_numeric_coordinate=All coordinates must be integers, found %s.
 tempora.command.create_region.non.numeric.dimension=Dimension '%s' must be an integer.
-tempora.command.create_region.help.description=Creates a cube region in the specified dimension that can be used for various Tempora commands to set their area of effect.
-tempora.command.create_region.help.arg0=The name of the new region to create.
-tempora.command.create_region.help.arg1=Co-ordinate 1 of the cube region.
-tempora.command.create_region.help.arg2=Co-ordinate 2 of the cube region. Needs to have at least ±1 difference on all axis from co-ordinate 1.
-tempora.command.create_region.help.arg3=The dimension ID (e.g. 0 = overworld) that the region should be created in, when left undefined it will default to the dimension the caller is in.
-tempora.command.create_region.help.example_description=This will create a region called test from the co-ordinates 0 0 0 to 5 5 5 (a cube with a volume of 125 blocks) in the overworld.
 
 tempora.command.list_regions.global.logging.enabled=WARNING: globalBlockChangeLogging is enabled, capturing all block changes globally and ignoring regions.
 tempora.command.list_regions.none=No regions defined.
@@ -137,28 +107,16 @@ tempora.command.list_regions.entry=Region %s | Bounds: %s -> %s | Midpoint: %s |
 tempora.command.list_regions.filtered.no_regions=%s (ID %s) has no regions.
 tempora.command.list_regions.filtered.invalid_dimension=Dimension with ID %s does not exist.
 tempora.region.dimension_banner=-- Regions in %s (ID %s) --
-tempora.command.list_regions.help.description=Lists the current regions that have been created either in all dimensions of the specified one. 
-tempora.command.list_regions.help.arg0=The ID of the dimension (e.g. 0 = overworld) to list regions from
-tempora.command.list_regions.help.example_description=This will list all the regions created in the Nether. 
 
 tempora.command.query_events.bad_filter=Filter "%s" is invalid.
 tempora.command.query_events.query_failed=Database query failed on %s: %s
 tempora.command.query_events.no_results=No results found for %s.
 tempora.command.query_events.showing_results=Showing latest %s results for %s:
 tempora.command.query_events.too_many_pending=Warning, due to high volume, there are still %s events pending. Query results may be outdated.
-tempora.command.query_events.help.description=Queries a Tempora database for events that occurred within a given radius around the player and within a specified time range.
-tempora.command.query_events.help.arg0=Filters which event type to query (e.g. block breaks, placements, interactions).
-tempora.command.query_events.help.arg1=Search radius in blocks around the player (cube-shaped).
-tempora.command.query_events.help.arg2=How far back in time to start searching, relative to now (e.g. 1w = 1 week ago).
-tempora.command.query_events.help.arg3=Optional upper time limit, relative to now (e.g. 30m = 30 minutes ago). Defaults to the present if omitted.
-
-tempora.command.query_events.help.example_description=This will show in world and list in chat all the blocks broken by players in a radius of 25 blocks around the caller that occurred at most 1 day ago and at least 40 minutes ago.
 
 tempora.command.explode.no_block_in_sight=No block in sight.
 tempora.command.explode.force.must.be.numeric=Force must be a number.
-tempora.command.explode.help.description=Creates an explosion where the player is currently looking with a desired strength.
-tempora.command.explode.help.arg0=The explosion strength of the explosion to summon, Exponential drop-off in power with higher values.
-tempora.command.explode.help.example_description=This would summon an explosion where the player is looking with a strength of 5.
+
 
 # === Undo Messages ===
 tempora.undo.cannot_block_break.nbt_logging_disabled=Cannot undo %s, the block had NBT data, but NBT logging was disabled when it was logged.
@@ -179,17 +137,7 @@ tempora.undo.preview.highlight=WARNING: This operation is irreversible.
 tempora.undo.preview.confirm=[HERE]
 tempora.undo.range.too_large=Server config limits undo range to %s. Your requested range has been capped.
 tempora.undo.bad_implementation=The logger %s has incorrectly implemented undo functionality and event %S and failed. Please contact author of this logger.
-tempora.undo.help.description=Internal command - Can undo an event that has occurred in the world from certain database loggers. Useful for undoing single small events in world (limited to certain Loggers). 
-tempora.undo.help.arg0=The name of the Tempora logger to get and undo the event from.
-tempora.undo.help.arg1=The ID of the event to undo.
-tempora.undo.help.example_description=This would undo a player breaking a block, the position and block type are determined by the event ID (e.g. This may re-place a grass block in the world).
-
-tempora.undo_ranged.help.description=Can undo all events that have occurred within a cubic radius of the caller and a upto a specified time in the past (limited to certain Loggers).
-tempora.undo_ranged.help.arg0=The radius around the caller the command will check for events in (cubic).
-tempora.undo_ranged.help.arg1=Maximum time ago the events occurred (e.g. 1week). 
-tempora.undo_ranged.help.arg2=The name of the Tempora logger that events should be retrieved from to undo.
-tempora.undo_ranged.help.example_description=This would prompt the caller to confirm undoing all blocks placed by the player in the 10 block cubic region around them (upto 10 minutes ago).
-
+tempora.undo.version_mismatch=The event %s was logged on a different modpack version. Therefore it may be unsafe to revert this, you may override this by using the UNSAFE option.
 
 # === HUD ===
 tempora.HUD.region.descriptor.plural=Currently inside %s regions:
