@@ -15,6 +15,8 @@ import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import com.colen.tempora.loggers.generic.undo.UndoEventInfo;
+import com.colen.tempora.loggers.generic.undo.UndoResponse;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.ChatComponentTranslation;
@@ -337,17 +339,32 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
     }
 
     // If you enable undo support via isUndoEnabled override, then you MUST also override this and implement its logic.
-    public UndoResponse undoEvent(GenericEventInfo eventInfo, EntityPlayer player) {
+    protected UndoEventInfo undoEvent(GenericEventInfo eventInfo, EntityPlayer player) {
         throw new UnsupportedOperationException(
             "The class " + getLoggerName() + " supports undo but has no implementation. This is a bug!");
     }
 
-    public final List<UndoResponse> undoEvents(List<? extends GenericEventInfo> results, EntityPlayer player) {
-        List<UndoResponse> undoResponses = new ArrayList<>(results.size());
+    // ---- Internals, do not touch ----
+    public final UndoEventInfo undoEvents(GenericEventInfo eventInfo, EntityPlayer player) {
+        return undoEvent(eventInfo, player);
+    }
+
+    public final List<UndoEventInfo> undoEvents(List<? extends GenericEventInfo> results, EntityPlayer player) {
+        List<UndoEventInfo> undoResponse = new ArrayList<>(results.size());
 
         for (GenericEventInfo element : results) {
             try {
-                UndoResponse response = undoEvent(element, player);
+                UndoEventInfo response;
+                if (element.versionID != ModpackVersionData.CURRENT_VERSION) {
+                    response = new UndoEventInfo();
+                    response.state = UndoResponse.VERSION_MISMATCH;
+                    IChatComponent uuid = ChatUtils.createHoverableClickable("[UUID]", element.eventID);
+                    uuid.getChatStyle().setColor(EnumChatFormatting.AQUA);
+
+                    response.message = new ChatComponentTranslation("tempora.undo.version_mismatch", uuid);
+                } else {
+                    response = undoEvent(element, player);
+                }
 
                 // Strict validation of third-party implementations.
                 if (response == null) {
@@ -355,7 +372,7 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
                         "undoEvent returned null for" + getLoggerName() + " and eventID " + element.eventID);
                 }
 
-                if (response.success == null) {
+                if (response.state == null) {
                     throw new IllegalStateException(
                         "UndoResponse.success was null for " + getLoggerName() + " and eventID " + element.eventID);
                 }
@@ -367,7 +384,7 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
                             + element.eventID);
                 }
 
-                undoResponses.add(response);
+                undoResponse.add(response);
 
             } catch (UnsupportedOperationException e) {
                 // Abort the entire undo operation, undoEvent has not been implemented, but was called.
@@ -391,15 +408,15 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
                 errorMsg.getChatStyle()
                     .setColor(EnumChatFormatting.RED);
 
-                UndoResponse undoResponse = new UndoResponse();
-                undoResponse.message = errorMsg;
-                undoResponse.success = false;
+                UndoEventInfo undoEventInfo = new UndoEventInfo();
+                undoEventInfo.message = errorMsg;
+                undoEventInfo.state = UndoResponse.ERROR;
 
-                undoResponses.add(undoResponse);
+                undoResponse.add(undoEventInfo);
             }
         }
 
-        return undoResponses;
+        return undoResponse;
     }
 
 }
