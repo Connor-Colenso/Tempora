@@ -137,7 +137,7 @@ tempora.undo.preview.highlight=WARNING: This operation is irreversible.
 tempora.undo.preview.confirm=[HERE]
 tempora.undo.range.too_large=Server config limits undo range to %s. Your requested range has been capped.
 tempora.undo.bad_implementation=The logger %s has incorrectly implemented undo functionality and event %S and failed. Please contact author of this logger.
-
+tempora.undo.version_mismatch=The event %s was logged on a different modpack version. Therefore it may be unsafe to revert this, you may override this by using the UNSAFE option.
 
 # === HUD ===
 tempora.HUD.region.descriptor.plural=Currently inside %s regions:

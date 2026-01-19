@@ -10,6 +10,7 @@ import static com.colen.tempora.utils.nbt.NBTUtils.getEncodedTileEntityNBT;
 import java.util.List;
 import java.util.UUID;
 
+import com.colen.tempora.loggers.generic.undo.UndoResponse;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -29,7 +30,7 @@ import com.colen.tempora.TemporaEvents;
 import com.colen.tempora.enums.LoggerEventType;
 import com.colen.tempora.loggers.generic.GenericEventInfo;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
-import com.colen.tempora.loggers.generic.UndoResponse;
+import com.colen.tempora.loggers.generic.undo.UndoEventInfo;
 import com.colen.tempora.utils.RenderingUtils;
 import com.colen.tempora.utils.nbt.NBTUtils;
 
@@ -151,20 +152,20 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
     // Todo de-dupe code here and in other block adjacent loggers.
     // todo get rid of the need to cast the class here and use the generic.
     @Override
-    public UndoResponse undoEvent(GenericEventInfo eventInfo, EntityPlayer player) {
+    public UndoEventInfo undoEvent(GenericEventInfo eventInfo, EntityPlayer player) {
         if (!(eventInfo instanceof PlayerBlockBreakEventInfo pbbEventInfo)) {
-            UndoResponse undoResponse = new UndoResponse();
-            undoResponse.message = new ChatComponentTranslation("tempora.undo.unknown_error", getLoggerName());
-            undoResponse.success = false;
-            return undoResponse;
+            UndoEventInfo undoEventInfo = new UndoEventInfo();
+            undoEventInfo.message = new ChatComponentTranslation("tempora.undo.unknown_error", getLoggerName());
+            undoEventInfo.state = UndoResponse.ERROR;
+            return undoEventInfo;
         }
 
         // NBT existed but was not logged, it is not safe to undo this event.
         if (pbbEventInfo.encodedNBT.equals(NBT_DISABLED)) {
-            UndoResponse undoResponse = new UndoResponse();
-            undoResponse.message = new ChatComponentTranslation("tempora.undo.cannot_block_break.nbt_logging_disabled");
-            undoResponse.success = false;
-            return undoResponse;
+            UndoEventInfo undoEventInfo = new UndoEventInfo();
+            undoEventInfo.message = new ChatComponentTranslation("tempora.undo.cannot_block_break.nbt_logging_disabled");
+            undoEventInfo.state = UndoResponse.MISSING_DATA;
+            return undoEventInfo;
         }
 
         World w = MinecraftServer.getServer()
@@ -172,10 +173,10 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
 
         Block block = Block.getBlockById(pbbEventInfo.blockID);
         if (block == null) {
-            UndoResponse undoResponse = new UndoResponse();
-            undoResponse.message = new ChatComponentTranslation("tempora.undo.cannot_block_break.block_not_found");
-            undoResponse.success = false;
-            return undoResponse;
+            UndoEventInfo undoEventInfo = new UndoEventInfo();
+            undoEventInfo.message = new ChatComponentTranslation("tempora.undo.cannot_block_break.block_not_found");
+            undoEventInfo.state = UndoResponse.MISSING_DATA;
+            return undoEventInfo;
         }
 
         // Flag of 2 will update clients nearby.
@@ -190,10 +191,10 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
             2);
         // Block had no NBT.
         if (pbbEventInfo.encodedNBT.equals(NO_NBT)) {
-            UndoResponse undoResponse = new UndoResponse();
-            undoResponse.message = new ChatComponentTranslation("tempora.undo.success.normal");
-            undoResponse.success = true;
-            return undoResponse;
+            UndoEventInfo undoEventInfo = new UndoEventInfo();
+            undoEventInfo.message = new ChatComponentTranslation("tempora.undo.success.normal");
+            undoEventInfo.state = UndoResponse.SAFE;
+            return undoEventInfo;
         }
 
         try {
@@ -205,15 +206,15 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
             w.removeTileEntity((int) pbbEventInfo.x, (int) pbbEventInfo.y, (int) pbbEventInfo.z);
 
             e.printStackTrace();
-            UndoResponse undoResponse = new UndoResponse();
-            undoResponse.message = new ChatComponentTranslation("tempora.undo.unknown_error", getLoggerName());
-            undoResponse.success = false;
-            return undoResponse;
+            UndoEventInfo undoEventInfo = new UndoEventInfo();
+            undoEventInfo.message = new ChatComponentTranslation("tempora.undo.unknown_error", getLoggerName());
+            undoEventInfo.state = UndoResponse.MISSING_DATA;
+            return undoEventInfo;
         }
 
-        UndoResponse undoResponse = new UndoResponse();
-        undoResponse.message = new ChatComponentTranslation("tempora.undo.success.normal");
-        undoResponse.success = true;
-        return undoResponse;
+        UndoEventInfo undoEventInfo = new UndoEventInfo();
+        undoEventInfo.message = new ChatComponentTranslation("tempora.undo.success.normal");
+        undoEventInfo.state = UndoResponse.MISSING_DATA;
+        return undoEventInfo;
     }
 }
