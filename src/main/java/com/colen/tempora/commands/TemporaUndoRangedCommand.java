@@ -8,12 +8,12 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.colen.tempora.loggers.generic.undo.UndoResponse;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
@@ -31,13 +31,15 @@ import com.colen.tempora.loggers.generic.GenericEventInfo;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.RenderEventPacket;
 import com.colen.tempora.loggers.generic.undo.UndoEventInfo;
+import com.colen.tempora.loggers.generic.undo.UndoResponse;
 import com.colen.tempora.utils.CommandUtils;
 import com.colen.tempora.utils.TimeUtils;
 import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 
 public class TemporaUndoRangedCommand extends TemporaCommandBase {
 
-    private static final Map<String, List<? extends GenericEventInfo>> PENDING_UNDOS = new ConcurrentHashMap<>();
+    private static final Map<String, List<? extends GenericEventInfo>> PENDING_UNDOS_EVENTS = new ConcurrentHashMap<>();
+    private static final Map<String, List<UndoEventInfo>> PENDING_UNDOS_INFO = new ConcurrentHashMap<>();
     private static final Map<String, String> PENDING_UNDOS_LOGGER_NAMES = new ConcurrentHashMap<>();
 
     public static int MAX_RANGE;
@@ -106,7 +108,7 @@ public class TemporaUndoRangedCommand extends TemporaCommandBase {
             + "ON t.x=oldest.x AND t.y=oldest.y AND t.z=oldest.z AND t.timestamp=oldest.ts "
             + "ORDER BY t.timestamp ASC";
 
-        List<? extends GenericEventInfo> results;
+        List<? extends GenericEventInfo> eventsToUndo;
 
         int playerX = (int) player.posX;
         int playerY = (int) player.posY;
@@ -134,7 +136,7 @@ public class TemporaUndoRangedCommand extends TemporaCommandBase {
             ps.setTimestamp(14, cutoff);
 
             try (ResultSet rs = ps.executeQuery()) {
-                results = logger.generateQueryResults(rs);
+                eventsToUndo = logger.generateQueryResults(rs);
             }
         } catch (Exception e) {
             LOG.error("Undo preview DB error", e);
@@ -142,35 +144,35 @@ public class TemporaUndoRangedCommand extends TemporaCommandBase {
             return;
         }
 
-        if (results.isEmpty()) {
+        List<UndoEventInfo> undoEventsInfo = new ArrayList<>();
+        for (GenericEventInfo eventInfo : eventsToUndo) {
+            UndoEventInfo undoEventInfo = logger.isUndoSafe(eventInfo);
+
+            // If unsafe, inform the user of potential issues.
+            if (undoEventInfo.state != UndoResponse.SAFE) {
+                sender.addChatMessage(undoEventInfo.message);
+            }
+
+            undoEventsInfo.add(undoEventInfo);
+        }
+
+        if (eventsToUndo.isEmpty()) {
             sender.addChatMessage(new ChatComponentTranslation("tempora.undo.nothing_to_undo", loggerName));
             return;
         }
 
         // Send preview markers
-        for (GenericEventInfo event : results) {
+        for (GenericEventInfo event : eventsToUndo) {
+            // todo handle errors better for wrong event info, how to handle?
             NETWORK.sendTo(new RenderEventPacket(event), player);
         }
 
-        // Renders the checker box region on the client.
-        // RegionToRender region = new RegionToRender(
-        // player.dimension,
-        // playerX - radius,
-        // playerY - radius,
-        // playerZ - radius,
-        // playerX + radius + 1,
-        // playerY + radius + 1,
-        // playerZ + radius + 1,
-        // System.currentTimeMillis(),
-        // UUID.randomUUID().toString());
-        //
-        // NETWORK.sendTo(new PacketShowRegionInWorld.RegionMsg(region), player);
-
-        // Store preview results
+        // Store preview eventsToUndo
         String uuid = UUID.randomUUID()
             .toString();
-        PENDING_UNDOS.put(uuid, results);
+        PENDING_UNDOS_EVENTS.put(uuid, eventsToUndo);
         PENDING_UNDOS_LOGGER_NAMES.put(uuid, loggerName);
+        PENDING_UNDOS_INFO.put(uuid, undoEventsInfo);
 
         IChatComponent hoverText = new ChatComponentTranslation("tempora.undo.preview.highlight");
         hoverText.getChatStyle()
@@ -190,8 +192,9 @@ public class TemporaUndoRangedCommand extends TemporaCommandBase {
 
         String uuid = args[1];
 
-        List<? extends GenericEventInfo> stored = PENDING_UNDOS.get(uuid);
+        List<? extends GenericEventInfo> stored = PENDING_UNDOS_EVENTS.get(uuid);
         String loggerName = PENDING_UNDOS_LOGGER_NAMES.get(uuid);
+        List<UndoEventInfo> undoEventsInfo = PENDING_UNDOS_INFO.get(uuid);
 
         if (stored == null || loggerName == null) {
             sender.addChatMessage(new ChatComponentTranslation("tempora.undo.event_not_found", uuid));
@@ -199,6 +202,7 @@ public class TemporaUndoRangedCommand extends TemporaCommandBase {
         }
 
         GenericPositionalLogger<?> logger = TemporaLoggerManager.getLogger(loggerName);
+        if (logger == null) return; // todo
 
         if (!logger.isUndoEnabled()) {
             sender.addChatMessage(new ChatComponentTranslation("tempora.undo.not_enabled", loggerName));
@@ -206,14 +210,12 @@ public class TemporaUndoRangedCommand extends TemporaCommandBase {
         }
 
         long startMs = System.currentTimeMillis();
-        List<UndoEventInfo> undoRespons = logger.undoEvents(stored, sender);
+        logger.undoEvents(stored, sender);
         long durationMs = System.currentTimeMillis() - startMs;
 
         int successCounter = 0;
-        for (UndoEventInfo undoEventInfo : undoRespons) {
-            if (undoEventInfo.state != UndoResponse.SAFE) {
-                sender.addChatMessage(undoEventInfo.message);
-            } else {
+        for (UndoEventInfo undoEventInfo : undoEventsInfo) {
+            if (undoEventInfo.state == UndoResponse.SAFE) {
                 successCounter++;
             }
         }
@@ -221,8 +223,8 @@ public class TemporaUndoRangedCommand extends TemporaCommandBase {
         IChatComponent successRanged = new ChatComponentTranslation(
             "tempora.undo.success.ranged",
             new ChatComponentNumber(successCounter),
-            new ChatComponentNumber(undoRespons.size()),
-            new ChatComponentNumber(successCounter * 100.0 / undoRespons.size()),
+            new ChatComponentNumber(undoEventsInfo.size()),
+            new ChatComponentNumber(successCounter * 100.0 / undoEventsInfo.size()),
             new ChatComponentNumber(durationMs),
             new ChatComponentTranslation("time.unit.milliseconds"));
 
@@ -241,7 +243,7 @@ public class TemporaUndoRangedCommand extends TemporaCommandBase {
     }
 
     public static void onServerClose() {
-        PENDING_UNDOS.clear();
+        PENDING_UNDOS_EVENTS.clear();
     }
 
     public IChatComponent getCommandDescription() {

@@ -15,13 +15,8 @@ import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-import com.colen.tempora.loggers.generic.undo.UndoEventInfo;
-import com.colen.tempora.loggers.generic.undo.UndoResponse;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.util.ChatComponentTranslation;
-import net.minecraft.util.EnumChatFormatting;
-import net.minecraft.util.IChatComponent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
@@ -31,7 +26,7 @@ import org.jetbrains.annotations.NotNull;
 import com.colen.tempora.TemporaLoggerManager;
 import com.colen.tempora.enums.LoggerEventType;
 import com.colen.tempora.loggers.generic.column.ColumnDef;
-import com.colen.tempora.utils.ChatUtils;
+import com.colen.tempora.loggers.generic.undo.UndoEventInfo;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.relauncher.Side;
@@ -338,85 +333,29 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
         return false;
     }
 
-    // If you enable undo support via isUndoEnabled override, then you MUST also override this and implement its logic.
-    protected UndoEventInfo undoEvent(GenericEventInfo eventInfo, EntityPlayer player) {
+    // If you enable undo support via isUndoEnabled override, then you MUST also override these and implement their
+    // logic.
+    protected void undoEventInternal(GenericEventInfo eventInfo, EntityPlayer player) {
         throw new UnsupportedOperationException(
-            "The class " + getLoggerName() + " supports undo but has no implementation. This is a bug!");
+            "The class " + getLoggerName() + " supports undo but has no implementation for undoEvent. This is a bug!");
+    }
+
+    public @NotNull UndoEventInfo isUndoSafe(GenericEventInfo eventInfo) {
+        throw new UnsupportedOperationException(
+            "The class " + getLoggerName() + " supports undo but has no implementation for isUndoSafe. This is a bug!");
     }
 
     // ---- Internals, do not touch ----
-    public final UndoEventInfo undoEvents(GenericEventInfo eventInfo, EntityPlayer player) {
-        return undoEvent(eventInfo, player);
+
+    public final void undoEvent(GenericEventInfo eventInfo, EntityPlayer player) {
+        undoEventInternal(eventInfo, player);
     }
 
-    public final List<UndoEventInfo> undoEvents(List<? extends GenericEventInfo> results, EntityPlayer player) {
-        List<UndoEventInfo> undoResponse = new ArrayList<>(results.size());
+    public final void undoEvents(List<? extends GenericEventInfo> results, EntityPlayer player) {
 
         for (GenericEventInfo element : results) {
-            try {
-                UndoEventInfo response;
-                if (element.versionID != ModpackVersionData.CURRENT_VERSION) {
-                    response = new UndoEventInfo();
-                    response.state = UndoResponse.VERSION_MISMATCH;
-                    IChatComponent uuid = ChatUtils.createHoverableClickable("[UUID]", element.eventID);
-                    uuid.getChatStyle().setColor(EnumChatFormatting.AQUA);
-
-                    response.message = new ChatComponentTranslation("tempora.undo.version_mismatch", uuid);
-                } else {
-                    response = undoEvent(element, player);
-                }
-
-                // Strict validation of third-party implementations.
-                if (response == null) {
-                    throw new IllegalStateException(
-                        "undoEvent returned null for" + getLoggerName() + " and eventID " + element.eventID);
-                }
-
-                if (response.state == null) {
-                    throw new IllegalStateException(
-                        "UndoResponse.success was null for " + getLoggerName() + " and eventID " + element.eventID);
-                }
-
-                if (response.message == null) {
-                    throw new IllegalStateException(
-                        "Failure UndoResponse had no message for " + getLoggerName()
-                            + " and eventID "
-                            + element.eventID);
-                }
-
-                undoResponse.add(response);
-
-            } catch (UnsupportedOperationException e) {
-                // Abort the entire undo operation, undoEvent has not been implemented, but was called.
-                throw e;
-
-            } catch (Throwable t) {
-                // Any other throwable is a bad logger implementation.
-                LOG.error(
-                    "Logger {} failed during undo for event {}. This is a logger implementation error.",
-                    getLoggerName(),
-                    element.eventID,
-                    t);
-
-                // Something gone wrong with the undo implementation. This may not be Tempora's fault, depending on the
-                // origin of this logger.
-
-                IChatComponent errorMsg = new ChatComponentTranslation(
-                    "tempora.undo.bad_implementation",
-                    getLoggerName(),
-                    ChatUtils.createHoverableClickable("[UUID]", element.eventID));
-                errorMsg.getChatStyle()
-                    .setColor(EnumChatFormatting.RED);
-
-                UndoEventInfo undoEventInfo = new UndoEventInfo();
-                undoEventInfo.message = errorMsg;
-                undoEventInfo.state = UndoResponse.ERROR;
-
-                undoResponse.add(undoEventInfo);
-            }
+            undoEventInternal(element, player);
         }
-
-        return undoResponse;
     }
 
 }

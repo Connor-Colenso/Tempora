@@ -3,23 +3,16 @@ package com.colen.tempora.loggers.player_block_break;
 import static com.colen.tempora.utils.BlockUtils.getPickBlockSafe;
 import static com.colen.tempora.utils.GenericUtils.isClientSide;
 import static com.colen.tempora.utils.PlayerUtils.UNKNOWN_PLAYER_NAME;
-import static com.colen.tempora.utils.nbt.NBTUtils.NBT_DISABLED;
-import static com.colen.tempora.utils.nbt.NBTUtils.NO_NBT;
 import static com.colen.tempora.utils.nbt.NBTUtils.getEncodedTileEntityNBT;
 
 import java.util.List;
 import java.util.UUID;
 
-import com.colen.tempora.loggers.generic.undo.UndoResponse;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ChatComponentTranslation;
-import net.minecraft.world.World;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.event.world.BlockEvent;
@@ -30,9 +23,7 @@ import com.colen.tempora.TemporaEvents;
 import com.colen.tempora.enums.LoggerEventType;
 import com.colen.tempora.loggers.generic.GenericEventInfo;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
-import com.colen.tempora.loggers.generic.undo.UndoEventInfo;
 import com.colen.tempora.utils.RenderingUtils;
-import com.colen.tempora.utils.nbt.NBTUtils;
 
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
@@ -152,69 +143,70 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
     // Todo de-dupe code here and in other block adjacent loggers.
     // todo get rid of the need to cast the class here and use the generic.
     @Override
-    public UndoEventInfo undoEvent(GenericEventInfo eventInfo, EntityPlayer player) {
-        if (!(eventInfo instanceof PlayerBlockBreakEventInfo pbbEventInfo)) {
-            UndoEventInfo undoEventInfo = new UndoEventInfo();
-            undoEventInfo.message = new ChatComponentTranslation("tempora.undo.unknown_error", getLoggerName());
-            undoEventInfo.state = UndoResponse.ERROR;
-            return undoEventInfo;
-        }
-
-        // NBT existed but was not logged, it is not safe to undo this event.
-        if (pbbEventInfo.encodedNBT.equals(NBT_DISABLED)) {
-            UndoEventInfo undoEventInfo = new UndoEventInfo();
-            undoEventInfo.message = new ChatComponentTranslation("tempora.undo.cannot_block_break.nbt_logging_disabled");
-            undoEventInfo.state = UndoResponse.MISSING_DATA;
-            return undoEventInfo;
-        }
-
-        World w = MinecraftServer.getServer()
-            .worldServerForDimension(eventInfo.dimensionID);
-
-        Block block = Block.getBlockById(pbbEventInfo.blockID);
-        if (block == null) {
-            UndoEventInfo undoEventInfo = new UndoEventInfo();
-            undoEventInfo.message = new ChatComponentTranslation("tempora.undo.cannot_block_break.block_not_found");
-            undoEventInfo.state = UndoResponse.MISSING_DATA;
-            return undoEventInfo;
-        }
-
-        // Flag of 2 will update clients nearby.
-        w.setBlock((int) pbbEventInfo.x, (int) pbbEventInfo.y, (int) pbbEventInfo.z, block, pbbEventInfo.metadata, 2);
-
-        // Just to ensure meta is being set right, stops blocks interfering.
-        w.setBlockMetadataWithNotify(
-            (int) pbbEventInfo.x,
-            (int) pbbEventInfo.y,
-            (int) pbbEventInfo.z,
-            pbbEventInfo.metadata,
-            2);
-        // Block had no NBT.
-        if (pbbEventInfo.encodedNBT.equals(NO_NBT)) {
-            UndoEventInfo undoEventInfo = new UndoEventInfo();
-            undoEventInfo.message = new ChatComponentTranslation("tempora.undo.success.normal");
-            undoEventInfo.state = UndoResponse.SAFE;
-            return undoEventInfo;
-        }
-
-        try {
-            TileEntity tileEntity = TileEntity.createAndLoadEntity(NBTUtils.decodeFromString(pbbEventInfo.encodedNBT));
-            w.setTileEntity((int) pbbEventInfo.x, (int) pbbEventInfo.y, (int) pbbEventInfo.z, tileEntity);
-        } catch (Exception e) {
-            // Erase the block. Try to stop world state having issues.
-            w.setBlockToAir((int) pbbEventInfo.x, (int) pbbEventInfo.y, (int) pbbEventInfo.z);
-            w.removeTileEntity((int) pbbEventInfo.x, (int) pbbEventInfo.y, (int) pbbEventInfo.z);
-
-            e.printStackTrace();
-            UndoEventInfo undoEventInfo = new UndoEventInfo();
-            undoEventInfo.message = new ChatComponentTranslation("tempora.undo.unknown_error", getLoggerName());
-            undoEventInfo.state = UndoResponse.MISSING_DATA;
-            return undoEventInfo;
-        }
-
-        UndoEventInfo undoEventInfo = new UndoEventInfo();
-        undoEventInfo.message = new ChatComponentTranslation("tempora.undo.success.normal");
-        undoEventInfo.state = UndoResponse.MISSING_DATA;
-        return undoEventInfo;
+    public void undoEventInternal(GenericEventInfo eventInfo, EntityPlayer player) {
+        // if (!(eventInfo instanceof PlayerBlockBreakEventInfo pbbEventInfo)) {
+        // UndoEventInfo undoEventInfo = new UndoEventInfo();
+        // undoEventInfo.message = new ChatComponentTranslation("tempora.undo.unknown_error", getLoggerName());
+        // undoEventInfo.state = UndoResponse.ERROR;
+        // return undoEventInfo;
+        // }
+        //
+        // // NBT existed but was not logged, it is not safe to undo this event.
+        // if (pbbEventInfo.encodedNBT.equals(NBT_DISABLED)) {
+        // UndoEventInfo undoEventInfo = new UndoEventInfo();
+        // undoEventInfo.message = new ChatComponentTranslation("tempora.undo.cannot_block_break.nbt_logging_disabled");
+        // undoEventInfo.state = UndoResponse.MISSING_DATA;
+        // return undoEventInfo;
+        // }
+        //
+        // World w = MinecraftServer.getServer()
+        // .worldServerForDimension(eventInfo.dimensionID);
+        //
+        // Block block = Block.getBlockById(pbbEventInfo.blockID);
+        // if (block == null) {
+        // UndoEventInfo undoEventInfo = new UndoEventInfo();
+        // undoEventInfo.message = new ChatComponentTranslation("tempora.undo.cannot_block_break.block_not_found");
+        // undoEventInfo.state = UndoResponse.MISSING_DATA;
+        // return undoEventInfo;
+        // }
+        //
+        // // Flag of 2 will update clients nearby.
+        // w.setBlock((int) pbbEventInfo.x, (int) pbbEventInfo.y, (int) pbbEventInfo.z, block, pbbEventInfo.metadata,
+        // 2);
+        //
+        // // Just to ensure meta is being set right, stops blocks interfering.
+        // w.setBlockMetadataWithNotify(
+        // (int) pbbEventInfo.x,
+        // (int) pbbEventInfo.y,
+        // (int) pbbEventInfo.z,
+        // pbbEventInfo.metadata,
+        // 2);
+        // // Block had no NBT.
+        // if (pbbEventInfo.encodedNBT.equals(NO_NBT)) {
+        // UndoEventInfo undoEventInfo = new UndoEventInfo();
+        // undoEventInfo.message = new ChatComponentTranslation("tempora.undo.success.normal");
+        // undoEventInfo.state = UndoResponse.SAFE;
+        // return undoEventInfo;
+        // }
+        //
+        // try {
+        // TileEntity tileEntity = TileEntity.createAndLoadEntity(NBTUtils.decodeFromString(pbbEventInfo.encodedNBT));
+        // w.setTileEntity((int) pbbEventInfo.x, (int) pbbEventInfo.y, (int) pbbEventInfo.z, tileEntity);
+        // } catch (Exception e) {
+        // // Erase the block. Try to stop world state having issues.
+        // w.setBlockToAir((int) pbbEventInfo.x, (int) pbbEventInfo.y, (int) pbbEventInfo.z);
+        // w.removeTileEntity((int) pbbEventInfo.x, (int) pbbEventInfo.y, (int) pbbEventInfo.z);
+        //
+        // e.printStackTrace();
+        // UndoEventInfo undoEventInfo = new UndoEventInfo();
+        // undoEventInfo.message = new ChatComponentTranslation("tempora.undo.unknown_error", getLoggerName());
+        // undoEventInfo.state = UndoResponse.MISSING_DATA;
+        // return undoEventInfo;
+        // }
+        //
+        // UndoEventInfo undoEventInfo = new UndoEventInfo();
+        // undoEventInfo.message = new ChatComponentTranslation("tempora.undo.success.normal");
+        // undoEventInfo.state = UndoResponse.MISSING_DATA;
+        // return undoEventInfo;
     }
 }
