@@ -10,6 +10,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.colen.tempora.loggers.generic.GenericEventInfo;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
@@ -86,13 +87,8 @@ public final class TemporaLoggerManager {
 
     /* ---------------- LOGGER ACCESS ---------------- */
 
-    public static @NotNull GenericPositionalLogger<?> getLogger(String loggerName) {
-        GenericPositionalLogger<?> logger = LOGGERS.get(loggerName);
-        if (logger == null) {
-            throw new IllegalStateException("Unknown logger name: " + loggerName);
-        } else {
-            return logger;
-        }
+    public static @Nullable GenericPositionalLogger<?> getLogger(String loggerName) {
+        return LOGGERS.get(loggerName);
     }
 
     public static Collection<GenericPositionalLogger<?>> getLoggerList() {
