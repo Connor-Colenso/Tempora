@@ -13,7 +13,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -30,10 +29,11 @@ import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.RenderEventPacket;
 import com.colen.tempora.loggers.generic.UndoResponse;
 import com.colen.tempora.utils.CommandUtils;
+import com.colen.tempora.utils.TemporaCommandBase;
 import com.colen.tempora.utils.TimeUtils;
 import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 
-public class TemporaUndoRangedCommand extends CommandBase {
+public class TemporaUndoRangedCommand extends TemporaCommandBase {
 
     private static final Map<String, List<? extends GenericEventInfo>> PENDING_UNDOS = new ConcurrentHashMap<>();
     private static final Map<String, String> PENDING_UNDOS_LOGGER_NAMES = new ConcurrentHashMap<>();
@@ -245,5 +245,15 @@ public class TemporaUndoRangedCommand extends CommandBase {
 
     public static void onServerClose() {
         PENDING_UNDOS.clear();
+    }
+
+    @Override
+    public String getExampleArgs() {
+        return "15 10m PlayerBlockPlaceLogger";
+    }
+
+    @Override
+    public String setCommandLangBase() {
+        return "tempora.undo_ranged";
     }
 }

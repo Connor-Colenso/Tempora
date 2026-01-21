@@ -3,13 +3,10 @@ package com.colen.tempora.commands;
 import static com.colen.tempora.Tempora.NETWORK;
 import static com.colen.tempora.utils.GenericUtils.getDimensionName;
 
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 
-import com.colen.tempora.utils.TemporaCommandBase;
-import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentTranslation;
@@ -21,6 +18,7 @@ import com.colen.tempora.loggers.block_change.region_registry.BlockChangeRegionR
 import com.colen.tempora.loggers.block_change.region_registry.TemporaWorldRegion;
 import com.colen.tempora.networking.packets.PacketShowRegionInWorld;
 import com.colen.tempora.utils.CommandUtils;
+import com.colen.tempora.utils.TemporaCommandBase;
 
 /**
  * /listregions
@@ -42,7 +40,7 @@ public class ListRegionsCommand extends TemporaCommandBase {
     /** Usage is localised */
     @Override
     public String getCommandUsage(ICommandSender s) {
-        return "§a/tempora_list_regions §6[Dim ID filter]";
+        return "/tempora_list_regions [Dim ID filter]";
     }
 
     @Override
@@ -130,21 +128,12 @@ public class ListRegionsCommand extends TemporaCommandBase {
     }
 
     @Override
-    public IChatComponent getCommandDescription() {
-        return new ChatComponentTranslation("tempora.command.list_regions.help.description");
+    public String getExampleArgs() {
+        return "-1";
     }
 
     @Override
-    public IChatComponent getCommandExample() {
-        return new ChatComponentTranslation("tempora.command.list_regions.help.example");
-    }
-
-    @Override
-    public List<IChatComponent> getArgsDescriptions() {
-        ArrayList<IChatComponent> argsDescriptions = new ArrayList<>();
-
-        argsDescriptions.add(new ChatComponentTranslation("tempora.command.create_region.help.arg1"));
-
-        return argsDescriptions;
+    public String setCommandLangBase() {
+        return "tempora.command.list_regions";
     }
 }

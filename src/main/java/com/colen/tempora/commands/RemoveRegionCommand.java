@@ -5,7 +5,6 @@ import static com.colen.tempora.utils.CommandUtils.teleportChatComponent;
 
 import java.util.List;
 
-import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
@@ -18,6 +17,7 @@ import com.colen.tempora.loggers.block_change.region_registry.BlockChangeRegionR
 import com.colen.tempora.loggers.block_change.region_registry.TemporaWorldRegion;
 import com.colen.tempora.networking.packets.PacketRemoveRegionFromClient;
 import com.colen.tempora.utils.CommandUtils;
+import com.colen.tempora.utils.TemporaCommandBase;
 import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 
 /**
@@ -25,7 +25,7 @@ import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
  * Deletes every stored region that currently contains the issuing player.
  * (If regions overlap, they are all removed.)
  */
-public class RemoveRegionCommand extends CommandBase {
+public class RemoveRegionCommand extends TemporaCommandBase {
 
     @Override
     public String getCommandName() {
@@ -92,5 +92,15 @@ public class RemoveRegionCommand extends CommandBase {
                 .setColor(EnumChatFormatting.RED);
         }
         sender.addChatMessage(msg);
+    }
+
+    @Override
+    public String getExampleArgs() {
+        return "";
+    }
+
+    @Override
+    public String setCommandLangBase() {
+        return "tempora.command.remove_region";
     }
 }

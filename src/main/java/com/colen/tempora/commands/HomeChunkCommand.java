@@ -9,11 +9,9 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import com.colen.tempora.utils.TemporaCommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.util.ChatComponentTranslation;
@@ -22,6 +20,7 @@ import net.minecraft.util.IChatComponent;
 import com.colen.tempora.TemporaLoggerManager;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.utils.PlayerUtils;
+import com.colen.tempora.utils.TemporaCommandBase;
 import com.colen.tempora.utils.TimeUtils;
 
 /**
@@ -43,7 +42,7 @@ public class HomeChunkCommand extends TemporaCommandBase {
 
     @Override
     public String getCommandUsage(ICommandSender s) {
-        return "§2/tempora_home_chunk §6<player> §c[<look-back>] §5[<dim>]";
+        return "/tempora_home_chunk <player> [<look-back>] [<dim>]";
     }
 
     @Override
@@ -195,23 +194,12 @@ public class HomeChunkCommand extends TemporaCommandBase {
     }
 
     @Override
-    public IChatComponent getCommandDescription() {
-        return new ChatComponentTranslation("tempora.command.home_chunk.help.description");
+    public String getExampleArgs() {
+        return "";
     }
 
     @Override
-    public IChatComponent getCommandExample() {
-        return new ChatComponentTranslation("tempora.command.home_chunk.help.example");
-    }
-
-    @Override
-    public List<IChatComponent> getArgsDescriptions() {
-        ArrayList<IChatComponent> argsDescriptions = new ArrayList<>();
-
-        argsDescriptions.add(new ChatComponentTranslation("tempora.command.home_chunk.help.arg1"));
-        argsDescriptions.add(new ChatComponentTranslation("tempora.command.home_chunk.help.arg2"));
-        argsDescriptions.add(new ChatComponentTranslation("tempora.command.home_chunk.help.arg3"));
-
-        return argsDescriptions;
+    public String setCommandLangBase() {
+        return "tempora.command.home_chunk";
     }
 }

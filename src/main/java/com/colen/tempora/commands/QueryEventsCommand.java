@@ -2,7 +2,6 @@ package com.colen.tempora.commands;
 
 import java.util.List;
 
-import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -11,9 +10,10 @@ import net.minecraft.util.ChatComponentTranslation;
 
 import com.colen.tempora.TemporaLoggerManager;
 import com.colen.tempora.utils.CommandUtils;
+import com.colen.tempora.utils.TemporaCommandBase;
 import com.colen.tempora.utils.TimeUtils;
 
-public class QueryEventsCommand extends CommandBase {
+public class QueryEventsCommand extends TemporaCommandBase {
 
     @Override
     public String getCommandName() {
@@ -22,7 +22,7 @@ public class QueryEventsCommand extends CommandBase {
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/tempora_query_events <radius> <time> <filter>";
+        return "/tempora_query_events <loggerName> <radius> <from_time> [to_time]";
     }
 
     @Override
@@ -78,5 +78,15 @@ public class QueryEventsCommand extends CommandBase {
             return CommandUtils.completeLoggerNames(args);
         }
         return null; // Return null when there are no matches.
+    }
+
+    @Override
+    public String getExampleArgs() {
+        return "PlayerBlockBreakLogger 25 1day 40min";
+    }
+
+    @Override
+    public String setCommandLangBase() {
+        return "tempora.command.query_events";
     }
 }
