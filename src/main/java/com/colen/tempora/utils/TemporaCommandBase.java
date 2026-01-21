@@ -3,43 +3,42 @@ package com.colen.tempora.utils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 import net.minecraft.command.CommandBase;
+import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
 public abstract class TemporaCommandBase extends CommandBase {
 
+
     public TemporaCommandBase(int... arg_groups) {
         addArgGroup(arg_groups);
-        colourFormatCommand(getCommandUsage(null));
         commandTranslationKeyBase = setCommandLangBase();
-    }
-
-    public List<Integer> getArgGroups() {
-        return argGroups;
+        colourFormatCommand();
     }
 
     private final List<Integer> argGroups = new ArrayList<>();
-    private final List<ChatComponentTranslation> formattedArgs = new ArrayList<>();
-    private final List<ChatComponentTranslation> formattedExampleArgs = new ArrayList<>();
-    private ChatComponentTranslation formattedCommand = new ChatComponentTranslation("");
-    private ChatComponentTranslation formattedExampleCommand = new ChatComponentTranslation("");
+    private final List<IChatComponent> formattedArgs = new ArrayList<>();
+    private ArrayList<IChatComponent> colourFormattedComponents;
+    private IChatComponent formattedCommand = new ChatComponentTranslation("");
+    private IChatComponent formattedExampleCommand = new ChatComponentTranslation("");
     private String commandTranslationKeyBase = "";
 
     public final List<IChatComponent> generateCommandArgDescriptionTranslationList(String translationKeyBase) {
         ArrayList<IChatComponent> argsDescriptions = new ArrayList<>();
 
-        for (int i = 0; i < formattedArgs.size(); i++) {
+        for (int i = 0; i < formattedArgs.size() - 1; i++) {
             String translationKey = translationKeyBase + ".help.arg" + (i + 1);
-            argsDescriptions.add(new ChatComponentTranslation(translationKey, formattedArgs.get(i)));
+            argsDescriptions.add(new ChatComponentTranslation(translationKey, formattedArgs.get(i + 1)));
         }
 
         return argsDescriptions;
     }
 
-    public final ChatComponentTranslation getFormattedCommand() {
+    public final IChatComponent getFormattedCommand() {
         return formattedCommand;
     }
 
@@ -61,52 +60,55 @@ public abstract class TemporaCommandBase extends CommandBase {
             EnumChatFormatting.AQUA,
             EnumChatFormatting.LIGHT_PURPLE));
 
-    private void colourFormatCommand(String command) {
-        int colourListIndex = 0;
-        StringBuilder formattedCommandString = new StringBuilder();
-        StringBuilder formattedExampleCommandString = new StringBuilder();
-
-        formattedExampleCommandString.append("%s ");
-
-        if (getArgGroups().isEmpty() || true) {
-            for (String section : command.split(" ")) {
-                formattedCommandString.append("%s ");
-                ChatComponentTranslation placeholderArg = new ChatComponentTranslation(section);
-                placeholderArg.getChatStyle()
-                    .setColor(getColourAtIndex(colourListIndex));
-                formattedArgs.add(placeholderArg);
-                if (colourListIndex == 0) {
-                    formattedExampleArgs.add(placeholderArg);
-                }
-                colourListIndex++;
-            }
-
-            String com = formattedCommandString.toString();
-            formattedCommand = new ChatComponentTranslation(com, formattedArgs.toArray());
-            formattedArgs.remove(0);
-            colourListIndex = 1;
-
-            for (String section : getExampleArgs().split(" ")) {
-                formattedExampleCommandString.append("%s ");
-                ChatComponentTranslation exampleArg = new ChatComponentTranslation(section);
-                exampleArg.getChatStyle()
-                    .setColor(getColourAtIndex(colourListIndex));
-                formattedExampleArgs.add(exampleArg);
-                colourListIndex++;
-            }
-
-            String exampleCom = formattedExampleCommandString.toString();
-            formattedExampleCommand = new ChatComponentTranslation(exampleCom, formattedExampleArgs.toArray());
-        } else {
-
+    private static String getFormatStringBase(int n){
+        StringBuilder formatString = new StringBuilder();
+        for (int i = 0; i < n; i++) {
+            formatString.append("%s ");
         }
+        return formatString.toString();
     }
 
+    private void colourFormatCommand() {
+
+        // Split into IChatComponents.
+        ArrayList<IChatComponent> iChatComponents = new ArrayList<>();
+        for (String s : getCommandUsage(null).split(" ")) {
+            iChatComponents.add(new ChatComponentText(s));
+        }
+
+        int absoluteIndex = 0;
+        int groupIndex = 0;
+        colourFormattedComponents = new ArrayList<>();
+        for (int groupSize : argGroups) {
+
+            ArrayList<IChatComponent> group = new ArrayList<>();
+            for (int i = 0; i < groupSize; i++) {
+                group.add(iChatComponents.get(absoluteIndex + i));
+            }
+
+            IChatComponent groupComponent = new ChatComponentTranslation(getFormatStringBase(groupSize), group.toArray());
+            groupComponent.getChatStyle().setColor(getColourAtIndex(groupIndex));
+            colourFormattedComponents.add(groupComponent);
+
+            groupIndex++;
+            absoluteIndex += groupSize;
+        }
+
+        formattedCommand = new ChatComponentText("");
+        for (IChatComponent component : colourFormattedComponents) {
+            formattedCommand.appendSibling(component);
+        }
+
+        formattedExampleCommand = new ChatComponentText("");
+    }
+
+    // Loop the colours if you reach the end.
     public final EnumChatFormatting getColourAtIndex(int index) {
         return ARGS_COLOUR_LIST.get(index % ARGS_COLOUR_LIST.size());
     }
 
     private void addArgGroup(int... groupSize) {
+        argGroups.add(1);
         for (int size : groupSize) {
             argGroups.add(size);
         }

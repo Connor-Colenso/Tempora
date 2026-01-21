@@ -40,7 +40,7 @@ public class ListRegionsCommand extends TemporaCommandBase {
     /** Usage is localised */
     @Override
     public String getCommandUsage(ICommandSender s) {
-        return "/tempora_list_regions [Dim ID filter]";
+        return "/tempora_list_regions [Dim_ID]";
     }
 
     @Override
