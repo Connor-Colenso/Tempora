@@ -34,7 +34,7 @@ public class CreateRegionCommand extends TemporaCommandBase {
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/tempora_create_region <label> <x1> <y1> <z1> <x2> <y2> <z2> [dim ID]";
+        return "/tempora_create_region <label> <x1> <y1> <z1> <x2> <y2> <z2> [dim_ID]";
     }
 
     @Override
