@@ -125,10 +125,10 @@ tempora.command.create_region.success=Created region %s | Bounds: %s -> %s | Mid
 tempora.command.create_region.non_numeric_coordinate=All coordinates must be integers, found %s.
 tempora.command.create_region.non.numeric.dimension=Dimension '%s' must be an integer.
 tempora.command.create_region.help.description=Creates a cube region in the specified dimension that can be used for various Tempora commands to set their area of effect.
-tempora.command.create_region.help.arg1=%s: The name of the new region to create.
-tempora.command.create_region.help.arg2=%s: Co-ordinate 1 of the cube region.
-tempora.command.create_region.help.arg3=%s: Co-ordinate 2 of the cube region. Needs to have at least ±1 difference on all axis from co-ordinate 1.
-tempora.command.create_region.help.arg4=%s: The dimension ID (e.g. 0 = overworld) that the region should be created in, when left undefined it will default to the dimension the caller is in.
+tempora.command.create_region.help.arg0=The name of the new region to create.
+tempora.command.create_region.help.arg1=Co-ordinate 1 of the cube region.
+tempora.command.create_region.help.arg2=Co-ordinate 2 of the cube region. Needs to have at least ±1 difference on all axis from co-ordinate 1.
+tempora.command.create_region.help.arg3=The dimension ID (e.g. 0 = overworld) that the region should be created in, when left undefined it will default to the dimension the caller is in.
 tempora.command.create_region.help.example_description=This will create a region called test from the co-ordinates 0 0 0 to 5 5 5 (a cube with a volume of 125 blocks) in the overworld.
 
 tempora.command.list_regions.global.logging.enabled=WARNING: globalBlockChangeLogging is enabled, capturing all block changes globally and ignoring regions.

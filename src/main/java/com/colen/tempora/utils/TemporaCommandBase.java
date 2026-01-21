@@ -3,7 +3,6 @@ package com.colen.tempora.utils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 
 import net.minecraft.command.CommandBase;
 import net.minecraft.util.ChatComponentText;
@@ -21,8 +20,7 @@ public abstract class TemporaCommandBase extends CommandBase {
     }
 
     private final List<Integer> argGroups = new ArrayList<>();
-    private final List<IChatComponent> formattedArgs = new ArrayList<>();
-    private ArrayList<IChatComponent> colourFormattedComponents;
+    private ArrayList<IChatComponent> groupedColourFormattedComponents;
     private IChatComponent formattedCommand = new ChatComponentTranslation("");
     private IChatComponent formattedExampleCommand = new ChatComponentTranslation("");
     private String commandTranslationKeyBase = "";
@@ -30,9 +28,14 @@ public abstract class TemporaCommandBase extends CommandBase {
     public final List<IChatComponent> generateCommandArgDescriptionTranslationList(String translationKeyBase) {
         ArrayList<IChatComponent> argsDescriptions = new ArrayList<>();
 
-        for (int i = 0; i < formattedArgs.size() - 1; i++) {
-            String translationKey = translationKeyBase + ".help.arg" + (i + 1);
-            argsDescriptions.add(new ChatComponentTranslation(translationKey, formattedArgs.get(i + 1)));
+        for (int i = 0; i < groupedColourFormattedComponents.size(); i++) {
+            // Skip the first, as it is simply the command itself e.g. /tempora_help.
+            if (i == 1) continue;
+
+            // %s: This describes how the grouped %s operates e.g. x1 x2 x3
+            IChatComponent description = new ChatComponentTranslation("%s: ", groupedColourFormattedComponents.get(i));
+            description.appendSibling(new ChatComponentTranslation(translationKeyBase + ".help.arg" + i));
+            argsDescriptions.add(description);
         }
 
         return argsDescriptions;
@@ -78,7 +81,7 @@ public abstract class TemporaCommandBase extends CommandBase {
 
         int absoluteIndex = 0;
         int groupIndex = 0;
-        colourFormattedComponents = new ArrayList<>();
+        groupedColourFormattedComponents = new ArrayList<>();
         for (int groupSize : argGroups) {
 
             ArrayList<IChatComponent> group = new ArrayList<>();
@@ -88,14 +91,14 @@ public abstract class TemporaCommandBase extends CommandBase {
 
             IChatComponent groupComponent = new ChatComponentTranslation(getFormatStringBase(groupSize), group.toArray());
             groupComponent.getChatStyle().setColor(getColourAtIndex(groupIndex));
-            colourFormattedComponents.add(groupComponent);
+            groupedColourFormattedComponents.add(groupComponent);
 
             groupIndex++;
             absoluteIndex += groupSize;
         }
 
         formattedCommand = new ChatComponentText("");
-        for (IChatComponent component : colourFormattedComponents) {
+        for (IChatComponent component : groupedColourFormattedComponents) {
             formattedCommand.appendSibling(component);
         }
 
