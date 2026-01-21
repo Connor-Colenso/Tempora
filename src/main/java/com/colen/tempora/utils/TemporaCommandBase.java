@@ -28,14 +28,16 @@ public abstract class TemporaCommandBase extends CommandBase {
     public final List<IChatComponent> generateCommandArgDescriptionTranslationList(String translationKeyBase) {
         ArrayList<IChatComponent> argsDescriptions = new ArrayList<>();
 
-        for (int i = 0; i < groupedColourFormattedComponents.size(); i++) {
-            // Skip the first, as it is simply the command itself e.g. /tempora_help.
-            if (i == 1) continue;
+        int groupIndex = 0;
+        // Skip the first, as it is simply the command itself e.g. /tempora_help.
+        for (IChatComponent argGroup : groupedColourFormattedComponents.subList(1, groupedColourFormattedComponents.size())) {
 
             // %s: This describes how the grouped %s operates e.g. x1 x2 x3
-            IChatComponent description = new ChatComponentTranslation("%s: ", groupedColourFormattedComponents.get(i));
-            description.appendSibling(new ChatComponentTranslation(translationKeyBase + ".help.arg" + i));
+            IChatComponent description = new ChatComponentTranslation("%s: ", argGroup);
+            description.appendSibling(new ChatComponentTranslation(translationKeyBase + ".help.arg" + groupIndex));
             argsDescriptions.add(description);
+
+            groupIndex++;
         }
 
         return argsDescriptions;
@@ -101,8 +103,6 @@ public abstract class TemporaCommandBase extends CommandBase {
         for (IChatComponent component : groupedColourFormattedComponents) {
             formattedCommand.appendSibling(component);
         }
-
-        formattedExampleCommand = new ChatComponentText("");
     }
 
     // Loop the colours if you reach the end.
@@ -126,6 +126,7 @@ public abstract class TemporaCommandBase extends CommandBase {
     }
 
     public final IChatComponent getCommandExample() {
+
         return formattedExampleCommand;
     }
 
