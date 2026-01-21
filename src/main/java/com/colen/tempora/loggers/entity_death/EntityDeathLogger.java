@@ -68,6 +68,7 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathEventI
     @SubscribeEvent(priority = EventPriority.LOWEST)
     @SuppressWarnings("unused")
     public void onEntityDeath(LivingDeathEvent event) {
+        if (!isLoggerEnabled) return;
         if (isClientSide()) return;
         if (event.entityLiving instanceof EntityPlayerMP) return; // No players allowed here, this is for mobs only.
         if (event.entity instanceof EntityItem) return;

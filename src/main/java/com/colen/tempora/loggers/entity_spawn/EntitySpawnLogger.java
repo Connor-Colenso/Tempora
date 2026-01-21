@@ -68,6 +68,7 @@ public class EntitySpawnLogger extends GenericPositionalLogger<EntitySpawnEventI
     @SubscribeEvent(priority = EventPriority.LOWEST)
     @SuppressWarnings("unused")
     public void onEntitySpawn(EntityJoinWorldEvent event) {
+        if (!isLoggerEnabled) return;
         if (isClientSide()) return;
         if (event.isCanceled()) return;
         if (event.entity instanceof EntityPlayerMP) return;

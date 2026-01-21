@@ -108,6 +108,7 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
     @SuppressWarnings("unused")
     public void onBlockBreak(final @NotNull BlockEvent.BreakEvent event) {
         // Server side only.
+        if (!isLoggerEnabled) return;
         if (isClientSide()) return;
         if (event.isCanceled()) return;
 
