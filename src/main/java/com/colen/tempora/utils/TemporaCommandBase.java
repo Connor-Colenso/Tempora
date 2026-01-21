@@ -22,7 +22,7 @@ public abstract class TemporaCommandBase extends CommandBase {
     private final List<Integer> argGroups = new ArrayList<>();
     private ArrayList<IChatComponent> groupedColourFormattedComponents;
     private IChatComponent formattedCommand = new ChatComponentTranslation("");
-    private IChatComponent formattedExampleCommand = new ChatComponentTranslation("");
+    private IChatComponent formattedExampleCommand;
     private String commandTranslationKeyBase = "";
 
     public final List<IChatComponent> generateCommandArgDescriptionTranslationList(String translationKeyBase) {
@@ -73,17 +73,17 @@ public abstract class TemporaCommandBase extends CommandBase {
         return formatString.toString();
     }
 
-    private void colourFormatCommand() {
+    private static ArrayList<IChatComponent> splitStringIntoColourFormattedArgs(String command, List<Integer> argGroups) {
 
         // Split into IChatComponents.
         ArrayList<IChatComponent> iChatComponents = new ArrayList<>();
-        for (String s : getCommandUsage(null).split(" ")) {
+        for (String s : command.split(" ")) {
             iChatComponents.add(new ChatComponentText(s));
         }
 
         int absoluteIndex = 0;
         int groupIndex = 0;
-        groupedColourFormattedComponents = new ArrayList<>();
+        ArrayList<IChatComponent> groupedColourFormattedComponents = new ArrayList<>();
         for (int groupSize : argGroups) {
 
             ArrayList<IChatComponent> group = new ArrayList<>();
@@ -99,14 +99,27 @@ public abstract class TemporaCommandBase extends CommandBase {
             absoluteIndex += groupSize;
         }
 
+        return groupedColourFormattedComponents;
+    }
+
+    private void colourFormatCommand() {
+
+        groupedColourFormattedComponents = splitStringIntoColourFormattedArgs(getCommandUsage(null), argGroups);
+
         formattedCommand = new ChatComponentText("");
         for (IChatComponent component : groupedColourFormattedComponents) {
             formattedCommand.appendSibling(component);
         }
+
+        formattedExampleCommand = new ChatComponentText("");
+        String exampleArgs = "/" + getCommandName() + " " + getExampleArgs();
+        for (IChatComponent component : splitStringIntoColourFormattedArgs(exampleArgs, argGroups)) {
+            formattedExampleCommand.appendSibling(component);
+        }
     }
 
     // Loop the colours if you reach the end.
-    public final EnumChatFormatting getColourAtIndex(int index) {
+    public static EnumChatFormatting getColourAtIndex(int index) {
         return ARGS_COLOUR_LIST.get(index % ARGS_COLOUR_LIST.size());
     }
 
@@ -126,7 +139,6 @@ public abstract class TemporaCommandBase extends CommandBase {
     }
 
     public final IChatComponent getCommandExample() {
-
         return formattedExampleCommand;
     }
 
