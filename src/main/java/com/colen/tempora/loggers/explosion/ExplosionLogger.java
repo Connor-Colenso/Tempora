@@ -120,7 +120,7 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionEventInfo>
     }
 
     @Override
-    public Color getColor() {
+    public Color getColour() {
         return Color.MAGENTA;
     }
 
@@ -132,6 +132,7 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionEventInfo>
     @SuppressWarnings("unused")
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public void onExplosion(final @NotNull ExplosionEvent.Detonate event) {
+        if (!isLoggerEnabled) return;
         if (isClientSide()) return;
         if (event.isCanceled()) return;
 

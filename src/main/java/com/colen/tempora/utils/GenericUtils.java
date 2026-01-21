@@ -16,22 +16,22 @@ import cpw.mods.fml.relauncher.Side;
 
 public class GenericUtils {
 
-    private static final int STACK_TRACE_DEPTH = 3;
+    private static final int STACK_TRACE_DEPTH = 6;
 
     public static String getCallingClassChain() {
-        StackTraceElement[] stack = Thread.currentThread()
-            .getStackTrace();
+        StackTraceElement[] stack = Thread.currentThread().getStackTrace();
+
         List<String> classNames = new ArrayList<>();
         Set<String> seen = new HashSet<>();
 
-        // Start from index 3 to skip getStackTrace(), this method, and likely your wrapper
-        for (int i = STACK_TRACE_DEPTH; i < stack.length && classNames.size() < STACK_TRACE_DEPTH; i++) {
-            String fullClassName = stack[i].getClassName();
-            int lastDot = fullClassName.lastIndexOf('.');
-            String simpleName = lastDot == -1 ? fullClassName : fullClassName.substring(lastDot + 1);
+        final int SKIP = 3;
 
-            if (seen.add(simpleName)) {
-                classNames.add(simpleName);
+        for (int i = SKIP; i < stack.length && classNames.size() < STACK_TRACE_DEPTH; i++) {
+            StackTraceElement e = stack[i];
+
+            String name = e.getClassName() + "#" + e.getMethodName();
+            if (seen.add(name)) {
+                classNames.add(name);
             }
         }
 
