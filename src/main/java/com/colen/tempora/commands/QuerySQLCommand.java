@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.regex.Pattern;
 
-import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentTranslation;
@@ -25,8 +24,9 @@ import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.RenderEventPacket;
 import com.colen.tempora.loggers.generic.column.ColumnDef;
 import com.colen.tempora.utils.CommandUtils;
+import com.colen.tempora.utils.TemporaCommandBase;
 
-public class QuerySQLCommand extends CommandBase {
+public class QuerySQLCommand extends TemporaCommandBase {
 
     public static int MAX_RESULTS_TO_SHOW = 100;
 
@@ -37,13 +37,13 @@ public class QuerySQLCommand extends CommandBase {
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/tempora_query_sql <LoggerName> \"<SQL SELECT query>\"";
+        return "/tempora_query_sql <SQL_SELECT_query>";
     }
 
     @Override
     public int getRequiredPermissionLevel() {
-        return 2; // OP only
-    }
+        return 2;
+    } // OP only
 
     @Override
     public void processCommand(ICommandSender sender, String[] args) {
@@ -208,5 +208,15 @@ public class QuerySQLCommand extends CommandBase {
     @Override
     public List<String> addTabCompletionOptions(ICommandSender sender, String[] args) {
         return CommandUtils.completeLoggerNames(args);
+    }
+
+    @Override
+    public String getExampleArgs() {
+        return "SELECT * FROM PlayerMovementLogger WHERE playerUUID = 'player_uuid_goes_here' AND Y > 80";
+    }
+
+    @Override
+    public String setCommandLangBase() {
+        return "tempora.command.query_sql";
     }
 }

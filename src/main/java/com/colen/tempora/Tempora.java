@@ -3,7 +3,6 @@ package com.colen.tempora;
 import static com.colen.tempora.utils.GenericUtils.isServerSide;
 import static com.colen.tempora.utils.GenericUtils.shouldTemporaRun;
 
-import com.colen.tempora.commands.*;
 import net.minecraft.block.Block;
 import net.minecraftforge.common.config.Configuration;
 
@@ -11,6 +10,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.colen.tempora.blocks.RenderingErrorBlock;
+import com.colen.tempora.commands.*;
 import com.colen.tempora.events.ServerTickHandler;
 import com.colen.tempora.loggers.block_change.region_registry.BlockChangeRegionRegistry;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;

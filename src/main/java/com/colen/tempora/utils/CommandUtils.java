@@ -29,7 +29,7 @@ public class CommandUtils {
                 .toArray(new String[0]));
     }
 
-    public static void sendNewLine(ICommandSender sender){
+    public static void sendNewLine(ICommandSender sender) {
         sender.addChatMessage(new ChatComponentText(""));
     }
 

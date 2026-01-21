@@ -3,11 +3,8 @@ package com.colen.tempora.commands;
 import static com.colen.tempora.utils.CommandUtils.teleportChatComponent;
 import static com.colen.tempora.utils.PlayerUtils.UNKNOWN_PLAYER_NAME;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
-import com.colen.tempora.utils.TemporaCommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentTranslation;
@@ -18,6 +15,7 @@ import com.colen.tempora.loggers.block_change.region_registry.BlockChangeRegionR
 import com.colen.tempora.loggers.block_change.region_registry.TemporaWorldRegion;
 import com.colen.tempora.rendering.regions.RegionRenderMode;
 import com.colen.tempora.utils.CommandUtils;
+import com.colen.tempora.utils.TemporaCommandBase;
 
 /**
  * Creates an axis‑aligned, integer‑bounded region in the sender’s current dimension
@@ -25,37 +23,18 @@ import com.colen.tempora.utils.CommandUtils;
  */
 public class CreateRegionCommand extends TemporaCommandBase {
 
+    public CreateRegionCommand() {
+        super(1, 3, 3, 1);
+    }
+
     @Override
     public String getCommandName() {
         return "tempora_create_region";
     }
 
-
-    @Override
-    public IChatComponent getCommandDescription() {
-        return new ChatComponentTranslation("tempora.command.create_region.help.description");
-    }
-
-    @Override
-    public IChatComponent getCommandExample() {
-        return new ChatComponentTranslation("tempora.command.create_region.help.example");
-    }
-
-    @Override
-    public List<IChatComponent> getArgsDescriptions() {
-        ArrayList<IChatComponent> argsDescriptions = new ArrayList<>();
-
-        argsDescriptions.add(new ChatComponentTranslation("tempora.command.create_region.help.arg1"));
-        argsDescriptions.add(new ChatComponentTranslation("tempora.command.create_region.help.arg2"));
-        argsDescriptions.add(new ChatComponentTranslation("tempora.command.create_region.help.arg3"));
-        argsDescriptions.add(new ChatComponentTranslation("tempora.command.create_region.help.arg4"));
-
-        return argsDescriptions;
-    }
-
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "§a/tempora_create_region §6<label> §c<x1> <y1> <z1> §5<x2> <y2> <z2> §d[dim ID]";
+        return "/tempora_create_region <label> <x1> <y1> <z1> <x2> <y2> <z2> [dim ID]";
     }
 
     @Override
@@ -147,4 +126,13 @@ public class CreateRegionCommand extends TemporaCommandBase {
         sender.addChatMessage(msg);
     }
 
+    @Override
+    public String getExampleArgs() {
+        return "test 0 0 0 5 5 5 0";
+    }
+
+    @Override
+    public String setCommandLangBase() {
+        return "tempora.command.create_region";
+    }
 }

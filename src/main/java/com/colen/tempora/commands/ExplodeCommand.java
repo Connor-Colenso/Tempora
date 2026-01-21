@@ -1,19 +1,14 @@
 package com.colen.tempora.commands;
 
-import com.colen.tempora.utils.TemporaCommandBase;
-import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentTranslation;
-import net.minecraft.util.IChatComponent;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 
 import com.colen.tempora.utils.CommandUtils;
-
-import java.util.ArrayList;
-import java.util.List;
+import com.colen.tempora.utils.TemporaCommandBase;
 
 public class ExplodeCommand extends TemporaCommandBase {
 
@@ -24,7 +19,7 @@ public class ExplodeCommand extends TemporaCommandBase {
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "§2/tempora_explode §6<force>";
+        return "/tempora_explode <force>";
     }
 
     @Override
@@ -87,21 +82,12 @@ public class ExplodeCommand extends TemporaCommandBase {
     }
 
     @Override
-    public IChatComponent getCommandDescription() {
-        return new ChatComponentTranslation("tempora.command.explode.help.description");
+    public String getExampleArgs() {
+        return "5";
     }
 
     @Override
-    public IChatComponent getCommandExample() {
-        return new ChatComponentTranslation("tempora.command.explode.help.example");
-    }
-
-    @Override
-    public List<IChatComponent> getArgsDescriptions() {
-        ArrayList<IChatComponent> argsDescriptions = new ArrayList<>();
-
-        argsDescriptions.add(new ChatComponentTranslation("tempora.command.explode.help.arg1"));
-
-        return argsDescriptions;
+    public String setCommandLangBase() {
+        return "tempora.command.explode";
     }
 }

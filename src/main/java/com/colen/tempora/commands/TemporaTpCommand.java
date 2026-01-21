@@ -1,6 +1,5 @@
 package com.colen.tempora.commands;
 
-import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -8,8 +7,9 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.WorldServer;
 
 import com.colen.tempora.utils.CommandUtils;
+import com.colen.tempora.utils.TemporaCommandBase;
 
-public class TemporaTpCommand extends CommandBase {
+public class TemporaTpCommand extends TemporaCommandBase {
 
     @Override
     public String getCommandName() {
@@ -18,7 +18,7 @@ public class TemporaTpCommand extends CommandBase {
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/tempora_tp <x> <y> <z> [dim]";
+        return "/tempora_tp <x> <y> <z> [dimensionID]";
     }
 
     @Override
@@ -64,5 +64,15 @@ public class TemporaTpCommand extends CommandBase {
         }
 
         player.playerNetServerHandler.setPlayerLocation(x, y, z, player.rotationYaw, player.rotationPitch);
+    }
+
+    @Override
+    public String getExampleArgs() {
+        return "400 42 -123 1";
+    }
+
+    @Override
+    public String setCommandLangBase() {
+        return "tempora.command.teleport";
     }
 }

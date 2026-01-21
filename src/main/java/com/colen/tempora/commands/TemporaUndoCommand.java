@@ -2,7 +2,6 @@ package com.colen.tempora.commands;
 
 import java.util.List;
 
-import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
 import net.minecraft.entity.player.EntityPlayer;
@@ -16,8 +15,9 @@ import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.UndoResponse;
 import com.colen.tempora.utils.ChatUtils;
 import com.colen.tempora.utils.CommandUtils;
+import com.colen.tempora.utils.TemporaCommandBase;
 
-public class TemporaUndoCommand extends CommandBase {
+public class TemporaUndoCommand extends TemporaCommandBase {
 
     @Override
     public String getCommandName() {
@@ -74,5 +74,15 @@ public class TemporaUndoCommand extends CommandBase {
             return CommandUtils.completeLoggerNames(args);
         }
         return null;
+    }
+
+    @Override
+    public String getExampleArgs() {
+        return "PlayerBlockBreakLogger 5fe966ff-0603-4e44-b731-613abf66fee2";
+    }
+
+    @Override
+    public String setCommandLangBase() {
+        return "tempora.undo";
     }
 }
