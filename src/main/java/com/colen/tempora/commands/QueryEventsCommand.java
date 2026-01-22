@@ -86,7 +86,7 @@ public class QueryEventsCommand extends TemporaCommandBase {
     }
 
     @Override
-    public String setCommandLangBase() {
+    public String getTranslationKeyBase() {
         return "tempora.command.query_events";
     }
 }

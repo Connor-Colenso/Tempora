@@ -199,7 +199,7 @@ public class HomeChunkCommand extends TemporaCommandBase {
     }
 
     @Override
-    public String setCommandLangBase() {
+    public String getTranslationKeyBase() {
         return "tempora.command.home_chunk";
     }
 }

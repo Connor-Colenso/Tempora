@@ -20,10 +20,6 @@ import com.colen.tempora.utils.TemporaCommandBase;
 
 public class HelpCommand extends TemporaCommandBase {
 
-    private static final Map<String, ICommand> command_map = MinecraftServer.getServer()
-        .getCommandManager()
-        .getCommands();
-
     @Override
     public String getCommandName() {
         return "tempora_help";
@@ -45,7 +41,11 @@ public class HelpCommand extends TemporaCommandBase {
         if (args.length < 1) {
             throw new WrongUsageException(getCommandUsage(sender));
         }
-        ICommand command = command_map.get(args[0]);
+
+        Map<String, ICommand> commandMap = MinecraftServer.getServer()
+            .getCommandManager()
+            .getCommands();
+        ICommand command = commandMap.get(args[0]);
 
         if (command == null) {
             ChatComponentTranslation invalidCommand = new ChatComponentTranslation(
@@ -122,7 +122,11 @@ public class HelpCommand extends TemporaCommandBase {
     private List<String> completeTemporaCommandNames(String[] args) {
         List<String> temporaCommandNames = new java.util.ArrayList<>();
 
-        for (ICommand command : HelpCommand.command_map.values()) {
+        Map<String, ICommand> commandMap = MinecraftServer.getServer()
+            .getCommandManager()
+            .getCommands();
+
+        for (ICommand command : commandMap.values()) {
             if (command instanceof TemporaCommandBase temporaCommand) {
                 temporaCommandNames.add(temporaCommand.getCommandName());
             }
@@ -142,7 +146,7 @@ public class HelpCommand extends TemporaCommandBase {
     }
 
     @Override
-    public String setCommandLangBase() {
+    public String getTranslationKeyBase() {
         return "tempora.command.help";
     }
 }

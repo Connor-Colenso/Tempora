@@ -253,7 +253,7 @@ public class TemporaUndoRangedCommand extends TemporaCommandBase {
     }
 
     @Override
-    public String setCommandLangBase() {
+    public String getTranslationKeyBase() {
         return "tempora.undo_ranged";
     }
 }

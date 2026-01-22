@@ -72,7 +72,7 @@ public class TemporaTpCommand extends TemporaCommandBase {
     }
 
     @Override
-    public String setCommandLangBase() {
+    public String getTranslationKeyBase() {
         return "tempora.command.teleport";
     }
 }

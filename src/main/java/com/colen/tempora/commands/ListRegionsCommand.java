@@ -133,7 +133,7 @@ public class ListRegionsCommand extends TemporaCommandBase {
     }
 
     @Override
-    public String setCommandLangBase() {
+    public String getTranslationKeyBase() {
         return "tempora.command.list_regions";
     }
 }
