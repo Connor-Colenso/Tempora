@@ -59,9 +59,6 @@ public abstract class TemporaCommandBase extends CommandBase {
             EnumChatFormatting.DARK_GREEN,
             EnumChatFormatting.DARK_BLUE,
             EnumChatFormatting.DARK_RED,
-            EnumChatFormatting.DARK_GRAY,
-            EnumChatFormatting.GRAY,
-            EnumChatFormatting.WHITE,
             EnumChatFormatting.AQUA,
             EnumChatFormatting.LIGHT_PURPLE));
 
