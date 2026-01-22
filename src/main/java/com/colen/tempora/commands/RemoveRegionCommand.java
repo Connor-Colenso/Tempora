@@ -100,7 +100,7 @@ public class RemoveRegionCommand extends TemporaCommandBase {
     }
 
     @Override
-    public String setCommandLangBase() {
+    public String getTranslationKeyBase() {
         return "tempora.command.remove_region";
     }
 }

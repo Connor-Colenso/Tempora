@@ -132,7 +132,7 @@ public class CreateRegionCommand extends TemporaCommandBase {
     }
 
     @Override
-    public String setCommandLangBase() {
+    public String getTranslationKeyBase() {
         return "tempora.command.create_region";
     }
 }

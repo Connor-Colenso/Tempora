@@ -82,7 +82,7 @@ public class TemporaUndoCommand extends TemporaCommandBase {
     }
 
     @Override
-    public String setCommandLangBase() {
+    public String getTranslationKeyBase() {
         return "tempora.undo";
     }
 }

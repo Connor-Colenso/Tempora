@@ -15,7 +15,7 @@ public abstract class TemporaCommandBase extends CommandBase {
 
     public TemporaCommandBase(int... arg_groups) {
         addArgGroup(arg_groups);
-        commandTranslationKeyBase = setCommandLangBase();
+        commandTranslationKeyBase = getTranslationKeyBase();
         colourFormatCommand();
     }
 
@@ -132,10 +132,10 @@ public abstract class TemporaCommandBase extends CommandBase {
 
     public abstract String getExampleArgs();
 
-    public abstract String setCommandLangBase();
+    public abstract String getTranslationKeyBase();
 
     public final IChatComponent getCommandDescription() {
-        return new ChatComponentTranslation(setCommandLangBase() + ".help.description");
+        return new ChatComponentTranslation(getTranslationKeyBase() + ".help.description");
     }
 
     public final IChatComponent getCommandExample() {
@@ -143,7 +143,7 @@ public abstract class TemporaCommandBase extends CommandBase {
     }
 
     public final IChatComponent getCommandExampleDescription() {
-        return new ChatComponentTranslation(setCommandLangBase() + ".help.example_description");
+        return new ChatComponentTranslation(getTranslationKeyBase() + ".help.example_description");
     }
 
     public final List<IChatComponent> getArgsDescriptions() {
