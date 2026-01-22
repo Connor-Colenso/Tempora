@@ -13,16 +13,15 @@ import net.minecraft.util.IChatComponent;
 public abstract class TemporaCommandBase extends CommandBase {
 
 
-    public TemporaCommandBase(int... arg_groups) {
-        addArgGroup(arg_groups);
+    public TemporaCommandBase(int... argGroups) {
+        addArgGroup(argGroups);
         commandTranslationKeyBase = getTranslationKeyBase();
         colourFormatCommand();
     }
 
     private final List<Integer> argGroups = new ArrayList<>();
-    private ArrayList<IChatComponent> groupedColourFormattedComponents;
+    private List<IChatComponent> groupedColourFormattedComponents;
     private IChatComponent formattedCommand = new ChatComponentTranslation("");
-    private IChatComponent formattedExampleCommand;
     private String commandTranslationKeyBase = "";
 
     public final List<IChatComponent> generateCommandArgDescriptionTranslationList(String translationKeyBase) {
@@ -70,33 +69,30 @@ public abstract class TemporaCommandBase extends CommandBase {
         return formatString.toString();
     }
 
-    private static ArrayList<IChatComponent> splitStringIntoColourFormattedArgs(String command, List<Integer> argGroups) {
+    private static List<IChatComponent> splitStringIntoColourFormattedArgs(
+        String command,
+        List<Integer> argumentGroupSizes
+    ) {
+        String[] tokens = command.split(" ");
+        List<IChatComponent> result = new ArrayList<>();
 
-        // Split into IChatComponents.
-        ArrayList<IChatComponent> iChatComponents = new ArrayList<>();
-        for (String s : command.split(" ")) {
-            iChatComponents.add(new ChatComponentText(s));
-        }
+        int tokenIndex = 0;
 
-        int absoluteIndex = 0;
-        int groupIndex = 0;
-        ArrayList<IChatComponent> groupedColourFormattedComponents = new ArrayList<>();
-        for (int groupSize : argGroups) {
+        for (int groupIndex = 0; groupIndex < argumentGroupSizes.size(); groupIndex++) {
+            int groupSize = argumentGroupSizes.get(groupIndex);
 
-            ArrayList<IChatComponent> group = new ArrayList<>();
-            for (int i = 0; i < groupSize; i++) {
-                group.add(iChatComponents.get(absoluteIndex + i));
+            IChatComponent groupComponent = new ChatComponentText("");
+
+            for (int ignored = 0; ignored < groupSize && tokenIndex < tokens.length; ignored++) {
+                groupComponent.appendSibling(new ChatComponentText(tokens[tokenIndex++]));
+                groupComponent.appendSibling(new ChatComponentText(" "));
             }
 
-            IChatComponent groupComponent = new ChatComponentTranslation(getFormatStringBase(groupSize), group.toArray());
             groupComponent.getChatStyle().setColor(getColourAtIndex(groupIndex));
-            groupedColourFormattedComponents.add(groupComponent);
-
-            groupIndex++;
-            absoluteIndex += groupSize;
+            result.add(groupComponent);
         }
 
-        return groupedColourFormattedComponents;
+        return result;
     }
 
     private void colourFormatCommand() {
@@ -106,12 +102,6 @@ public abstract class TemporaCommandBase extends CommandBase {
         formattedCommand = new ChatComponentText("");
         for (IChatComponent component : groupedColourFormattedComponents) {
             formattedCommand.appendSibling(component);
-        }
-
-        formattedExampleCommand = new ChatComponentText("");
-        String exampleArgs = "/" + getCommandName() + " " + getExampleArgs();
-        for (IChatComponent component : splitStringIntoColourFormattedArgs(exampleArgs, argGroups)) {
-            formattedExampleCommand.appendSibling(component);
         }
     }
 
@@ -136,6 +126,13 @@ public abstract class TemporaCommandBase extends CommandBase {
     }
 
     public final IChatComponent getCommandExample() {
+        IChatComponent formattedExampleCommand = new ChatComponentText("");
+
+        String exampleArgs = "/" + getCommandName() + " " + getExampleArgs();
+        for (IChatComponent component : splitStringIntoColourFormattedArgs(exampleArgs, argGroups)) {
+            formattedExampleCommand.appendSibling(component);
+        }
+
         return formattedExampleCommand;
     }
 
