@@ -12,7 +12,6 @@ import net.minecraft.util.IChatComponent;
 
 public abstract class TemporaCommandBase extends CommandBase {
 
-
     public TemporaCommandBase(int... argGroups) {
         addArgGroup(argGroups);
         commandTranslationKeyBase = getTranslationKeyBase();
@@ -29,7 +28,8 @@ public abstract class TemporaCommandBase extends CommandBase {
 
         int groupIndex = 0;
         // Skip the first, as it is simply the command itself e.g. /tempora_help.
-        for (IChatComponent argGroup : groupedColourFormattedComponents.subList(1, groupedColourFormattedComponents.size())) {
+        for (IChatComponent argGroup : groupedColourFormattedComponents
+            .subList(1, groupedColourFormattedComponents.size())) {
 
             // %s: This describes how the grouped %s operates e.g. x1 x2 x3
             IChatComponent description = new ChatComponentTranslation("%s: ", argGroup);
@@ -61,7 +61,7 @@ public abstract class TemporaCommandBase extends CommandBase {
             EnumChatFormatting.AQUA,
             EnumChatFormatting.LIGHT_PURPLE));
 
-    private static String getFormatStringBase(int n){
+    private static String getFormatStringBase(int n) {
         StringBuilder formatString = new StringBuilder();
         for (int i = 0; i < n; i++) {
             formatString.append("%s ");
@@ -69,10 +69,8 @@ public abstract class TemporaCommandBase extends CommandBase {
         return formatString.toString();
     }
 
-    private static List<IChatComponent> splitStringIntoColourFormattedArgs(
-        String command,
-        List<Integer> argumentGroupSizes
-    ) {
+    private static List<IChatComponent> splitStringIntoColourFormattedArgs(String command,
+        List<Integer> argumentGroupSizes) {
         String[] tokens = command.split(" ");
         List<IChatComponent> result = new ArrayList<>();
 
@@ -88,7 +86,8 @@ public abstract class TemporaCommandBase extends CommandBase {
                 groupComponent.appendSibling(new ChatComponentText(" "));
             }
 
-            groupComponent.getChatStyle().setColor(getColourAtIndex(groupIndex));
+            groupComponent.getChatStyle()
+                .setColor(getColourAtIndex(groupIndex));
             result.add(groupComponent);
         }
 
