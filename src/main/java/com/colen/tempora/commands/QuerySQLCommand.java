@@ -198,13 +198,18 @@ public class QuerySQLCommand extends TemporaCommandBase {
         throws SQLException {
 
         try (Connection roConn = logger.getDatabaseManager()
-            .getReadOnlyConnection();
-            PreparedStatement stmt = roConn.prepareStatement(sql);
-            ResultSet rs = stmt.executeQuery()) {
+            .getReadOnlyConnection(); PreparedStatement stmt = roConn.prepareStatement(sql)) {
 
+            // Enforce read-only again, just in-case.
+            roConn.setReadOnly(true);
+
+            // Limit number of rows returned
             stmt.setMaxRows(MAX_RESULTS_TO_SHOW);
+//            stmt.setQueryTimeout(1); // seconds todo config & find way to make this work as SQLite ignores it.
 
-            return logger.generateQueryResults(rs);
+            try (ResultSet rs = stmt.executeQuery()) {
+                return logger.generateQueryResults(rs);
+            }
         }
     }
 
