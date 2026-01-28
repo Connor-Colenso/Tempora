@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.regex.Pattern;
 
+import com.colen.tempora.commands.command_base.TemporaCommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentTranslation;
@@ -24,7 +25,7 @@ import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.RenderEventPacket;
 import com.colen.tempora.loggers.generic.column.ColumnDef;
 import com.colen.tempora.utils.CommandUtils;
-import com.colen.tempora.utils.TemporaCommandBase;
+import net.minecraft.util.IChatComponent;
 
 public class QuerySQLCommand extends TemporaCommandBase {
 
@@ -33,11 +34,6 @@ public class QuerySQLCommand extends TemporaCommandBase {
     @Override
     public String getCommandName() {
         return "tempora_query_sql";
-    }
-
-    @Override
-    public String getCommandUsage(ICommandSender sender) {
-        return "/tempora_query_sql <SQL_SELECT_query>";
     }
 
     @Override
@@ -213,6 +209,10 @@ public class QuerySQLCommand extends TemporaCommandBase {
     @Override
     public String getExampleArgs() {
         return "SELECT * FROM PlayerMovementLogger WHERE playerUUID = 'player_uuid_goes_here' AND Y > 80";
+    }
+
+    public IChatComponent getCommandDescription() {
+        return new ChatComponentTranslation("tempora.command.query_sql.help.description");
     }
 
     @Override

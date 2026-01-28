@@ -1,24 +1,21 @@
 package com.colen.tempora.commands;
 
+import com.colen.tempora.commands.command_base.TemporaCommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.IChatComponent;
 import net.minecraft.world.WorldServer;
 
 import com.colen.tempora.utils.CommandUtils;
-import com.colen.tempora.utils.TemporaCommandBase;
 
 public class TemporaTpCommand extends TemporaCommandBase {
 
     @Override
     public String getCommandName() {
         return "tempora_tp";
-    }
-
-    @Override
-    public String getCommandUsage(ICommandSender sender) {
-        return "/tempora_tp <x> <y> <z> [dimensionID]";
     }
 
     @Override
@@ -69,6 +66,10 @@ public class TemporaTpCommand extends TemporaCommandBase {
     @Override
     public String getExampleArgs() {
         return "400 42 -123 1";
+    }
+
+    public IChatComponent getCommandDescription() {
+        return new ChatComponentTranslation("tempora.command.explode.tempora_tp.description");
     }
 
     @Override

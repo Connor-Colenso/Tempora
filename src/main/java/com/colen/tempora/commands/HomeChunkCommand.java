@@ -12,6 +12,8 @@ import java.sql.SQLException;
 import java.util.Collections;
 import java.util.List;
 
+import com.colen.tempora.commands.command_base.CommandArg;
+import com.colen.tempora.commands.command_base.TemporaCommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.util.ChatComponentTranslation;
@@ -20,7 +22,6 @@ import net.minecraft.util.IChatComponent;
 import com.colen.tempora.TemporaLoggerManager;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.utils.PlayerUtils;
-import com.colen.tempora.utils.TemporaCommandBase;
 import com.colen.tempora.utils.TimeUtils;
 
 /**
@@ -30,6 +31,12 @@ import com.colen.tempora.utils.TimeUtils;
  */
 public class HomeChunkCommand extends TemporaCommandBase {
 
+    public HomeChunkCommand() {
+        super(
+            new CommandArg("<?>", "tempora.command.home_chunk.help.arg0")
+        );
+    }
+
     @Override
     public String getCommandName() {
         return "tempora_home_chunk";
@@ -38,11 +45,6 @@ public class HomeChunkCommand extends TemporaCommandBase {
     @Override
     public int getRequiredPermissionLevel() {
         return 2;
-    }
-
-    @Override
-    public String getCommandUsage(ICommandSender s) {
-        return "/tempora_home_chunk <player> [<look-back>] [<dim>]";
     }
 
     @Override
@@ -201,5 +203,9 @@ public class HomeChunkCommand extends TemporaCommandBase {
     @Override
     public String getTranslationKeyBase() {
         return "tempora.command.home_chunk";
+    }
+
+    public IChatComponent getCommandDescription() {
+        return new ChatComponentTranslation("tempora.command.explode.home_chunk.description");
     }
 }

@@ -7,6 +7,8 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 
+import com.colen.tempora.commands.command_base.CommandArg;
+import com.colen.tempora.commands.command_base.TemporaCommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentTranslation;
@@ -18,7 +20,6 @@ import com.colen.tempora.loggers.block_change.region_registry.BlockChangeRegionR
 import com.colen.tempora.loggers.block_change.region_registry.TemporaWorldRegion;
 import com.colen.tempora.networking.packets.PacketShowRegionInWorld;
 import com.colen.tempora.utils.CommandUtils;
-import com.colen.tempora.utils.TemporaCommandBase;
 
 /**
  * /listregions
@@ -26,6 +27,12 @@ import com.colen.tempora.utils.TemporaCommandBase;
  * teleports the issuer to the centre of that region.
  */
 public class ListRegionsCommand extends TemporaCommandBase {
+
+    public ListRegionsCommand() {
+        super(
+            new CommandArg("[dim_ID]", "tempora.command.list_regions.help.arg0")
+        );
+    }
 
     @Override
     public String getCommandName() {
@@ -35,12 +42,6 @@ public class ListRegionsCommand extends TemporaCommandBase {
     @Override
     public int getRequiredPermissionLevel() {
         return 2; // OP
-    }
-
-    /** Usage is localised */
-    @Override
-    public String getCommandUsage(ICommandSender s) {
-        return "/tempora_list_regions [Dim_ID]";
     }
 
     @Override
@@ -125,6 +126,10 @@ public class ListRegionsCommand extends TemporaCommandBase {
                 .setColor(EnumChatFormatting.DARK_RED);
             player.addChatMessage(globalLoggingMessage);
         }
+    }
+
+    public IChatComponent getCommandDescription() {
+        return new ChatComponentTranslation("tempora.command.list_regions.help.description");
     }
 
     @Override

@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.colen.tempora.commands.command_base.TemporaCommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -29,7 +30,6 @@ import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.RenderEventPacket;
 import com.colen.tempora.loggers.generic.UndoResponse;
 import com.colen.tempora.utils.CommandUtils;
-import com.colen.tempora.utils.TemporaCommandBase;
 import com.colen.tempora.utils.TimeUtils;
 import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 
@@ -43,11 +43,6 @@ public class TemporaUndoRangedCommand extends TemporaCommandBase {
     @Override
     public String getCommandName() {
         return "tempora_undo_ranged";
-    }
-
-    @Override
-    public String getCommandUsage(ICommandSender sender) {
-        return "/tempora_undo_ranged <radius> <time> <logger_name>";
     }
 
     @Override
@@ -245,6 +240,10 @@ public class TemporaUndoRangedCommand extends TemporaCommandBase {
 
     public static void onServerClose() {
         PENDING_UNDOS.clear();
+    }
+
+    public IChatComponent getCommandDescription() {
+        return new ChatComponentTranslation("tempora.command.undo_ranged.help.description");
     }
 
     @Override

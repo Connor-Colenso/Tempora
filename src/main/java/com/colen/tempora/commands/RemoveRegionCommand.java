@@ -5,6 +5,7 @@ import static com.colen.tempora.utils.CommandUtils.teleportChatComponent;
 
 import java.util.List;
 
+import com.colen.tempora.commands.command_base.TemporaCommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
@@ -17,7 +18,6 @@ import com.colen.tempora.loggers.block_change.region_registry.BlockChangeRegionR
 import com.colen.tempora.loggers.block_change.region_registry.TemporaWorldRegion;
 import com.colen.tempora.networking.packets.PacketRemoveRegionFromClient;
 import com.colen.tempora.utils.CommandUtils;
-import com.colen.tempora.utils.TemporaCommandBase;
 import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 
 /**
@@ -30,11 +30,6 @@ public class RemoveRegionCommand extends TemporaCommandBase {
     @Override
     public String getCommandName() {
         return "tempora_remove_regions";
-    }
-
-    @Override
-    public String getCommandUsage(ICommandSender sender) {
-        return "/tempora_remove_regions";
     }
 
     @Override
@@ -97,6 +92,10 @@ public class RemoveRegionCommand extends TemporaCommandBase {
     @Override
     public String getExampleArgs() {
         return "";
+    }
+
+    public IChatComponent getCommandDescription() {
+        return new ChatComponentTranslation("tempora.command.explode.remove_region.description");
     }
 
     @Override

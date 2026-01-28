@@ -5,6 +5,8 @@ import static com.colen.tempora.utils.PlayerUtils.UNKNOWN_PLAYER_NAME;
 
 import java.util.UUID;
 
+import com.colen.tempora.commands.command_base.CommandArg;
+import com.colen.tempora.commands.command_base.TemporaCommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentTranslation;
@@ -15,7 +17,6 @@ import com.colen.tempora.loggers.block_change.region_registry.BlockChangeRegionR
 import com.colen.tempora.loggers.block_change.region_registry.TemporaWorldRegion;
 import com.colen.tempora.rendering.regions.RegionRenderMode;
 import com.colen.tempora.utils.CommandUtils;
-import com.colen.tempora.utils.TemporaCommandBase;
 
 /**
  * Creates an axis‑aligned, integer‑bounded region in the sender’s current dimension
@@ -24,17 +25,16 @@ import com.colen.tempora.utils.TemporaCommandBase;
 public class CreateRegionCommand extends TemporaCommandBase {
 
     public CreateRegionCommand() {
-        super(1, 3, 3, 1);
+        super(
+            new CommandArg("<label>", "tempora.command.create_region.help.arg0"),
+            new CommandArg("<x1> <y1> <z1>", "tempora.command.create_region.help.arg1"),
+            new CommandArg("<x2> <y2> <z2>", "tempora.command.create_region.help.arg2"),
+            new CommandArg("[dim_ID]", "tempora.command.create_region.help.arg3"));
     }
 
     @Override
     public String getCommandName() {
         return "tempora_create_region";
-    }
-
-    @Override
-    public String getCommandUsage(ICommandSender sender) {
-        return "/tempora_create_region <label> <x1> <y1> <z1> <x2> <y2> <z2> [dim_ID]";
     }
 
     @Override
@@ -124,6 +124,10 @@ public class CreateRegionCommand extends TemporaCommandBase {
         msg.getChatStyle()
             .setColor(EnumChatFormatting.GREEN);
         sender.addChatMessage(msg);
+    }
+
+    public IChatComponent getCommandDescription() {
+        return new ChatComponentTranslation("tempora.command.create_region.help.description");
     }
 
     @Override

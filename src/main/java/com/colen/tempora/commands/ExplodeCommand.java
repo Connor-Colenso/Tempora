@@ -1,25 +1,28 @@
 package com.colen.tempora.commands;
 
+import com.colen.tempora.commands.command_base.CommandArg;
+import com.colen.tempora.commands.command_base.TemporaCommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.IChatComponent;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 
 import com.colen.tempora.utils.CommandUtils;
-import com.colen.tempora.utils.TemporaCommandBase;
 
 public class ExplodeCommand extends TemporaCommandBase {
+
+    public ExplodeCommand() {
+        super(
+            new CommandArg("<strength>", "tempora.command.explode.help.arg0")
+            );
+    }
 
     @Override
     public String getCommandName() {
         return "tempora_explode";
-    }
-
-    @Override
-    public String getCommandUsage(ICommandSender sender) {
-        return "/tempora_explode <force>";
     }
 
     @Override
@@ -79,6 +82,10 @@ public class ExplodeCommand extends TemporaCommandBase {
             false, // Causes fire
             true // Damages blocks
         );
+    }
+
+    public IChatComponent getCommandDescription() {
+        return new ChatComponentTranslation("tempora.command.explode.help.description");
     }
 
     @Override
