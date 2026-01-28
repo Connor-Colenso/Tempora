@@ -5,7 +5,6 @@ import static com.colen.tempora.utils.CommandUtils.teleportChatComponent;
 
 import java.util.List;
 
-import com.colen.tempora.commands.command_base.TemporaCommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
@@ -14,6 +13,7 @@ import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
+import com.colen.tempora.commands.command_base.TemporaCommandBase;
 import com.colen.tempora.loggers.block_change.region_registry.BlockChangeRegionRegistry;
 import com.colen.tempora.loggers.block_change.region_registry.TemporaWorldRegion;
 import com.colen.tempora.networking.packets.PacketRemoveRegionFromClient;

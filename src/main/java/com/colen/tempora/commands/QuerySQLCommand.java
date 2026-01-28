@@ -13,31 +13,26 @@ import java.util.List;
 import java.util.Locale;
 import java.util.regex.Pattern;
 
-import com.colen.tempora.commands.command_base.CommandArg;
-import com.colen.tempora.commands.command_base.TemporaCommandBase;
-import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.IChatComponent;
 
 import com.colen.tempora.TemporaLoggerManager;
+import com.colen.tempora.commands.command_base.CommandArg;
+import com.colen.tempora.commands.command_base.TemporaCommandBase;
 import com.colen.tempora.loggers.generic.GenericEventInfo;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.RenderEventPacket;
 import com.colen.tempora.loggers.generic.column.ColumnDef;
 import com.colen.tempora.utils.CommandUtils;
-import net.minecraft.util.IChatComponent;
+import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 
 public class QuerySQLCommand extends TemporaCommandBase {
 
     public QuerySQLCommand() {
-        super(
-            new CommandArg(
-                "<sql_query>",
-                "tempora.command.query_sql.help.arg0"
-            )
-        );
+        super(new CommandArg("<sql_query>", "tempora.command.query_sql.help.arg0"));
     }
 
     // todo config.
@@ -224,7 +219,9 @@ public class QuerySQLCommand extends TemporaCommandBase {
     }
 
     public IChatComponent getCommandDescription() {
-        return new ChatComponentTranslation("tempora.command.query_sql.help.description", new ChatComponentNumber(MAX_RESULTS_TO_SHOW));
+        return new ChatComponentTranslation(
+            "tempora.command.query_sql.help.description",
+            new ChatComponentNumber(MAX_RESULTS_TO_SHOW));
     }
 
     @Override

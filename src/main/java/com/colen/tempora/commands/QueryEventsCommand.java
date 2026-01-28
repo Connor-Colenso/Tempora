@@ -2,18 +2,18 @@ package com.colen.tempora.commands;
 
 import java.util.List;
 
-import com.colen.tempora.commands.command_base.CommandArg;
-import com.colen.tempora.commands.command_base.TemporaCommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.IChatComponent;
 
 import com.colen.tempora.TemporaLoggerManager;
+import com.colen.tempora.commands.command_base.CommandArg;
+import com.colen.tempora.commands.command_base.TemporaCommandBase;
 import com.colen.tempora.utils.CommandUtils;
 import com.colen.tempora.utils.TimeUtils;
-import net.minecraft.util.IChatComponent;
 
 public class QueryEventsCommand extends TemporaCommandBase {
 
@@ -22,8 +22,7 @@ public class QueryEventsCommand extends TemporaCommandBase {
             new CommandArg("<event_filter>", "tempora.command.query_events.help.arg0"),
             new CommandArg("<radius>", "tempora.command.query_events.help.arg1"),
             new CommandArg("<since>", "tempora.command.query_events.help.arg2"),
-            new CommandArg("[until]", "tempora.command.query_events.help.arg3")
-        );
+            new CommandArg("[until]", "tempora.command.query_events.help.arg3"));
     }
 
     @Override

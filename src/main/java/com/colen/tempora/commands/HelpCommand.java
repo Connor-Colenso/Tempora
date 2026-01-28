@@ -5,8 +5,6 @@ import static com.colen.tempora.utils.CommandUtils.OP_ONLY;
 import java.util.List;
 import java.util.Map;
 
-import com.colen.tempora.commands.command_base.CommandArg;
-import com.colen.tempora.commands.command_base.TemporaCommandBase;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommand;
 import net.minecraft.command.ICommandSender;
@@ -17,12 +15,13 @@ import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
+import com.colen.tempora.commands.command_base.CommandArg;
+import com.colen.tempora.commands.command_base.TemporaCommandBase;
+
 public class HelpCommand extends TemporaCommandBase {
 
     public HelpCommand() {
-        super(
-            new CommandArg("<command_name>", "tempora.command.help.help.arg0")
-        );
+        super(new CommandArg("<command_name>", "tempora.command.help.help.arg0"));
     }
 
     @Override
@@ -56,19 +55,24 @@ public class HelpCommand extends TemporaCommandBase {
         }
 
         if (command instanceof TemporaCommandBase temporaCommand) {
-            IChatComponent descriptionSeparator = new ChatComponentText("-----------------------------------------------------");
-            descriptionSeparator.getChatStyle().setColor(EnumChatFormatting.DARK_GRAY);
+            IChatComponent descriptionSeparator = new ChatComponentText(
+                "-----------------------------------------------------");
+            descriptionSeparator.getChatStyle()
+                .setColor(EnumChatFormatting.DARK_GRAY);
             sender.addChatMessage(descriptionSeparator);
 
             // Description: %s.
             {
                 IChatComponent description = temporaCommand.getCommandDescription();
-                sender.addChatMessage(new ChatComponentTranslation("tempora.command.help.label.description", description));
+                sender.addChatMessage(
+                    new ChatComponentTranslation("tempora.command.help.label.description", description));
             }
 
             // Usage: %s.
             {
-                IChatComponent commandUsageLabel = new ChatComponentTranslation("tempora.command.help.label.usage", temporaCommand.getCommandUsage(null));
+                IChatComponent commandUsageLabel = new ChatComponentTranslation(
+                    "tempora.command.help.label.usage",
+                    temporaCommand.getCommandUsage(null));
                 sender.addChatMessage(commandUsageLabel);
             }
 
