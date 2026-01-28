@@ -1,15 +1,15 @@
 package com.colen.tempora.commands.command_base;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 public abstract class TemporaCommandBase extends CommandBase {
 
@@ -28,7 +28,8 @@ public abstract class TemporaCommandBase extends CommandBase {
         for (CommandArg arg : arguments) {
 
             IChatComponent argNames = new ChatComponentText(arg.argNames);
-            argNames.getChatStyle().setColor(getColourAtIndex(colourIndex++));
+            argNames.getChatStyle()
+                .setColor(getColourAtIndex(colourIndex++));
             IChatComponent description = new ChatComponentTranslation(arg.descriptionLangKey);
 
             IChatComponent layout = new ChatComponentTranslation("%s: %s", argNames, description);
@@ -54,7 +55,6 @@ public abstract class TemporaCommandBase extends CommandBase {
             EnumChatFormatting.AQUA,
             EnumChatFormatting.LIGHT_PURPLE));
 
-
     // Loop the colours if you reach the end.
     public static EnumChatFormatting getColourAtIndex(int index) {
         return ARGS_COLOUR_LIST.get(index % ARGS_COLOUR_LIST.size());
@@ -72,7 +72,8 @@ public abstract class TemporaCommandBase extends CommandBase {
         int colourIndex = 0;
         for (CommandArg arg : arguments) {
             IChatComponent argComponent = new ChatComponentText(arg.argNames + " ");
-            argComponent.getChatStyle().setColor(getColourAtIndex(colourIndex++));
+            argComponent.getChatStyle()
+                .setColor(getColourAtIndex(colourIndex++));
             formattedExampleCommand.appendSibling(argComponent);
         }
 

@@ -12,14 +12,14 @@ import java.sql.SQLException;
 import java.util.Collections;
 import java.util.List;
 
-import com.colen.tempora.commands.command_base.CommandArg;
-import com.colen.tempora.commands.command_base.TemporaCommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 
 import com.colen.tempora.TemporaLoggerManager;
+import com.colen.tempora.commands.command_base.CommandArg;
+import com.colen.tempora.commands.command_base.TemporaCommandBase;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.utils.PlayerUtils;
 import com.colen.tempora.utils.TimeUtils;
@@ -32,9 +32,7 @@ import com.colen.tempora.utils.TimeUtils;
 public class HomeChunkCommand extends TemporaCommandBase {
 
     public HomeChunkCommand() {
-        super(
-            new CommandArg("<?>", "tempora.command.home_chunk.help.arg0")
-        );
+        super(new CommandArg("<?>", "tempora.command.home_chunk.help.arg0"));
     }
 
     @Override

@@ -7,14 +7,14 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 
-import com.colen.tempora.commands.command_base.CommandArg;
-import com.colen.tempora.commands.command_base.TemporaCommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
+import com.colen.tempora.commands.command_base.CommandArg;
+import com.colen.tempora.commands.command_base.TemporaCommandBase;
 import com.colen.tempora.loggers.block_change.BlockChangeLogger;
 import com.colen.tempora.loggers.block_change.region_registry.BlockChangeRegionRegistry;
 import com.colen.tempora.loggers.block_change.region_registry.TemporaWorldRegion;
@@ -29,9 +29,7 @@ import com.colen.tempora.utils.CommandUtils;
 public class ListRegionsCommand extends TemporaCommandBase {
 
     public ListRegionsCommand() {
-        super(
-            new CommandArg("[dim_ID]", "tempora.command.list_regions.help.arg0")
-        );
+        super(new CommandArg("[dim_ID]", "tempora.command.list_regions.help.arg0"));
     }
 
     @Override

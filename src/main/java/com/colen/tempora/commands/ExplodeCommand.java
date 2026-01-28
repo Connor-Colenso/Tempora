@@ -1,7 +1,5 @@
 package com.colen.tempora.commands;
 
-import com.colen.tempora.commands.command_base.CommandArg;
-import com.colen.tempora.commands.command_base.TemporaCommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentTranslation;
@@ -10,14 +8,14 @@ import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 
+import com.colen.tempora.commands.command_base.CommandArg;
+import com.colen.tempora.commands.command_base.TemporaCommandBase;
 import com.colen.tempora.utils.CommandUtils;
 
 public class ExplodeCommand extends TemporaCommandBase {
 
     public ExplodeCommand() {
-        super(
-            new CommandArg("<strength>", "tempora.command.explode.help.arg0")
-            );
+        super(new CommandArg("<strength>", "tempora.command.explode.help.arg0"));
     }
 
     @Override
