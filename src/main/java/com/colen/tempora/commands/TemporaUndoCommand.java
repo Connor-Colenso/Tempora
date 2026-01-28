@@ -2,6 +2,7 @@ package com.colen.tempora.commands;
 
 import java.util.List;
 
+import com.colen.tempora.commands.command_base.TemporaCommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
 import net.minecraft.entity.player.EntityPlayer;
@@ -15,18 +16,12 @@ import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.UndoResponse;
 import com.colen.tempora.utils.ChatUtils;
 import com.colen.tempora.utils.CommandUtils;
-import com.colen.tempora.utils.TemporaCommandBase;
 
 public class TemporaUndoCommand extends TemporaCommandBase {
 
     @Override
     public String getCommandName() {
         return "tempora_undo";
-    }
-
-    @Override
-    public String getCommandUsage(ICommandSender sender) {
-        return "/tempora_undo <logger_name> <event_id>";
     }
 
     @Override
@@ -74,6 +69,10 @@ public class TemporaUndoCommand extends TemporaCommandBase {
             return CommandUtils.completeLoggerNames(args);
         }
         return null;
+    }
+
+    public IChatComponent getCommandDescription() {
+        return new ChatComponentTranslation("tempora.command.tempora_undo.help.description");
     }
 
     @Override

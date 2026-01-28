@@ -2,6 +2,8 @@ package com.colen.tempora.commands;
 
 import java.util.List;
 
+import com.colen.tempora.commands.command_base.CommandArg;
+import com.colen.tempora.commands.command_base.TemporaCommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -10,19 +12,23 @@ import net.minecraft.util.ChatComponentTranslation;
 
 import com.colen.tempora.TemporaLoggerManager;
 import com.colen.tempora.utils.CommandUtils;
-import com.colen.tempora.utils.TemporaCommandBase;
 import com.colen.tempora.utils.TimeUtils;
+import net.minecraft.util.IChatComponent;
 
 public class QueryEventsCommand extends TemporaCommandBase {
+
+    public QueryEventsCommand() {
+        super(
+            new CommandArg("<event_filter>", "tempora.command.query_events.help.arg0"),
+            new CommandArg("<radius>", "tempora.command.query_events.help.arg1"),
+            new CommandArg("<since>", "tempora.command.query_events.help.arg2"),
+            new CommandArg("[until]", "tempora.command.query_events.help.arg3")
+        );
+    }
 
     @Override
     public String getCommandName() {
         return "tempora_query_events";
-    }
-
-    @Override
-    public String getCommandUsage(ICommandSender sender) {
-        return "/tempora_query_events <loggerName> <radius> <from_time> [to_time]";
     }
 
     @Override
@@ -78,6 +84,10 @@ public class QueryEventsCommand extends TemporaCommandBase {
             return CommandUtils.completeLoggerNames(args);
         }
         return null; // Return null when there are no matches.
+    }
+
+    public IChatComponent getCommandDescription() {
+        return new ChatComponentTranslation("tempora.command.query_events.help.description");
     }
 
     @Override
