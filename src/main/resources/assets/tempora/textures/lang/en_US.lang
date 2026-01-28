@@ -90,7 +90,7 @@ tempora.command.query_sql.generic_unknown_error=Generic unknown error (Please re
 tempora.command.query_sql.query_quantity=Found %s matching results.
 tempora.command.query_sql.query_quantity_if_max=Showing the first %s results (server limit: %s). Additional matches may be hidden.
 tempora.command.query_sql.invalid_table=Couldn't find table. Choices are, %s.
-tempora.command.query_sql.help.description=Allows a SELECT SQL statement to be sent directly to the Tempora databases.
+tempora.command.query_sql.help.description=Executes a read-only SQL SELECT query against a Tempora event table and displays the matching results in-game. This is capped at %s results, due to server side configuration.
 tempora.command.query_sql.help.arg0=The SELECT SQL statement, does not need enclosing in quotes.
 tempora.command.query_sql.help.example_description=This command will output All tracked instances of the player defined by their UUID being above a y position of 80. This will go into the chat with interactable boxes to teleport to the locations found.
 
