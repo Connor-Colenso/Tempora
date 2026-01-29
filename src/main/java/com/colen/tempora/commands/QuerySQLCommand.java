@@ -194,11 +194,11 @@ public class QuerySQLCommand extends TemporaCommandBase {
             .startsWith("select");
     }
 
-    private List<? extends GenericEventInfo> executeReadOnlyQuery(GenericPositionalLogger<?> logger, String sql)
+    private List<? extends GenericEventInfo> executeReadOnlyQuery(GenericPositionalLogger<?> logger, String sanitisedSQL)
         throws SQLException {
 
         try (Connection roConn = logger.getDatabaseManager()
-            .getReadOnlyConnection(); PreparedStatement stmt = roConn.prepareStatement(sql)) {
+            .getReadOnlyConnection(); PreparedStatement stmt = roConn.prepareStatement(sanitisedSQL)) {
 
             // Enforce read-only again, just in-case.
             roConn.setReadOnly(true);
