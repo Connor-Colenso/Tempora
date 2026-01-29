@@ -117,6 +117,9 @@ tempora.command.query_events.too_many_pending=Warning, due to high volume, there
 tempora.command.explode.no_block_in_sight=No block in sight.
 tempora.command.explode.force.must.be.numeric=Force must be a number.
 
+# === Generic Command Errors ===
+tempora.command.error.radius=Radius must be a positive integer.
+tempora.command.error.too.few.args=Too few arguments, expected at least '%s'.
 
 # === Undo Messages ===
 tempora.undo.cannot_block_break.nbt_logging_disabled=Cannot undo %s, the block had NBT data, but NBT logging was disabled when it was logged.

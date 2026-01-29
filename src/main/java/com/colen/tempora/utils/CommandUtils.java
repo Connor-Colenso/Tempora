@@ -94,4 +94,11 @@ public class CommandUtils {
 
         return display;
     }
+
+    public static IChatComponent tooFewArgs(int expected) {
+        IChatComponent chatComponent = new ChatComponentTranslation("tempora.command.error.too.few.args", expected);
+        chatComponent.getChatStyle().setColor(EnumChatFormatting.RED);
+        return chatComponent;
+    }
+
 }
