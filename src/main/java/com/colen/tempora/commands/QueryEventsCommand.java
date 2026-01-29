@@ -63,7 +63,7 @@ public class QueryEventsCommand extends TemporaCommandBase {
 
             // Validate table name
             IChatComponent tableNameError = new ChatComponentTranslation("tempora.command.query_events.bad_filter", args[2]);
-            tableName = validateLoggerName(parser.getString(2, tableNameError));
+            tableName = parser.getTableName(2, tableNameError);
 
         } catch (CommandException e) {
             sender.addChatMessage(CommandUtils.wrongUsage(getCommandUsage(sender)));
@@ -82,15 +82,6 @@ public class QueryEventsCommand extends TemporaCommandBase {
         TemporaLoggerManager.getLogger(tableName)
             .getDatabaseManager()
             .queryEventByCoordinate(sender, x, y, z, radius, seconds, entityPlayerMP.dimension);
-    }
-
-    private String validateLoggerName(String input) {
-        for (String option : TemporaLoggerManager.getAllLoggerNames()) {
-            if (option.equalsIgnoreCase(input)) {
-                return option;
-            }
-        }
-        throw new WrongUsageException("tempora.command.query_events.bad_filter", input);
     }
 
     @Override

@@ -16,6 +16,7 @@ import org.jetbrains.annotations.NotNull;
 import com.colen.tempora.TemporaLoggerManager;
 import com.colen.tempora.commands.TemporaUndoCommand;
 import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
+import org.jetbrains.annotations.Nullable;
 
 public class CommandUtils {
 
@@ -27,6 +28,17 @@ public class CommandUtils {
             args,
             TemporaLoggerManager.getAllLoggerNames()
                 .toArray(new String[0]));
+    }
+
+    public static @Nullable String validateLoggerName(String input) {
+        if (input == null) return null;
+
+        for (String option : TemporaLoggerManager.getAllLoggerNames()) {
+            if (option.equalsIgnoreCase(input)) {
+                return option;
+            }
+        }
+        return null;
     }
 
     public static void sendNewLine(ICommandSender sender) {

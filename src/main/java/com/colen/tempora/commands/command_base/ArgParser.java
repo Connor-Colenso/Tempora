@@ -1,8 +1,9 @@
 package com.colen.tempora.commands.command_base;
 
+import com.colen.tempora.utils.CommandUtils;
+import com.colen.tempora.utils.TimeUtils;
 import net.minecraft.command.CommandException;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 
 import java.lang.ref.WeakReference;
@@ -24,8 +25,20 @@ public class ArgParser {
         if (value == null || value.isEmpty()) {
             // Send player a message and throw
             Objects.requireNonNull(playerMP.get()).addChatMessage(errorTranslation);
-            throw new CommandException("commands.parse.string");
+            throw new CommandException("");
         }
+        return value;
+    }
+
+    public String getTableName(int index, IChatComponent errorTranslation) throws CommandException {
+        String value = args[index];
+        String tableName = CommandUtils.validateLoggerName(value);
+        if (value == null || tableName == null) {
+            // Send player a message and throw
+            Objects.requireNonNull(playerMP.get()).addChatMessage(errorTranslation);
+            throw new CommandException("");
+        }
+
         return value;
     }
 
@@ -35,9 +48,22 @@ public class ArgParser {
             return Integer.parseInt(args[index]);
         } catch (NumberFormatException e) {
             Objects.requireNonNull(playerMP.get()).addChatMessage(errorTranslation);
-            throw new CommandException("commands.parse.int");
+            throw new CommandException("");
         }
     }
+
+    // Converts e.g. 1day -> 86400 seconds.
+    public long getTimeInSeconds(int index, IChatComponent errorTranslation) throws CommandException {
+        String timeArg = args[index];
+
+        try {
+            return TimeUtils.convertToSeconds(timeArg);
+        } catch (NumberFormatException e) {
+            Objects.requireNonNull(playerMP.get()).addChatMessage(errorTranslation);
+            throw new CommandException("");
+        }
+    }
+
 
     public int getPositiveInteger(int index, IChatComponent errorTranslation) throws CommandException {
         try {
@@ -46,7 +72,7 @@ public class ArgParser {
             return i;
         } catch (NumberFormatException e) {
             Objects.requireNonNull(playerMP.get()).addChatMessage(errorTranslation);
-            throw new CommandException("commands.parse.int");
+            throw new CommandException("");
         }
     }
 
