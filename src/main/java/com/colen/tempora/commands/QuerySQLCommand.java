@@ -205,7 +205,7 @@ public class QuerySQLCommand extends TemporaCommandBase {
 
             // Limit number of rows returned
             stmt.setMaxRows(MAX_RESULTS_TO_SHOW);
-//            stmt.setQueryTimeout(1); // seconds todo config & find way to make this work as SQLite ignores it.
+            // stmt.setQueryTimeout(1); // seconds todo config & find way to make this work as SQLite ignores it.
 
             try (ResultSet rs = stmt.executeQuery()) {
                 return logger.generateQueryResults(rs);
