@@ -3,9 +3,7 @@ package com.colen.tempora.commands;
 import java.util.List;
 
 import com.colen.tempora.commands.command_base.ArgParser;
-import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
-import net.minecraft.command.WrongUsageException;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
@@ -14,7 +12,6 @@ import com.colen.tempora.TemporaLoggerManager;
 import com.colen.tempora.commands.command_base.CommandArg;
 import com.colen.tempora.commands.command_base.TemporaCommandBase;
 import com.colen.tempora.utils.CommandUtils;
-import com.colen.tempora.utils.TimeUtils;
 
 public class QueryEventsCommand extends TemporaCommandBase {
 
@@ -39,49 +36,75 @@ public class QueryEventsCommand extends TemporaCommandBase {
             return;
         }
 
-        ArgParser parser = new ArgParser(args, entityPlayerMP);
+        ArgParser parser = new ArgParser(args);
 
-        if (! parser.minArgs(3)) {
+        if (!parser.hasMinArgs(3)) {
             entityPlayerMP.addChatMessage(CommandUtils.tooFewArgs(3));
             entityPlayerMP.addChatMessage(CommandUtils.wrongUsage(getCommandUsage(sender)));
             return;
         }
 
-        int radius;
-        long seconds;
-        String tableName;
+        // Prepare errors
+        IChatComponent radiusError =
+            new ChatComponentTranslation("tempora.command.error.radius");
 
-        try {
-            // Parse radius
-            IChatComponent radiusError = new ChatComponentTranslation("tempora.command.error.radius");
-            radius = parser.getPositiveInteger(0, radiusError);
+        IChatComponent secondsError =
+            new ChatComponentTranslation("tempora.command.error.seconds");
 
-            // Parse time in seconds (convert from string)
-            IChatComponent secondsError = new ChatComponentTranslation("tempora.command.error.seconds");
-            String timeArg = parser.getString(1, secondsError);
-            seconds = TimeUtils.convertToSeconds(timeArg);
+        IChatComponent loggerNameError =
+            new ChatComponentTranslation(
+                "tempora.command.query_events.bad_filter",
+                args.length > 2 ? args[2] : ""
+            );
 
-            // Validate table name
-            IChatComponent tableNameError = new ChatComponentTranslation("tempora.command.query_events.bad_filter", args[2]);
-            tableName = parser.getTableName(2, tableNameError);
+        // Parse everything (no early exit)
+        var radiusR  = parser.positiveInt(0, radiusError);
+        var secondsR = parser.timeSeconds(1, secondsError);
+        var tableR   = parser.loggerName(2, loggerNameError);
 
-        } catch (CommandException e) {
-            sender.addChatMessage(CommandUtils.wrongUsage(getCommandUsage(sender)));
+        boolean hasErrors = false;
+
+        if (!radiusR.isOk()) {
+            entityPlayerMP.addChatMessage(radiusR.error());
+            hasErrors = true;
+        }
+
+        if (!secondsR.isOk()) {
+            entityPlayerMP.addChatMessage(secondsR.error());
+            hasErrors = true;
+        }
+
+        if (!tableR.isOk()) {
+            entityPlayerMP.addChatMessage(tableR.error());
+            hasErrors = true;
+        }
+
+        if (hasErrors) {
+            entityPlayerMP.addChatMessage(
+                CommandUtils.wrongUsage(getCommandUsage(sender))
+            );
             return;
         }
 
-        if (radius < 0) {
-            sender.addChatMessage(new ChatComponentTranslation("tempora.range.negative"));
-            return;
-        }
+        // Safe values
+        int radius = radiusR.value();
+        long seconds = secondsR.value();
+        String tableName = tableR.value();
 
+        // Execute
         int x = (int) Math.round(entityPlayerMP.posX);
         int y = (int) Math.round(entityPlayerMP.posY);
         int z = (int) Math.round(entityPlayerMP.posZ);
 
         TemporaLoggerManager.getLogger(tableName)
             .getDatabaseManager()
-            .queryEventByCoordinate(sender, x, y, z, radius, seconds, entityPlayerMP.dimension);
+            .queryEventByCoordinate(
+                sender,
+                x, y, z,
+                radius,
+                seconds,
+                entityPlayerMP.dimension
+            );
     }
 
     @Override

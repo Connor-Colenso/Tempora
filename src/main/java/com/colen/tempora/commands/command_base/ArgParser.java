@@ -2,93 +2,97 @@ package com.colen.tempora.commands.command_base;
 
 import com.colen.tempora.utils.CommandUtils;
 import com.colen.tempora.utils.TimeUtils;
-import net.minecraft.command.CommandException;
-import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.IChatComponent;
 
-import java.lang.ref.WeakReference;
 import java.util.Objects;
+import java.util.function.Supplier;
 
-public class ArgParser {
+public final class ArgParser {
 
     private final String[] args;
-    private WeakReference<EntityPlayerMP> playerMP;
 
-    public ArgParser(String[] args, EntityPlayerMP playerWhoIssuedCommand) {
-        this.args = args;
-        this.playerMP = new WeakReference<>(playerWhoIssuedCommand);
+    public ArgParser(String[] args) {
+        this.args = Objects.requireNonNull(args);
     }
 
-    // Player-aware String argument
-    public String getString(int index, IChatComponent errorTranslation) throws CommandException {
-        String value = args[index];
-        if (value == null || value.isEmpty()) {
-            // Send player a message and throw
-            Objects.requireNonNull(playerMP.get()).addChatMessage(errorTranslation);
-            throw new CommandException("");
+    /* ------------------------------------------------------------
+     * Core helper
+     * ------------------------------------------------------------ */
+
+    private <T> ParseResult<T> parse(
+        int index,
+        IChatComponent error,
+        Supplier<T> parser
+    ) {
+
+        if (index < 0 || index >= args.length) {
+            return ParseResult.error(error);
         }
-        return value;
-    }
-
-    public String getTableName(int index, IChatComponent errorTranslation) throws CommandException {
-        String value = args[index];
-        String tableName = CommandUtils.validateLoggerName(value);
-        if (value == null || tableName == null) {
-            // Send player a message and throw
-            Objects.requireNonNull(playerMP.get()).addChatMessage(errorTranslation);
-            throw new CommandException("");
-        }
-
-        return value;
-    }
-
-    // Player-aware int argument
-    public int getInt(int index, IChatComponent errorTranslation) throws CommandException {
-        try {
-            return Integer.parseInt(args[index]);
-        } catch (NumberFormatException e) {
-            Objects.requireNonNull(playerMP.get()).addChatMessage(errorTranslation);
-            throw new CommandException("");
-        }
-    }
-
-    // Converts e.g. 1day -> 86400 seconds.
-    public long getTimeInSeconds(int index, IChatComponent errorTranslation) throws CommandException {
-        String timeArg = args[index];
 
         try {
-            return TimeUtils.convertToSeconds(timeArg);
-        } catch (NumberFormatException e) {
-            Objects.requireNonNull(playerMP.get()).addChatMessage(errorTranslation);
-            throw new CommandException("");
+            T value = parser.get();
+            if (value == null) {
+                return ParseResult.error(error);
+            }
+            return ParseResult.ok(value);
+        } catch (Exception e) {
+            return ParseResult.error(error);
         }
     }
 
+    /* ------------------------------------------------------------
+     * Argument types
+     * ------------------------------------------------------------ */
 
-    public int getPositiveInteger(int index, IChatComponent errorTranslation) throws CommandException {
-        try {
-            int i = Integer.parseInt(args[index]);
-            if (i < 0) throw new NumberFormatException();
-            return i;
-        } catch (NumberFormatException e) {
-            Objects.requireNonNull(playerMP.get()).addChatMessage(errorTranslation);
-            throw new CommandException("");
-        }
+    public ParseResult<String> string(int index, IChatComponent error) {
+        return parse(index, error, () -> {
+            String v = args[index];
+            if (v.isEmpty()) throw new IllegalArgumentException();
+            return v;
+        });
     }
 
-    // Player-aware double argument
-    public double getDouble(int index, IChatComponent errorTranslation) throws CommandException {
-        try {
-            return Double.parseDouble(args[index]);
-        } catch (NumberFormatException e) {
-            Objects.requireNonNull(playerMP.get()).addChatMessage(errorTranslation);
-            throw new CommandException("");
-        }
+    public ParseResult<Integer> positiveInt(int index, IChatComponent error) {
+        return parse(index, error, () -> {
+            int v = Integer.parseInt(args[index]);
+            if (v < 0) throw new IllegalArgumentException();
+            return v;
+        });
     }
 
+    public ParseResult<Integer> integer(int index, IChatComponent error) {
+        return parse(index, error, () ->
+            Integer.parseInt(args[index])
+        );
+    }
 
-    // Check minimum number of arguments
-    public boolean minArgs(int required) throws CommandException {
+    public ParseResult<Double> dbl(int index, IChatComponent error) {
+        return parse(index, error, () ->
+            Double.parseDouble(args[index])
+        );
+    }
+
+    public ParseResult<Long> timeSeconds(int index, IChatComponent error) {
+        return parse(index, error, () ->
+            TimeUtils.convertToSeconds(args[index])
+        );
+    }
+
+    public ParseResult<String> loggerName(int index, IChatComponent error) {
+        return parse(index, error, () -> {
+            String v = args[index];
+            if (CommandUtils.validateLoggerName(v) == null) {
+                throw new IllegalArgumentException();
+            }
+            return v;
+        });
+    }
+
+    /* ------------------------------------------------------------
+     * Helpers
+     * ------------------------------------------------------------ */
+
+    public boolean hasMinArgs(int required) {
         return args.length >= required;
     }
 }
