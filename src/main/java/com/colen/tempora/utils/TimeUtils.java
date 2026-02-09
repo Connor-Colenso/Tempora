@@ -43,8 +43,6 @@ public class TimeUtils {
 
     // E.g. 1hour, 2days, 1d, etc...
     public static long convertToSeconds(String timeDescription) {
-        timeDescription = timeDescription.strip();
-
         Matcher matcher = Pattern.compile("(\\d+)\\s*([a-zA-Z]+)")
             .matcher(timeDescription);
         if (!matcher.matches()) {
