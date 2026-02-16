@@ -3,6 +3,7 @@ package com.colen.tempora.commands;
 import java.util.List;
 
 import com.colen.tempora.commands.command_base.ArgParser;
+import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentTranslation;
@@ -96,15 +97,17 @@ public class QueryEventsCommand extends TemporaCommandBase {
         int y = (int) Math.round(entityPlayerMP.posY);
         int z = (int) Math.round(entityPlayerMP.posZ);
 
-        TemporaLoggerManager.getLogger(tableName)
-            .getDatabaseManager()
-            .queryEventByCoordinate(
-                sender,
-                x, y, z,
-                radius,
-                seconds,
-                entityPlayerMP.dimension
-            );
+        GenericPositionalLogger<?> logger = TemporaLoggerManager.getLogger(tableName);
+        if (logger == null) return;
+
+        logger.getDatabaseManager()
+        .queryEventByCoordinate(
+            sender,
+            x, y, z,
+            radius,
+            seconds,
+            entityPlayerMP.dimension
+        );
     }
 
     @Override
