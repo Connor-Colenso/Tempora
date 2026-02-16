@@ -58,24 +58,24 @@ public class QueryEventsCommand extends TemporaCommandBase {
             );
 
         // Parse everything (no early exit)
-        var radiusR  = parser.positiveInt(0, radiusError);
-        var secondsR = parser.timeSeconds(1, secondsError);
-        var tableR   = parser.loggerName(2, loggerNameError);
+        var radiusResult  = parser.positiveInt(0, radiusError);
+        var secondsResult = parser.timeSeconds(1, secondsError);
+        var loggerNameResult = parser.loggerName(2, loggerNameError);
 
         boolean hasErrors = false;
 
-        if (!radiusR.isOk()) {
-            entityPlayerMP.addChatMessage(radiusR.error());
+        if (!radiusResult.isOk()) {
+            entityPlayerMP.addChatMessage(radiusResult.error());
             hasErrors = true;
         }
 
-        if (!secondsR.isOk()) {
-            entityPlayerMP.addChatMessage(secondsR.error());
+        if (!secondsResult.isOk()) {
+            entityPlayerMP.addChatMessage(secondsResult.error());
             hasErrors = true;
         }
 
-        if (!tableR.isOk()) {
-            entityPlayerMP.addChatMessage(tableR.error());
+        if (!loggerNameResult.isOk()) {
+            entityPlayerMP.addChatMessage(loggerNameResult.error());
             hasErrors = true;
         }
 
@@ -87,9 +87,9 @@ public class QueryEventsCommand extends TemporaCommandBase {
         }
 
         // Safe values
-        int radius = radiusR.value();
-        long seconds = secondsR.value();
-        String tableName = tableR.value();
+        int radius = radiusResult.value();
+        long seconds = secondsResult.value();
+        String tableName = loggerNameResult.value();
 
         // Execute
         int x = (int) Math.round(entityPlayerMP.posX);

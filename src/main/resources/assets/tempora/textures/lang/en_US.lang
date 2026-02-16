@@ -108,7 +108,7 @@ tempora.command.list_regions.filtered.no_regions=%s (ID %s) has no regions.
 tempora.command.list_regions.filtered.invalid_dimension=Dimension with ID %s does not exist.
 tempora.region.dimension_banner=-- Regions in %s (ID %s) --
 
-tempora.command.query_events.bad_filter=Filter "%s" is invalid.
+tempora.command.query_events.bad_filter=Filter '%s' is invalid.
 tempora.command.query_events.query_failed=Database query failed on %s: %s
 tempora.command.query_events.no_results=No results found for %s.
 tempora.command.query_events.showing_results=Showing latest %s results for %s:
