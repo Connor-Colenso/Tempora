@@ -21,8 +21,8 @@ public class QueryEventsCommand extends TemporaCommandBase {
         super(
             new CommandArg("<event_filter>", "tempora.command.query_events.help.arg0"),
             new CommandArg("<radius>", "tempora.command.query_events.help.arg1"),
-            new CommandArg("<since>", "tempora.command.query_events.help.arg2"),
-            new CommandArg("[until]", "tempora.command.query_events.help.arg3"));
+            new CommandArg("<since>", "tempora.command.query_events.help.arg2"));
+//            new CommandArg("[until]", "tempora.command.query_events.help.arg3"));
     }
 
     @Override
