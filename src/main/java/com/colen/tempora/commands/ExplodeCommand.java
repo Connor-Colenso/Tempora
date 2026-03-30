@@ -12,6 +12,8 @@ import com.colen.tempora.commands.command_base.CommandArg;
 import com.colen.tempora.commands.command_base.TemporaCommandBase;
 import com.colen.tempora.utils.CommandUtils;
 
+import static com.colen.tempora.utils.CommandUtils.OP_ONLY;
+
 public class ExplodeCommand extends TemporaCommandBase {
 
     public ExplodeCommand() {
@@ -25,7 +27,7 @@ public class ExplodeCommand extends TemporaCommandBase {
 
     @Override
     public int getRequiredPermissionLevel() {
-        return 2; // OP-only
+        return OP_ONLY;
     }
 
     @Override

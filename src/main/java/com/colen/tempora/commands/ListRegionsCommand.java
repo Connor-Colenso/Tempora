@@ -1,6 +1,7 @@
 package com.colen.tempora.commands;
 
 import static com.colen.tempora.Tempora.NETWORK;
+import static com.colen.tempora.utils.CommandUtils.OP_ONLY;
 import static com.colen.tempora.utils.GenericUtils.getDimensionName;
 
 import java.util.Comparator;
@@ -39,7 +40,7 @@ public class ListRegionsCommand extends TemporaCommandBase {
 
     @Override
     public int getRequiredPermissionLevel() {
-        return 2; // OP
+        return OP_ONLY;
     }
 
     @Override

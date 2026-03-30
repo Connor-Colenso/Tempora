@@ -2,6 +2,7 @@ package com.colen.tempora.commands;
 
 import static com.colen.tempora.Tempora.LOG;
 import static com.colen.tempora.TemporaEvents.PLAYER_MOVEMENT;
+import static com.colen.tempora.utils.CommandUtils.OP_ONLY;
 import static com.colen.tempora.utils.CommandUtils.teleportChatComponent;
 import static com.colen.tempora.utils.PlayerUtils.UNKNOWN_PLAYER_NAME;
 
@@ -42,7 +43,7 @@ public class HomeChunkCommand extends TemporaCommandBase {
 
     @Override
     public int getRequiredPermissionLevel() {
-        return 2;
+        return OP_ONLY;
     }
 
     @Override

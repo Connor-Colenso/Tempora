@@ -1,6 +1,7 @@
 package com.colen.tempora.commands;
 
 import static com.colen.tempora.Tempora.NETWORK;
+import static com.colen.tempora.utils.CommandUtils.OP_ONLY;
 import static com.colen.tempora.utils.ReflectionUtils.getAllTableColumns;
 
 import java.sql.Connection;
@@ -45,8 +46,8 @@ public class QuerySQLCommand extends TemporaCommandBase {
 
     @Override
     public int getRequiredPermissionLevel() {
-        return 2;
-    } // OP only
+        return OP_ONLY;
+    }
 
     @Override
     public void processCommand(ICommandSender sender, String[] args) {

@@ -11,6 +11,8 @@ import net.minecraft.world.WorldServer;
 import com.colen.tempora.commands.command_base.TemporaCommandBase;
 import com.colen.tempora.utils.CommandUtils;
 
+import static com.colen.tempora.utils.CommandUtils.OP_ONLY;
+
 public class TemporaTpCommand extends TemporaCommandBase {
 
     @Override
@@ -20,7 +22,7 @@ public class TemporaTpCommand extends TemporaCommandBase {
 
     @Override
     public int getRequiredPermissionLevel() {
-        return 2; // OP only
+        return OP_ONLY;
     }
 
     @Override

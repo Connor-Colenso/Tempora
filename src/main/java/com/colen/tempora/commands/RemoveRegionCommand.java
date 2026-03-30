@@ -1,6 +1,7 @@
 package com.colen.tempora.commands;
 
 import static com.colen.tempora.Tempora.NETWORK;
+import static com.colen.tempora.utils.CommandUtils.OP_ONLY;
 import static com.colen.tempora.utils.CommandUtils.teleportChatComponent;
 
 import java.util.List;
@@ -34,7 +35,7 @@ public class RemoveRegionCommand extends TemporaCommandBase {
 
     @Override
     public int getRequiredPermissionLevel() {
-        return 2; // OP‑only
+        return OP_ONLY;
     }
 
     @Override

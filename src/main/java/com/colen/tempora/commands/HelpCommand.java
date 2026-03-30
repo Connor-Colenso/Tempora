@@ -31,7 +31,7 @@ public class HelpCommand extends TemporaCommandBase {
 
     @Override
     public int getRequiredPermissionLevel() {
-        return OP_ONLY; // OP only
+        return OP_ONLY;
     }
 
     @Override
