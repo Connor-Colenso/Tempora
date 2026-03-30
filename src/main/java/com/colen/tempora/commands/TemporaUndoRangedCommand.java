@@ -3,6 +3,7 @@ package com.colen.tempora.commands;
 import static com.colen.tempora.Tempora.LOG;
 import static com.colen.tempora.Tempora.NETWORK;
 import static com.colen.tempora.utils.CommandUtils.ONLY_IN_GAME;
+import static com.colen.tempora.utils.CommandUtils.OP_ONLY;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -50,7 +51,7 @@ public class TemporaUndoRangedCommand extends TemporaCommandBase {
 
     @Override
     public int getRequiredPermissionLevel() {
-        return 2;
+        return OP_ONLY;
     }
 
     @Override

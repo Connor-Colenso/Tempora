@@ -15,6 +15,8 @@ import com.colen.tempora.commands.command_base.TemporaCommandBase;
 import com.colen.tempora.utils.CommandUtils;
 import com.colen.tempora.utils.TimeUtils;
 
+import static com.colen.tempora.utils.CommandUtils.OP_ONLY;
+
 public class QueryEventsCommand extends TemporaCommandBase {
 
     public QueryEventsCommand() {
@@ -22,7 +24,6 @@ public class QueryEventsCommand extends TemporaCommandBase {
             new CommandArg("<event_filter>", "tempora.command.query_events.help.arg0"),
             new CommandArg("<radius>", "tempora.command.query_events.help.arg1"),
             new CommandArg("<since>", "tempora.command.query_events.help.arg2"));
-//            new CommandArg("[until]", "tempora.command.query_events.help.arg3"));
     }
 
     @Override
@@ -74,7 +75,7 @@ public class QueryEventsCommand extends TemporaCommandBase {
 
     @Override
     public int getRequiredPermissionLevel() {
-        return 2; // Require OP permission level.
+        return OP_ONLY;
     }
 
     @Override

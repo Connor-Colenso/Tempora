@@ -14,6 +14,8 @@ import com.colen.tempora.loggers.generic.GenericEventInfo;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.utils.CommandUtils;
 
+import static com.colen.tempora.utils.CommandUtils.OP_ONLY;
+
 public class TemporaUndoCommand extends TemporaCommandBase {
 
     @Override
@@ -23,7 +25,7 @@ public class TemporaUndoCommand extends TemporaCommandBase {
 
     @Override
     public int getRequiredPermissionLevel() {
-        return 2; // OP‑only by default
+        return OP_ONLY;
     }
 
     @Override
