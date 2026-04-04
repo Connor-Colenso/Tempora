@@ -4,7 +4,10 @@ import static com.colen.tempora.utils.CommandUtils.generateUndoCommand;
 import static com.colen.tempora.utils.CommandUtils.teleportChatComponent;
 
 import net.minecraft.block.Block;
+import net.minecraft.event.HoverEvent;
+import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
 import com.colen.tempora.TemporaEvents;
@@ -75,20 +78,55 @@ public class BlockChangeEventInfo extends GenericEventInfo {
         IChatComponent closestPlayerName = PlayerUtils.playerNameFromUUID(closestPlayerUUID);
         ChatComponentNumber closestPlayerDist = new ChatComponentNumber(closestPlayerDistance);
 
+        // Split stack trace and reverse to show deepest first
+        String[] traceLines = stackTrace.split("->");
+        int maxLines = 7;
+        int totalLines = traceLines.length;
+        int start = Math.max(0, totalLines - maxLines); // only last maxLines
+        ChatComponentText hoverText = new ChatComponentText("");
+
+        // Iterate backwards from the deepest line
+        int index = 0;
+        for (int i = totalLines - 1; i >= start; i--) {
+            IChatComponent line = new ChatComponentText(traceLines[i].trim());
+            line.getChatStyle().setColor(EnumChatFormatting.GRAY);
+
+            IChatComponent lineNumber = new ChatComponentText(traceLines.length - (index++) - 1 + ".");
+            lineNumber.getChatStyle().setColor(EnumChatFormatting.YELLOW);
+
+            hoverText.appendSibling(new ChatComponentTranslation("%s %s", lineNumber, line));
+            if (i != 0) hoverText.appendText("\n");
+        }
+
+        // Add ellipsis if truncated
+        if (totalLines > maxLines) {
+            IChatComponent ellipsis =  new ChatComponentText("...");
+            ellipsis.getChatStyle().setColor(EnumChatFormatting.GRAY);
+            hoverText.appendSibling(ellipsis);
+        }
+
+        // Create hover component for stack trace placeholder
+        ChatComponentTranslation stackTraceComponent = new ChatComponentTranslation("tempora.text.stacktrace");
+        stackTraceComponent.getChatStyle().setColor(EnumChatFormatting.AQUA);
+        stackTraceComponent.getChatStyle().setChatHoverEvent(
+            new HoverEvent(HoverEvent.Action.SHOW_TEXT, hoverText)
+        );
+
+        // Main message component
         return new ChatComponentTranslation(
             "message.block_change",
-            coords, // %s: coordinates
-            beforeBlockName, // %s: block before name
-            beforeBlockID, // %d: block before ID
-            beforeMetadata, // %d: block before metadata
-            afterBlockName, // %s: block after name
-            afterBlockID, // %d: block after ID
-            afterMetadata, // %d: block after metadata
-            timeAgo, // %s: time ago
-            stackTrace,
-            closestPlayerName, // %s: closest player
-            closestPlayerDist, // %s: distance
-            generateUndoCommand(getLoggerName(), eventID) // %s: Undo operation.
+            coords,
+            beforeBlockName,
+            beforeBlockID,
+            beforeMetadata,
+            afterBlockName,
+            afterBlockID,
+            afterMetadata,
+            timeAgo,
+            stackTraceComponent,
+            closestPlayerName,
+            closestPlayerDist,
+            generateUndoCommand(getLoggerName(), eventID)
         );
     }
 
