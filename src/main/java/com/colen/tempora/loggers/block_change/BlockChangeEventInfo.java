@@ -3,6 +3,7 @@ package com.colen.tempora.loggers.block_change;
 import static com.colen.tempora.utils.CommandUtils.generateUndoCommand;
 import static com.colen.tempora.utils.CommandUtils.teleportChatComponent;
 
+import com.colen.tempora.commands.TemporaStackTrace;
 import net.minecraft.block.Block;
 import net.minecraft.event.HoverEvent;
 import net.minecraft.util.ChatComponentText;
@@ -20,6 +21,10 @@ import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 
 import cpw.mods.fml.common.network.ByteBufUtils;
 import io.netty.buffer.ByteBuf;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 public class BlockChangeEventInfo extends GenericEventInfo {
 
@@ -78,38 +83,47 @@ public class BlockChangeEventInfo extends GenericEventInfo {
         IChatComponent closestPlayerName = PlayerUtils.playerNameFromUUID(closestPlayerUUID);
         ChatComponentNumber closestPlayerDist = new ChatComponentNumber(closestPlayerDistance);
 
-        // Split stack trace and reverse to show deepest first
-        String[] traceLines = stackTrace.split("->");
+        // Generate full stack trace as a list of IChatComponents
+        List<IChatComponent> stackTraceComponents = generateStackTraceComponents(stackTrace);
+
+        // Generate a UUID for this trace and store it
+        String traceUUID = UUID.randomUUID().toString();
+        TemporaStackTrace.storeStackTrace(traceUUID, stackTraceComponents);
+
+        // Build hover text with truncation
         int maxLines = 7;
-        int totalLines = traceLines.length;
-        int start = Math.max(0, totalLines - maxLines); // only last maxLines
         ChatComponentText hoverText = new ChatComponentText("");
+        int totalLines = stackTraceComponents.size();
+        int start = Math.max(0, totalLines - maxLines);
 
-        // Iterate backwards from the deepest line
-        int index = 0;
         for (int i = totalLines - 1; i >= start; i--) {
-            IChatComponent line = new ChatComponentText(traceLines[i].trim());
-            line.getChatStyle().setColor(EnumChatFormatting.GRAY);
-
-            IChatComponent lineNumber = new ChatComponentText(traceLines.length - (index++) - 1 + ".");
-            lineNumber.getChatStyle().setColor(EnumChatFormatting.YELLOW);
-
-            hoverText.appendSibling(new ChatComponentTranslation("%s %s", lineNumber, line));
-            if (i != 0) hoverText.appendText("\n");
+            IChatComponent line = stackTraceComponents.get(i);
+            hoverText.appendSibling(line);
+            if (i != start) hoverText.appendText("\n");
         }
 
-        // Add ellipsis if truncated
         if (totalLines > maxLines) {
-            IChatComponent ellipsis =  new ChatComponentText("...");
-            ellipsis.getChatStyle().setColor(EnumChatFormatting.GRAY);
-            hoverText.appendSibling(ellipsis);
+            IChatComponent number = new ChatComponentNumber(stackTraceComponents.size());
+            number.getChatStyle().setColor(EnumChatFormatting.RED);
+
+            IChatComponent stackTraceTooLongMsg = new ChatComponentTranslation("tempora.command.click.reveal.stacktrace", number);
+            stackTraceTooLongMsg.getChatStyle().setColor(EnumChatFormatting.GRAY);
+            hoverText.appendSibling(stackTraceTooLongMsg);
         }
 
-        // Create hover component for stack trace placeholder
-        ChatComponentTranslation stackTraceComponent = new ChatComponentTranslation("tempora.text.stacktrace");
+        // Stack trace hover component with click event
+        ChatComponentTranslation stackTraceComponent = new ChatComponentTranslation("tempora.command.stacktrace.brackets");
         stackTraceComponent.getChatStyle().setColor(EnumChatFormatting.AQUA);
         stackTraceComponent.getChatStyle().setChatHoverEvent(
             new HoverEvent(HoverEvent.Action.SHOW_TEXT, hoverText)
+        );
+
+        // Add click event to run the command
+        stackTraceComponent.getChatStyle().setChatClickEvent(
+            new net.minecraft.event.ClickEvent(
+                net.minecraft.event.ClickEvent.Action.RUN_COMMAND,
+                "/tempora_stacktrace " + traceUUID
+            )
         );
 
         // Main message component
@@ -128,6 +142,27 @@ public class BlockChangeEventInfo extends GenericEventInfo {
             closestPlayerDist,
             generateUndoCommand(getLoggerName(), eventID)
         );
+    }
+
+    // Generates a full stack trace as a list of IChatComponents
+    private List<IChatComponent> generateStackTraceComponents(String stackTrace) {
+        String[] lines = stackTrace.split("->");
+        List<IChatComponent> components = new ArrayList<>();
+
+        for (int i = 0; i < lines.length; i++) {
+            String trimmed = lines[i].trim();
+
+            IChatComponent lineNumber = new ChatComponentText(i + ".");
+            lineNumber.getChatStyle().setColor(EnumChatFormatting.YELLOW);
+
+            IChatComponent lineText = new ChatComponentText(trimmed);
+            lineText.getChatStyle().setColor(EnumChatFormatting.GRAY);
+
+            IChatComponent fullLine = new ChatComponentTranslation("%s %s", lineNumber, lineText);
+            components.add(fullLine);
+        }
+
+        return components;
     }
 
     @Override

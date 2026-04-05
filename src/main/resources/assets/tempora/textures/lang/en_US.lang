@@ -88,6 +88,7 @@ tempora.command.home_chunk.unknown_player=No location data for player %s availab
 tempora.command.home_chunk.no_data=No movement data found for that query.
 tempora.command.home_chunk.sql_error=Database error while querying movement data, see console for details.
 tempora.command.home_chunk.bad_dim=Bad <dim> value, must be an integer.
+tempora.command.home_chunk.description=Attempts to determine a players most used chunk, useful for finding their base. 
 
 tempora.command.teleport.display=[%s %s %s]
 tempora.command.teleport.hover=Click to teleport [%s, ID %s]
@@ -117,6 +118,16 @@ tempora.command.query_events.too_many_pending=Warning, due to high volume, there
 tempora.command.explode.no_block_in_sight=No block in sight.
 tempora.command.explode.force.must.be.numeric=Force must be a number.
 
+tempora.command.stacktrace.description=Prints a previously stored stack trace for the given key.
+tempora.command.stacktrace.arg.key=The unique key or UUID associated with the stored stack trace.
+tempora.command.stacktrace.not_found=No stack trace was found for key: %s.
+
+tempora.command.stacktrace.brackets=[STACK TRACE]
+tempora.command.full.stacktrace=FULL STACK TRACE
+tempora.command.click.reveal.stacktrace=Click to reveal full stack trace (%s deep).
+
+tempora.command.help.label.description=Description: %s
+tempora.command.help.label.usage=Usage: %s
 
 # === Undo Messages ===
 tempora.undo.cannot_block_break.nbt_logging_disabled=Cannot undo %s, the block had NBT data, but NBT logging was disabled when it was logged.
@@ -135,7 +146,6 @@ tempora.undo.generic_fail=Undo failed: %s.
 tempora.undo.preview=Previewing undo operation, click %s to undo events.
 tempora.undo.preview.highlight=WARNING: This operation is irreversible.
 tempora.undo.preview.confirm=[HERE]
-tempora.text.stacktrace=[STACK TRACE]
 tempora.undo.range.too_large=Server config limits undo range to %s. Your requested range has been capped.
 tempora.undo.bad_implementation=The logger %s has incorrectly implemented undo functionality and event %S and failed. Please contact author of this logger.
 tempora.undo.version_mismatch=The event %s was logged on a different modpack version. Therefore it may be unsafe to revert this, you may override this by using the UNSAFE option.
