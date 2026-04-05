@@ -205,6 +205,6 @@ public class HomeChunkCommand extends TemporaCommandBase {
     }
 
     public IChatComponent getCommandDescription() {
-        return new ChatComponentTranslation("tempora.command.explode.home_chunk.description");
+        return new ChatComponentTranslation("tempora.command.home_chunk.description");
     }
 }
