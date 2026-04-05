@@ -16,14 +16,14 @@ import cpw.mods.fml.relauncher.Side;
 
 public class GenericUtils {
 
-    private static final int STACK_TRACE_DEPTH = 6;
+    private static final int STACK_TRACE_DEPTH = 999;
 
     public static String getCallingClassChain() {
         StackTraceElement[] stack = Thread.currentThread().getStackTrace();
 
         List<String> classNames = new ArrayList<>();
 
-        final int SKIP = 3;
+        final int SKIP = 4;
 
         for (int i = SKIP; i < stack.length && classNames.size() < STACK_TRACE_DEPTH; i++) {
             StackTraceElement e = stack[i];
