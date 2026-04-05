@@ -1,5 +1,7 @@
 package com.colen.tempora.commands;
 
+import static com.colen.tempora.utils.CommandUtils.OP_ONLY;
+
 import java.util.List;
 
 import net.minecraft.command.ICommandSender;
@@ -13,8 +15,6 @@ import com.colen.tempora.commands.command_base.TemporaCommandBase;
 import com.colen.tempora.loggers.generic.GenericEventInfo;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.utils.CommandUtils;
-
-import static com.colen.tempora.utils.CommandUtils.OP_ONLY;
 
 public class TemporaUndoCommand extends TemporaCommandBase {
 

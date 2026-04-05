@@ -1,5 +1,7 @@
 package com.colen.tempora.commands;
 
+import static com.colen.tempora.utils.CommandUtils.OP_ONLY;
+
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentTranslation;
@@ -11,8 +13,6 @@ import net.minecraft.world.World;
 import com.colen.tempora.commands.command_base.CommandArg;
 import com.colen.tempora.commands.command_base.TemporaCommandBase;
 import com.colen.tempora.utils.CommandUtils;
-
-import static com.colen.tempora.utils.CommandUtils.OP_ONLY;
 
 public class ExplodeCommand extends TemporaCommandBase {
 

@@ -3,7 +3,10 @@ package com.colen.tempora.loggers.block_change;
 import static com.colen.tempora.utils.CommandUtils.generateUndoCommand;
 import static com.colen.tempora.utils.CommandUtils.teleportChatComponent;
 
-import com.colen.tempora.commands.TemporaStackTrace;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
 import net.minecraft.block.Block;
 import net.minecraft.event.HoverEvent;
 import net.minecraft.util.ChatComponentText;
@@ -12,6 +15,7 @@ import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
 import com.colen.tempora.TemporaEvents;
+import com.colen.tempora.commands.TemporaStackTrace;
 import com.colen.tempora.loggers.generic.GenericEventInfo;
 import com.colen.tempora.loggers.generic.column.Column;
 import com.colen.tempora.utils.BlockUtils;
@@ -21,10 +25,6 @@ import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 
 import cpw.mods.fml.common.network.ByteBufUtils;
 import io.netty.buffer.ByteBuf;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
 
 public class BlockChangeEventInfo extends GenericEventInfo {
 
@@ -87,7 +87,8 @@ public class BlockChangeEventInfo extends GenericEventInfo {
         List<IChatComponent> stackTraceComponents = generateStackTraceComponents(stackTrace);
 
         // Generate a UUID for this trace and store it
-        String traceUUID = UUID.randomUUID().toString();
+        String traceUUID = UUID.randomUUID()
+            .toString();
         TemporaStackTrace.storeStackTrace(traceUUID, stackTraceComponents);
 
         // Build hover text with truncation
@@ -104,27 +105,31 @@ public class BlockChangeEventInfo extends GenericEventInfo {
 
         if (totalLines > maxLines) {
             IChatComponent number = new ChatComponentNumber(stackTraceComponents.size());
-            number.getChatStyle().setColor(EnumChatFormatting.RED);
+            number.getChatStyle()
+                .setColor(EnumChatFormatting.RED);
 
-            IChatComponent stackTraceTooLongMsg = new ChatComponentTranslation("tempora.command.click.reveal.stacktrace", number);
-            stackTraceTooLongMsg.getChatStyle().setColor(EnumChatFormatting.GRAY);
+            IChatComponent stackTraceTooLongMsg = new ChatComponentTranslation(
+                "tempora.command.click.reveal.stacktrace",
+                number);
+            stackTraceTooLongMsg.getChatStyle()
+                .setColor(EnumChatFormatting.GRAY);
             hoverText.appendSibling(stackTraceTooLongMsg);
         }
 
         // Stack trace hover component with click event
-        ChatComponentTranslation stackTraceComponent = new ChatComponentTranslation("tempora.command.stacktrace.brackets");
-        stackTraceComponent.getChatStyle().setColor(EnumChatFormatting.AQUA);
-        stackTraceComponent.getChatStyle().setChatHoverEvent(
-            new HoverEvent(HoverEvent.Action.SHOW_TEXT, hoverText)
-        );
+        ChatComponentTranslation stackTraceComponent = new ChatComponentTranslation(
+            "tempora.command.stacktrace.brackets");
+        stackTraceComponent.getChatStyle()
+            .setColor(EnumChatFormatting.AQUA);
+        stackTraceComponent.getChatStyle()
+            .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hoverText));
 
         // Add click event to run the command
-        stackTraceComponent.getChatStyle().setChatClickEvent(
-            new net.minecraft.event.ClickEvent(
-                net.minecraft.event.ClickEvent.Action.RUN_COMMAND,
-                "/tempora_stacktrace " + traceUUID
-            )
-        );
+        stackTraceComponent.getChatStyle()
+            .setChatClickEvent(
+                new net.minecraft.event.ClickEvent(
+                    net.minecraft.event.ClickEvent.Action.RUN_COMMAND,
+                    "/tempora_stacktrace " + traceUUID));
 
         // Main message component
         return new ChatComponentTranslation(
@@ -140,8 +145,7 @@ public class BlockChangeEventInfo extends GenericEventInfo {
             stackTraceComponent,
             closestPlayerName,
             closestPlayerDist,
-            generateUndoCommand(getLoggerName(), eventID)
-        );
+            generateUndoCommand(getLoggerName(), eventID));
     }
 
     // Generates a full stack trace as a list of IChatComponents
@@ -153,10 +157,12 @@ public class BlockChangeEventInfo extends GenericEventInfo {
             String trimmed = lines[i].trim();
 
             IChatComponent lineNumber = new ChatComponentText(i + ".");
-            lineNumber.getChatStyle().setColor(EnumChatFormatting.YELLOW);
+            lineNumber.getChatStyle()
+                .setColor(EnumChatFormatting.YELLOW);
 
             IChatComponent lineText = new ChatComponentText(trimmed);
-            lineText.getChatStyle().setColor(EnumChatFormatting.GRAY);
+            lineText.getChatStyle()
+                .setColor(EnumChatFormatting.GRAY);
 
             IChatComponent fullLine = new ChatComponentTranslation("%s %s", lineNumber, lineText);
             components.add(fullLine);

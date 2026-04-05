@@ -1,10 +1,11 @@
 package com.colen.tempora.commands;
 
+import static com.colen.tempora.utils.CommandUtils.OP_ONLY;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.colen.tempora.commands.command_base.CommandArg;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
@@ -12,9 +13,8 @@ import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
+import com.colen.tempora.commands.command_base.CommandArg;
 import com.colen.tempora.commands.command_base.TemporaCommandBase;
-
-import static com.colen.tempora.utils.CommandUtils.OP_ONLY;
 
 // Internal command for displaying stack trace info.
 public class TemporaStackTrace extends TemporaCommandBase {
@@ -49,8 +49,11 @@ public class TemporaStackTrace extends TemporaCommandBase {
             return;
         }
 
-        IChatComponent header = new ChatComponentTranslation("====== %s ======", new ChatComponentTranslation("tempora.command.full.stacktrace"));
-        header.getChatStyle().setColor(EnumChatFormatting.YELLOW);
+        IChatComponent header = new ChatComponentTranslation(
+            "====== %s ======",
+            new ChatComponentTranslation("tempora.command.full.stacktrace"));
+        header.getChatStyle()
+            .setColor(EnumChatFormatting.YELLOW);
         sender.addChatMessage(header);
 
         // Print each line of the stack trace in reverse (deepest call first)

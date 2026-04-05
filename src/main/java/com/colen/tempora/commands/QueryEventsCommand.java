@@ -1,5 +1,7 @@
 package com.colen.tempora.commands;
 
+import static com.colen.tempora.utils.CommandUtils.OP_ONLY;
+
 import java.util.List;
 
 import net.minecraft.command.ICommandSender;
@@ -14,8 +16,6 @@ import com.colen.tempora.commands.command_base.CommandArg;
 import com.colen.tempora.commands.command_base.TemporaCommandBase;
 import com.colen.tempora.utils.CommandUtils;
 import com.colen.tempora.utils.TimeUtils;
-
-import static com.colen.tempora.utils.CommandUtils.OP_ONLY;
 
 public class QueryEventsCommand extends TemporaCommandBase {
 
