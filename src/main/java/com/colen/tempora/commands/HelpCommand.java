@@ -1,5 +1,6 @@
 package com.colen.tempora.commands;
 
+import static com.colen.tempora.utils.ChatUtils.createCenteredLine;
 import static com.colen.tempora.utils.CommandUtils.OP_ONLY;
 
 import java.util.List;
@@ -55,11 +56,10 @@ public class HelpCommand extends TemporaCommandBase {
         }
 
         if (command instanceof TemporaCommandBase temporaCommand) {
-            IChatComponent descriptionSeparator = new ChatComponentText(
-                "-----------------------------------------------------");
-            descriptionSeparator.getChatStyle()
-                .setColor(EnumChatFormatting.DARK_GRAY);
-            sender.addChatMessage(descriptionSeparator);
+
+            // E.g. ----------- command_name -----------
+            IChatComponent centeredCommand = createCenteredLine(temporaCommand.getCommandName());
+            sender.addChatMessage(centeredCommand);
 
             // Description: %s.
             {
