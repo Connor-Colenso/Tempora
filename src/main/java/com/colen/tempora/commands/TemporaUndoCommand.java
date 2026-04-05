@@ -60,7 +60,7 @@ public class TemporaUndoCommand extends TemporaCommandBase {
     }
 
     @Override
-    public String getExampleArgs() {
+    public String getExampleCommand() {
         return "PlayerBlockBreakLogger 5fe966ff-0603-4e44-b731-613abf66fee2";
     }
 

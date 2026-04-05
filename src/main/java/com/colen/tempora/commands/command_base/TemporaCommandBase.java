@@ -60,7 +60,7 @@ public abstract class TemporaCommandBase extends CommandBase {
         return ARGS_COLOUR_LIST.get(index % ARGS_COLOUR_LIST.size());
     }
 
-    public abstract String getExampleArgs();
+    public abstract String getExampleCommand();
 
     public abstract String getTranslationKeyBase();
 

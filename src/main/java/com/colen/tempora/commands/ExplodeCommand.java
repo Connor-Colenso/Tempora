@@ -89,7 +89,7 @@ public class ExplodeCommand extends TemporaCommandBase {
     }
 
     @Override
-    public String getExampleArgs() {
+    public String getExampleCommand() {
         return "5";
     }
 

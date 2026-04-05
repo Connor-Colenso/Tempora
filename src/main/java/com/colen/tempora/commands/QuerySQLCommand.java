@@ -220,7 +220,7 @@ public class QuerySQLCommand extends TemporaCommandBase {
     }
 
     @Override
-    public String getExampleArgs() {
+    public String getExampleCommand() {
         return "SELECT * FROM PlayerMovementLogger WHERE playerUUID = 'player_uuid_goes_here' AND Y > 80";
     }
 

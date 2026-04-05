@@ -66,7 +66,7 @@ public class TemporaTpCommand extends TemporaCommandBase {
     }
 
     @Override
-    public String getExampleArgs() {
+    public String getExampleCommand() {
         return "400 42 -123 1";
     }
 

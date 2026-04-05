@@ -251,7 +251,7 @@ public class TemporaUndoRangedCommand extends TemporaCommandBase {
     }
 
     @Override
-    public String getExampleArgs() {
+    public String getExampleCommand() {
         return "15 10m PlayerBlockPlaceLogger";
     }
 

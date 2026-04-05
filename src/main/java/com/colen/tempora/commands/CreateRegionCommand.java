@@ -132,7 +132,7 @@ public class CreateRegionCommand extends TemporaCommandBase {
     }
 
     @Override
-    public String getExampleArgs() {
+    public String getExampleCommand() {
         return "test 0 0 0 5 5 5 0";
     }
 

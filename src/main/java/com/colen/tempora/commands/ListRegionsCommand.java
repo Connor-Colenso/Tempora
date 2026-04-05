@@ -132,7 +132,7 @@ public class ListRegionsCommand extends TemporaCommandBase {
     }
 
     @Override
-    public String getExampleArgs() {
+    public String getExampleCommand() {
         return "-1";
     }
 

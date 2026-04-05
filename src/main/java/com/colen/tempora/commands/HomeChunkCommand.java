@@ -195,7 +195,7 @@ public class HomeChunkCommand extends TemporaCommandBase {
     }
 
     @Override
-    public String getExampleArgs() {
+    public String getExampleCommand() {
         return "";
     }
 
