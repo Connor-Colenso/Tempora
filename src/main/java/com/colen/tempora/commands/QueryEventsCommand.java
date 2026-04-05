@@ -9,6 +9,7 @@ import net.minecraft.command.WrongUsageException;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
 import com.colen.tempora.TemporaLoggerManager;
@@ -21,9 +22,9 @@ public class QueryEventsCommand extends TemporaCommandBase {
 
     public QueryEventsCommand() {
         super(
-            new CommandArg("<event_filter>", "tempora.command.query_events.help.arg0"),
-            new CommandArg("<radius>", "tempora.command.query_events.help.arg1"),
-            new CommandArg("<since>", "tempora.command.query_events.help.arg2"));
+            new CommandArg("<radius>", "tempora.command.query_events.help.arg0"),
+            new CommandArg("<time>", "tempora.command.query_events.help.arg1"),
+            new CommandArg("<event_filter>", "tempora.command.query_events.help.arg2"));
     }
 
     @Override
@@ -48,7 +49,18 @@ public class QueryEventsCommand extends TemporaCommandBase {
         long seconds = TimeUtils.convertToSeconds(args[1].toLowerCase());
 
         if (radius < 0) {
-            sender.addChatMessage(new ChatComponentTranslation("tempora.range.negative"));
+            IChatComponent rangeNegative = new ChatComponentTranslation("tempora.range.negative");
+            rangeNegative.getChatStyle()
+                .setColor(EnumChatFormatting.RED);
+            sender.addChatMessage(rangeNegative);
+            return;
+        }
+
+        if (radius == 0) {
+            IChatComponent rangeNegative = new ChatComponentTranslation("tempora.range.zero");
+            rangeNegative.getChatStyle()
+                .setColor(EnumChatFormatting.RED);
+            sender.addChatMessage(rangeNegative);
             return;
         }
 
@@ -91,8 +103,8 @@ public class QueryEventsCommand extends TemporaCommandBase {
     }
 
     @Override
-    public String getExampleArgs() {
-        return "PlayerBlockBreakLogger 25 1day 40min";
+    public String getExampleCommand() {
+        return "/" + getCommandName() + " 25 3hours PlayerBlockBreakLogger";
     }
 
     @Override

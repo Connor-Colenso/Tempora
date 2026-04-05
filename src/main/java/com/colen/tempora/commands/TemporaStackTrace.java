@@ -63,8 +63,8 @@ public class TemporaStackTrace extends TemporaCommandBase {
     }
 
     @Override
-    public String getExampleArgs() {
-        return "<key>";
+    public String getExampleCommand() {
+        return "todo";
     }
 
     @Override

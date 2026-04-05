@@ -58,6 +58,7 @@ tempora.uuid.click_to_copy=Click to copy UUID.
 
 # === Generic errors ===
 tempora.range.negative=Range cannot be negative, stop trying to break me!
+tempora.range.zero=Range cannot be zero.
 
 tempora.unknown.player=[UNKNOWN PLAYER]
 tempora.unknown.cause=[UNKNOWN CAUSE]
@@ -114,6 +115,11 @@ tempora.command.query_events.query_failed=Database query failed on %s: %s
 tempora.command.query_events.no_results=No results found for %s.
 tempora.command.query_events.showing_results=Showing latest %s results for %s:
 tempora.command.query_events.too_many_pending=Warning, due to high volume, there are still %s events pending. Query results may be outdated.
+tempora.command.query_events.help.arg0=Range in blocks.
+tempora.command.query_events.help.arg1=Time to look back, e.g. 1day, 5mins.
+tempora.command.query_events.help.arg2=Logger to query.
+tempora.command.query_events.help.description=Query all events from a specific logger within a radius of where you are located, looking back the amount of time specified. E.g. 1day means it looks back over the last day and finds the 5 most recent events. Shows results in chat and visualizes them for the player if applicable. 
+# Description for the query-by-coordinate command
 
 tempora.command.explode.no_block_in_sight=No block in sight.
 tempora.command.explode.force.must.be.numeric=Force must be a number.
@@ -128,6 +134,7 @@ tempora.command.click.reveal.stacktrace=Click to reveal full stack trace (%s dee
 
 tempora.command.help.label.description=Description: %s
 tempora.command.help.label.usage=Usage: %s
+tempora.command.help.label.example=Example: %s
 
 # === Undo Messages ===
 tempora.undo.cannot_block_break.nbt_logging_disabled=Cannot undo %s, the block had NBT data, but NBT logging was disabled when it was logged.

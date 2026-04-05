@@ -91,7 +91,7 @@ public class RemoveRegionCommand extends TemporaCommandBase {
     }
 
     @Override
-    public String getExampleArgs() {
+    public String getExampleCommand() {
         return "";
     }
 

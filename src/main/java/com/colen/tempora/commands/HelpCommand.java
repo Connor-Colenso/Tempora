@@ -64,16 +64,46 @@ public class HelpCommand extends TemporaCommandBase {
             // Description: %s.
             {
                 IChatComponent description = temporaCommand.getCommandDescription();
-                sender.addChatMessage(
-                    new ChatComponentTranslation("tempora.command.help.label.description", description));
+                description.getChatStyle()
+                    .setColor(EnumChatFormatting.WHITE);
+
+                IChatComponent descriptionLabel = new ChatComponentTranslation(
+                    "tempora.command.help.label.description",
+                    description);
+                descriptionLabel.getChatStyle()
+                    .setColor(EnumChatFormatting.YELLOW);
+
+                sender.addChatMessage(descriptionLabel);
             }
 
             // Usage: %s.
             {
+                IChatComponent commandUsage = new ChatComponentText(temporaCommand.getCommandUsage(null));
+                commandUsage.getChatStyle()
+                    .setColor(EnumChatFormatting.WHITE);
+
                 IChatComponent commandUsageLabel = new ChatComponentTranslation(
                     "tempora.command.help.label.usage",
-                    temporaCommand.getCommandUsage(null));
+                    commandUsage);
+                commandUsageLabel.getChatStyle()
+                    .setColor(EnumChatFormatting.YELLOW);
+
                 sender.addChatMessage(commandUsageLabel);
+            }
+
+            // Example: %s.
+            {
+                IChatComponent commandExample = new ChatComponentText(temporaCommand.getExampleCommand());
+                commandExample.getChatStyle()
+                    .setColor(EnumChatFormatting.WHITE);
+
+                IChatComponent commandExampleLabel = new ChatComponentTranslation(
+                    "tempora.command.help.label.example",
+                    commandExample);
+                commandExampleLabel.getChatStyle()
+                    .setColor(EnumChatFormatting.YELLOW);
+
+                sender.addChatMessage(commandExampleLabel);
             }
 
             // <x1> <x2> etc : Description
@@ -114,7 +144,7 @@ public class HelpCommand extends TemporaCommandBase {
     }
 
     @Override
-    public String getExampleArgs() {
+    public String getExampleCommand() {
         return "tempora_explode";
     }
 
