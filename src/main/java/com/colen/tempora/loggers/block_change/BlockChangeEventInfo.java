@@ -113,6 +113,7 @@ public class BlockChangeEventInfo extends GenericEventInfo {
                 number);
             stackTraceTooLongMsg.getChatStyle()
                 .setColor(EnumChatFormatting.GRAY);
+            hoverText.appendText("\n");
             hoverText.appendSibling(stackTraceTooLongMsg);
         }
 
@@ -153,19 +154,52 @@ public class BlockChangeEventInfo extends GenericEventInfo {
         String[] lines = stackTrace.split("->");
         List<IChatComponent> components = new ArrayList<>();
 
-        for (int i = 0; i < lines.length; i++) {
+        int index = 0;
+
+        // Iterate in reverse (most recent first)
+        for (int i = lines.length - 1; i >= 0; i--) {
             String trimmed = lines[i].trim();
 
-            IChatComponent lineNumber = new ChatComponentText(i + ".");
-            lineNumber.getChatStyle()
-                .setColor(EnumChatFormatting.YELLOW);
+            // Extract class, method, line
+            // Format: fully.qualified.Class#method:line
+            String className = trimmed;
+            String methodName = "";
+            String lineNumber = "?";
 
-            IChatComponent lineText = new ChatComponentText(trimmed);
-            lineText.getChatStyle()
-                .setColor(EnumChatFormatting.GRAY);
+            int hashIndex = trimmed.lastIndexOf('#');
+            int colonIndex = trimmed.lastIndexOf(':');
 
-            IChatComponent fullLine = new ChatComponentTranslation("%s %s", lineNumber, lineText);
+            if (hashIndex != -1) {
+                className = trimmed.substring(0, hashIndex);
+                methodName = trimmed.substring(hashIndex + 1, colonIndex != -1 ? colonIndex : trimmed.length());
+            }
+
+            if (colonIndex != -1 && colonIndex + 1 < trimmed.length()) {
+                String rawLine = trimmed.substring(colonIndex + 1);
+                lineNumber = rawLine.equals("-1") ? "?" : rawLine;
+            }
+
+            // Strip package → keep simple class name
+            int lastDot = className.lastIndexOf('.');
+            if (lastDot != -1 && lastDot + 1 < className.length()) {
+                className = className.substring(lastDot + 1);
+            }
+
+            // Build simple display with 1 space
+            String finalText = className + "#" + methodName + ":" + lineNumber;
+
+            // Index component
+            IChatComponent lineNumberComp = new ChatComponentTranslation("%s. ", new ChatComponentNumber(index));
+            lineNumberComp.getChatStyle().setColor(EnumChatFormatting.YELLOW);
+
+            // Text component
+            IChatComponent lineText = new ChatComponentText(finalText);
+            lineText.getChatStyle().setColor(EnumChatFormatting.GRAY);
+
+            IChatComponent fullLine = new ChatComponentTranslation("%s%s", lineNumberComp, lineText);
             components.add(fullLine);
+
+            index++;
         }
 
         return components;
