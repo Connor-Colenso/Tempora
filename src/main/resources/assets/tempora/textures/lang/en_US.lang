@@ -124,7 +124,7 @@ tempora.command.query_events.help.description=Query all events from a specific l
 tempora.command.explode.no_block_in_sight=No block in sight.
 tempora.command.explode.force.must.be.numeric=Force must be a number.
 
-tempora.command.stacktrace.description=Prints a previously stored stack trace for the given key.
+tempora.command.stacktrace.description=Prints a previously stored stack trace for the given key. This is an internal command coupled with other functions, don't execute it directly.
 tempora.command.stacktrace.arg.key=The unique key or UUID associated with the stored stack trace.
 tempora.command.stacktrace.not_found=No stack trace was found for key: %s.
 

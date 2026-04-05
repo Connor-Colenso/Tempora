@@ -19,21 +19,20 @@ public class GenericUtils {
     private static final int STACK_TRACE_DEPTH = 6;
 
     public static String getCallingClassChain() {
-        StackTraceElement[] stack = Thread.currentThread()
-            .getStackTrace();
+        StackTraceElement[] stack = Thread.currentThread().getStackTrace();
 
         List<String> classNames = new ArrayList<>();
-        Set<String> seen = new HashSet<>();
 
         final int SKIP = 3;
 
         for (int i = SKIP; i < stack.length && classNames.size() < STACK_TRACE_DEPTH; i++) {
             StackTraceElement e = stack[i];
 
-            String name = e.getClassName() + "#" + e.getMethodName();
-            if (seen.add(name)) {
-                classNames.add(name);
-            }
+            String entry = e.getClassName()
+                + "#" + e.getMethodName()
+                + ":" + e.getLineNumber();
+
+            classNames.add(entry);
         }
 
         return String.join(" -> ", classNames);
