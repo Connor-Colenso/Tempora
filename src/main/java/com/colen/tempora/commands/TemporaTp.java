@@ -13,7 +13,7 @@ import net.minecraft.world.WorldServer;
 import com.colen.tempora.commands.command_base.TemporaCommandBase;
 import com.colen.tempora.utils.CommandUtils;
 
-public class TemporaTpCommand extends TemporaCommandBase {
+public class TemporaTp extends TemporaCommandBase {
 
     @Override
     public String getCommandName() {

@@ -30,9 +30,9 @@ import com.colen.tempora.utils.TimeUtils;
  * (optionally filtered by time‑window and/or dimension) and
  * teleports to the centre of that chunk.
  */
-public class HomeChunkCommand extends TemporaCommandBase {
+public class HomeChunk extends TemporaCommandBase {
 
-    public HomeChunkCommand() {
+    public HomeChunk() {
         super(new CommandArg("<?>", "tempora.command.home_chunk.help.arg0"));
     }
 

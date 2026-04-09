@@ -30,9 +30,9 @@ import com.colen.tempora.loggers.generic.column.ColumnDef;
 import com.colen.tempora.utils.CommandUtils;
 import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 
-public class QuerySQLCommand extends TemporaCommandBase {
+public class QuerySQL extends TemporaCommandBase {
 
-    public QuerySQLCommand() {
+    public QuerySQL() {
         super(new CommandArg("<sql_query>", "tempora.command.query_sql.help.arg0"));
     }
 

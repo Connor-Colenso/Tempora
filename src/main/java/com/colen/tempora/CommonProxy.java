@@ -9,7 +9,7 @@ import net.minecraftforge.common.config.Configuration;
 
 import com.colen.tempora.blocks.RenderingErrorItemBlock;
 import com.colen.tempora.chat.TemporaChatRegistry;
-import com.colen.tempora.commands.TemporaUndoRangedCommand;
+import com.colen.tempora.commands.TemporaUndoRanged;
 import com.colen.tempora.events.OnWorldLoad;
 import com.colen.tempora.items.TemporaWand;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
@@ -37,7 +37,7 @@ public class CommonProxy {
 
     public void init(FMLInitializationEvent event) {
 
-        TemporaUndoRangedCommand.MAX_RANGE = Tempora.config.getInt(
+        TemporaUndoRanged.MAX_RANGE = Tempora.config.getInt(
             "Command Config",
             "Undo ranged max distance",
             64,

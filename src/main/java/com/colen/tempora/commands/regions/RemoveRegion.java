@@ -1,4 +1,4 @@
-package com.colen.tempora.commands;
+package com.colen.tempora.commands.regions;
 
 import static com.colen.tempora.Tempora.NETWORK;
 import static com.colen.tempora.utils.CommandUtils.OP_ONLY;
@@ -26,7 +26,7 @@ import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
  * Deletes every stored region that currently contains the issuing player.
  * (If regions overlap, they are all removed.)
  */
-public class RemoveRegionCommand extends TemporaCommandBase {
+public class RemoveRegion extends TemporaCommandBase {
 
     @Override
     public String getCommandName() {

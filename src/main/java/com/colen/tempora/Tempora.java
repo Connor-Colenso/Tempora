@@ -3,6 +3,9 @@ package com.colen.tempora;
 import static com.colen.tempora.utils.GenericUtils.isServerSide;
 import static com.colen.tempora.utils.GenericUtils.shouldTemporaRun;
 
+import com.colen.tempora.commands.regions.CreateRegion;
+import com.colen.tempora.commands.regions.ListRegions;
+import com.colen.tempora.commands.regions.RemoveRegion;
 import net.minecraft.block.Block;
 import net.minecraftforge.common.config.Configuration;
 
@@ -84,21 +87,21 @@ public class Tempora {
     }
 
     private void registerNewCommands(FMLServerStartingEvent event) {
-        event.registerServerCommand(new QueryEventsCommand());
-        event.registerServerCommand(new QuerySQLCommand());
-        event.registerServerCommand(new HomeChunkCommand());
+        event.registerServerCommand(new QueryEvents());
+        event.registerServerCommand(new QuerySQL());
+        event.registerServerCommand(new HomeChunk());
 
-        event.registerServerCommand(new CreateRegionCommand());
-        event.registerServerCommand(new ListRegionsCommand());
-        event.registerServerCommand(new RemoveRegionCommand());
+        event.registerServerCommand(new CreateRegion());
+        event.registerServerCommand(new ListRegions());
+        event.registerServerCommand(new RemoveRegion());
         event.registerServerCommand(new TemporaStackTrace());
 
-        event.registerServerCommand(new TemporaUndoCommand());
-        event.registerServerCommand(new TemporaUndoRangedCommand());
-        event.registerServerCommand(new TemporaTpCommand());
-        event.registerServerCommand(new ExplodeCommand());
+        event.registerServerCommand(new TemporaUndo());
+        event.registerServerCommand(new TemporaUndoRanged());
+        event.registerServerCommand(new TemporaTp());
+        event.registerServerCommand(new TemporaExplode());
 
-        event.registerServerCommand(new HelpCommand());
+        event.registerServerCommand(new TemporaHelp());
     }
 
     @Mod.EventHandler
@@ -108,7 +111,7 @@ public class Tempora {
             BlockChangeRegionRegistry.saveIfDirty();
         }
 
-        TemporaUndoRangedCommand.onServerClose();
+        TemporaUndoRanged.onServerClose();
         ClientRegionStore.onServerClose();
         TemporaStackTrace.clearAll();
     }
