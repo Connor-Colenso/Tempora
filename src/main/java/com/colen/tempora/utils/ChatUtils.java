@@ -36,7 +36,8 @@ public class ChatUtils {
         if (textLength >= LINE_LENGTH) {
             // Text too long, just return as yellow text without dashes
             ChatComponentText component = new ChatComponentText(text);
-            component.getChatStyle().setColor(EnumChatFormatting.GRAY);
+            component.getChatStyle()
+                .setColor(EnumChatFormatting.GRAY);
             return component;
         }
 
@@ -46,13 +47,16 @@ public class ChatUtils {
 
         // Create components for each part
         ChatComponentText before = new ChatComponentText(repeat("-", dashesBefore));
-        before.getChatStyle().setColor(EnumChatFormatting.DARK_GRAY);
+        before.getChatStyle()
+            .setColor(EnumChatFormatting.DARK_GRAY);
 
         ChatComponentText middle = new ChatComponentText(" " + text + " ");
-        middle.getChatStyle().setColor(EnumChatFormatting.YELLOW);
+        middle.getChatStyle()
+            .setColor(EnumChatFormatting.YELLOW);
 
         ChatComponentText after = new ChatComponentText(repeat("-", dashesAfter));
-        after.getChatStyle().setColor(EnumChatFormatting.DARK_GRAY);
+        after.getChatStyle()
+            .setColor(EnumChatFormatting.DARK_GRAY);
 
         // Combine them
         before.appendSibling(middle);
