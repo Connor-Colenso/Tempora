@@ -334,7 +334,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
 
         // Place silently (no physics, no callbacks)
         if (!BlockUtils.setBlockNoUpdate(w, x, y, z, block, meta)) {
-            throw new IllegalStateException("Failed to restore block during undo: " + blockID + ":" + meta);
+            throw new IllegalStateException("Failed to restore block during undo: " + blockID + ":" + meta + " with eventID " + bcEventInfo.eventID);
         }
 
         // Restore TileEntity if present
