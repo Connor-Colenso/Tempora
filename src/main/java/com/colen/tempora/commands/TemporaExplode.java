@@ -14,9 +14,9 @@ import com.colen.tempora.commands.command_base.CommandArg;
 import com.colen.tempora.commands.command_base.TemporaCommandBase;
 import com.colen.tempora.utils.CommandUtils;
 
-public class ExplodeCommand extends TemporaCommandBase {
+public class TemporaExplode extends TemporaCommandBase {
 
-    public ExplodeCommand() {
+    public TemporaExplode() {
         super(new CommandArg("<strength>", "tempora.command.explode.help.arg0"));
     }
 

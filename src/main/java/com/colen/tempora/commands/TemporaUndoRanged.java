@@ -37,7 +37,7 @@ import com.colen.tempora.utils.TimeUtils;
 import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 import org.jetbrains.annotations.NotNull;
 
-public class TemporaUndoRangedCommand extends TemporaCommandBase {
+public class TemporaUndoRanged extends TemporaCommandBase {
 
     private static final Map<String, List<? extends GenericEventInfo>> PENDING_UNDOS_EVENTS = new ConcurrentHashMap<>();
     private static final Map<String, List<UndoEventInfo>> PENDING_UNDOS_INFO = new ConcurrentHashMap<>();

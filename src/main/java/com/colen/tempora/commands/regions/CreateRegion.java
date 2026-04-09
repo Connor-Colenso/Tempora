@@ -1,4 +1,4 @@
-package com.colen.tempora.commands;
+package com.colen.tempora.commands.regions;
 
 import static com.colen.tempora.utils.CommandUtils.OP_ONLY;
 import static com.colen.tempora.utils.CommandUtils.teleportChatComponent;
@@ -23,9 +23,9 @@ import com.colen.tempora.utils.CommandUtils;
  * Creates an axis‑aligned, integer‑bounded region in the sender’s current dimension
  * and stores it in RegionRegistry.
  */
-public class CreateRegionCommand extends TemporaCommandBase {
+public class CreateRegion extends TemporaCommandBase {
 
-    public CreateRegionCommand() {
+    public CreateRegion() {
         super(
             new CommandArg("<label>", "tempora.command.create_region.help.arg0"),
             new CommandArg("<x1> <y1> <z1>", "tempora.command.create_region.help.arg1"),

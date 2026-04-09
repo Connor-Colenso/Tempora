@@ -1,4 +1,4 @@
-package com.colen.tempora.commands;
+package com.colen.tempora.commands.regions;
 
 import static com.colen.tempora.Tempora.NETWORK;
 import static com.colen.tempora.utils.CommandUtils.OP_ONLY;
@@ -27,9 +27,9 @@ import com.colen.tempora.utils.CommandUtils;
  * Lists every stored region and provides a clickable coordinate that
  * teleports the issuer to the centre of that region.
  */
-public class ListRegionsCommand extends TemporaCommandBase {
+public class ListRegions extends TemporaCommandBase {
 
-    public ListRegionsCommand() {
+    public ListRegions() {
         super(new CommandArg("[dim_ID]", "tempora.command.list_regions.help.arg0"));
     }
 

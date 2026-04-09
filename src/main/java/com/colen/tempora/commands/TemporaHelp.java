@@ -19,9 +19,9 @@ import net.minecraft.util.IChatComponent;
 import com.colen.tempora.commands.command_base.CommandArg;
 import com.colen.tempora.commands.command_base.TemporaCommandBase;
 
-public class HelpCommand extends TemporaCommandBase {
+public class TemporaHelp extends TemporaCommandBase {
 
-    public HelpCommand() {
+    public TemporaHelp() {
         super(new CommandArg("<command_name>", "tempora.command.help.help.arg0"));
     }
 

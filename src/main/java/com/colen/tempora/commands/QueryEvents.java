@@ -18,9 +18,9 @@ import com.colen.tempora.commands.command_base.TemporaCommandBase;
 import com.colen.tempora.utils.CommandUtils;
 import com.colen.tempora.utils.TimeUtils;
 
-public class QueryEventsCommand extends TemporaCommandBase {
+public class QueryEvents extends TemporaCommandBase {
 
-    public QueryEventsCommand() {
+    public QueryEvents() {
         super(
             new CommandArg("<radius>", "tempora.command.query_events.help.arg0"),
             new CommandArg("<time>", "tempora.command.query_events.help.arg1"),

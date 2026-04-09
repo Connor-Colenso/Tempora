@@ -16,7 +16,7 @@ import com.colen.tempora.loggers.generic.GenericEventInfo;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.utils.CommandUtils;
 
-public class TemporaUndoCommand extends TemporaCommandBase {
+public class TemporaUndo extends TemporaCommandBase {
 
     @Override
     public String getCommandName() {
