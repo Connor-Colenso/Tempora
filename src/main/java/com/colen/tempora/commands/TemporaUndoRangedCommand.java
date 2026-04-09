@@ -89,6 +89,8 @@ public class TemporaUndoRangedCommand extends TemporaCommandBase {
 
         GenericPositionalLogger<?> logger = TemporaLoggerManager.getLogger(loggerName);
 
+        if (logger == null) return; // todo proper error
+
         if (!logger.isUndoEnabled()) {
             sender.addChatMessage(new ChatComponentTranslation("tempora.undo.not_enabled", loggerName));
             return;
@@ -144,21 +146,23 @@ public class TemporaUndoRangedCommand extends TemporaCommandBase {
             return;
         }
 
+        // No events to undo, so we end here.
+        if (eventsToUndo.isEmpty()) {
+            sender.addChatMessage(new ChatComponentTranslation("tempora.undo.nothing_to_undo", loggerName));
+            return;
+        }
+
+        // Otherwise continue and check status of each event that will be undone, for safety.
         List<UndoEventInfo> undoEventsInfo = new ArrayList<>();
         for (GenericEventInfo eventInfo : eventsToUndo) {
             UndoEventInfo undoEventInfo = logger.isUndoSafe(eventInfo);
 
             // If unsafe, inform the user of potential issues.
             if (undoEventInfo.state != UndoResponse.SAFE) {
-                sender.addChatMessage(undoEventInfo.message);
+                sender.addChatMessage(undoEventInfo.message); // Message is a translation component
             }
 
             undoEventsInfo.add(undoEventInfo);
-        }
-
-        if (eventsToUndo.isEmpty()) {
-            sender.addChatMessage(new ChatComponentTranslation("tempora.undo.nothing_to_undo", loggerName));
-            return;
         }
 
         // Send preview markers
@@ -232,6 +236,11 @@ public class TemporaUndoRangedCommand extends TemporaCommandBase {
             .setColor(EnumChatFormatting.GREEN);
 
         sender.addChatMessage(successRanged);
+
+        // Clear out memory.
+        PENDING_UNDOS_EVENTS.remove(uuid);
+        PENDING_UNDOS_INFO.remove(uuid);
+        PENDING_UNDOS_LOGGER_NAMES.remove(uuid);
     }
 
     @Override
@@ -244,6 +253,8 @@ public class TemporaUndoRangedCommand extends TemporaCommandBase {
 
     public static void onServerClose() {
         PENDING_UNDOS_EVENTS.clear();
+        PENDING_UNDOS_INFO.clear();
+        PENDING_UNDOS_LOGGER_NAMES.clear();
     }
 
     public IChatComponent getCommandDescription() {
