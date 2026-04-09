@@ -35,6 +35,7 @@ import com.colen.tempora.loggers.generic.undo.UndoResponse;
 import com.colen.tempora.utils.CommandUtils;
 import com.colen.tempora.utils.TimeUtils;
 import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
+import org.jetbrains.annotations.NotNull;
 
 public class TemporaUndoRangedCommand extends TemporaCommandBase {
 
@@ -112,9 +113,9 @@ public class TemporaUndoRangedCommand extends TemporaCommandBase {
 
         List<? extends GenericEventInfo> eventsToUndo;
 
-        int playerX = (int) player.posX;
-        int playerY = (int) player.posY;
-        int playerZ = (int) player.posZ;
+        int playerX = (int) Math.round(player.posX);
+        int playerY = (int) Math.round(player.posY);
+        int playerZ = (int) Math.round(player.posZ);
 
         try (Connection conn = logger.getDatabaseManager()
             .getReadOnlyConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -217,20 +218,7 @@ public class TemporaUndoRangedCommand extends TemporaCommandBase {
         logger.undoEvents(stored, sender);
         long durationMs = System.currentTimeMillis() - startMs;
 
-        int successCounter = 0;
-        for (UndoEventInfo undoEventInfo : undoEventsInfo) {
-            if (undoEventInfo.state == UndoResponse.SAFE) {
-                successCounter++;
-            }
-        }
-
-        IChatComponent successRanged = new ChatComponentTranslation(
-            "tempora.undo.success.ranged",
-            new ChatComponentNumber(successCounter),
-            new ChatComponentNumber(undoEventsInfo.size()),
-            new ChatComponentNumber(successCounter * 100.0 / undoEventsInfo.size()),
-            new ChatComponentNumber(durationMs),
-            new ChatComponentTranslation("time.unit.milliseconds"));
+        IChatComponent successRanged = getSuccessRangedChatComponent(undoEventsInfo, durationMs);
 
         successRanged.getChatStyle()
             .setColor(EnumChatFormatting.GREEN);
@@ -241,6 +229,23 @@ public class TemporaUndoRangedCommand extends TemporaCommandBase {
         PENDING_UNDOS_EVENTS.remove(uuid);
         PENDING_UNDOS_INFO.remove(uuid);
         PENDING_UNDOS_LOGGER_NAMES.remove(uuid);
+    }
+
+    private static @NotNull IChatComponent getSuccessRangedChatComponent(List<UndoEventInfo> undoEventsInfo, long durationMs) {
+        int successCounter = 0;
+        for (UndoEventInfo undoEventInfo : undoEventsInfo) {
+            if (undoEventInfo.state == UndoResponse.SAFE) {
+                successCounter++;
+            }
+        }
+
+        return new ChatComponentTranslation(
+            "tempora.undo.success.ranged",
+            new ChatComponentNumber(successCounter),
+            new ChatComponentNumber(undoEventsInfo.size()),
+            new ChatComponentNumber(successCounter * 100.0 / undoEventsInfo.size()),
+            new ChatComponentNumber(durationMs),
+            new ChatComponentTranslation("time.unit.milliseconds"));
     }
 
     @Override
