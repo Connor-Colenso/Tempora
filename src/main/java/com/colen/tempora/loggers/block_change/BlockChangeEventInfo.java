@@ -190,11 +190,13 @@ public class BlockChangeEventInfo extends GenericEventInfo {
 
             // Index component
             IChatComponent lineNumberComp = new ChatComponentTranslation("%s. ", new ChatComponentNumber(index));
-            lineNumberComp.getChatStyle().setColor(EnumChatFormatting.YELLOW);
+            lineNumberComp.getChatStyle()
+                .setColor(EnumChatFormatting.YELLOW);
 
             // Text component
             IChatComponent lineText = new ChatComponentText(finalText);
-            lineText.getChatStyle().setColor(EnumChatFormatting.GRAY);
+            lineText.getChatStyle()
+                .setColor(EnumChatFormatting.GRAY);
 
             IChatComponent fullLine = new ChatComponentTranslation("%s%s", lineNumberComp, lineText);
             components.add(fullLine);

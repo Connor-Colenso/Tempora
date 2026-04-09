@@ -1,10 +1,8 @@
 package com.colen.tempora.utils;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Scanner;
-import java.util.Set;
 
 import net.minecraft.world.WorldProvider;
 import net.minecraftforge.common.DimensionManager;
@@ -19,7 +17,8 @@ public class GenericUtils {
     private static final int STACK_TRACE_DEPTH = 999;
 
     public static String getCallingClassChain() {
-        StackTraceElement[] stack = Thread.currentThread().getStackTrace();
+        StackTraceElement[] stack = Thread.currentThread()
+            .getStackTrace();
 
         List<String> classNames = new ArrayList<>();
 
@@ -28,9 +27,7 @@ public class GenericUtils {
         for (int i = SKIP; i < stack.length && classNames.size() < STACK_TRACE_DEPTH; i++) {
             StackTraceElement e = stack[i];
 
-            String entry = e.getClassName()
-                + "#" + e.getMethodName()
-                + ":" + e.getLineNumber();
+            String entry = e.getClassName() + "#" + e.getMethodName() + ":" + e.getLineNumber();
 
             classNames.add(entry);
         }
