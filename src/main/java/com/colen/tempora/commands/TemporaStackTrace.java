@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.colen.tempora.utils.ChatUtils;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
@@ -60,6 +61,9 @@ public class TemporaStackTrace extends TemporaCommandBase {
         for (int i = trace.size() - 1; i >= 0; i--) {
             sender.addChatMessage(trace.get(i));
         }
+
+        // Hide the fact this command was run, as it is never meant to be player executed.
+        ChatUtils.removeLastMessage();
     }
 
     @Override
