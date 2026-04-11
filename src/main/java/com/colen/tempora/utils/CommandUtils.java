@@ -17,6 +17,8 @@ import com.colen.tempora.TemporaLoggerManager;
 import com.colen.tempora.commands.TemporaUndo;
 import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 
+import static com.colen.tempora.commands.TemporaTp.TEMPORA_TP;
+
 public class CommandUtils {
 
     public static final int OP_ONLY = 2;
@@ -50,7 +52,12 @@ public class CommandUtils {
         return errorMessage;
     }
 
-    public static IChatComponent teleportChatComponent(double x, double y, double z, int dimID) {
+    public enum TeleportType {
+        BLOCK,
+        EXACT
+    }
+
+    public static @NotNull IChatComponent teleportChatComponent(double x, double y, double z, final int dimID, final TeleportType teleportType) {
 
         // Translation‑driven teleport options.
         IChatComponent display = new ChatComponentTranslation(
@@ -59,7 +66,15 @@ public class CommandUtils {
             new ChatComponentNumber(y),
             new ChatComponentNumber(z));
 
-        String cmd = "/tempora_tp " + x + " " + y + " " + z + " " + dimID;
+        // Offset the teleport to put the player in the middle of the block, but show the
+        // correct coordinate always (above logic).
+        if (teleportType == TeleportType.BLOCK) {
+            x += 0.5;
+            y += 0.5;
+            z += 0.5;
+        }
+
+        String cmd = "/" + TEMPORA_TP + " " + x + " " + y + " " + z + " " + dimID;
 
         IChatComponent hoverText = new ChatComponentTranslation(
             "tempora.command.teleport.hover",

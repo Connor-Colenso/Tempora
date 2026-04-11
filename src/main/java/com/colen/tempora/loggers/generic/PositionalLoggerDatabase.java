@@ -244,7 +244,7 @@ public class PositionalLoggerDatabase {
         if (!(sender instanceof EntityPlayerMP player)) return;
 
         // radius 0 means an exact match – the SQL below
-        // (ABS(x - ?) <= radius) degenerates to x == ?, y == ?, z == ?
+        // (ABS(x - ?) <= radius) becomes x == ?, y == ?, z == ?
         queryEventByCoordinate(sender, centreX, centreY, centreZ, 0, seconds, player.dimension);
     }
 

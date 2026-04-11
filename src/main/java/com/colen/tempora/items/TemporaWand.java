@@ -7,6 +7,7 @@ import static com.colen.tempora.utils.GenericUtils.isServerSide;
 
 import java.util.UUID;
 
+import com.colen.tempora.utils.CommandUtils;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -92,7 +93,7 @@ public class TemporaWand extends Item {
             player.addChatMessage(
                 new ChatComponentTranslation(
                     "message.tempora_wand.checking_pos",
-                    teleportChatComponent(x, y, z, player.dimension),
+                    teleportChatComponent(x, y, z, player.dimension, CommandUtils.TeleportType.BLOCK),
                     getDimensionName(player.dimension),
                     player.dimension).setChatStyle(new ChatStyle().setColor(EnumChatFormatting.RED)));
 
