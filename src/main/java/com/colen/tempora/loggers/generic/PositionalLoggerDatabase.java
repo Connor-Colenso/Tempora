@@ -32,6 +32,7 @@ import net.minecraft.util.IChatComponent;
 import net.minecraftforge.common.config.Configuration;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.sqlite.SQLiteConfig;
 
 import com.colen.tempora.loggers.generic.column.ColumnDef;
@@ -136,9 +137,6 @@ public class PositionalLoggerDatabase {
             stmt.execute();
         }
 
-        positionalLoggerDBConnection.prepareStatement(createSQL.toString())
-            .execute();
-
         // Step 2: Check existing columns
         Set<String> existingColumns = new HashSet<>();
         try (PreparedStatement stmt = positionalLoggerDBConnection
@@ -185,6 +183,7 @@ public class PositionalLoggerDatabase {
             p_stmt.executeUpdate();
         } catch (SQLException e) {
             LOG.error("SQL error, could not erase old data.", e);
+            throw new RuntimeException(e);
         }
     }
 
@@ -219,7 +218,7 @@ public class PositionalLoggerDatabase {
         return positionalLoggerDBConnection;
     }
 
-    public Connection getReadOnlyConnection() {
+    public @Nullable Connection getReadOnlyConnection() {
         try {
             String dbUrl = jdbcUrl(genericPositionalLogger.getLoggerName() + ".db");
 
@@ -251,25 +250,33 @@ public class PositionalLoggerDatabase {
     public void queryEventByCoordinate(ICommandSender sender, int centreX, int centreY, int centreZ, int radius,
         long seconds, int dimensionId) {
 
-        String sql = String.format("""
-            SELECT * FROM %s
-            WHERE ABS(x - ?) <= ?
-              AND ABS(y - ?) <= ?
-              AND ABS(z - ?) <= ?
-              AND dimensionID = ?
-              AND timestamp >= ?
-            ORDER BY timestamp DESC
-            LIMIT ?;
-            """, genericPositionalLogger.getLoggerName());
+        String sql = String.format(
+        """
+        SELECT * FROM %s
+        WHERE x BETWEEN ? AND ?
+          AND y BETWEEN ? AND ?
+          AND z BETWEEN ? AND ?
+          AND dimensionID = ?
+          AND timestamp >= ?
+        ORDER BY timestamp DESC
+        LIMIT ?;
+        """, genericPositionalLogger.getLoggerName());
 
         try (PreparedStatement ps = getReadOnlyConnection().prepareStatement(sql)) {
 
-            ps.setInt(1, centreX);
-            ps.setInt(2, radius);
-            ps.setInt(3, centreY);
-            ps.setInt(4, radius);
-            ps.setInt(5, centreZ);
-            ps.setInt(6, radius);
+            // X range
+            ps.setInt(1, centreX - radius);
+            ps.setInt(2, centreX + radius);
+
+            // Y range
+            ps.setInt(3, centreY - radius);
+            ps.setInt(4, centreY + radius);
+
+            // Z range
+            ps.setInt(5, centreZ - radius);
+            ps.setInt(6, centreZ + radius);
+
+            // Dimension ID
             ps.setInt(7, dimensionId);
 
             if (seconds < 0) {
@@ -379,7 +386,7 @@ public class PositionalLoggerDatabase {
 
         // Creating a composite index for x, y, z, dimensionID and timestamp
         String createCompositeIndex = String.format(
-            "CREATE INDEX IF NOT EXISTS idx_%s_xyz_dimension_time ON %s (x, y, z, dimensionID, timestamp DESC);",
+            "CREATE INDEX IF NOT EXISTS idx_%s_xyz_dimension_time ON %s (dimensionID, x, y, z, timestamp DESC);",
             tableName,
             tableName);
         stmt.execute(createCompositeIndex);
@@ -540,8 +547,6 @@ public class PositionalLoggerDatabase {
     private boolean isHighRiskModeEnabled() {
         return durabilityMode == LogWriteSafety.HIGH_RISK;
     }
-
-    private List<ColumnDef> cachedColumnDefs;
 
     public String generateInsertSQL() {
         List<ColumnDef> columns = getAllTableColumns(genericPositionalLogger);
