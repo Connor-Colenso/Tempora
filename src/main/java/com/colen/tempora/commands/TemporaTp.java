@@ -15,9 +15,11 @@ import com.colen.tempora.utils.CommandUtils;
 
 public class TemporaTp extends TemporaCommandBase {
 
+    public static final String TEMPORA_TP = "tempora_tp";
+
     @Override
     public String getCommandName() {
-        return "tempora_tp";
+        return TEMPORA_TP;
     }
 
     @Override

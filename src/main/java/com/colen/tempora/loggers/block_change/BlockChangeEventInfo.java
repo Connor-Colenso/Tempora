@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import com.colen.tempora.utils.CommandUtils;
 import net.minecraft.block.Block;
 import net.minecraft.event.HoverEvent;
 import net.minecraft.util.ChatComponentText;
@@ -76,7 +77,7 @@ public class BlockChangeEventInfo extends GenericEventInfo {
         IChatComponent beforeBlockName = BlockUtils.getUnlocalisedChatComponent(beforePickBlockID, beforePickBlockMeta);
         IChatComponent afterBlockName = BlockUtils.getUnlocalisedChatComponent(afterPickBlockID, afterPickBlockMeta);
 
-        IChatComponent coords = teleportChatComponent(x, y, z, dimensionID);
+        IChatComponent coords = teleportChatComponent(x, y, z, dimensionID, CommandUtils.TeleportType.BLOCK);
         IChatComponent timeAgo = TimeUtils.formatTime(timestamp);
 
         // Closest player info

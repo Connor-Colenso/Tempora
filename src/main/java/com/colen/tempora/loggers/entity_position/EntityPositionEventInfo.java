@@ -2,6 +2,7 @@ package com.colen.tempora.loggers.entity_position;
 
 import static com.colen.tempora.utils.CommandUtils.teleportChatComponent;
 
+import com.colen.tempora.utils.CommandUtils;
 import net.minecraft.event.ClickEvent;
 import net.minecraft.event.HoverEvent;
 import net.minecraft.util.ChatComponentText;
@@ -48,7 +49,7 @@ public class EntityPositionEventInfo extends GenericEventInfo {
 
     @Override
     public IChatComponent localiseText(String commandIssuerUUID) {
-        IChatComponent coords = teleportChatComponent(x, y, z, dimensionID);
+        IChatComponent coords = teleportChatComponent(x, y, z, dimensionID, CommandUtils.TeleportType.EXACT);
         IChatComponent timeAgo = TimeUtils.formatTime(timestamp);
 
         IChatComponent clickToCopy = new ChatComponentTranslation("tempora.uuid.click_to_copy");

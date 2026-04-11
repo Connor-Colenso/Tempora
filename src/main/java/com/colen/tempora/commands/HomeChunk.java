@@ -13,6 +13,7 @@ import java.sql.SQLException;
 import java.util.Collections;
 import java.util.List;
 
+import com.colen.tempora.utils.CommandUtils;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.util.ChatComponentTranslation;
@@ -164,7 +165,7 @@ public class HomeChunk extends TemporaCommandBase {
                 double homeZ = rs.getDouble("home_z");
                 int dim = rs.getInt("dimensionID");
 
-                IChatComponent tpLink = teleportChatComponent(homeX, homeY, homeZ, dim);
+                IChatComponent tpLink = teleportChatComponent(homeX, homeY, homeZ, dim, CommandUtils.TeleportType.EXACT);
 
                 sender.addChatMessage(
                     new ChatComponentTranslation(

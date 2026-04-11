@@ -2,6 +2,7 @@ package com.colen.tempora.loggers.inventory;
 
 import static com.colen.tempora.utils.CommandUtils.teleportChatComponent;
 
+import com.colen.tempora.utils.CommandUtils;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ChatComponentTranslation;
@@ -66,7 +67,8 @@ public class InventoryEventInfo extends GenericEventInfo {
         ItemStack itemStack = new ItemStack(Item.getItemById(itemId), stackSize, itemMetadata);
         IChatComponent itemDetails = new ChatComponentTranslation(itemStack.getDisplayName());
 
-        IChatComponent coords = teleportChatComponent(x, y, z, dimensionID);
+        // Todo what about e.g. player backbacks, do we need to handle block coords differently?
+        IChatComponent coords = teleportChatComponent(x, y, z, dimensionID, CommandUtils.TeleportType.BLOCK);
 
         InventoryLogger.Direction dir = InventoryLogger.Direction.fromOrdinal(interactionType);
 
