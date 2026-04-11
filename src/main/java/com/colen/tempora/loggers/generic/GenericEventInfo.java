@@ -12,8 +12,8 @@ import io.netty.buffer.ByteBuf;
 
 public abstract class GenericEventInfo {
 
-    @Column(constraints = "PRIMARY KEY")
-    public String eventID;
+    @Column(constraints = "NOT NULL")
+    public int dimensionID;
 
     @Column(constraints = "NOT NULL")
     public double x;
@@ -25,10 +25,10 @@ public abstract class GenericEventInfo {
     public double z;
 
     @Column(constraints = "NOT NULL")
-    public int dimensionID;
-
-    @Column(constraints = "NOT NULL")
     public long timestamp;
+
+    @Column(constraints = "PRIMARY KEY")
+    public String eventID;
 
     @Column(constraints = "NOT NULL")
     public int versionID;
