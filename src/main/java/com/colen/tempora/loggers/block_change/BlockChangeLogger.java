@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.UUID;
 
+import com.colen.tempora.utils.StackTraceUtils;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
@@ -165,7 +166,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
         e.eventID = UUID.randomUUID()
             .toString();
         e.timestamp = System.currentTimeMillis();
-        e.stackTrace = GenericUtils.getCallingClassChain();
+        e.stackTraceID = StackTraceUtils.getID(StackTraceUtils.getCallingClassChain()); // TODO PERSISTENCE OF IDS
         stack.push(e);
 
         e.x = x;

@@ -49,7 +49,7 @@ public class PositionalLoggerDatabase {
     public static String oldestDataCutoff;
     public long maxDatabaseSizeInBytes;
 
-    private static final int MAX_DATA_ROWS_PER_DB = 5;
+    private static final int MAX_RESULTS = 5;
     private Connection positionalLoggerDBConnection;
     private final GenericPositionalLogger<?> genericPositionalLogger;
     private boolean initialised = false;
@@ -287,7 +287,7 @@ public class PositionalLoggerDatabase {
                 ps.setTimestamp(8, new Timestamp(System.currentTimeMillis() - seconds * 1000L));
             }
 
-            ps.setInt(9, MAX_DATA_ROWS_PER_DB);
+            ps.setInt(9, MAX_RESULTS);
 
             try (ResultSet rs = ps.executeQuery()) {
                 List<? extends GenericEventInfo> eventDataList = genericPositionalLogger.generateQueryResults(rs);
@@ -347,7 +347,7 @@ public class PositionalLoggerDatabase {
         } catch (SQLException e) {
             sender.addChatMessage(
                 new ChatComponentTranslation(
-                    "message.query_events.query_failed",
+                    "tempora.command.query_events.query_failed",
                     genericPositionalLogger.getLoggerName(),
                     e.getMessage()));
         }

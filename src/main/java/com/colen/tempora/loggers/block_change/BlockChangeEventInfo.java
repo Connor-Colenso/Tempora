@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.UUID;
 
 import com.colen.tempora.utils.CommandUtils;
+import com.colen.tempora.utils.StackTraceUtils;
 import net.minecraft.block.Block;
 import net.minecraft.event.HoverEvent;
 import net.minecraft.util.ChatComponentText;
@@ -59,8 +60,9 @@ public class BlockChangeEventInfo extends GenericEventInfo {
     @Column(constraints = "NOT NULL")
     public String afterEncodedNBT;
 
+    // Not bothering to send to client.
     @Column(constraints = "NOT NULL")
-    public String stackTrace;
+    public long stackTraceID;
 
     @Column(constraints = "NOT NULL")
     public String closestPlayerUUID;
@@ -70,6 +72,8 @@ public class BlockChangeEventInfo extends GenericEventInfo {
 
     @Column(constraints = "NOT NULL")
     public boolean isWorldGen;
+
+    private String stackTrace;
 
     @Override
     public IChatComponent localiseText(String commandIssuerUUID) {
@@ -85,7 +89,7 @@ public class BlockChangeEventInfo extends GenericEventInfo {
         ChatComponentNumber closestPlayerDist = new ChatComponentNumber(closestPlayerDistance);
 
         // Generate full stack trace as a list of IChatComponents
-        List<IChatComponent> stackTraceComponents = generateStackTraceComponents(stackTrace);
+        List<IChatComponent> stackTraceComponents = generateStackTraceComponents(StackTraceUtils.getStackTrace(stackTraceID));
 
         // Generate a UUID for this trace and store it
         String traceUUID = UUID.randomUUID()
@@ -224,7 +228,6 @@ public class BlockChangeEventInfo extends GenericEventInfo {
         afterPickBlockMeta = buf.readInt();
         afterEncodedNBT = ByteBufUtils.readUTF8String(buf);
 
-        stackTrace = ByteBufUtils.readUTF8String(buf);
         closestPlayerUUID = ByteBufUtils.readUTF8String(buf);
         closestPlayerDistance = buf.readDouble();
     }
@@ -245,7 +248,6 @@ public class BlockChangeEventInfo extends GenericEventInfo {
         buf.writeInt(afterPickBlockMeta);
         ByteBufUtils.writeUTF8String(buf, afterEncodedNBT);
 
-        ByteBufUtils.writeUTF8String(buf, stackTrace);
         ByteBufUtils.writeUTF8String(buf, closestPlayerUUID);
         buf.writeDouble(closestPlayerDistance);
     }
