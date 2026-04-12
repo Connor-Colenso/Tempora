@@ -243,7 +243,6 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
     // Run on server startup/world load.
     private void initialiseLogger() {
         try {
-            databaseManager = new PositionalLoggerDatabase(this);
             databaseManager.initialiseDatabase();
             startQueueWorker();
 

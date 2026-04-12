@@ -47,7 +47,7 @@ public class PositionalLoggerDatabase {
 
     private LogWriteSafety durabilityMode;
     public static String oldestDataCutoff;
-    private long largestDatabaseSizeInBytes;
+    public long maxDatabaseSizeInBytes;
 
     private static final int MAX_DATA_ROWS_PER_DB = 5;
     private Connection positionalLoggerDBConnection;
@@ -106,6 +106,7 @@ public class PositionalLoggerDatabase {
 
     public void closeDbConnection() throws SQLException {
         positionalLoggerDBConnection.close();
+        positionalLoggerDBConnection = null;
     }
 
     private void initTable() throws SQLException {
@@ -406,11 +407,15 @@ public class PositionalLoggerDatabase {
             throw new IllegalStateException("Database file not found: " + dbPath);
         }
 
+        if (maxDatabaseSizeInBytes == 0) {
+            throw new IllegalStateException("Largest database size is 0.");
+        }
+
         // Do this first, to prevent fragmentation.
         checkpointAndVacuum();
 
         long usedBytes = physicalDbBytes();
-        if (usedBytes <= largestDatabaseSizeInBytes) {
+        if (usedBytes <= maxDatabaseSizeInBytes) {
             positionalLoggerDBConnection.commit();
             return;
         }
@@ -422,8 +427,8 @@ public class PositionalLoggerDatabase {
         }
 
         // Calculate how many rows to delete to get under the limit
-        double overshoot = (double) usedBytes / largestDatabaseSizeInBytes;
-        long rowsToDelete = Math.max(1, (long) Math.ceil(totalRows * (overshoot - 1) / overshoot));
+        double overshoot = (double) usedBytes / maxDatabaseSizeInBytes;
+        long rowsToDelete = (long) ((overshoot - 1) * totalRows);
 
         String sql = "DELETE FROM " + genericPositionalLogger.getLoggerName()
             + " WHERE rowid IN (SELECT rowid FROM "
@@ -432,7 +437,7 @@ public class PositionalLoggerDatabase {
         try (PreparedStatement ps = positionalLoggerDBConnection.prepareStatement(sql)) {
             ps.setLong(1, rowsToDelete);
             ps.executeUpdate();
-            LOG.info("Deleted {} rows from {} database.", genericPositionalLogger.getLoggerName(), rowsToDelete);
+            LOG.info("Deleted {} rows from {} database.", rowsToDelete, genericPositionalLogger.getLoggerName());
         }
 
         positionalLoggerDBConnection.commit();
@@ -440,7 +445,7 @@ public class PositionalLoggerDatabase {
         checkpointAndVacuum();
 
         double sizeMb = physicalDbBytes() / 1_048_576.0;
-        double limitMb = largestDatabaseSizeInBytes / 1_048_576.0;
+        double limitMb = maxDatabaseSizeInBytes / 1_048_576.0;
 
         LOG.info(
             "{} database is now {} MB (Config limit is {} MB).",
@@ -530,15 +535,34 @@ public class PositionalLoggerDatabase {
 
         // Database too big handling.
         final String maxDbSizeString = config.getString(
-            "MaxDatabaseSize",
+            "maxDatabaseSize",
             genericPositionalLogger.getLoggerName(),
-            "-1",
-            "Approximate maximum database file size (e.g. '500KB', '1MB', '5GB'). By default this is set to -1, meaning no erasure happens.");
+            "Infinite",
+            "Approximate maximum database file size (e.g. '500KB', '1MB', '5GB'). By default this is set to infinite, meaning no erasure happens."
+        ).trim();
 
-        if (maxDbSizeString.equals("-1")) {
-            largestDatabaseSizeInBytes = Long.MAX_VALUE;
+        // Default unbounded
+        if (maxDbSizeString.equalsIgnoreCase("infinite")) {
+            maxDatabaseSizeInBytes = Long.MAX_VALUE;
         } else {
-            largestDatabaseSizeInBytes = parseSizeStringToBytes(maxDbSizeString);
+            long parsedBytes;
+            try {
+                parsedBytes = parseSizeStringToBytes(maxDbSizeString);
+            } catch (Exception e) {
+                throw new IllegalStateException(
+                    "Invalid maxDatabaseSize value '" + maxDbSizeString + "' for "
+                        + genericPositionalLogger.getLoggerName(),
+                    e
+                );
+            }
+
+            if (parsedBytes <= 0) {
+                throw new IllegalStateException(
+                    "maxDatabaseSize must be > 0 for " + genericPositionalLogger.getLoggerName()
+                );
+            }
+
+            maxDatabaseSizeInBytes = parsedBytes;
         }
     }
 
