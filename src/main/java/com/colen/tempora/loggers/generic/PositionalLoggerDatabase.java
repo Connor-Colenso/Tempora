@@ -2,15 +2,10 @@ package com.colen.tempora.loggers.generic;
 
 import static com.colen.tempora.Tempora.LOG;
 import static com.colen.tempora.Tempora.NETWORK;
-import static com.colen.tempora.utils.DatabaseUtils.databaseDir;
 import static com.colen.tempora.utils.DatabaseUtils.deleteLoggerDatabase;
 import static com.colen.tempora.utils.DatabaseUtils.jdbcUrl;
-import static com.colen.tempora.utils.GenericUtils.parseSizeStringToBytes;
 import static com.colen.tempora.utils.ReflectionUtils.getAllTableColumns;
-import static com.gtnewhorizon.gtnhlib.util.numberformatting.NumberFormatUtil.formatNumber;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -47,12 +42,10 @@ public class PositionalLoggerDatabase {
 
     private LogWriteSafety durabilityMode;
     public static String oldestDataCutoff;
-    public long maxDatabaseSizeInBytes;
 
     private static final int MAX_RESULTS = 5;
     private Connection positionalLoggerDBConnection;
     private final GenericPositionalLogger<?> genericPositionalLogger;
-    private boolean initialised = false;
 
     public PositionalLoggerDatabase(GenericPositionalLogger<?> eventToLogGenericPositionalLogger) {
         genericPositionalLogger = eventToLogGenericPositionalLogger;
@@ -90,13 +83,14 @@ public class PositionalLoggerDatabase {
         positionalLoggerDBConnection.setAutoCommit(false);
 
         initTable();
-        createAllIndexes();
 
-        // Handles data beyond the configs oldest limit or if too large.
+        // Only make indexes if they do not already exist.
+        if (!tableHasIndexes()) {
+            createAllIndexes();
+        }
+
         removeOldDatabaseData();
-        trimOversizedDatabase();
-
-        initialised = true;
+        cleanupDatabase();
     }
 
     private void initDbConnection() throws SQLException {
@@ -173,24 +167,26 @@ public class PositionalLoggerDatabase {
     // This is not strictly thread safe, but since we are doing this before the server has even started properly,
     // nothing else is interacting with the db, so it's fine for now.
     private void eraseAllDataBeforeTime(long time) {
-        // Prepare SQL statement with the safe table name
-        String sql = "DELETE FROM " + genericPositionalLogger.getLoggerName() + " WHERE timestamp < ?";
 
-        try (PreparedStatement p_stmt = positionalLoggerDBConnection.prepareStatement(sql)) {
-            // Set the parameter for the PreparedStatement
-            p_stmt.setLong(1, time);
-
-            // Execute the update
-            p_stmt.executeUpdate();
-        } catch (SQLException e) {
-            LOG.error("SQL error, could not erase old data.", e);
-            throw new RuntimeException(e);
-        }
     }
 
     private void removeOldDatabaseData() {
         try {
-            eraseAllDataBeforeTime(System.currentTimeMillis() - TimeUtils.convertToSeconds(oldestDataCutoff) * 1000);
+            // Prepare SQL statement with the safe table name
+            String sql = "DELETE FROM " + genericPositionalLogger.getLoggerName() + " WHERE timestamp < ?";
+
+            try (PreparedStatement p_stmt = positionalLoggerDBConnection.prepareStatement(sql)) {
+                // Set the parameter for the PreparedStatement
+                long time = System.currentTimeMillis() - TimeUtils.convertToSeconds(oldestDataCutoff) * 1000;
+                p_stmt.setLong(1, time);
+
+                // Execute the update
+                p_stmt.executeUpdate();
+            } catch (SQLException e) {
+                LOG.error("SQL error, could not erase old data.", e);
+                throw new RuntimeException(e);
+            }
+
         } catch (Exception e) {
             LOG.error(
                 "An error occurred while erasing old data in table '{}' — oldestDataCutoff={} (check Tempora config).",
@@ -215,11 +211,10 @@ public class PositionalLoggerDatabase {
     }
 
     public Connection getDBConn() {
-        if (!initialised) throw new IllegalStateException("Database not initialised.");
         return positionalLoggerDBConnection;
     }
 
-    public @Nullable Connection getReadOnlyConnection() {
+    public @NotNull Connection getReadOnlyConnection() {
         try {
             String dbUrl = jdbcUrl(genericPositionalLogger.getLoggerName() + ".db");
 
@@ -235,7 +230,7 @@ public class PositionalLoggerDatabase {
                 "Could not establish readonly connection to {} database.",
                 genericPositionalLogger.getLoggerName(),
                 e);
-            return null;
+            throw new RuntimeException("Failed to open readonly connection");
         }
     }
 
@@ -263,7 +258,8 @@ public class PositionalLoggerDatabase {
         LIMIT ?;
         """, genericPositionalLogger.getLoggerName());
 
-        try (PreparedStatement ps = getReadOnlyConnection().prepareStatement(sql)) {
+        try (Connection conn = getReadOnlyConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
 
             // X range
             ps.setInt(1, centreX - radius);
@@ -357,7 +353,8 @@ public class PositionalLoggerDatabase {
 
         String sqlQuery = "SELECT * FROM " + genericPositionalLogger.getLoggerName() + " WHERE eventID == ? LIMIT 1";
 
-        try (PreparedStatement ps = getReadOnlyConnection().prepareStatement(sqlQuery)) {
+        try (Connection conn = getReadOnlyConnection();
+             PreparedStatement ps = conn.prepareStatement(sqlQuery)) {
 
             ps.setString(1, eventID);
 
@@ -379,83 +376,58 @@ public class PositionalLoggerDatabase {
         return null;
     }
 
-    private void createAllIndexes() throws SQLException {
-
-        Statement stmt = positionalLoggerDBConnection.createStatement();
-
+    private boolean tableHasIndexes() {
         String tableName = genericPositionalLogger.getLoggerName();
 
-        // Creating a composite index for x, y, z, dimensionID and timestamp
+        String sql = """
+        SELECT 1
+        FROM sqlite_master
+        WHERE type = 'index'
+          AND tbl_name = ?
+        LIMIT 1;
+        """;
+
+        try (PreparedStatement ps = positionalLoggerDBConnection.prepareStatement(sql)) {
+            ps.setString(1, tableName);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next(); // true if at least one index exists
+            }
+
+        } catch (SQLException e) {
+            LOG.error("Failed to check indexes for table '{}'", tableName, e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void createAllIndexes() {
+        String tableName = genericPositionalLogger.getLoggerName();
+
+        LOG.info("Creating indexes for Tempora database: {}", tableName);
+
         String createCompositeIndex = String.format(
             "CREATE INDEX IF NOT EXISTS idx_%s_xyz_dimension_time ON %s (dimensionID, x, y, z, timestamp DESC);",
             tableName,
-            tableName);
-        stmt.execute(createCompositeIndex);
+            tableName
+        );
 
-        // Creating an index for timestamp alone to optimise for queries primarily sorting or filtering on
-        // timestamp
-        String createTimestampIndex = String
-            .format("CREATE INDEX IF NOT EXISTS idx_%s_timestamp ON %s (timestamp DESC);", tableName, tableName);
-        stmt.execute(createTimestampIndex);
+        String createTimestampIndex = String.format(
+            "CREATE INDEX IF NOT EXISTS idx_%s_timestamp ON %s (timestamp DESC);",
+            tableName,
+            tableName
+        );
 
-        LOG.info("Created indexes for Tempora database: {}", tableName);
+        try (Statement stmt = positionalLoggerDBConnection.createStatement()) {
+            stmt.execute(createCompositeIndex);
+            stmt.execute(createTimestampIndex);
+        } catch (SQLException e) {
+            throw new IllegalStateException("Could not create index for " + tableName, e);
+        }
+
+        LOG.info("Successfully created indexes for Tempora database: {}", tableName);
     }
 
-    public void trimOversizedDatabase() throws SQLException {
-        Path dbPath = databaseDir().resolve(genericPositionalLogger.getLoggerName() + ".db");
-        if (!Files.exists(dbPath)) {
-            throw new IllegalStateException("Database file not found: " + dbPath);
-        }
-
-        if (maxDatabaseSizeInBytes == 0) {
-            throw new IllegalStateException("Largest database size is 0.");
-        }
-
-        // Do this first, to prevent fragmentation.
-        checkpointAndVacuum();
-
-        long usedBytes = physicalDbBytes();
-        if (usedBytes <= maxDatabaseSizeInBytes) {
-            positionalLoggerDBConnection.commit();
-            return;
-        }
-
-        long totalRows = countRows();
-        if (totalRows == 0) {
-            positionalLoggerDBConnection.commit();
-            return;
-        }
-
-        // Calculate how many rows to delete to get under the limit
-        double overshoot = (double) usedBytes / maxDatabaseSizeInBytes;
-        long rowsToDelete = (long) ((overshoot - 1) * totalRows);
-
-        String sql = "DELETE FROM " + genericPositionalLogger.getLoggerName()
-            + " WHERE rowid IN (SELECT rowid FROM "
-            + genericPositionalLogger.getLoggerName()
-            + " ORDER BY timestamp LIMIT ?)";
-        try (PreparedStatement ps = positionalLoggerDBConnection.prepareStatement(sql)) {
-            ps.setLong(1, rowsToDelete);
-            ps.executeUpdate();
-            LOG.info("Deleted {} rows from {} database.", rowsToDelete, genericPositionalLogger.getLoggerName());
-        }
-
-        positionalLoggerDBConnection.commit();
-
-        checkpointAndVacuum();
-
-        double sizeMb = physicalDbBytes() / 1_048_576.0;
-        double limitMb = maxDatabaseSizeInBytes / 1_048_576.0;
-
-        LOG.info(
-            "{} database is now {} MB (Config limit is {} MB).",
-            genericPositionalLogger.getLoggerName(),
-            formatNumber(sizeMb),
-            formatNumber(limitMb));
-
-    }
-
-    private void checkpointAndVacuum() throws SQLException {
+    private void cleanupDatabase() throws SQLException {
         try (Statement st = positionalLoggerDBConnection.createStatement()) {
             positionalLoggerDBConnection.commit();
             positionalLoggerDBConnection.setAutoCommit(true);
@@ -465,44 +437,23 @@ public class PositionalLoggerDatabase {
         }
     }
 
-    private long physicalDbBytes() throws SQLException {
-        long pageSize = pragmaLong("page_size");
-        long pageCount = pragmaLong("page_count");
-        return pageSize * pageCount;
-    }
-
-    private long countRows() throws SQLException {
-        String sql = "SELECT COUNT(*) FROM " + genericPositionalLogger.getLoggerName();
-        try (PreparedStatement ps = positionalLoggerDBConnection.prepareStatement(sql);
-            ResultSet rs = ps.executeQuery()) {
-            return rs.next() ? rs.getLong(1) : 0L;
-        }
-    }
-
-    private long pragmaLong(String pragma) throws SQLException {
-        try (Statement st = positionalLoggerDBConnection.createStatement();
-            ResultSet rs = st.executeQuery("PRAGMA " + pragma)) {
-            return rs.next() ? rs.getLong(1) : 0L;
-        }
-    }
-
     public void genericConfig(@NotNull Configuration config) {
         String raw = config
             .get(
                 genericPositionalLogger.getLoggerName(),
-                "LogWriteSafety",
+                "logWriteSafety",
                 genericPositionalLogger.defaultLogWriteSafetyMode()
                     .name(),
                 """
                     NORMAL – Safer, but slower
-                      • Best for long-term stability.
-                      • Every log is saved to disk right away, so even if your server crashes or the power goes out, your logs will be intact.
-                      • Slightly slower performance—may reduce TPS during heavy activity like world edits or explosions.
+                      - Best for long-term stability.
+                      - Every event is saved to disk right away, so even if your server crashes or the power goes out, your logs will be intact.
+                      - Slightly slower performance—may reduce TPS during heavy activity like world edits or explosions.
 
                     HIGH_RISK – Much faster, but riskier
-                      • Boosts performance by delaying how often logs are saved to disk.
-                      • Helps maintain TPS during intense events (e.g., TNT, worldedit, busy modpacks).
-                      • WARNING: if your server crashes or shuts down suddenly, the last few seconds of logs may be lost or corrupted. This does **not** affect your world—only the logs.
+                      - Boosts performance by delaying how often logs are saved to disk.
+                      - Helps maintain TPS during intense events (e.g., TNT, worldedit, busy servers).
+                      - WARNING: if your server crashes or shuts down suddenly, the last few seconds of logs may be lost or corrupted. This does **not** affect your world, only the Tempora logs.
                       • Only recommended if you make regular backups or can afford to lose a few seconds of log data.
 
                     Tip: Start with HIGH_RISK if you're concerned about performance (there will be warnings in the log if Tempora is struggling to keep up).
@@ -513,7 +464,7 @@ public class PositionalLoggerDatabase {
             .toUpperCase();
 
         oldestDataCutoff = config.getString(
-            "OldestDataCutoff",
+            "oldestDataCutoff",
             genericPositionalLogger.getLoggerName(),
             OLDEST_DATA_DEFAULT,
             "Any records older than this relative to server boot, will be erased. This is unrecoverable, be careful!");
@@ -533,37 +484,6 @@ public class PositionalLoggerDatabase {
                 ex);
         }
 
-        // Database too big handling.
-        final String maxDbSizeString = config.getString(
-            "maxDatabaseSize",
-            genericPositionalLogger.getLoggerName(),
-            "Infinite",
-            "Approximate maximum database file size (e.g. '500KB', '1MB', '5GB'). By default this is set to infinite, meaning no erasure happens."
-        ).trim();
-
-        // Default unbounded
-        if (maxDbSizeString.equalsIgnoreCase("infinite")) {
-            maxDatabaseSizeInBytes = Long.MAX_VALUE;
-        } else {
-            long parsedBytes;
-            try {
-                parsedBytes = parseSizeStringToBytes(maxDbSizeString);
-            } catch (Exception e) {
-                throw new IllegalStateException(
-                    "Invalid maxDatabaseSize value '" + maxDbSizeString + "' for "
-                        + genericPositionalLogger.getLoggerName(),
-                    e
-                );
-            }
-
-            if (parsedBytes <= 0) {
-                throw new IllegalStateException(
-                    "maxDatabaseSize must be > 0 for " + genericPositionalLogger.getLoggerName()
-                );
-            }
-
-            maxDatabaseSizeInBytes = parsedBytes;
-        }
     }
 
     // Use the fastest durability mode: may lose or corrupt the DB on sudden power loss.
@@ -615,12 +535,19 @@ public class PositionalLoggerDatabase {
             }
 
             p_stmt.executeBatch();
+            positionalLoggerDBConnection.commit();
+        } catch (SQLException e) {
+            positionalLoggerDBConnection.rollback();
+            throw e;
         }
+
     }
 
     public void shutdownDatabase() throws SQLException {
         if (positionalLoggerDBConnection != null && !positionalLoggerDBConnection.isClosed()) {
             closeDbConnection();
+        } else {
+            throw new IllegalStateException("Could not shutdown database connection");
         }
     }
 

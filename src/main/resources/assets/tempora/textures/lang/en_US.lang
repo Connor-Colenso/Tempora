@@ -16,6 +16,7 @@ message.inventorylogger.invalid_interaction=Error: invalid interactionType %s in
 message.query_events.showing_results=Found %s results for %s.
 message.query_events.showing_result=Found %s result for %s.
 message.query_events.too_many_pending=Warning: There are %s events waiting to be processed. This may affect the accuracy of the results, as the server may be under heavy load.
+tempora.op.warning.queue.too.large=Warning: %s has %s events pending, Tempora is struggling to keep up. Is the server under heavy load?
 
 player.tempora_wand.unauthorised=§c[ALERT]§r %s attempted to use a Tempora wand without authorisation.
 item.tempora_wand.name=Tempora Wand
