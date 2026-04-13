@@ -23,19 +23,19 @@ public class InventoryEventInfo extends GenericEventInfo {
     public String containerName;
 
     @Column(constraints = "NOT NULL")
-    public int interactionType; // Note: DB column is TEXT, but the field is an int – consider changing either to match
+    public int interactionType;
 
     @Column(constraints = "NOT NULL")
     public String playerUUID;
 
     @Column(constraints = "NOT NULL")
-    public int itemId; // corresponds to "itemID" column
+    public int itemId;
 
     @Column(constraints = "NOT NULL")
     public int itemMetadata;
 
     @Column(constraints = "NOT NULL")
-    public int stackSize; // corresponds to "stacksize" column
+    public int stackSize;
 
     @Override
     public void fromBytes(ByteBuf buf) {

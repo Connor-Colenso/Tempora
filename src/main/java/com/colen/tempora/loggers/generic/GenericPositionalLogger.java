@@ -15,6 +15,8 @@ import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import com.colen.tempora.utils.PlayerUtils;
+import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
@@ -200,15 +202,12 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
                 concurrentEventQueue.drainTo(buffer);
 
                 if (concurrentEventQueue.size() > LARGE_QUEUE_THRESHOLD) {
-                    LOG.warn(
-                        "{} has {} events pending, possible slowdown.",
-                        getLoggerName(),
-                        concurrentEventQueue.size());
+                    LOG.warn("{} has {} events pending, Tempora is struggling to keep up.", getLoggerName(), concurrentEventQueue.size());
+                    PlayerUtils.sendMessageToOps("tempora.op.warning.queue.too.large", getLoggerName(), new ChatComponentNumber(concurrentEventQueue.size()));
                 }
 
                 databaseManager.insertBatch(buffer);
-                databaseManager.getDBConn()
-                    .commit();
+
                 buffer.clear();
             }
         } catch (InterruptedException e) {
@@ -233,7 +232,7 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
         maxShutdownTimeoutMilliseconds = config.getInt(
             "maxShutdownTimeoutMs",
             getLoggerName(),
-            queuePollTimeoutMilliseconds * 5,
+            queuePollTimeoutMilliseconds * 20,
             0,
             Integer.MAX_VALUE,
             "Maximum time (in milliseconds) to wait for this logger to flush and stop during shutdown. Use 0 to wait forever until all queued events are written.");
