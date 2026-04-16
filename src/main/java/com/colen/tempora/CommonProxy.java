@@ -38,7 +38,7 @@ public class CommonProxy {
     public void init(FMLInitializationEvent event) {
 
         TemporaUndoRanged.MAX_RANGE = Tempora.config.getInt(
-            "Undo ranged max distance",
+            "undoRangedMaxDistance",
             "CommandConfig",
             64,
             5,
