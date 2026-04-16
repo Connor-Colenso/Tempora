@@ -46,7 +46,10 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
 
     protected boolean isLoggerEnabled;
     private Thread queueWorkerThread;
+
     private int maxShutdownTimeoutMilliseconds;
+    private int maxEventsInQueueBeforeServerFreeze;
+
     private static final int queuePollTimeoutMilliseconds = 100;
     private static final int LARGE_QUEUE_THRESHOLD = 5_000;
 
@@ -236,6 +239,15 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
             0,
             Integer.MAX_VALUE,
             "Maximum time (in milliseconds) to wait for this logger to flush and stop during shutdown. Use 0 to wait forever until all queued events are written.");
+
+        maxEventsInQueueBeforeServerFreeze = config.getInt(
+            "maxEventsInQueueBeforeServerFreeze",
+            getLoggerName(),
+            100_000,
+            1_000,
+            Integer.MAX_VALUE,
+            "Maximum amount of events that can be queued before the server will stop tick processing to try catch up. If this is happening a lot, you are logging too much.");
+
         databaseManager.genericConfig(config);
     }
 
@@ -263,10 +275,17 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
     // --------------------------------------
 
     public static void onServerStart() {
-        LOG.info("Opening Tempora databases.");
+        if (!TemporaLoggerManager.getLoggerList().isEmpty()) {
+            LOG.info("Opening Tempora loggers.");
+        }
 
         for (GenericPositionalLogger<?> logger : TemporaLoggerManager.getLoggerList()) {
-            if (logger.isLoggerEnabled) logger.initialiseLogger();
+            if (logger.isLoggerEnabled) {
+                LOG.info("Initialising {} logger.", logger.getLoggerName());
+                logger.initialiseLogger();
+            } else {
+                LOG.info("Skipped {}, not enabled in config.", logger.getLoggerName());
+            }
         }
     }
 
@@ -356,4 +375,11 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
         }
     }
 
+    public boolean shouldStall() {
+        return concurrentEventQueue.size() >= maxEventsInQueueBeforeServerFreeze;
+    }
+
+    public int getQueueSize() {
+        return concurrentEventQueue.size();
+    }
 }

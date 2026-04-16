@@ -57,7 +57,7 @@ public class DatabaseUtils {
         File worldDir = DimensionManager.getCurrentSaveRootDirectory();
         if (worldDir == null) throw new NullPointerException("worldDir is null");
         Path dir = worldDir.toPath()
-            .resolve("TemporaDatabases");
+            .resolve("tempora_databases");
 
         try {
             Files.createDirectories(dir);
