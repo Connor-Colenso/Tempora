@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.UUID;
 
+import com.colen.tempora.loggers.generic.LogWriteSafety;
 import com.colen.tempora.utils.StackTraceUtils;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
@@ -40,7 +41,6 @@ import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.undo.UndoEventInfo;
 import com.colen.tempora.loggers.generic.undo.UndoResponse;
 import com.colen.tempora.utils.BlockUtils;
-import com.colen.tempora.utils.GenericUtils;
 import com.colen.tempora.utils.RenderingUtils;
 import com.colen.tempora.utils.WorldGenPhaseTracker;
 import com.colen.tempora.utils.nbt.NBTUtils;
@@ -56,6 +56,11 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
     @Override
     public @NotNull String getLoggerName() {
         return TemporaEvents.BLOCK_CHANGE;
+    }
+
+    @Override
+    protected LogWriteSafety defaultLogWriteSafetyMode() {
+        return LogWriteSafety.HIGH_RISK;
     }
 
     private static boolean globalBlockChangeLogging;

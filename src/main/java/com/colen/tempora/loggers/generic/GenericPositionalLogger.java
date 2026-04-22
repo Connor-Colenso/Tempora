@@ -50,7 +50,7 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
     private int maxShutdownTimeoutMilliseconds;
     private int maxEventsInQueueBeforeServerFreeze;
 
-    private static final int queuePollTimeoutMilliseconds = 100;
+    private static final int queuePollTimeoutMilliseconds = 1000;
     private static final int LARGE_QUEUE_THRESHOLD = 5_000;
 
     public void addEventToRender(EventInfo event) {
@@ -168,10 +168,10 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
 
     private void startQueueWorker() {
 
-        queueWorkerThread = new Thread(() -> queueLoop(), "Tempora-" + getLoggerName());
+        queueWorkerThread = new Thread(this::queueLoop, "Tempora-" + getLoggerName());
         queueWorkerThread.setDaemon(false);
         queueWorkerThread.setUncaughtExceptionHandler((thr, ex) -> {
-            LOG.error("Tempora queue-worker '{}' crashed – halting JVM!", thr.getName(), ex);
+            LOG.error("Thread'{}' crashed – halting JVM!", thr.getName(), ex);
             FMLCommonHandler.instance()
                 .exitJava(-1, false);
         });
@@ -186,7 +186,6 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
             while (true) {
                 // Block for an event, but wake periodically to re-check state
                 EventInfo event = concurrentEventQueue.poll(queuePollTimeoutMilliseconds, TimeUnit.MILLISECONDS);
-
                 if (event == null) {
                     // No event received
                     if (sawPoisonPill && concurrentEventQueue.isEmpty()) {
@@ -203,12 +202,6 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
                 // Normal event processing
                 buffer.add(event);
                 concurrentEventQueue.drainTo(buffer);
-
-                if (concurrentEventQueue.size() > LARGE_QUEUE_THRESHOLD) {
-                    LOG.warn("{} has {} events pending, Tempora is struggling to keep up.", getLoggerName(), concurrentEventQueue.size());
-                    PlayerUtils.sendMessageToOps("tempora.op.warning.queue.too.large", getLoggerName(), new ChatComponentNumber(concurrentEventQueue.size()));
-                }
-
                 databaseManager.insertBatch(buffer);
 
                 buffer.clear();
@@ -321,6 +314,12 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
 
     private void shutdownQueueWorkerThreads() throws InterruptedException {
         // Wait to shutdown, should be near instant if queue is low.
+        LOG.info(
+            "Attempting to shut down queue worker {} for logger {}. There are {} events remaining to be processed within {}ms.",
+            queueWorkerThread.getName(),
+            getLoggerName(),
+            concurrentEventQueue.size(),
+            maxShutdownTimeoutMilliseconds);
         queueWorkerThread.join(maxShutdownTimeoutMilliseconds);
 
         if (queueWorkerThread.isAlive()) {
@@ -331,6 +330,7 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
                 getLoggerName(),
                 concurrentEventQueue.size());
             clearEvents();
+            queueWorkerThread.join(500);
         }
     }
 
