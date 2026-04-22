@@ -164,6 +164,9 @@ tempora.HUD.region.descriptor.singular=Currently inside %s region:
 tempora.HUD.region.list='%s' - Volume %s blocks.
 tempora.HUD.render.and_more=And %s more...
 
+# === Warnings ===
+tempora.warning.server.slowdown=Tempora slowed the server to let %s catch up on a large event queue. 
+
 
 # === Renderer ===
 tempora.render.regions.author=Created by %s

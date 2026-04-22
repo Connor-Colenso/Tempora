@@ -2,7 +2,6 @@ package com.colen.tempora.loggers.generic;
 
 import static com.colen.tempora.Tempora.LOG;
 import static com.colen.tempora.Tempora.NETWORK;
-import static com.colen.tempora.utils.DatabaseUtils.deleteLoggerDatabase;
 import static com.colen.tempora.utils.DatabaseUtils.jdbcUrl;
 import static com.colen.tempora.utils.ReflectionUtils.getAllTableColumns;
 
@@ -19,6 +18,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.colen.tempora.Tempora;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentTranslation;
@@ -27,12 +27,9 @@ import net.minecraft.util.IChatComponent;
 import net.minecraftforge.common.config.Configuration;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.sqlite.SQLiteConfig;
 
 import com.colen.tempora.loggers.generic.column.ColumnDef;
-import com.colen.tempora.utils.DatabaseUtils;
-import com.colen.tempora.utils.GenericUtils;
 import com.colen.tempora.utils.TimeUtils;
 import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 
@@ -52,31 +49,13 @@ public class PositionalLoggerDatabase {
     }
 
     public void initialiseDatabase() throws SQLException {
+        String loggerName = genericPositionalLogger.getLoggerName();
+        Tempora.LOG.info("Initialising {} database.", loggerName);
+
         initDbConnection();
 
-        // Check for corruption
-        if (DatabaseUtils.isDatabaseCorrupted(positionalLoggerDBConnection)) {
-
-            String loggerName = genericPositionalLogger.getLoggerName();
-
-            // Todo handle SP equivalent with UI perhaps?
-            boolean erase = GenericUtils.askTerminalYesNo(
-                "Tempora has detected db corruption in " + loggerName
-                    + ". Would you like to erase the database and create a new one?");
-
-            if (erase) {
-                closeDbConnection();
-                deleteLoggerDatabase(loggerName);
-            } else {
-                throw new RuntimeException(
-                    "Tempora database " + loggerName
-                        + ".db is corrupted. "
-                        + "Please disable database, fix the corruption manually or delete the database "
-                        + "and let Tempora generate a new clean version.");
-            }
-        }
-
         if (isHighRiskModeEnabled()) {
+            Tempora.LOG.info("The database for {} has high risk mode enabled.", loggerName);
             enableHighRiskFastMode();
         }
 
@@ -164,16 +143,13 @@ public class PositionalLoggerDatabase {
         }
     }
 
-    // This is not strictly thread safe, but since we are doing this before the server has even started properly,
-    // nothing else is interacting with the db, so it's fine for now.
-    private void eraseAllDataBeforeTime(long time) {
-
-    }
-
     private void removeOldDatabaseData() {
+        final String loggerName = genericPositionalLogger.getLoggerName();
+        Tempora.LOG.info("Removing data older than {} from {}.", oldestDataCutoff, loggerName);
+
         try {
             // Prepare SQL statement with the safe table name
-            String sql = "DELETE FROM " + genericPositionalLogger.getLoggerName() + " WHERE timestamp < ?";
+            String sql = "DELETE FROM " + loggerName + " WHERE timestamp < ?";
 
             try (PreparedStatement p_stmt = positionalLoggerDBConnection.prepareStatement(sql)) {
                 // Set the parameter for the PreparedStatement
@@ -202,6 +178,7 @@ public class PositionalLoggerDatabase {
         try (Statement st = getDBConn().createStatement()) {
             st.execute("PRAGMA synchronous=OFF;");
             st.execute("PRAGMA wal_autocheckpoint=10000;");
+            st.execute("PRAGMA temp_store = MEMORY;"); // todo review
         } catch (SQLException e) {
             LOG.error("Unable to enable high-risk mode for {}.", genericPositionalLogger.getLoggerName(), e);
             throw new RuntimeException(
@@ -223,6 +200,11 @@ public class PositionalLoggerDatabase {
 
             Connection conn = DriverManager.getConnection(dbUrl, config.toProperties());
             conn.setReadOnly(true);
+
+            // Make timeout longer, helps prevent errors.
+            try (Statement st = conn.createStatement()) {
+                st.execute("PRAGMA busy_timeout = 5000;");
+            }
 
             return conn;
         } catch (Exception e) {
@@ -428,6 +410,8 @@ public class PositionalLoggerDatabase {
     }
 
     private void cleanupDatabase() throws SQLException {
+        LOG.info("Cleaning up database for {}", genericPositionalLogger.getLoggerName());
+
         try (Statement st = positionalLoggerDBConnection.createStatement()) {
             positionalLoggerDBConnection.commit();
             positionalLoggerDBConnection.setAutoCommit(true);
@@ -442,22 +426,17 @@ public class PositionalLoggerDatabase {
             .get(
                 genericPositionalLogger.getLoggerName(),
                 "logWriteSafety",
-                genericPositionalLogger.defaultLogWriteSafetyMode()
-                    .name(),
+                genericPositionalLogger.defaultLogWriteSafetyMode().name(),
                 """
                     NORMAL – Safer, but slower
                       - Best for long-term stability.
                       - Every event is saved to disk right away, so even if your server crashes or the power goes out, your logs will be intact.
-                      - Slightly slower performance—may reduce TPS during heavy activity like world edits or explosions.
+                      - Slightly slower performance, may reduce TPS during heavy activity like world edits or explosions.
 
                     HIGH_RISK – Much faster, but riskier
                       - Boosts performance by delaying how often logs are saved to disk.
-                      - Helps maintain TPS during intense events (e.g., TNT, worldedit, busy servers).
                       - WARNING: if your server crashes or shuts down suddenly, the last few seconds of logs may be lost or corrupted. This does **not** affect your world, only the Tempora logs.
-                      • Only recommended if you make regular backups or can afford to lose a few seconds of log data.
-
-                    Tip: Start with HIGH_RISK if you're concerned about performance (there will be warnings in the log if Tempora is struggling to keep up).
-                         If you need 100% reliable logging, switch to NORMAL once you're happy with how the server runs.
+                      - Only recommended if you make regular backups or can afford to lose a few seconds of log data.
                     """)
             .getString()
             .trim()
@@ -512,7 +491,7 @@ public class PositionalLoggerDatabase {
     // This is responsible for logging the actual events. It seems rather convoluted,
     // but is trying to optimise and minimise the impact of heavy reflection usage.
     public <EventInfo extends GenericEventInfo> void insertBatch(List<EventInfo> eventInfoQueue) throws SQLException {
-
+        if (positionalLoggerDBConnection == null) throw new SQLException("Database connection is null for " +  genericPositionalLogger.getLoggerName());
         if (eventInfoQueue == null || eventInfoQueue.isEmpty()) {
             return;
         }
@@ -537,6 +516,7 @@ public class PositionalLoggerDatabase {
             p_stmt.executeBatch();
             positionalLoggerDBConnection.commit();
         } catch (SQLException e) {
+            LOG.error("Exception has been thrown by {} while inserting data, attempting to rollback database to safe state.", genericPositionalLogger.getLoggerName());
             positionalLoggerDBConnection.rollback();
             throw e;
         }

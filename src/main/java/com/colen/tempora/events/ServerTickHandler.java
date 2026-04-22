@@ -3,6 +3,8 @@ package com.colen.tempora.events;
 import com.colen.tempora.Tempora;
 import com.colen.tempora.TemporaLoggerManager;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
+import com.colen.tempora.utils.PlayerUtils;
+import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.World;
 
@@ -11,8 +13,6 @@ import com.colen.tempora.utils.DebugUtils;
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 public class ServerTickHandler {
 
@@ -24,12 +24,29 @@ public class ServerTickHandler {
         try {
             for (GenericPositionalLogger<?> logger : TemporaLoggerManager.getLoggerList()) {
                 while (logger.shouldStall()) {
-                    Thread.sleep(500); // Not ideal.
                     Tempora.LOG.warn(
-                        "Event queue for {} is critically large; server stalled to process backlog ({} events pending).",
+                        "Event queue for {} is critically large, server stalled to process backlog ({} events pending).",
                         logger.getLoggerName(),
                         logger.getQueueSize()
                     );
+
+                    PlayerUtils.sendMessageToOps("tempora.op.warning.queue.too.large", logger.getLoggerName(), new ChatComponentNumber(logger.getQueueSize()));
+
+                    // Time how long until queue is empty.
+                    long start = System.nanoTime();
+                    while (logger.getQueueSize() != 0) {
+                        Thread.sleep(100); // Not ideal.
+                    }
+                    long end = System.nanoTime();
+                    long durationMs = (end - start) / 1_000_000;
+
+                    Tempora.LOG.warn(
+                        "Event queue for {} now has {} events pending after server slowdown. Took {}ms.",
+                        logger.getLoggerName(),
+                        logger.getQueueSize(),
+                        durationMs
+                    );
+                    PlayerUtils.sendMessageToOps("tempora.warning.server.slowdown", logger.getLoggerName());
                 }
             }
         } catch (InterruptedException e) {
