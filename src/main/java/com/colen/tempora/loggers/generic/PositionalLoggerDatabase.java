@@ -69,7 +69,7 @@ public class PositionalLoggerDatabase {
         }
 
         removeOldDatabaseData();
-        cleanupDatabase();
+        performWALCheckpoint();
     }
 
     private void initDbConnection() throws SQLException {
@@ -409,15 +409,10 @@ public class PositionalLoggerDatabase {
         LOG.info("Successfully created indexes for Tempora database: {}", tableName);
     }
 
-    private void cleanupDatabase() throws SQLException {
-        LOG.info("Cleaning up database for {}", genericPositionalLogger.getLoggerName());
-
+    private void performWALCheckpoint() throws SQLException {
+        positionalLoggerDBConnection.commit();
         try (Statement st = positionalLoggerDBConnection.createStatement()) {
-            positionalLoggerDBConnection.commit();
-            positionalLoggerDBConnection.setAutoCommit(true);
             st.execute("PRAGMA wal_checkpoint(TRUNCATE)");
-            st.execute("VACUUM");
-            positionalLoggerDBConnection.setAutoCommit(false);
         }
     }
 
