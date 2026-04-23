@@ -15,8 +15,6 @@ import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-import com.colen.tempora.utils.PlayerUtils;
-import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
@@ -49,9 +47,7 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
 
     private int maxShutdownTimeoutMilliseconds;
     private int maxEventsInQueueBeforeServerFreeze;
-
-    private static final int queuePollTimeoutMilliseconds = 1000;
-    private static final int LARGE_QUEUE_THRESHOLD = 5_000;
+    private static final int QUEUE_POLL_TIMEOUT_MILLISECONDS = 1000;
 
     public void addEventToRender(EventInfo event) {
         event.eventRenderCreationTime = System.currentTimeMillis();
@@ -171,9 +167,9 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
         queueWorkerThread = new Thread(this::queueLoop, "Tempora-" + getLoggerName());
         queueWorkerThread.setDaemon(false);
         queueWorkerThread.setUncaughtExceptionHandler((thr, ex) -> {
-            LOG.error("Thread'{}' crashed – halting JVM!", thr.getName(), ex);
-            FMLCommonHandler.instance()
-                .exitJava(-1, false);
+            LOG.fatal("Queue worker in thread '{}' crashed – this is a serious failure! This logger is now effectively disabled.", thr.getName(), ex);
+            // Shut down the logger and prevent new events queueing.
+            isLoggerEnabled = false;
         });
         queueWorkerThread.start();
     }
@@ -184,42 +180,54 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
 
         try {
             while (true) {
-                // Block for an event, but wake periodically to re-check state
-                EventInfo event = concurrentEventQueue.poll(queuePollTimeoutMilliseconds, TimeUnit.MILLISECONDS);
+                EventInfo event = concurrentEventQueue.poll(QUEUE_POLL_TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS);
+
                 if (event == null) {
-                    // No event received
                     if (sawPoisonPill && concurrentEventQueue.isEmpty()) {
-                        break; // Clean shutdown: poison seen + fully drained
+                        break;
                     }
                     continue;
                 }
 
                 if (event.poisonPill) {
                     sawPoisonPill = true;
-                    continue; // Do NOT break, finish draining if possible.
+                    continue;
                 }
 
-                // Normal event processing
                 buffer.add(event);
                 concurrentEventQueue.drainTo(buffer);
                 databaseManager.insertBatch(buffer);
-
                 buffer.clear();
             }
+
         } catch (InterruptedException e) {
-            Thread.currentThread()
-                .interrupt();
             LOG.error(
-                "Queue worker interrupted for {} from external manager. The eventQueue was discarded with {} events remaining.",
+                "Queue worker interrupted for {}. Remaining queue size={}",
                 getLoggerName(),
-                concurrentEventQueue.size());
+                concurrentEventQueue.size()
+            );
+
         } catch (Exception e) {
             throw new RuntimeException("DB failure in " + getLoggerName(), e);
         }
 
-        // If we exit without having seen a poison pill, something is wrong
-        if (!sawPoisonPill) {
-            throw new IllegalStateException("Queue worker terminated unexpectedly.");
+        // Final safety checks:
+
+        // This prevents an edge case where the queue is backed up, so the poison pill was never hit, but the
+        // thread has timed out on server shutdown and needs to close to let the rest of the server shutdown.
+        boolean poisonExistsInQueue = concurrentEventQueue.stream()
+            .anyMatch(e -> e != null && e.poisonPill);
+
+        boolean poisonExistsInBuffer = buffer.stream()
+            .anyMatch(e -> e != null && e.poisonPill);
+
+        boolean poisonSeen = sawPoisonPill || poisonExistsInQueue || poisonExistsInBuffer;
+
+        if (!poisonSeen) {
+            LOG.error(
+                "Queue worker terminated without poison pill (likely abnormal shutdown). Remaining={}",
+                concurrentEventQueue.size()
+            );
         }
     }
 
@@ -228,8 +236,8 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
         maxShutdownTimeoutMilliseconds = config.getInt(
             "maxShutdownTimeoutMs",
             getLoggerName(),
-            queuePollTimeoutMilliseconds * 20,
-            0,
+            QUEUE_POLL_TIMEOUT_MILLISECONDS * 20,
+            QUEUE_POLL_TIMEOUT_MILLISECONDS * 2,
             Integer.MAX_VALUE,
             "Maximum time (in milliseconds) to wait for this logger to flush and stop during shutdown. Use 0 to wait forever until all queued events are written.");
 
@@ -330,7 +338,7 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
                 getLoggerName(),
                 concurrentEventQueue.size());
             clearEvents();
-            queueWorkerThread.join(500);
+            queueWorkerThread.join();
         }
     }
 

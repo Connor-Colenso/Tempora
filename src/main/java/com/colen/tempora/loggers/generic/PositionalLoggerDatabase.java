@@ -516,8 +516,10 @@ public class PositionalLoggerDatabase {
             p_stmt.executeBatch();
             positionalLoggerDBConnection.commit();
         } catch (SQLException e) {
-            LOG.error("Exception has been thrown by {} while inserting data, attempting to rollback database to safe state.", genericPositionalLogger.getLoggerName());
+            LOG.error("Exception has been thrown by {} while inserting data, attempting to rollback database to safe state. This may take a moment.", genericPositionalLogger.getLoggerName());
             positionalLoggerDBConnection.rollback();
+            LOG.error("Rollback for {} database is complete.", genericPositionalLogger.getLoggerName());
+
             throw e;
         }
 
