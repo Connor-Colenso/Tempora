@@ -1,10 +1,10 @@
 package com.colen.tempora.utils;
 
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 
 public class StackTraceUtils {
 
@@ -46,15 +46,16 @@ public class StackTraceUtils {
     }
 
     public static String getStackTrace(long stackTraceID) {
-        String stackTrace = stackTraceMap.inverse().get(stackTraceID);
+        String stackTrace = stackTraceMap.inverse()
+            .get(stackTraceID);
         if (stackTrace == null) {
             throw new IllegalStateException("Stack trace id " + stackTraceID + " not found, this should not happen.");
         }
         return stackTrace;
     }
 
-//    public static void clear() {
-//        stackTraceMap.clear();
-//        nextId = 0;
-//    }
+    // public static void clear() {
+    // stackTraceMap.clear();
+    // nextId = 0;
+    // }
 }

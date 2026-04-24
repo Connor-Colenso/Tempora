@@ -118,9 +118,24 @@ public class CreateRegion extends TemporaCommandBase {
         ChatComponentTranslation msg = new ChatComponentTranslation(
             "tempora.command.create_region.success",
             label,
-            teleportChatComponent(region.getMinX(), region.getMinY(), region.getMinZ(), dim, CommandUtils.TeleportType.EXACT),
-            teleportChatComponent(region.getMaxX(), region.getMaxY(), region.getMaxZ(), dim, CommandUtils.TeleportType.EXACT),
-            teleportChatComponent(region.getMidX(), region.getMidY(), region.getMidZ(), dim, CommandUtils.TeleportType.EXACT));
+            teleportChatComponent(
+                region.getMinX(),
+                region.getMinY(),
+                region.getMinZ(),
+                dim,
+                CommandUtils.TeleportType.EXACT),
+            teleportChatComponent(
+                region.getMaxX(),
+                region.getMaxY(),
+                region.getMaxZ(),
+                dim,
+                CommandUtils.TeleportType.EXACT),
+            teleportChatComponent(
+                region.getMidX(),
+                region.getMidY(),
+                region.getMidZ(),
+                dim,
+                CommandUtils.TeleportType.EXACT));
 
         msg.getChatStyle()
             .setColor(EnumChatFormatting.GREEN);

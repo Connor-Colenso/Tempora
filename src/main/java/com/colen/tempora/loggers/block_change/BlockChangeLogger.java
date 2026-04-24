@@ -14,8 +14,6 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.UUID;
 
-import com.colen.tempora.loggers.generic.LogWriteSafety;
-import com.colen.tempora.utils.StackTraceUtils;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
@@ -38,10 +36,12 @@ import com.colen.tempora.enums.LoggerEventType;
 import com.colen.tempora.loggers.block_change.region_registry.BlockChangeRegionRegistry;
 import com.colen.tempora.loggers.generic.GenericEventInfo;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
+import com.colen.tempora.loggers.generic.LogWriteSafety;
 import com.colen.tempora.loggers.generic.undo.UndoEventInfo;
 import com.colen.tempora.loggers.generic.undo.UndoResponse;
 import com.colen.tempora.utils.BlockUtils;
 import com.colen.tempora.utils.RenderingUtils;
+import com.colen.tempora.utils.StackTraceUtils;
 import com.colen.tempora.utils.WorldGenPhaseTracker;
 import com.colen.tempora.utils.nbt.NBTUtils;
 

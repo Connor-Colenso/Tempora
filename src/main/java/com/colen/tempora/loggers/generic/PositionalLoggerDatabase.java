@@ -18,7 +18,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.colen.tempora.Tempora;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentTranslation;
@@ -29,6 +28,7 @@ import net.minecraftforge.common.config.Configuration;
 import org.jetbrains.annotations.NotNull;
 import org.sqlite.SQLiteConfig;
 
+import com.colen.tempora.Tempora;
 import com.colen.tempora.loggers.generic.column.ColumnDef;
 import com.colen.tempora.utils.TimeUtils;
 import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
@@ -230,20 +230,18 @@ public class PositionalLoggerDatabase {
     public void queryEventByCoordinate(ICommandSender sender, int centreX, int centreY, int centreZ, int radius,
         long seconds, int dimensionId) {
 
-        String sql = String.format(
-        """
-        SELECT * FROM %s
-        WHERE x BETWEEN ? AND ?
-          AND y BETWEEN ? AND ?
-          AND z BETWEEN ? AND ?
-          AND dimensionID = ?
-          AND timestamp >= ?
-        ORDER BY timestamp DESC
-        LIMIT ?;
-        """, genericPositionalLogger.getLoggerName());
+        String sql = String.format("""
+            SELECT * FROM %s
+            WHERE x BETWEEN ? AND ?
+              AND y BETWEEN ? AND ?
+              AND z BETWEEN ? AND ?
+              AND dimensionID = ?
+              AND timestamp >= ?
+            ORDER BY timestamp DESC
+            LIMIT ?;
+            """, genericPositionalLogger.getLoggerName());
 
-        try (Connection conn = getReadOnlyConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = getReadOnlyConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
 
             // X range
             ps.setInt(1, centreX - radius);
@@ -335,8 +333,7 @@ public class PositionalLoggerDatabase {
 
         String sqlQuery = "SELECT * FROM " + genericPositionalLogger.getLoggerName() + " WHERE eventID == ? LIMIT 1";
 
-        try (Connection conn = getReadOnlyConnection();
-             PreparedStatement ps = conn.prepareStatement(sqlQuery)) {
+        try (Connection conn = getReadOnlyConnection(); PreparedStatement ps = conn.prepareStatement(sqlQuery)) {
 
             ps.setString(1, eventID);
 
@@ -362,12 +359,12 @@ public class PositionalLoggerDatabase {
         String tableName = genericPositionalLogger.getLoggerName();
 
         String sql = """
-        SELECT 1
-        FROM sqlite_master
-        WHERE type = 'index'
-          AND tbl_name = ?
-        LIMIT 1;
-        """;
+            SELECT 1
+            FROM sqlite_master
+            WHERE type = 'index'
+              AND tbl_name = ?
+            LIMIT 1;
+            """;
 
         try (PreparedStatement ps = positionalLoggerDBConnection.prepareStatement(sql)) {
             ps.setString(1, tableName);
@@ -390,14 +387,10 @@ public class PositionalLoggerDatabase {
         String createCompositeIndex = String.format(
             "CREATE INDEX IF NOT EXISTS idx_%s_xyz_dimension_time ON %s (dimensionID, x, y, z, timestamp DESC);",
             tableName,
-            tableName
-        );
+            tableName);
 
-        String createTimestampIndex = String.format(
-            "CREATE INDEX IF NOT EXISTS idx_%s_timestamp ON %s (timestamp DESC);",
-            tableName,
-            tableName
-        );
+        String createTimestampIndex = String
+            .format("CREATE INDEX IF NOT EXISTS idx_%s_timestamp ON %s (timestamp DESC);", tableName, tableName);
 
         try (Statement stmt = positionalLoggerDBConnection.createStatement()) {
             stmt.execute(createCompositeIndex);
@@ -421,7 +414,8 @@ public class PositionalLoggerDatabase {
             .get(
                 genericPositionalLogger.getLoggerName(),
                 "logWriteSafety",
-                genericPositionalLogger.defaultLogWriteSafetyMode().name(),
+                genericPositionalLogger.defaultLogWriteSafetyMode()
+                    .name(),
                 """
                     NORMAL – Safer, but slower
                       - Best for long-term stability.
@@ -486,7 +480,8 @@ public class PositionalLoggerDatabase {
     // This is responsible for saving the actual events to a database. It seems rather convoluted,
     // but is trying to optimise and minimise the impact of heavy reflection usage.
     public <EventInfo extends GenericEventInfo> void insertBatch(List<EventInfo> eventInfoQueue) throws SQLException {
-        if (positionalLoggerDBConnection == null) throw new SQLException("Database connection is null for " +  genericPositionalLogger.getLoggerName());
+        if (positionalLoggerDBConnection == null)
+            throw new SQLException("Database connection is null for " + genericPositionalLogger.getLoggerName());
         if (eventInfoQueue == null || eventInfoQueue.isEmpty()) {
             return;
         }

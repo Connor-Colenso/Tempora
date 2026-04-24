@@ -1,5 +1,7 @@
 package com.colen.tempora.utils;
 
+import static com.colen.tempora.commands.TemporaTp.TEMPORA_TP;
+
 import java.util.List;
 
 import net.minecraft.command.CommandBase;
@@ -16,8 +18,6 @@ import org.jetbrains.annotations.NotNull;
 import com.colen.tempora.TemporaLoggerManager;
 import com.colen.tempora.commands.TemporaUndo;
 import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
-
-import static com.colen.tempora.commands.TemporaTp.TEMPORA_TP;
 
 public class CommandUtils {
 
@@ -57,7 +57,8 @@ public class CommandUtils {
         EXACT
     }
 
-    public static @NotNull IChatComponent teleportChatComponent(double x, double y, double z, final int dimID, final TeleportType teleportType) {
+    public static @NotNull IChatComponent teleportChatComponent(double x, double y, double z, final int dimID,
+        final TeleportType teleportType) {
 
         // Translation‑driven teleport options.
         IChatComponent display = new ChatComponentTranslation(
