@@ -25,6 +25,8 @@ import net.minecraft.util.ChatStyle;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.colen.tempora.TemporaLoggerManager;
 import com.colen.tempora.commands.command_base.TemporaCommandBase;
 import com.colen.tempora.loggers.generic.GenericEventInfo;
@@ -35,7 +37,6 @@ import com.colen.tempora.loggers.generic.undo.UndoResponse;
 import com.colen.tempora.utils.CommandUtils;
 import com.colen.tempora.utils.TimeUtils;
 import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
-import org.jetbrains.annotations.NotNull;
 
 public class TemporaUndoRanged extends TemporaCommandBase {
 
@@ -231,7 +232,8 @@ public class TemporaUndoRanged extends TemporaCommandBase {
         PENDING_UNDOS_LOGGER_NAMES.remove(uuid);
     }
 
-    private static @NotNull IChatComponent getSuccessRangedChatComponent(List<UndoEventInfo> undoEventsInfo, long durationMs) {
+    private static @NotNull IChatComponent getSuccessRangedChatComponent(List<UndoEventInfo> undoEventsInfo,
+        long durationMs) {
         int successCounter = 0;
         for (UndoEventInfo undoEventInfo : undoEventsInfo) {
             if (undoEventInfo.state == UndoResponse.SAFE) {

@@ -1,5 +1,7 @@
 package com.colen.tempora.utils;
 
+import java.util.List;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.event.ClickEvent;
 import net.minecraft.event.HoverEvent;
@@ -8,8 +10,6 @@ import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
 import com.gtnewhorizon.gtnhlib.util.numberformatting.options.FormatOptions;
-
-import java.util.List;
 
 public class ChatUtils {
 
@@ -76,7 +76,8 @@ public class ChatUtils {
 
     // This is used when we run a command we don't want showing in the players' history.
     public static void removeLastMessage() {
-        List<String> pastMessages = Minecraft.getMinecraft().ingameGUI.getChatGUI().getSentMessages();
+        List<String> pastMessages = Minecraft.getMinecraft().ingameGUI.getChatGUI()
+            .getSentMessages();
 
         if (!pastMessages.isEmpty()) {
             pastMessages.remove(pastMessages.size() - 1);

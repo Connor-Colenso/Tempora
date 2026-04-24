@@ -69,9 +69,24 @@ public class RemoveRegion extends TemporaCommandBase {
                 IChatComponent removedMessageOfRegion = new ChatComponentTranslation(
                     "tempora.region.remove.individual",
                     region.getLabel(),
-                    teleportChatComponent(region.getMinX(), region.getMinY(), region.getMinZ(), region.getDimID(), CommandUtils.TeleportType.EXACT),
-                    teleportChatComponent(region.getMaxX(), region.getMaxY(), region.getMaxZ(), region.getDimID(), CommandUtils.TeleportType.EXACT),
-                    teleportChatComponent(region.getMidX(), region.getMidY(), region.getMidZ(), region.getDimID(), CommandUtils.TeleportType.EXACT));
+                    teleportChatComponent(
+                        region.getMinX(),
+                        region.getMinY(),
+                        region.getMinZ(),
+                        region.getDimID(),
+                        CommandUtils.TeleportType.EXACT),
+                    teleportChatComponent(
+                        region.getMaxX(),
+                        region.getMaxY(),
+                        region.getMaxZ(),
+                        region.getDimID(),
+                        CommandUtils.TeleportType.EXACT),
+                    teleportChatComponent(
+                        region.getMidX(),
+                        region.getMidY(),
+                        region.getMidZ(),
+                        region.getDimID(),
+                        CommandUtils.TeleportType.EXACT));
 
                 removedMessageOfRegion.getChatStyle()
                     .setColor(EnumChatFormatting.GREEN);

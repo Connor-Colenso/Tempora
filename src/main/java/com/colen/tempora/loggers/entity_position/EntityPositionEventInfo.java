@@ -2,7 +2,6 @@ package com.colen.tempora.loggers.entity_position;
 
 import static com.colen.tempora.utils.CommandUtils.teleportChatComponent;
 
-import com.colen.tempora.utils.CommandUtils;
 import net.minecraft.event.ClickEvent;
 import net.minecraft.event.HoverEvent;
 import net.minecraft.util.ChatComponentText;
@@ -14,6 +13,7 @@ import net.minecraft.util.IChatComponent;
 import com.colen.tempora.TemporaEvents;
 import com.colen.tempora.loggers.generic.GenericEventInfo;
 import com.colen.tempora.loggers.generic.column.Column;
+import com.colen.tempora.utils.CommandUtils;
 import com.colen.tempora.utils.TimeUtils;
 
 import cpw.mods.fml.common.network.ByteBufUtils;

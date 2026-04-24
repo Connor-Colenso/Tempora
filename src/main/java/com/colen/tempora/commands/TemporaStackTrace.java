@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.colen.tempora.utils.ChatUtils;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
@@ -16,6 +15,7 @@ import net.minecraft.util.IChatComponent;
 
 import com.colen.tempora.commands.command_base.CommandArg;
 import com.colen.tempora.commands.command_base.TemporaCommandBase;
+import com.colen.tempora.utils.ChatUtils;
 
 // Internal command for displaying stack trace info.
 public class TemporaStackTrace extends TemporaCommandBase {

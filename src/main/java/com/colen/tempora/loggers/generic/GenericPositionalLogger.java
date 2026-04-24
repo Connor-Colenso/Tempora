@@ -15,8 +15,6 @@ import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-import com.colen.tempora.utils.PlayerUtils;
-import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
@@ -29,6 +27,8 @@ import com.colen.tempora.TemporaLoggerManager;
 import com.colen.tempora.enums.LoggerEventType;
 import com.colen.tempora.loggers.generic.column.ColumnDef;
 import com.colen.tempora.loggers.generic.undo.UndoEventInfo;
+import com.colen.tempora.utils.PlayerUtils;
+import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.relauncher.Side;
@@ -164,8 +164,14 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
         // Blocking & thread safe.
         try {
             if (getQueueSize() >= maxEventsInQueueBeforeServerFreeze) {
-                LOG.warn("Maximum queue size of {} reached for {}, slowing server down.", maxEventsInQueueBeforeServerFreeze, getLoggerName());
-                PlayerUtils.sendMessageToOps("tempora.op.warning.queue.too.large", getLoggerName(), new ChatComponentNumber(getQueueSize()));
+                LOG.warn(
+                    "Maximum queue size of {} reached for {}, slowing server down.",
+                    maxEventsInQueueBeforeServerFreeze,
+                    getLoggerName());
+                PlayerUtils.sendMessageToOps(
+                    "tempora.op.warning.queue.too.large",
+                    getLoggerName(),
+                    new ChatComponentNumber(getQueueSize()));
             }
             concurrentEventQueue.put(eventInfo);
         } catch (InterruptedException e) {
@@ -184,7 +190,10 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
         queueWorkerThread = new Thread(this::queueLoop, "Tempora-" + getLoggerName());
         queueWorkerThread.setDaemon(false);
         queueWorkerThread.setUncaughtExceptionHandler((thr, ex) -> {
-            LOG.fatal("Queue worker in thread '{}' crashed – this is a serious failure! This logger is now effectively disabled.", thr.getName(), ex);
+            LOG.fatal(
+                "Queue worker in thread '{}' crashed – this is a serious failure! This logger is now effectively disabled.",
+                thr.getName(),
+                ex);
             // Shut down the logger and prevent new events queueing.
             isLoggerEnabled = false;
         });
@@ -207,22 +216,24 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
                 }
 
                 buffer.add(event);
-                concurrentEventQueue.drainTo(buffer, maxEventsInQueueBeforeServerFreeze / 10); // todo review over capacity
+                concurrentEventQueue.drainTo(buffer, maxEventsInQueueBeforeServerFreeze / 10); // todo review over
+                                                                                               // capacity
                 databaseManager.insertBatch(buffer);
                 buffer.clear();
             }
 
         } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            LOG.warn("Queue worker {} interrupted during shutdown. Remaining {} events will be discarded.",
+            Thread.currentThread()
+                .interrupt();
+            LOG.warn(
+                "Queue worker {} interrupted during shutdown. Remaining {} events will be discarded.",
                 getLoggerName(),
                 concurrentEventQueue.size());
         } catch (Exception e) {
             LOG.error(
                 "Queue worker {} threw non-interrupt based exception and has shut down. Remaining queue size is={}",
                 getLoggerName(),
-                concurrentEventQueue.size()
-            );
+                concurrentEventQueue.size());
         } finally {
             isLoggerEnabled = false;
         }
@@ -269,7 +280,8 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
     // --------------------------------------
 
     public static void onServerStart() {
-        if (!TemporaLoggerManager.getLoggerList().isEmpty()) {
+        if (!TemporaLoggerManager.getLoggerList()
+            .isEmpty()) {
             LOG.info("Opening Tempora loggers.");
         }
 

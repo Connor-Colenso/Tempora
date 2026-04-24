@@ -7,8 +7,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import com.colen.tempora.utils.CommandUtils;
-import com.colen.tempora.utils.StackTraceUtils;
 import net.minecraft.block.Block;
 import net.minecraft.event.HoverEvent;
 import net.minecraft.util.ChatComponentText;
@@ -21,7 +19,9 @@ import com.colen.tempora.commands.TemporaStackTrace;
 import com.colen.tempora.loggers.generic.GenericEventInfo;
 import com.colen.tempora.loggers.generic.column.Column;
 import com.colen.tempora.utils.BlockUtils;
+import com.colen.tempora.utils.CommandUtils;
 import com.colen.tempora.utils.PlayerUtils;
+import com.colen.tempora.utils.StackTraceUtils;
 import com.colen.tempora.utils.TimeUtils;
 import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 
@@ -89,7 +89,8 @@ public class BlockChangeEventInfo extends GenericEventInfo {
         ChatComponentNumber closestPlayerDist = new ChatComponentNumber(closestPlayerDistance);
 
         // Generate full stack trace as a list of IChatComponents
-        List<IChatComponent> stackTraceComponents = generateStackTraceComponents(StackTraceUtils.getStackTrace(stackTraceID));
+        List<IChatComponent> stackTraceComponents = generateStackTraceComponents(
+            StackTraceUtils.getStackTrace(stackTraceID));
 
         // Generate a UUID for this trace and store it
         String traceUUID = UUID.randomUUID()

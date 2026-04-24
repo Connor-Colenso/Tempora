@@ -7,7 +7,6 @@ import static com.colen.tempora.utils.GenericUtils.isServerSide;
 
 import java.util.UUID;
 
-import com.colen.tempora.utils.CommandUtils;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -24,6 +23,7 @@ import com.colen.tempora.loggers.block_change.region_registry.TemporaWorldRegion
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.rendering.ClientRegionStore;
 import com.colen.tempora.rendering.regions.RegionRenderMode;
+import com.colen.tempora.utils.CommandUtils;
 import com.colen.tempora.utils.PlayerUtils;
 
 public class TemporaWand extends Item {

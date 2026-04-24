@@ -8,7 +8,6 @@ import static com.colen.tempora.utils.TimeUtils.formatTime;
 
 import java.awt.Color;
 
-import com.colen.tempora.utils.CommandUtils;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.ChatComponentTranslation;
@@ -16,6 +15,7 @@ import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
 import com.colen.tempora.rendering.regions.RegionRenderMode;
+import com.colen.tempora.utils.CommandUtils;
 
 public class TemporaWorldRegion {
 
@@ -230,7 +230,12 @@ public class TemporaWorldRegion {
         double cz = (minZ + maxZ) / 2.0;
 
         // Clickable coordinate component
-        ChatComponentTranslation tp = (ChatComponentTranslation) teleportChatComponent(cx, cy, cz, dimID, CommandUtils.TeleportType.EXACT);
+        ChatComponentTranslation tp = (ChatComponentTranslation) teleportChatComponent(
+            cx,
+            cy,
+            cz,
+            dimID,
+            CommandUtils.TeleportType.EXACT);
 
         // Whole entry line
         ChatComponentTranslation line = new ChatComponentTranslation(
