@@ -43,6 +43,8 @@ public class PositionalLoggerDatabase {
     private static final int MAX_RESULTS = 5;
     private Connection positionalLoggerDBConnection;
     private final GenericPositionalLogger<?> genericPositionalLogger;
+    private PreparedStatement addDataInjectionStatement; // Pre made injection statement
+    private List<ColumnDef> columnDefs; // Instantiate upon first database insertion.
 
     public PositionalLoggerDatabase(GenericPositionalLogger<?> eventToLogGenericPositionalLogger) {
         genericPositionalLogger = eventToLogGenericPositionalLogger;
@@ -483,7 +485,7 @@ public class PositionalLoggerDatabase {
             .getLoggerName() + " (" + columnList + ") VALUES (" + placeholders + ")";
     }
 
-    // This is responsible for logging the actual events. It seems rather convoluted,
+    // This is responsible for saving the actual events to a database. It seems rather convoluted,
     // but is trying to optimise and minimise the impact of heavy reflection usage.
     public <EventInfo extends GenericEventInfo> void insertBatch(List<EventInfo> eventInfoQueue) throws SQLException {
         if (positionalLoggerDBConnection == null) throw new SQLException("Database connection is null for " +  genericPositionalLogger.getLoggerName());
@@ -491,33 +493,27 @@ public class PositionalLoggerDatabase {
             return;
         }
 
-        final String sql = generateInsertSQL();
-        final List<ColumnDef> columnDefs = getAllTableColumns(genericPositionalLogger);
+        if (addDataInjectionStatement == null || columnDefs == null) {
+            final String sql = generateInsertSQL();
 
-        try (PreparedStatement p_stmt = positionalLoggerDBConnection.prepareStatement(sql)) {
-
-            for (EventInfo eventInfo : eventInfoQueue) {
-                int index = 1;
-
-                for (ColumnDef columnDef : columnDefs) {
-                    Object value = columnDef.columnAccessor.get(eventInfo);
-
-                    columnDef.columnAccessor.binder.bind(p_stmt, index++, value);
-                }
-
-                p_stmt.addBatch();
-            }
-
-            p_stmt.executeBatch();
-            positionalLoggerDBConnection.commit();
-        } catch (SQLException e) {
-            LOG.error("Exception has been thrown by {} while inserting data, attempting to rollback database to safe state. This may take a moment.", genericPositionalLogger.getLoggerName());
-            positionalLoggerDBConnection.rollback();
-            LOG.error("Rollback for {} database is complete.", genericPositionalLogger.getLoggerName());
-
-            throw e;
+            columnDefs = getAllTableColumns(genericPositionalLogger);
+            addDataInjectionStatement = positionalLoggerDBConnection.prepareStatement(sql);
         }
 
+        for (EventInfo eventInfo : eventInfoQueue) {
+            int index = 1;
+
+            for (ColumnDef columnDef : columnDefs) {
+                Object value = columnDef.columnAccessor.get(eventInfo);
+
+                columnDef.columnAccessor.binder.bind(addDataInjectionStatement, index++, value);
+            }
+
+            addDataInjectionStatement.addBatch();
+        }
+
+        addDataInjectionStatement.executeBatch();
+        positionalLoggerDBConnection.commit();
     }
 
     public void shutdownDatabase() throws SQLException {
@@ -528,4 +524,7 @@ public class PositionalLoggerDatabase {
         }
     }
 
+    public void rollback() throws SQLException {
+        positionalLoggerDBConnection.rollback();
+    }
 }

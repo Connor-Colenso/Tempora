@@ -44,6 +44,7 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
 
     protected boolean isLoggerEnabled;
     private Thread queueWorkerThread;
+    private volatile boolean shuttingDownDatabaseThread = false;
 
     private int maxShutdownTimeoutMilliseconds;
     private int maxEventsInQueueBeforeServerFreeze;
@@ -163,6 +164,7 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
     }
 
     private void startQueueWorker() {
+        shuttingDownDatabaseThread = false;
 
         queueWorkerThread = new Thread(this::queueLoop, "Tempora-" + getLoggerName());
         queueWorkerThread.setDaemon(false);
@@ -176,21 +178,16 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
 
     private void queueLoop() {
         List<EventInfo> buffer = new ArrayList<>();
-        boolean sawPoisonPill = false;
 
         try {
             while (true) {
+                if (shuttingDownDatabaseThread && concurrentEventQueue.isEmpty()) {
+                    return;
+                }
+
                 EventInfo event = concurrentEventQueue.poll(QUEUE_POLL_TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS);
 
                 if (event == null) {
-                    if (sawPoisonPill && concurrentEventQueue.isEmpty()) {
-                        break;
-                    }
-                    continue;
-                }
-
-                if (event.poisonPill) {
-                    sawPoisonPill = true;
                     continue;
                 }
 
@@ -201,40 +198,25 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
             }
 
         } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            LOG.warn("Queue worker {} interrupted during shutdown. Remaining {} events will be discarded.",
+                getLoggerName(),
+                concurrentEventQueue.size());
+        } catch (Exception e) {
             LOG.error(
-                "Queue worker interrupted for {}. Remaining queue size={}",
+                "Queue worker {} threw non-interrupt based exception and has shut down. Remaining queue size is={}",
                 getLoggerName(),
                 concurrentEventQueue.size()
             );
-
-        } catch (Exception e) {
-            throw new RuntimeException("DB failure in " + getLoggerName(), e);
-        }
-
-        // Final safety checks:
-
-        // This prevents an edge case where the queue is backed up, so the poison pill was never hit, but the
-        // thread has timed out on server shutdown and needs to close to let the rest of the server shutdown.
-        boolean poisonExistsInQueue = concurrentEventQueue.stream()
-            .anyMatch(e -> e != null && e.poisonPill);
-
-        boolean poisonExistsInBuffer = buffer.stream()
-            .anyMatch(e -> e != null && e.poisonPill);
-
-        boolean poisonSeen = sawPoisonPill || poisonExistsInQueue || poisonExistsInBuffer;
-
-        if (!poisonSeen) {
-            LOG.error(
-                "Queue worker terminated without poison pill (likely abnormal shutdown). Remaining={}",
-                concurrentEventQueue.size()
-            );
+        } finally {
+            isLoggerEnabled = false;
         }
     }
 
     public final void genericConfig(@NotNull Configuration config) {
         isLoggerEnabled = config.getBoolean("isEnabled", getLoggerName(), true, "Enables this loggers functionality.");
         maxShutdownTimeoutMilliseconds = config.getInt(
-            "maxShutdownTimeoutMs",
+            "maxShutdownTimeoutMilliseconds",
             getLoggerName(),
             QUEUE_POLL_TIMEOUT_MILLISECONDS * 20,
             QUEUE_POLL_TIMEOUT_MILLISECONDS * 2,
@@ -292,11 +274,6 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
 
     public static void onServerClose() {
         try {
-            // Poison pill each logger, to prepare for shutdown, instead of waiting on each one sequentially.
-            for (GenericPositionalLogger<?> logger : TemporaLoggerManager.getLoggerList()) {
-                logger.poisonPillQueue();
-            }
-
             for (GenericPositionalLogger<?> logger : TemporaLoggerManager.getLoggerList()) {
                 if (logger.isLoggerEnabled) {
                     logger.shutdownQueueWorkerThreads();
@@ -314,14 +291,10 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
         }
     }
 
-    private void poisonPillQueue() {
-        EventInfo poisonedEventInfo = newEventInfo();
-        poisonedEventInfo.poisonPill = true;
-        concurrentEventQueue.add(poisonedEventInfo);
-    }
-
     private void shutdownQueueWorkerThreads() throws InterruptedException {
-        // Wait to shutdown, should be near instant if queue is low.
+        shuttingDownDatabaseThread = true;
+
+        // Wait to shut down, should be near instant if queue is low.
         LOG.info(
             "Attempting to shut down queue worker {} for logger {}. There are {} events remaining to be processed within {}ms.",
             queueWorkerThread.getName(),
@@ -337,7 +310,6 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
                 queueWorkerThread.getName(),
                 getLoggerName(),
                 concurrentEventQueue.size());
-            clearEvents();
             queueWorkerThread.join();
         }
     }
