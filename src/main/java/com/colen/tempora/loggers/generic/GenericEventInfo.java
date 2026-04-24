@@ -38,9 +38,6 @@ public abstract class GenericEventInfo {
     // These fields purely dictate rendering info and are not relevant elsewhere.
     public long eventRenderCreationTime;
 
-    // This event signals a server shutdown, and gets us out of our event loop.
-    public boolean poisonPill = false;
-
     public abstract IChatComponent localiseText(String commandIssuerUUID);
 
     public void populateDefaultFieldsFromResultSet(ResultSet resultSet) throws SQLException {
