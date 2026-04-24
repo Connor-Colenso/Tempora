@@ -13,9 +13,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import com.colen.tempora.utils.PlayerUtils;
+import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
@@ -162,8 +163,9 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
 
         // Blocking & thread safe.
         try {
-            if (concurrentEventQueue.size() >= maxEventsInQueueBeforeServerFreeze) {
+            if (getQueueSize() >= maxEventsInQueueBeforeServerFreeze) {
                 LOG.warn("Maximum queue size of {} reached for {}, slowing server down.", maxEventsInQueueBeforeServerFreeze, getLoggerName());
+                PlayerUtils.sendMessageToOps("tempora.op.warning.queue.too.large", getLoggerName(), new ChatComponentNumber(getQueueSize()));
             }
             concurrentEventQueue.put(eventInfo);
         } catch (InterruptedException e) {
@@ -190,7 +192,7 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
     }
 
     private void queueLoop() {
-        List<EventInfo> buffer = new ArrayList<>();
+        List<EventInfo> buffer = new ArrayList<>(maxEventsInQueueBeforeServerFreeze);
 
         try {
             while (true) {
@@ -205,7 +207,7 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
                 }
 
                 buffer.add(event);
-                concurrentEventQueue.drainTo(buffer, maxEventsInQueueBeforeServerFreeze / 10);
+                concurrentEventQueue.drainTo(buffer, maxEventsInQueueBeforeServerFreeze / 10); // todo review over capacity
                 databaseManager.insertBatch(buffer);
                 buffer.clear();
             }
