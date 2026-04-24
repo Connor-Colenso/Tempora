@@ -296,12 +296,10 @@ public class PositionalLoggerDatabase {
 
                     // If events waiting to process is large, then warn the user.
                     // Shouldn't really be happening.
-                    int queuedEventsFound = genericPositionalLogger.getConcurrentEventQueue()
-                        .size();
-                    if (queuedEventsFound > 100) {
+                    if (genericPositionalLogger.getQueueSize() > 100) {
                         IChatComponent tooMany = new ChatComponentTranslation(
                             "message.query_events.too_many_pending",
-                            new ChatComponentNumber(queuedEventsFound));
+                            new ChatComponentNumber(genericPositionalLogger.getQueueSize()));
                         tooMany.getChatStyle()
                             .setColor(EnumChatFormatting.DARK_RED);
                         sender.addChatMessage(tooMany);

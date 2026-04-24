@@ -12,6 +12,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
@@ -37,7 +38,7 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
 
     protected PositionalLoggerDatabase databaseManager = new PositionalLoggerDatabase(this);
 
-    private final LinkedBlockingQueue<EventInfo> concurrentEventQueue = new LinkedBlockingQueue<>();
+    private ArrayBlockingQueue<EventInfo> concurrentEventQueue; // Must be init'd after config load, so it can set the
     protected List<EventInfo> transparentEventsToRenderInWorld = new ArrayList<>();
     protected List<EventInfo> nonTransparentEventsToRenderInWorld = new ArrayList<>();
     private static final long SECONDS_RENDERING_DURATION = 10;
@@ -159,12 +160,24 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
         // Populate this automatically, as it is fixed per world for all events.
         eventInfo.versionID = ModpackVersionData.CURRENT_VERSION;
 
-        // Non-blocking, thread-safe
-        concurrentEventQueue.offer(eventInfo);
+        // Blocking & thread safe.
+        try {
+            if (concurrentEventQueue.size() >= maxEventsInQueueBeforeServerFreeze) {
+                LOG.warn("Maximum queue size of {} reached for {}, slowing server down.", maxEventsInQueueBeforeServerFreeze, getLoggerName());
+            }
+            concurrentEventQueue.put(eventInfo);
+        } catch (InterruptedException e) {
+            LOG.error("Queue worker for {} was interrupted while queueing an event.", getLoggerName());
+        }
     }
 
     private void startQueueWorker() {
         shuttingDownDatabaseThread = false;
+
+        // Create the queue, this can be re-used as config will not shift between world reloads etc.
+        if (concurrentEventQueue == null) {
+            concurrentEventQueue = new ArrayBlockingQueue<>(maxEventsInQueueBeforeServerFreeze);
+        }
 
         queueWorkerThread = new Thread(this::queueLoop, "Tempora-" + getLoggerName());
         queueWorkerThread.setDaemon(false);
@@ -192,7 +205,7 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
                 }
 
                 buffer.add(event);
-                concurrentEventQueue.drainTo(buffer);
+                concurrentEventQueue.drainTo(buffer, maxEventsInQueueBeforeServerFreeze / 10);
                 databaseManager.insertBatch(buffer);
                 buffer.clear();
             }
@@ -243,10 +256,6 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
         } catch (SQLException e) {
             throw new RuntimeException("[Tempora] Failed to initialise database for logger " + getLoggerName(), e);
         }
-    }
-
-    public final LinkedBlockingQueue<EventInfo> getConcurrentEventQueue() {
-        return concurrentEventQueue;
     }
 
     private void clearEvents() {
@@ -353,10 +362,6 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
         for (GenericEventInfo element : results) {
             undoEventInternal(element, player);
         }
-    }
-
-    public boolean shouldStall() {
-        return concurrentEventQueue.size() >= maxEventsInQueueBeforeServerFreeze;
     }
 
     public int getQueueSize() {

@@ -20,38 +20,38 @@ public class ServerTickHandler {
     public void onServerTick(TickEvent.ServerTickEvent event) {
         if (event.phase != TickEvent.Phase.END) return;
 
-        // Wait on event queues if one is too large. Works for now.
-        try {
-            for (GenericPositionalLogger<?> logger : TemporaLoggerManager.getLoggerList()) {
-                while (logger.shouldStall()) {
-                    Tempora.LOG.warn(
-                        "Event queue for {} is critically large, server stalled to process backlog ({} events pending).",
-                        logger.getLoggerName(),
-                        logger.getQueueSize()
-                    );
-
-                    PlayerUtils.sendMessageToOps("tempora.op.warning.queue.too.large", logger.getLoggerName(), new ChatComponentNumber(logger.getQueueSize()));
-
-                    // Time how long until queue is empty.
-                    long start = System.nanoTime();
-                    while (logger.getQueueSize() != 0) {
-                        Thread.sleep(100); // Not ideal.
-                    }
-                    long end = System.nanoTime();
-                    long durationMs = (end - start) / 1_000_000;
-
-                    Tempora.LOG.warn(
-                        "Event queue for {} now has {} events pending after server slowdown. Took {}ms.",
-                        logger.getLoggerName(),
-                        logger.getQueueSize(),
-                        durationMs
-                    );
-                    PlayerUtils.sendMessageToOps("tempora.warning.server.slowdown", logger.getLoggerName());
-                }
-            }
-        } catch (InterruptedException e) {
-            Tempora.LOG.error("Interrupted while sleeping ServerTickHandler", e);
-        }
+//        // Wait on event queues if one is too large. Works for now.
+//        try {
+//            for (GenericPositionalLogger<?> logger : TemporaLoggerManager.getLoggerList()) {
+//                while (logger.shouldStall()) {
+//                    Tempora.LOG.warn(
+//                        "Event queue for {} is critically large, server stalled to process backlog ({} events pending).",
+//                        logger.getLoggerName(),
+//                        logger.getQueueSize()
+//                    );
+//
+//                    PlayerUtils.sendMessageToOps("tempora.op.warning.queue.too.large", logger.getLoggerName(), new ChatComponentNumber(logger.getQueueSize()));
+//
+//                    // Time how long until queue is empty.
+//                    long start = System.nanoTime();
+//                    while (logger.getQueueSize() != 0) {
+//                        Thread.sleep(100); // Not ideal.
+//                    }
+//                    long end = System.nanoTime();
+//                    long durationMs = (end - start) / 1_000_000;
+//
+//                    Tempora.LOG.warn(
+//                        "Event queue for {} now has {} events pending after server slowdown. Took {}ms.",
+//                        logger.getLoggerName(),
+//                        logger.getQueueSize(),
+//                        durationMs
+//                    );
+//                    PlayerUtils.sendMessageToOps("tempora.warning.server.slowdown", logger.getLoggerName());
+//                }
+//            }
+//        } catch (InterruptedException e) {
+//            Tempora.LOG.error("Interrupted while sleeping ServerTickHandler", e);
+//        }
 
         // Debug generate random cube.
         if (!DebugConfig.randomisedRegionGeneratorBlockChangeDebugger) return;
