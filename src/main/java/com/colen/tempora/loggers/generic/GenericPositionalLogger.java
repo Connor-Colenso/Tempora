@@ -44,9 +44,10 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
     protected List<EventInfo> nonTransparentEventsToRenderInWorld = new ArrayList<>();
     private static final long SECONDS_RENDERING_DURATION = 10;
 
-    protected boolean isLoggerEnabled;
+    protected boolean isEnabledByConfig;
     private Thread queueWorkerThread;
     private volatile boolean shuttingDownDatabaseThread = false;
+    private volatile boolean isRunning;
 
     private int maxShutdownTimeoutMilliseconds;
     private int maxEventsInQueueBeforeServerFreeze;
@@ -156,7 +157,8 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
     }
 
     public final void queueEventInfo(EventInfo eventInfo) {
-        if (!isLoggerEnabled) return;
+        if (!isEnabledByConfig) return;
+        if (!isRunning) return;
 
         // Populate this automatically, as it is fixed per world for all events.
         eventInfo.versionID = ModpackVersionData.CURRENT_VERSION;
@@ -181,11 +183,9 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
 
     private void startQueueWorker() {
         shuttingDownDatabaseThread = false;
+        isRunning = true;
 
-        // Create the queue, this can be re-used as config will not shift between world reloads etc.
-        if (concurrentEventQueue == null) {
-            concurrentEventQueue = new ArrayBlockingQueue<>(maxEventsInQueueBeforeServerFreeze);
-        }
+        concurrentEventQueue = new ArrayBlockingQueue<>(maxEventsInQueueBeforeServerFreeze);
 
         queueWorkerThread = new Thread(this::queueLoop, "Tempora-" + getLoggerName());
         queueWorkerThread.setDaemon(false);
@@ -195,7 +195,7 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
                 thr.getName(),
                 ex);
             // Shut down the logger and prevent new events queueing.
-            isLoggerEnabled = false;
+            isRunning = false;
         });
         queueWorkerThread.start();
     }
@@ -204,43 +204,43 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
         List<EventInfo> buffer = new ArrayList<>(maxEventsInQueueBeforeServerFreeze);
 
         try {
-            while (true) {
-                if (shuttingDownDatabaseThread && concurrentEventQueue.isEmpty()) {
-                    return;
-                }
+            while (!shuttingDownDatabaseThread || !concurrentEventQueue.isEmpty()) {
 
-                EventInfo event = concurrentEventQueue.poll(QUEUE_POLL_TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS);
+                EventInfo event = concurrentEventQueue.poll(
+                    QUEUE_POLL_TIMEOUT_MILLISECONDS,
+                    TimeUnit.MILLISECONDS
+                );
 
                 if (event == null) {
                     continue;
                 }
 
                 buffer.add(event);
-                concurrentEventQueue.drainTo(buffer, maxEventsInQueueBeforeServerFreeze / 10); // todo review over
-                                                                                               // capacity
+                concurrentEventQueue.drainTo(buffer, 5000);
+
                 databaseManager.insertBatch(buffer);
                 buffer.clear();
             }
 
         } catch (InterruptedException e) {
-            Thread.currentThread()
-                .interrupt();
-            LOG.warn(
-                "Queue worker {} interrupted during shutdown. Remaining {} events will be discarded.",
-                getLoggerName(),
-                concurrentEventQueue.size());
+            // Expected during shutdown — just exit
+            Thread.currentThread().interrupt();
+
         } catch (Exception e) {
             LOG.error(
-                "Queue worker {} threw non-interrupt based exception and has shut down. Remaining queue size is={}",
+                "Queue worker {} crashed. Remaining queue size={}",
                 getLoggerName(),
-                concurrentEventQueue.size());
+                concurrentEventQueue.size(),
+                e
+            );
+
         } finally {
-            isLoggerEnabled = false;
+            isRunning = false;
         }
     }
 
     public final void genericConfig(@NotNull Configuration config) {
-        isLoggerEnabled = config.getBoolean("isEnabled", getLoggerName(), true, "Enables this loggers functionality.");
+        isEnabledByConfig = config.getBoolean("isEnabled", getLoggerName(), true, "Enables this loggers functionality.");
         maxShutdownTimeoutMilliseconds = config.getInt(
             "maxShutdownTimeoutMilliseconds",
             getLoggerName(),
@@ -283,10 +283,12 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
         if (!TemporaLoggerManager.getLoggerList()
             .isEmpty()) {
             LOG.info("Opening Tempora loggers.");
+        } else {
+            LOG.info("All Tempora loggers are disabled by config.");
         }
 
         for (GenericPositionalLogger<?> logger : TemporaLoggerManager.getLoggerList()) {
-            if (logger.isLoggerEnabled) {
+            if (logger.isEnabledByConfig) {
                 LOG.info("Initialising {} logger.", logger.getLoggerName());
                 logger.initialiseLogger();
             } else {
@@ -298,7 +300,7 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
     public static void onServerClose() {
         try {
             for (GenericPositionalLogger<?> logger : TemporaLoggerManager.getLoggerList()) {
-                if (logger.isLoggerEnabled) {
+                if (logger.isEnabledByConfig) {
                     logger.shutdownQueueWorkerThreads();
                     logger.databaseManager.shutdownDatabase();
                 }
@@ -309,7 +311,7 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
         } finally {
             // Just to ensure that we are not carrying data over to a new world opening.
             for (GenericPositionalLogger<?> logger : TemporaLoggerManager.getLoggerList()) {
-                logger.clearEvents();
+                if (logger.isEnabledByConfig) logger.clearEvents();
             }
         }
     }
