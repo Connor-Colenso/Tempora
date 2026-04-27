@@ -252,8 +252,8 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
         maxEventsInQueueBeforeServerFreeze = config.getInt(
             "maxEventsInQueueBeforeServerFreeze",
             getLoggerName(),
-            100_000,
-            1_000,
+            30_000,
+            5_000,
             Integer.MAX_VALUE,
             "Maximum amount of events that can be queued before the server will stop tick processing to try catch up. If this is happening a lot, you are logging too much.");
 
