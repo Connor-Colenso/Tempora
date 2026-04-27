@@ -254,7 +254,7 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
             getLoggerName(),
             30_000,
             5_000,
-            Integer.MAX_VALUE,
+            1_000_000,
             "Maximum amount of events that can be queued before the server will stop tick processing to try catch up. If this is happening a lot, you are logging too much.");
 
         databaseManager.genericConfig(config);
