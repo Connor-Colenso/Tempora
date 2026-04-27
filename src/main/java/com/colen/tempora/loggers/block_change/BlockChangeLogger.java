@@ -58,10 +58,10 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
         return TemporaEvents.BLOCK_CHANGE;
     }
 
-    @Override
-    protected LogWriteSafety defaultLogWriteSafetyMode() {
-        return LogWriteSafety.HIGH_RISK;
-    }
+//    @Override
+//    protected LogWriteSafety defaultLogWriteSafetyMode() {
+//        return LogWriteSafety.HIGH_RISK;
+//    }
 
     private static boolean globalBlockChangeLogging;
 
