@@ -50,7 +50,7 @@ public class ItemUseLogger extends GenericPositionalLogger<ItemUseEventInfo> {
     @SuppressWarnings("unused")
     public void onItemInteract(final @NotNull PlayerInteractEvent event) {
         // Server side only.
-        if (!isLoggerEnabled) return;
+        if (!isEnabledByConfig) return;
         if (isClientSide()) return;
         if (event.isCanceled()) return;
 
@@ -63,7 +63,7 @@ public class ItemUseLogger extends GenericPositionalLogger<ItemUseEventInfo> {
     @SubscribeEvent(priority = EventPriority.LOWEST)
     @SuppressWarnings("unused")
     public void onItemUseStart(final @NotNull PlayerUseItemEvent.Start event) {
-        if (!isLoggerEnabled) return;
+        if (!isEnabledByConfig) return;
         if (event.isCanceled()) return;
 
         logItemUse(event.entityPlayer);

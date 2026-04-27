@@ -163,7 +163,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
         .withInitial(ArrayDeque::new);
 
     public void onSetBlockHead(int x, int y, int z, World world) {
-        if (!isLoggerEnabled) return;
+        if (!isEnabledByConfig) return;
 
         Deque<BlockChangeEventInfo> stack = BLOCK_STACK.get();
 
@@ -199,7 +199,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
     }
 
     public void onSetBlockReturn(int x, int y, int z, World world, CallbackInfoReturnable<Boolean> cir) {
-        if (!isLoggerEnabled) return;
+        if (!isEnabledByConfig) return;
 
         Deque<BlockChangeEventInfo> stack = BLOCK_STACK.get();
 
