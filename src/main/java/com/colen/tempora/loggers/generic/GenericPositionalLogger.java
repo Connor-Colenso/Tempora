@@ -191,7 +191,7 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
         queueWorkerThread.setDaemon(false);
         queueWorkerThread.setUncaughtExceptionHandler((thr, ex) -> {
             LOG.fatal(
-                "Queue worker in thread '{}' crashed – this is a serious failure! This logger is now effectively disabled.",
+                "Queue worker in thread '{}' crashed – this is a serious failure! This logger is now disabled.",
                 thr.getName(),
                 ex);
             // Shut down the logger and prevent new events queueing.
