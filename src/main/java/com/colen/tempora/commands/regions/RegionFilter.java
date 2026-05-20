@@ -1,29 +1,26 @@
 package com.colen.tempora.commands.regions;
 
+import com.colen.tempora.TemporaLoggerManager;
 import com.colen.tempora.commands.command_base.TemporaCommandBase;
 import com.colen.tempora.loggers.block_change.region_registry.TemporaRegionRegistry;
 import com.colen.tempora.loggers.block_change.region_registry.TemporaWorldRegion;
-import com.colen.tempora.networking.packets.PacketRemoveRegionFromClient;
+import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.utils.CommandUtils;
-import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentTranslation;
-import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
+import java.util.ArrayList;
 import java.util.List;
 
-import static com.colen.tempora.Tempora.NETWORK;
 import static com.colen.tempora.utils.CommandUtils.OP_ONLY;
-import static com.colen.tempora.utils.CommandUtils.teleportChatComponent;
 
 public class RegionFilter extends TemporaCommandBase {
 
-    // /tempora_region_filter whitelist [LoggerName]
+    // /tempora_region_filter whitelist <LoggerName> [Region Label]
 
     @Override
     public String getCommandName() {
@@ -37,10 +34,6 @@ public class RegionFilter extends TemporaCommandBase {
 
     @Override
     public void processCommand(ICommandSender sender, String[] args) throws CommandException {
-        // Syntax check
-        if (args.length > 2) {
-            throw new WrongUsageException(getCommandUsage(sender));
-        }
 
         // tempora_region_filter only makes sense for a player because it users the players coords
         if (!(sender instanceof EntityPlayer player)) {
@@ -48,15 +41,52 @@ public class RegionFilter extends TemporaCommandBase {
             return;
         }
 
-        int playerX = (int) Math.round(player.posX);
-        int playerY = (int) Math.round(player.posY);
-        int playerZ = (int) Math.round(player.posZ);
-
-        List<TemporaWorldRegion> allRegions = TemporaRegionRegistry.getAll();
-
-        for (TemporaWorldRegion region : allRegions) {
-
+        // Syntax check
+        if (args.length >= 4) {
+            throw new WrongUsageException(getCommandUsage(sender));
         }
+
+        // Whitelist / Blacklist check
+        boolean isWhitelist;
+
+        if (args[0].equalsIgnoreCase("whitelist")) {
+            isWhitelist = true;
+        } else if (args[0].equalsIgnoreCase("blacklist")) {
+            isWhitelist = false;
+        } else {
+            throw new WrongUsageException(getCommandUsage(sender));
+        }
+
+        // Logger filter check
+        GenericPositionalLogger<?> logger = TemporaLoggerManager.getLogger(args[1]);
+        if (logger == null) {
+            throw new WrongUsageException(getCommandUsage(sender));
+        }
+
+        // Filter regions by label
+        List<TemporaWorldRegion> allRegions = TemporaRegionRegistry.getAll();
+        List<TemporaWorldRegion> filteredRegions = new ArrayList<>();
+
+        if (args.length == 3) {
+            String labelFilter = args[2];
+            for (TemporaWorldRegion region : allRegions) {
+                if (region.getLabel().equalsIgnoreCase(labelFilter)) {
+                    filteredRegions.add(region);
+                }
+            }
+        } else {
+            // Filter regions by player position.
+            filteredRegions = TemporaRegionRegistry.removeRegionsIntersectingPlayer(player);
+        }
+
+        for (TemporaWorldRegion region : filteredRegions) {
+            if (isWhitelist) {
+                region.addWhitelistedLogger(logger);
+            } else {
+                region.addBlacklistedLogger(logger);
+            }
+        }
+
     }
 
     @Override
