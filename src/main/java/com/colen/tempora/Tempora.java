@@ -3,6 +3,7 @@ package com.colen.tempora;
 import static com.colen.tempora.utils.GenericUtils.isServerSide;
 import static com.colen.tempora.utils.GenericUtils.shouldTemporaRun;
 
+import com.colen.tempora.commands.regions.RegionFilter;
 import net.minecraft.block.Block;
 import net.minecraftforge.common.config.Configuration;
 
@@ -15,7 +16,7 @@ import com.colen.tempora.commands.regions.CreateRegion;
 import com.colen.tempora.commands.regions.ListRegions;
 import com.colen.tempora.commands.regions.RemoveRegion;
 import com.colen.tempora.events.ServerTickHandler;
-import com.colen.tempora.loggers.block_change.region_registry.BlockChangeRegionRegistry;
+import com.colen.tempora.loggers.block_change.region_registry.TemporaRegionRegistry;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.rendering.ClientRegionStore;
 
@@ -83,7 +84,7 @@ public class Tempora {
             GenericPositionalLogger.onServerStart();
         }
 
-        BlockChangeRegionRegistry.loadNow();
+        TemporaRegionRegistry.loadNow();
     }
 
     private void registerNewCommands(FMLServerStartingEvent event) {
@@ -94,6 +95,7 @@ public class Tempora {
         event.registerServerCommand(new CreateRegion());
         event.registerServerCommand(new ListRegions());
         event.registerServerCommand(new RemoveRegion());
+        event.registerServerCommand(new RegionFilter());
         event.registerServerCommand(new TemporaStackTrace());
 
         event.registerServerCommand(new TemporaUndo());
@@ -108,7 +110,7 @@ public class Tempora {
     public void serverStopping(FMLServerStoppingEvent event) {
         if (isServerSide()) {
             GenericPositionalLogger.onServerClose();
-            BlockChangeRegionRegistry.saveIfDirty();
+            TemporaRegionRegistry.saveIfDirty();
         }
 
         TemporaUndoRanged.onServerClose();

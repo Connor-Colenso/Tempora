@@ -6,6 +6,7 @@ import static com.colen.tempora.utils.PlayerUtils.UNKNOWN_PLAYER_NAME;
 
 import java.util.UUID;
 
+import com.colen.tempora.TemporaEvents;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentTranslation;
@@ -14,7 +15,7 @@ import net.minecraft.util.IChatComponent;
 
 import com.colen.tempora.commands.command_base.CommandArg;
 import com.colen.tempora.commands.command_base.TemporaCommandBase;
-import com.colen.tempora.loggers.block_change.region_registry.BlockChangeRegionRegistry;
+import com.colen.tempora.loggers.block_change.region_registry.TemporaRegionRegistry;
 import com.colen.tempora.loggers.block_change.region_registry.TemporaWorldRegion;
 import com.colen.tempora.rendering.regions.RegionRenderMode;
 import com.colen.tempora.utils.CommandUtils;
@@ -45,7 +46,7 @@ public class CreateRegion extends TemporaCommandBase {
 
     @Override
     public void processCommand(ICommandSender sender, String[] args) {
-        // label + 6 coords + optional dim
+        // label + 6 coords + optional dimID
         if (args.length != 7 && args.length != 8) {
             sender.addChatMessage(CommandUtils.wrongUsage(getCommandUsage(sender)));
             return;
@@ -69,11 +70,11 @@ public class CreateRegion extends TemporaCommandBase {
             }
         }
 
-        // Dimension: optional argument
-        int dim;
+        // Dimension ID: optional argument
+        int dimID;
         if (args.length == 8) {
             try {
-                dim = parseInt(sender, args[7]);
+                dimID = parseInt(sender, args[7]);
             } catch (NumberFormatException e) {
                 IChatComponent msg = new ChatComponentTranslation(
                     "tempora.command.create_region.non.numeric.dimension",
@@ -84,12 +85,12 @@ public class CreateRegion extends TemporaCommandBase {
                 return;
             }
         } else {
-            dim = sender.getEntityWorld().provider.dimensionId;
+            dimID = sender.getEntityWorld().provider.dimensionId;
         }
 
         // Build region
         TemporaWorldRegion region = new TemporaWorldRegion(
-            dim,
+            dimID,
             coords[0],
             coords[1],
             coords[2],
@@ -104,6 +105,9 @@ public class CreateRegion extends TemporaCommandBase {
         region.setRenderMode(RegionRenderMode.BLOCK_CHANGE);
         region.setRegionOriginTimeMs(System.currentTimeMillis());
 
+        // todo remove!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        region.addWhitelistedLogger(TemporaEvents.blockChangeLogger);
+
         if (sender instanceof EntityPlayerMP player) {
             region.setPlayerAuthorUUID(
                 player.getUniqueID()
@@ -112,7 +116,7 @@ public class CreateRegion extends TemporaCommandBase {
             region.setPlayerAuthorUUID(UNKNOWN_PLAYER_NAME);
         }
 
-        BlockChangeRegionRegistry.add(region);
+        TemporaRegionRegistry.add(region);
 
         // Feedback
         ChatComponentTranslation msg = new ChatComponentTranslation(
@@ -122,19 +126,19 @@ public class CreateRegion extends TemporaCommandBase {
                 region.getMinX(),
                 region.getMinY(),
                 region.getMinZ(),
-                dim,
+                dimID,
                 CommandUtils.TeleportType.EXACT),
             teleportChatComponent(
                 region.getMaxX(),
                 region.getMaxY(),
                 region.getMaxZ(),
-                dim,
+                dimID,
                 CommandUtils.TeleportType.EXACT),
             teleportChatComponent(
                 region.getMidX(),
                 region.getMidY(),
                 region.getMidZ(),
-                dim,
+                dimID,
                 CommandUtils.TeleportType.EXACT));
 
         msg.getChatStyle()

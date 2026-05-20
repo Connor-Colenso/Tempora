@@ -17,7 +17,7 @@ import net.minecraft.util.IChatComponent;
 import com.colen.tempora.commands.command_base.CommandArg;
 import com.colen.tempora.commands.command_base.TemporaCommandBase;
 import com.colen.tempora.loggers.block_change.BlockChangeLogger;
-import com.colen.tempora.loggers.block_change.region_registry.BlockChangeRegionRegistry;
+import com.colen.tempora.loggers.block_change.region_registry.TemporaRegionRegistry;
 import com.colen.tempora.loggers.block_change.region_registry.TemporaWorldRegion;
 import com.colen.tempora.networking.packets.PacketShowRegionInWorld;
 import com.colen.tempora.utils.CommandUtils;
@@ -55,7 +55,7 @@ public class ListRegions extends TemporaCommandBase {
             return;
         }
 
-        List<TemporaWorldRegion> regions = BlockChangeRegionRegistry.getAll();
+        List<TemporaWorldRegion> regions = TemporaRegionRegistry.getAll();
 
         Integer dimFilter;
         if (args.length == 1) {
@@ -111,7 +111,7 @@ public class ListRegions extends TemporaCommandBase {
                     .setColor(EnumChatFormatting.GRAY);
                 sender.addChatMessage(dimBanner);
             }
-            sender.addChatMessage(r.getChatComponent());
+            sender.addChatMessage(r.getTeleportToRegionChatComponent());
         }
 
         for (TemporaWorldRegion regionToSend : regions) {

@@ -15,7 +15,7 @@ import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
 import com.colen.tempora.commands.command_base.TemporaCommandBase;
-import com.colen.tempora.loggers.block_change.region_registry.BlockChangeRegionRegistry;
+import com.colen.tempora.loggers.block_change.region_registry.TemporaRegionRegistry;
 import com.colen.tempora.loggers.block_change.region_registry.TemporaWorldRegion;
 import com.colen.tempora.networking.packets.PacketRemoveRegionFromClient;
 import com.colen.tempora.utils.CommandUtils;
@@ -51,7 +51,7 @@ public class RemoveRegion extends TemporaCommandBase {
             return;
         }
 
-        List<TemporaWorldRegion> removed = BlockChangeRegionRegistry.removeRegionsIntersectingPlayer(player);
+        List<TemporaWorldRegion> removed = TemporaRegionRegistry.removeRegionsIntersectingPlayer(player);
         int removedCount = removed.size();
 
         ChatComponentTranslation msg;
