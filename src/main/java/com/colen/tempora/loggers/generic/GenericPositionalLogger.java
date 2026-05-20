@@ -1,6 +1,7 @@
 package com.colen.tempora.loggers.generic;
 
 import static com.colen.tempora.Tempora.LOG;
+import static com.colen.tempora.loggers.generic.enums.DefaultLogMode.LOG_EVERYWHERE;
 import static com.colen.tempora.utils.ReflectionUtils.getAllTableColumns;
 import static com.colen.tempora.utils.RenderingUtils.squaredDistance;
 
@@ -15,6 +16,10 @@ import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import com.colen.tempora.loggers.block_change.region_registry.TemporaRegionRegistry;
+import com.colen.tempora.loggers.block_change.region_registry.TemporaWorldRegion;
+import com.colen.tempora.loggers.generic.enums.DefaultLogMode;
+import com.colen.tempora.loggers.generic.enums.LogWriteSafety;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
@@ -100,6 +105,11 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
         return LogWriteSafety.NORMAL;
     }
 
+    // This controls if a logger will log everywhere or nowhere by default, with regions defining custom behaviour.
+    public DefaultLogMode defaultLogMode() {
+        return LOG_EVERYWHERE;
+    }
+
     public PositionalLoggerDatabase getDatabaseManager() {
         return databaseManager;
     }
@@ -154,6 +164,29 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
                 .register(this);
             default -> throw new IllegalStateException("Unknown LoggerEventType: " + getLoggerEventType());
         }
+    }
+
+    // Tldr : Blacklist > Whitelist > Default
+    public final boolean canLogHere(double x, double y, double z, int dimID) {
+
+        List<TemporaWorldRegion> regions = TemporaRegionRegistry.allRegionsInDim(dimID);
+        boolean shouldLog = defaultLogMode() == LOG_EVERYWHERE;
+        // Null = no regions, so default to default behaviour for that logger.
+        if (regions == null) return shouldLog;
+
+        for (TemporaWorldRegion region : regions) {
+            if (!region.containsCoords(x, y, z)) continue;
+
+            if (region.inBlackList(this)) {
+                return false; // Immediate exit
+            }
+
+            if (region.inWhiteList(this)) {
+                shouldLog = true;
+            }
+        }
+
+        return shouldLog;
     }
 
     public final void queueEventInfo(EventInfo eventInfo) {

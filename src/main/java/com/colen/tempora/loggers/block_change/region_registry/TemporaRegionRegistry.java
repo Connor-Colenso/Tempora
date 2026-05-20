@@ -15,15 +15,16 @@ import net.minecraft.nbt.NBTTagList;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.world.storage.ISaveHandler;
+import org.jetbrains.annotations.Nullable;
 
-public final class BlockChangeRegionRegistry {
+public final class TemporaRegionRegistry {
 
     private static final String DIR_NAME = "tempora";
-    private static final String FILE_NAME = "tempora_blockchange_regions.dat";
+    private static final String FILE_NAME = "tempora_region_registry.dat";
 
     private boolean loaded = false;
 
-    private static BlockChangeRegionRegistry instance;
+    private static TemporaRegionRegistry instance;
 
     private final Map<Integer, List<TemporaWorldRegion>> byDim = new HashMap<>();
     private boolean dirty = false;
@@ -87,7 +88,7 @@ public final class BlockChangeRegionRegistry {
         for (Iterator<TemporaWorldRegion> it = list.iterator(); it.hasNext();) {
             TemporaWorldRegion region = it.next();
 
-            if (region.containsBlock(player.dimension, player.posX, player.posY, player.posZ)) {
+            if (region.contains(player.dimension, player.posX, player.posY, player.posZ)) {
 
                 it.remove();
                 removed.add(region);
@@ -114,7 +115,7 @@ public final class BlockChangeRegionRegistry {
 
     // Call on server startup.
     public static void loadNow() {
-        BlockChangeRegionRegistry r = get();
+        TemporaRegionRegistry r = get();
         if (!r.loaded) {
             r.load();
             r.loaded = true;
@@ -134,9 +135,13 @@ public final class BlockChangeRegionRegistry {
         if (list == null) return false;
 
         for (TemporaWorldRegion r : list) {
-            if (r.containsBlock(dim, x, y, z)) return true;
+            if (r.contains(dim, x, y, z)) return true;
         }
         return false;
+    }
+
+    public static @Nullable List<TemporaWorldRegion> allRegionsInDim(int dimId) {
+        return get().byDim.get(dimId);
     }
 
     private List<TemporaWorldRegion> allRegions() {
@@ -205,9 +210,9 @@ public final class BlockChangeRegionRegistry {
 
     // Singleton access
 
-    private static BlockChangeRegionRegistry get() {
+    private static TemporaRegionRegistry get() {
         if (instance == null) {
-            instance = new BlockChangeRegionRegistry();
+            instance = new TemporaRegionRegistry();
         }
         return instance;
     }

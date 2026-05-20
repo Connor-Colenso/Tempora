@@ -1,6 +1,7 @@
 package com.colen.tempora.loggers.block_change;
 
 import static com.colen.tempora.Tempora.LOG;
+import static com.colen.tempora.loggers.generic.enums.DefaultLogMode.LOG_NOWHERE;
 import static com.colen.tempora.utils.BlockUtils.getPickBlockSafe;
 import static com.colen.tempora.utils.ChatUtils.createHoverableClickable;
 import static com.colen.tempora.utils.PlayerUtils.UNKNOWN_PLAYER_NAME;
@@ -14,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.UUID;
 
+import com.colen.tempora.loggers.generic.enums.DefaultLogMode;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
@@ -33,10 +35,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import com.colen.tempora.TemporaEvents;
 import com.colen.tempora.enums.LoggerEventType;
-import com.colen.tempora.loggers.block_change.region_registry.BlockChangeRegionRegistry;
+import com.colen.tempora.loggers.block_change.region_registry.TemporaRegionRegistry;
 import com.colen.tempora.loggers.generic.GenericEventInfo;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
-import com.colen.tempora.loggers.generic.LogWriteSafety;
 import com.colen.tempora.loggers.generic.undo.UndoEventInfo;
 import com.colen.tempora.loggers.generic.undo.UndoResponse;
 import com.colen.tempora.utils.BlockUtils;
@@ -58,10 +59,10 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
         return TemporaEvents.BLOCK_CHANGE;
     }
 
-//    @Override
-//    protected LogWriteSafety defaultLogWriteSafetyMode() {
-//        return LogWriteSafety.HIGH_RISK;
-//    }
+    @Override
+    public DefaultLogMode defaultLogMode() {
+        return LOG_NOWHERE;
+    }
 
     private static boolean globalBlockChangeLogging;
 
@@ -243,8 +244,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
         if (eventInfo.isWorldGen) return; // todo log this separately?
 
         // Only log changes if (x, y, z) is inside a defined region. Unless config has the entire world logging on.
-        if (!globalBlockChangeLogging
-            && !BlockChangeRegionRegistry.containsBlock(world.provider.dimensionId, (int) x, (int) y, (int) z)) {
+        if (! (globalBlockChangeLogging || canLogHere(x, y, z, eventInfo.dimensionID))) {
             return;
         }
 

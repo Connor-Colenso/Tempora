@@ -7,8 +7,13 @@ import static com.colen.tempora.utils.PlayerUtils.playerNameFromUUID;
 import static com.colen.tempora.utils.TimeUtils.formatTime;
 
 import java.awt.Color;
+import java.util.HashSet;
 
+import com.colen.tempora.TemporaLoggerManager;
+import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
+import net.minecraft.nbt.NBTTagString;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
@@ -32,6 +37,18 @@ public class TemporaWorldRegion {
     private Color color;
     private RegionRenderMode renderMode;
     private String label;
+
+    // Blacklist always wins if regions conflict.
+    private final HashSet<GenericPositionalLogger<?>> eventBlacklist = new HashSet<>();
+    private final HashSet<GenericPositionalLogger<?>> eventWhitelist = new HashSet<>();
+
+    public final boolean inWhiteList(GenericPositionalLogger<?> logger) {
+        return eventWhitelist.contains(logger);
+    }
+
+    public final boolean inBlackList(GenericPositionalLogger<?> logger) {
+        return eventBlacklist.contains(logger);
+    }
 
     // Todo introduce regions for other concepts, such as allowing/disallowing other loggers.
     // This could be useful for stopping it logging e.g. mob deaths in a mob farm.
@@ -156,8 +173,18 @@ public class TemporaWorldRegion {
         return (maxX - minX) * (maxY - minY) * (maxZ - minZ);
     }
 
-    public boolean containsBlock(int dim, Number x, Number y, Number z) {
-        if (this.dimID != dim) return false;
+    public final boolean contains(int dim, Number x, Number y, Number z) {
+        if (this.dimID != dim || x == null || y == null || z == null) return false;
+
+        double dx = x.doubleValue();
+        double dy = y.doubleValue();
+        double dz = z.doubleValue();
+
+        return dx >= minX && dx < maxX && dy >= minY && dy < maxY && dz >= minZ && dz < maxZ;
+    }
+
+    public final boolean containsCoords(Number x, Number y, Number z) {
+        if (x == null || y == null || z == null) return false;
 
         double dx = x.doubleValue();
         double dy = y.doubleValue();
@@ -196,6 +223,24 @@ public class TemporaWorldRegion {
         tag.setInteger("colorRed", color.getRed());
         tag.setInteger("colorGreen", color.getGreen());
         tag.setInteger("colorBlue", color.getBlue());
+
+        // Whitelist / blacklist of event filters.
+        NBTTagList whiteListTag = new NBTTagList();
+        for (GenericPositionalLogger<?> logger : eventWhitelist) {
+            if (logger != null) {
+                whiteListTag.appendTag(new NBTTagString(logger.getLoggerName()));
+            }
+        }
+        tag.setTag("eventWhitelist", whiteListTag);
+
+        NBTTagList blackListTag = new NBTTagList();
+        for (GenericPositionalLogger<?> logger : eventBlacklist) {
+            if (logger != null) {
+                blackListTag.appendTag(new NBTTagString(logger.getLoggerName()));
+            }
+        }
+        tag.setTag("eventBlacklist", blackListTag);
+
         return tag;
     }
 
@@ -220,10 +265,26 @@ public class TemporaWorldRegion {
         int colorBlue = tag.getInteger("colorBlue");
         region.color = new Color(colorRed, colorGreen, colorBlue);
 
+        // Whitelist / blacklist of event filters.
+        if (tag.hasKey("eventWhitelist")) {
+            NBTTagList whiteListTag = tag.getTagList("eventWhitelist", 8);
+            for (int i = 0; i < whiteListTag.tagCount(); i++) {
+                // Todo null checks (what if logger is removed etc)
+                region.eventWhitelist.add(TemporaLoggerManager.getLogger(whiteListTag.getStringTagAt(i)));
+            }
+        }
+
+        if (tag.hasKey("eventBlacklist")) {
+            NBTTagList blackListTag = tag.getTagList("eventBlacklist", 8);
+            for (int i = 0; i < blackListTag.tagCount(); i++) {
+                region.eventBlacklist.add(TemporaLoggerManager.getLogger(blackListTag.getStringTagAt(i)));
+            }
+        }
+
         return region;
     }
 
-    public IChatComponent getChatComponent() {
+    public IChatComponent getTeleportToRegionChatComponent() {
         // Centre of the region for a sensible teleport target
         double cx = (minX + maxX) / 2.0;
         double cy = (minY + maxY) / 2.0;
@@ -251,5 +312,13 @@ public class TemporaWorldRegion {
             .setColor(EnumChatFormatting.YELLOW);
 
         return line;
+    }
+
+    public final void addWhitelistedLogger(GenericPositionalLogger<?> logger) {
+        eventWhitelist.add(logger);
+    }
+
+    public final void addBlacklistedLogger(GenericPositionalLogger<?> logger) {
+        eventBlacklist.add(logger);
     }
 }
