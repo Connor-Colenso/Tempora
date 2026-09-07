@@ -546,8 +546,23 @@ public class PositionalLoggerDatabase {
             addDataInjectionStatement.addBatch();
         }
 
-        addDataInjectionStatement.executeBatch();
-        positionalLoggerDBConnection.commit();
+        try {
+            addDataInjectionStatement.executeBatch();
+            positionalLoggerDBConnection.commit();
+        } catch (SQLException e) {
+            // Leave the connection/statement usable for the next batch instead of abandoning them
+            // half-committed.
+            try {
+                addDataInjectionStatement.clearBatch();
+                positionalLoggerDBConnection.rollback();
+            } catch (SQLException rollbackFailure) {
+                LOG.error(
+                    "Failed to roll back {} after a failed batch insert.",
+                    genericPositionalLogger.getLoggerName(),
+                    rollbackFailure);
+            }
+            throw e;
+        }
     }
 
     public void shutdownDatabase() throws SQLException {

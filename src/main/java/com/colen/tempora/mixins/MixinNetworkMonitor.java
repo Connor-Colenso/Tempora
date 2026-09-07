@@ -1,5 +1,6 @@
 package com.colen.tempora.mixins;
 
+import static com.colen.tempora.Tempora.LOG;
 import static com.colen.tempora.utils.LastInvPos.getTileEntity;
 
 import net.minecraft.item.ItemStack;
@@ -48,42 +49,46 @@ public abstract class MixinNetworkMonitor<T extends IAEStack<T>> {
         if (!stackRaw.isItem()) return;
         if (mode == Actionable.SIMULATE || !src.isPlayer() || !(src instanceof PlayerSource ps)) return;
 
-        /* -- Work out how many items actually moved ----------- */
-        IAEItemStack asked = (IAEItemStack) stackRaw;
-        IAEItemStack leftover = (IAEItemStack) leftoverRaw;
-        long movedCnt = asked.getStackSize() - (leftover == null ? 0 : leftover.getStackSize());
-        if (movedCnt <= 0) return;
+        try {
+            /* -- Work out how many items actually moved ----------- */
+            IAEItemStack asked = (IAEItemStack) stackRaw;
+            IAEItemStack leftover = (IAEItemStack) leftoverRaw;
+            long movedCnt = asked.getStackSize() - (leftover == null ? 0 : leftover.getStackSize());
+            if (movedCnt <= 0) return;
 
-        /* -- Container name & coordinates --------------------- */
-        String containerName = resolveContainerName(ps.via);
-        TileEntity tileEntity = getTileEntity(ps.player.getPersistentID());
+            /* -- Container name & coordinates --------------------- */
+            String containerName = resolveContainerName(ps.via);
+            TileEntity tileEntity = getTileEntity(ps.player.getPersistentID());
 
-        /* -- Build MC ItemStack with correct size ------------- */
-        ItemStack moved = asked.getItemStack()
-            .copy();
-        moved.stackSize = (int) movedCnt;
+            /* -- Build MC ItemStack with correct size ------------- */
+            ItemStack moved = asked.getItemStack()
+                .copy();
+            moved.stackSize = (int) movedCnt;
 
-        /* -- Log ---------------------------------------------- */
-        if (tileEntity != null) {
-            TemporaEvents.inventoryLogger.specialAELogInv(
-                dir,
-                ps.player,
-                moved,
-                containerName,
-                tileEntity.xCoord,
-                tileEntity.yCoord,
-                tileEntity.zCoord,
-                tileEntity.getWorldObj().provider.dimensionId);
-        } else {
-            TemporaEvents.inventoryLogger.specialAELogInv(
-                dir,
-                ps.player,
-                moved,
-                containerName,
-                ps.player.posX,
-                ps.player.posY,
-                ps.player.posZ,
-                ps.player.worldObj.provider.dimensionId);
+            /* -- Log ---------------------------------------------- */
+            if (tileEntity != null) {
+                TemporaEvents.inventoryLogger.specialAELogInv(
+                    dir,
+                    ps.player,
+                    moved,
+                    containerName,
+                    tileEntity.xCoord,
+                    tileEntity.yCoord,
+                    tileEntity.zCoord,
+                    tileEntity.getWorldObj().provider.dimensionId);
+            } else {
+                TemporaEvents.inventoryLogger.specialAELogInv(
+                    dir,
+                    ps.player,
+                    moved,
+                    containerName,
+                    ps.player.posX,
+                    ps.player.posY,
+                    ps.player.posZ,
+                    ps.player.worldObj.provider.dimensionId);
+            }
+        } catch (Exception e) {
+            LOG.error("Tempora AE2 inventory-change logging failed; item transfer continues.", e);
         }
     }
 

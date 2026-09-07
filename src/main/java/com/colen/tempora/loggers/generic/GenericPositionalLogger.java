@@ -246,8 +246,19 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
                 buffer.add(event);
                 concurrentEventQueue.drainTo(buffer, 5000);
 
-                databaseManager.insertBatch(buffer);
-                buffer.clear();
+                try {
+                    databaseManager.insertBatch(buffer);
+                } catch (Exception e) {
+                    // A single bad/transient batch (a bad value, disk full, SQLITE_BUSY, ...) must not
+                    // permanently kill this logger's worker thread — log it and keep draining the queue.
+                    LOG.error(
+                        "Failed to insert a batch of {} event(s) for {}. This batch is dropped, logging continues.",
+                        buffer.size(),
+                        getLoggerName(),
+                        e);
+                } finally {
+                    buffer.clear();
+                }
             }
 
         } catch (InterruptedException e) {
@@ -256,7 +267,7 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
 
         } catch (Exception e) {
             LOG.error(
-                "Queue worker {} crashed. Remaining queue size={}",
+                "Queue worker {} crashed unexpectedly and is shutting down. Remaining queue size={}",
                 getLoggerName(),
                 concurrentEventQueue.size(),
                 e

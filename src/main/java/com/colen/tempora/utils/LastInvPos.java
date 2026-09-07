@@ -34,8 +34,11 @@ public final class LastInvPos {
 
     public static @Nullable TileEntity getTileEntity(UUID uuid) {
         LastInvPos pos = LAST_OPENED.get(uuid);
+        if (pos == null) return null;
+
         World w = MinecraftServer.getServer()
             .worldServerForDimension(pos.dimId);
+        if (w == null) return null;
 
         return w.getTileEntity(pos.x, pos.y, pos.z);
     }

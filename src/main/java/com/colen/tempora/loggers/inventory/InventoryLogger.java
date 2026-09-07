@@ -141,9 +141,13 @@ public class InventoryLogger extends GenericPositionalLogger<InventoryEventInfo>
             // Special GT handling.
             if (container instanceof ModularUIContainer) {
                 LastInvPos lastInvPos = LastInvPos.LAST_OPENED.get(playerMP.getUniqueID());
-                World world = MinecraftServer.getServer()
-                    .worldServerForDimension(lastInvPos.dimId);
-                tileEntity = world.getTileEntity(lastInvPos.x, lastInvPos.y, lastInvPos.z);
+                if (lastInvPos != null) {
+                    World world = MinecraftServer.getServer()
+                        .worldServerForDimension(lastInvPos.dimId);
+                    if (world != null) {
+                        tileEntity = world.getTileEntity(lastInvPos.x, lastInvPos.y, lastInvPos.z);
+                    }
+                }
             }
             // Special AE handling
 

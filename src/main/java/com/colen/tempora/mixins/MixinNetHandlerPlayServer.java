@@ -1,5 +1,7 @@
 package com.colen.tempora.mixins;
 
+import static com.colen.tempora.Tempora.LOG;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -26,19 +28,34 @@ public class MixinNetHandlerPlayServer {
     @Inject(method = "processClickWindow", at = @At("HEAD"))
     private void onProcessClickWindowHead(C0EPacketClickWindow packetIn, CallbackInfo ci) {
         if (playerEntity.worldObj.isRemote) return; // ignore on the client side
-        snapshot = new HashMap<>();
-        for (Slot s : playerEntity.openContainer.inventorySlots) {
-            snapshot.put(
-                s.slotNumber,
-                s.getStack() == null ? null
-                    : s.getStack()
-                        .copy());
+
+        try {
+            snapshot = new HashMap<>();
+            for (Slot s : playerEntity.openContainer.inventorySlots) {
+                snapshot.put(
+                    s.slotNumber,
+                    s.getStack() == null ? null
+                        : s.getStack()
+                            .copy());
+            }
+        } catch (Exception e) {
+            LOG.error("Tempora inventory-change logging failed while snapshotting a container; click continues.", e);
+            snapshot = null;
         }
     }
 
     @Inject(method = "processClickWindow", at = @At("RETURN"))
     private void onProcessClickWindowReturn(C0EPacketClickWindow packetIn, CallbackInfo ci) {
-        com.colen.tempora.loggers.inventory.InventoryLogger
-            .preLogLogic(playerEntity, playerEntity.openContainer, playerEntity.openContainer.inventorySlots, snapshot);
+        if (snapshot == null) return;
+
+        try {
+            com.colen.tempora.loggers.inventory.InventoryLogger.preLogLogic(
+                playerEntity,
+                playerEntity.openContainer,
+                playerEntity.openContainer.inventorySlots,
+                snapshot);
+        } catch (Exception e) {
+            LOG.error("Tempora inventory-change logging failed while logging a container click; click continues.", e);
+        }
     }
 }
