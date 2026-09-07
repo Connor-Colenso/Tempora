@@ -9,7 +9,6 @@ import net.minecraftforge.common.config.Configuration;
 
 import com.colen.tempora.blocks.RenderingErrorItemBlock;
 import com.colen.tempora.chat.TemporaChatRegistry;
-import com.colen.tempora.commands.TemporaUndoRanged;
 import com.colen.tempora.events.OnWorldLoad;
 import com.colen.tempora.items.TemporaWand;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
@@ -36,14 +35,6 @@ public class CommonProxy {
     }
 
     public void init(FMLInitializationEvent event) {
-
-        TemporaUndoRanged.MAX_RANGE = Tempora.config.getInt(
-            "undoRangedMaxDistance",
-            "CommandConfig",
-            64,
-            5,
-            Integer.MAX_VALUE,
-            "Tempora undo max range, in blocks. Recommended to keep low, as this will get exponentially more expensive, the wider the range.");
 
         NETWORK.registerMessage(GenericRenderEventPacketHandler.class, RenderEventPacket.class, 1, Side.CLIENT);
 

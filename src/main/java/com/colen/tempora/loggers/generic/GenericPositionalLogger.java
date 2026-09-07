@@ -21,7 +21,6 @@ import com.colen.tempora.loggers.block_change.region_registry.TemporaWorldRegion
 import com.colen.tempora.loggers.generic.enums.DefaultLogMode;
 import com.colen.tempora.loggers.generic.enums.LogWriteSafety;
 import net.minecraft.client.Minecraft;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
@@ -31,7 +30,6 @@ import org.jetbrains.annotations.NotNull;
 import com.colen.tempora.TemporaLoggerManager;
 import com.colen.tempora.enums.LoggerEventType;
 import com.colen.tempora.loggers.generic.column.ColumnDef;
-import com.colen.tempora.loggers.generic.undo.UndoEventInfo;
 import com.colen.tempora.utils.PlayerUtils;
 import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 
@@ -382,35 +380,6 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
 
     public Color getColour() {
         return Color.RED;
-    }
-
-    public boolean isUndoEnabled() {
-        return false;
-    }
-
-    // If you enable undo support via isUndoEnabled override, then you MUST also override these and implement their
-    // logic.
-    protected void undoEventInternal(GenericEventInfo eventInfo, EntityPlayer player) {
-        throw new UnsupportedOperationException(
-            "The class " + getLoggerName() + " supports undo but has no implementation for undoEvent. This is a bug!");
-    }
-
-    public @NotNull UndoEventInfo isUndoSafe(GenericEventInfo eventInfo) {
-        throw new UnsupportedOperationException(
-            "The class " + getLoggerName() + " supports undo but has no implementation for isUndoSafe. This is a bug!");
-    }
-
-    // ---- Internals, do not touch ----
-
-    public final void undoEvent(GenericEventInfo eventInfo, EntityPlayer player) {
-        undoEventInternal(eventInfo, player);
-    }
-
-    public final void undoEvents(List<? extends GenericEventInfo> results, EntityPlayer player) {
-
-        for (GenericEventInfo element : results) {
-            undoEventInternal(element, player);
-        }
     }
 
     public int getQueueSize() {

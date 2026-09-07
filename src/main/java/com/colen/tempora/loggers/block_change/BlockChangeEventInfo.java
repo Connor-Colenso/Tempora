@@ -1,6 +1,5 @@
 package com.colen.tempora.loggers.block_change;
 
-import static com.colen.tempora.utils.CommandUtils.generateUndoCommand;
 import static com.colen.tempora.utils.CommandUtils.teleportChatComponent;
 
 import java.util.ArrayList;
@@ -151,8 +150,7 @@ public class BlockChangeEventInfo extends GenericEventInfo {
             timeAgo,
             stackTraceComponent,
             closestPlayerName,
-            closestPlayerDist,
-            generateUndoCommand(getLoggerName(), eventID));
+            closestPlayerDist);
     }
 
     // Generates a full stack trace as a list of IChatComponents

@@ -16,7 +16,6 @@ import net.minecraft.util.IChatComponent;
 import org.jetbrains.annotations.NotNull;
 
 import com.colen.tempora.TemporaLoggerManager;
-import com.colen.tempora.commands.TemporaUndo;
 import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 
 public class CommandUtils {
@@ -81,25 +80,6 @@ public class CommandUtils {
             "tempora.command.teleport.hover",
             GenericUtils.getDimensionName(dimID),
             dimID);
-        hoverText.getChatStyle()
-            .setColor(EnumChatFormatting.GRAY);
-
-        display.getChatStyle()
-            .setColor(EnumChatFormatting.AQUA)
-            .setChatClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, cmd))
-            .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hoverText));
-
-        return display;
-    }
-
-    public static IChatComponent generateUndoCommand(String loggerName, String eventID) {
-
-        // Translation‑driven teleport options.
-        IChatComponent display = new ChatComponentTranslation("tempora.undo.query.display");
-
-        String cmd = "/" + new TemporaUndo().getCommandName() + " " + loggerName + " " + eventID;
-
-        IChatComponent hoverText = new ChatComponentTranslation("tempora.undo.query.hover");
         hoverText.getChatStyle()
             .setColor(EnumChatFormatting.GRAY);
 

@@ -1,6 +1,5 @@
 package com.colen.tempora.loggers.player_block_break;
 
-import static com.colen.tempora.utils.CommandUtils.generateUndoCommand;
 import static com.colen.tempora.utils.CommandUtils.teleportChatComponent;
 
 import net.minecraft.block.Block;
@@ -74,8 +73,7 @@ public class PlayerBlockBreakEventInfo extends GenericEventInfo {
             blockID, // block ID
             metadata, // metadata
             coords, // clickable coordinates
-            timeAgo, // localized relative time
-            generateUndoCommand(getLoggerName(), eventID));
+            timeAgo); // localized relative time
     }
 
     @Override

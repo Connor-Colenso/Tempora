@@ -3,11 +3,8 @@ package com.colen.tempora.loggers.block_change;
 import static com.colen.tempora.Tempora.LOG;
 import static com.colen.tempora.loggers.generic.enums.DefaultLogMode.LOG_NOWHERE;
 import static com.colen.tempora.utils.BlockUtils.getPickBlockSafe;
-import static com.colen.tempora.utils.ChatUtils.createHoverableClickable;
 import static com.colen.tempora.utils.PlayerUtils.UNKNOWN_PLAYER_NAME;
 import static com.colen.tempora.utils.RenderingUtils.CLIENT_EVENT_RENDER_DISTANCE;
-import static com.colen.tempora.utils.nbt.NBTUtils.NBT_DISABLED;
-import static com.colen.tempora.utils.nbt.NBTUtils.NO_NBT;
 import static com.colen.tempora.utils.nbt.NBTUtils.getEncodedTileEntityNBT;
 
 import java.util.ArrayDeque;
@@ -22,10 +19,6 @@ import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ChatComponentTranslation;
-import net.minecraft.util.IChatComponent;
 import net.minecraft.world.World;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.config.Configuration;
@@ -36,15 +29,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import com.colen.tempora.TemporaEvents;
 import com.colen.tempora.enums.LoggerEventType;
 import com.colen.tempora.loggers.block_change.region_registry.TemporaRegionRegistry;
-import com.colen.tempora.loggers.generic.GenericEventInfo;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
-import com.colen.tempora.loggers.generic.undo.UndoEventInfo;
-import com.colen.tempora.loggers.generic.undo.UndoResponse;
-import com.colen.tempora.utils.BlockUtils;
 import com.colen.tempora.utils.RenderingUtils;
 import com.colen.tempora.utils.StackTraceUtils;
 import com.colen.tempora.utils.WorldGenPhaseTracker;
-import com.colen.tempora.utils.nbt.NBTUtils;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -262,119 +250,4 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
         queueEventInfo(eventInfo);
     }
 
-    public @NotNull UndoEventInfo isUndoSafe(GenericEventInfo eventInfo) {
-        UndoEventInfo undoEventInfo = new UndoEventInfo();
-
-        IChatComponent eventUUID = createHoverableClickable("[UUID]", eventInfo.eventID);
-
-        // Must be a block change
-        if (!(eventInfo instanceof BlockChangeEventInfo bcEventInfo)) {
-            undoEventInfo.message = new ChatComponentTranslation(
-                "tempora.undo.unknown_error",
-                eventUUID,
-                getLoggerName());
-            undoEventInfo.state = UndoResponse.ERROR;
-            return undoEventInfo;
-        }
-
-        // Cannot restore NBT if it was not logged
-        if (bcEventInfo.beforeEncodedNBT.equals(NBT_DISABLED)) {
-            undoEventInfo.message = new ChatComponentTranslation(
-                "tempora.undo.cannot_block_break.nbt_logging_disabled",
-                eventUUID);
-            undoEventInfo.state = UndoResponse.MISSING_DATA;
-            return undoEventInfo;
-        }
-
-        // Block must still exist
-        Block block = Block.getBlockById(bcEventInfo.beforeBlockID);
-        if (block == null) {
-            undoEventInfo.message = new ChatComponentTranslation(
-                "tempora.undo.cannot_block_break.block_not_found",
-                eventUUID,
-                bcEventInfo.beforeBlockID,
-                bcEventInfo.beforeMetadata);
-            undoEventInfo.state = UndoResponse.MISSING_DATA;
-            return undoEventInfo;
-        }
-
-        // Target world must exist
-        World w = MinecraftServer.getServer()
-            .worldServerForDimension(bcEventInfo.dimensionID);
-        if (w == null) {
-            undoEventInfo.message = new ChatComponentTranslation(
-                "tempora.undo.world_not_found",
-                eventUUID,
-                bcEventInfo.dimensionID);
-            undoEventInfo.state = UndoResponse.ERROR;
-            return undoEventInfo;
-        }
-
-        // Everything looks safe
-        undoEventInfo.state = UndoResponse.SAFE;
-        undoEventInfo.message = new ChatComponentTranslation("tempora.undo.safe");
-
-        return undoEventInfo;
-    }
-
-    @Override
-    public void undoEventInternal(GenericEventInfo eventInfo, EntityPlayer player) {
-        // Preconditions:
-        // - eventInfo has already been validated via isUndoSafe(...)
-        // - eventInfo is a BlockChangeEventInfo
-        // - world, block, and NBT state are known-good
-
-        BlockChangeEventInfo bcEventInfo = (BlockChangeEventInfo) eventInfo;
-
-        int x = (int) bcEventInfo.x;
-        int y = (int) bcEventInfo.y;
-        int z = (int) bcEventInfo.z;
-        int blockID = bcEventInfo.beforeBlockID;
-        int meta = bcEventInfo.beforeMetadata;
-        int dimID = eventInfo.dimensionID;
-
-        World w = MinecraftServer.getServer()
-            .worldServerForDimension(dimID);
-
-        Block block = Block.getBlockById(blockID);
-
-        // Place silently (no physics, no callbacks)
-        if (!BlockUtils.setBlockNoUpdate(w, x, y, z, block, meta)) {
-            throw new IllegalStateException(
-                "Failed to restore block during undo: " + blockID
-                    + ":"
-                    + meta
-                    + " with eventID "
-                    + bcEventInfo.eventID);
-        }
-
-        // Restore TileEntity if present
-        if (!bcEventInfo.beforeEncodedNBT.equals(NO_NBT)) {
-            try {
-                TileEntity te = TileEntity.createAndLoadEntity(NBTUtils.decodeFromString(bcEventInfo.beforeEncodedNBT));
-
-                if (te != null) {
-                    te.setWorldObj(w);
-                    te.xCoord = x;
-                    te.yCoord = y;
-                    te.zCoord = z;
-                    te.validate();
-                    w.setTileEntity(x, y, z, te);
-                }
-            } catch (Exception e) {
-                // Hard rollback – leave the world clean
-                w.setBlockToAir(x, y, z);
-                w.removeTileEntity(x, y, z);
-                throw new RuntimeException("Failed to restore TileEntity during undo", e);
-            }
-        }
-
-        // Client + lighting refresh
-        w.markBlockForUpdate(x, y, z);
-    }
-
-    @Override
-    public boolean isUndoEnabled() {
-        return true;
-    }
 }

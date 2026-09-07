@@ -98,8 +98,6 @@ public class Tempora {
         event.registerServerCommand(new RegionFilter());
         event.registerServerCommand(new TemporaStackTrace());
 
-        event.registerServerCommand(new TemporaUndo());
-        event.registerServerCommand(new TemporaUndoRanged());
         event.registerServerCommand(new TemporaTp());
         event.registerServerCommand(new TemporaExplode());
 
@@ -113,7 +111,6 @@ public class Tempora {
             TemporaRegionRegistry.saveIfDirty();
         }
 
-        TemporaUndoRanged.onServerClose();
         ClientRegionStore.onServerClose();
         TemporaStackTrace.clearAll();
     }
