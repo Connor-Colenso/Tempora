@@ -127,10 +127,7 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
 
             EventInfo element = newEventInfo();
 
-            // Populate shared/base fields
-            element.populateDefaultFieldsFromResultSet(resultSet);
-
-            // Populate column-mapped fields
+            // Populate column-mapped fields (base fields inherited from GenericEventInfo included)
             for (ColumnDef col : columns) {
                 ColumnDef.ColumnAccessor accessor = col.columnAccessor;
 

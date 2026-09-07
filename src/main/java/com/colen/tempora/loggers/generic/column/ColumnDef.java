@@ -4,18 +4,22 @@ import java.lang.invoke.MethodHandle;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
 
 public class ColumnDef {
 
     public final String name;
     public final String type;
     public final String extraCondition;
+    public final List<String> renamedFrom;
     public final ColumnAccessor columnAccessor;
 
-    public ColumnDef(String name, String type, String extraCondition, ColumnAccessor columnAccessor) {
+    public ColumnDef(String name, String type, String extraCondition, List<String> renamedFrom,
+        ColumnAccessor columnAccessor) {
         this.name = name;
         this.type = type;
         this.extraCondition = extraCondition;
+        this.renamedFrom = renamedFrom;
         this.columnAccessor = columnAccessor;
     }
 

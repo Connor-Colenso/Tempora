@@ -1,8 +1,5 @@
 package com.colen.tempora.loggers.generic;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-
 import net.minecraft.util.IChatComponent;
 
 import com.colen.tempora.loggers.generic.column.Column;
@@ -39,16 +36,6 @@ public abstract class GenericEventInfo {
     public long eventRenderCreationTime;
 
     public abstract IChatComponent localiseText(String commandIssuerUUID);
-
-    public void populateDefaultFieldsFromResultSet(ResultSet resultSet) throws SQLException {
-        x = resultSet.getDouble("x");
-        y = resultSet.getDouble("y");
-        z = resultSet.getDouble("z");
-        dimensionID = resultSet.getInt("dimensionID");
-        timestamp = resultSet.getLong("timestamp");
-        eventID = resultSet.getString("eventID");
-        versionID = resultSet.getInt("versionID");
-    }
 
     public void fromBytes(ByteBuf buf) {
         x = buf.readDouble();

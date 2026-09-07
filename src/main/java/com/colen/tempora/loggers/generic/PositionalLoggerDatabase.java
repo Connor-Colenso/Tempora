@@ -13,9 +13,9 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.colen.tempora.loggers.generic.enums.LogWriteSafety;
@@ -114,20 +114,43 @@ public class PositionalLoggerDatabase {
             stmt.execute();
         }
 
-        // Step 2: Check existing columns
-        Set<String> existingColumns = new HashSet<>();
+        // Step 2: Read existing columns and their declared SQL types.
+        Map<String, String> existingColumnTypes = new HashMap<>();
         try (PreparedStatement stmt = positionalLoggerDBConnection
             .prepareStatement("PRAGMA table_info(" + tableName + ");")) {
             ResultSet rs = stmt.executeQuery();
 
             while (rs.next()) {
-                existingColumns.add(rs.getString("name"));
+                existingColumnTypes.put(rs.getString("name"), rs.getString("type"));
             }
         }
 
-        // Step 3: ALTER TABLE to add missing columns
+        // Step 3: rename columns that were renamed in code, preserving their data, instead of
+        // letting them fall through to "add as new" below and silently orphaning the old column.
         for (ColumnDef col : columns) {
-            if (!existingColumns.contains(col.name)) {
+            if (existingColumnTypes.containsKey(col.name)) continue;
+
+            for (String oldName : col.renamedFrom) {
+                if (!existingColumnTypes.containsKey(oldName)) continue;
+
+                String renameSQL = "ALTER TABLE " + tableName + " RENAME COLUMN " + oldName + " TO " + col.name + ";";
+                positionalLoggerDBConnection.prepareStatement(renameSQL)
+                    .execute();
+
+                LOG.info(
+                    "Renamed column '{}' to '{}' in table '{}', preserving existing data.",
+                    oldName,
+                    col.name,
+                    tableName);
+
+                existingColumnTypes.put(col.name, existingColumnTypes.remove(oldName));
+                break;
+            }
+        }
+
+        // Step 4: ALTER TABLE to add columns that are genuinely new (no matching old column found above).
+        for (ColumnDef col : columns) {
+            if (!existingColumnTypes.containsKey(col.name)) {
                 StringBuilder alterSQL = new StringBuilder("ALTER TABLE ").append(tableName)
                     .append(" ADD COLUMN ")
                     .append(col.name)
@@ -142,6 +165,23 @@ public class PositionalLoggerDatabase {
                 alterSQL.append(";");
                 positionalLoggerDBConnection.prepareStatement(alterSQL.toString())
                     .execute();
+
+                existingColumnTypes.put(col.name, col.type);
+            }
+        }
+
+        // Step 5: flag (but do not fail on) columns whose declared type no longer matches the code.
+        // SQLite cannot alter a column's type in place, so a mismatch here needs a manual table rebuild.
+        for (ColumnDef col : columns) {
+            String existingType = existingColumnTypes.get(col.name);
+            if (existingType != null && !existingType.equalsIgnoreCase(col.type)) {
+                LOG.error(
+                    "Schema drift in table '{}': column '{}' is declared as '{}' in code but exists as '{}' in the database. "
+                        + "SQLite cannot alter a column's type in place — this requires a manual table rebuild to fix.",
+                    tableName,
+                    col.name,
+                    col.type,
+                    existingType);
             }
         }
     }

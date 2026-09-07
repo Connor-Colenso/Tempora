@@ -32,4 +32,11 @@ public @interface Column {
      */
     String constraints() default "";
 
+    /**
+     * Previous column name(s) this field was known as, oldest first.
+     * When present, table initialisation renames the existing column in place
+     * (preserving its data) instead of adding a new, empty column under the new name.
+     */
+    String[] renamedFrom() default {};
+
 }
