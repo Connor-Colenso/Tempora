@@ -15,7 +15,6 @@ import net.minecraft.util.IChatComponent;
 
 import com.colen.tempora.commands.command_base.CommandArg;
 import com.colen.tempora.commands.command_base.TemporaCommandBase;
-import com.colen.tempora.utils.ChatUtils;
 
 // Internal command for displaying stack trace info.
 public class TemporaStackTrace extends TemporaCommandBase {
@@ -61,9 +60,6 @@ public class TemporaStackTrace extends TemporaCommandBase {
         for (int i = trace.size() - 1; i >= 0; i--) {
             sender.addChatMessage(trace.get(i));
         }
-
-        // Hide the fact this command was run, as it is never meant to be player executed.
-        ChatUtils.removeLastMessage();
     }
 
     @Override
@@ -76,10 +72,6 @@ public class TemporaStackTrace extends TemporaCommandBase {
         return new ChatComponentTranslation("tempora.command.stacktrace.description");
     }
 
-    @Override
-    public String getTranslationKeyBase() {
-        return "tempora.command.stacktrace";
-    }
 
     public static void storeStackTrace(String key, List<IChatComponent> stackTrace) {
         STACK_TRACES.put(key, stackTrace);

@@ -145,13 +145,9 @@ public class TemporaHelp extends TemporaCommandBase {
 
     @Override
     public String getExampleCommand() {
-        return "tempora_explode";
+        return "/" + getCommandName() + " tempora_query_events";
     }
 
-    @Override
-    public String getTranslationKeyBase() {
-        return "tempora.command.help";
-    }
 
     public IChatComponent getCommandDescription() {
         return new ChatComponentTranslation("tempora.command.help.help.description");

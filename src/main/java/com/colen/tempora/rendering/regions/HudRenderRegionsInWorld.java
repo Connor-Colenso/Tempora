@@ -13,7 +13,7 @@ import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.util.StatCollector;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 
-import com.colen.tempora.loggers.block_change.region_registry.TemporaWorldRegion;
+import com.colen.tempora.regions.TemporaWorldRegion;
 import com.colen.tempora.rendering.ClientRegionStore;
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
@@ -38,16 +38,16 @@ public class HudRenderRegionsInWorld {
         ScaledResolution sr = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
         int screenWidth = sr.getScaledWidth();
 
-        // Collect block-change regions
-        List<TemporaWorldRegion> blockChangeRegions = ClientRegionStore.all()
+        // Collect real regions, not wand highlights
+        List<TemporaWorldRegion> regions = ClientRegionStore.all()
             .stream()
-            .filter(r -> r.getRenderMode() == RegionRenderMode.BLOCK_CHANGE)
+            .filter(r -> r.getRenderMode() == RegionRenderMode.REGION)
             .collect(Collectors.toList());
 
-        if (blockChangeRegions.isEmpty()) return;
+        if (regions.isEmpty()) return;
 
         // Filter to regions intersecting the player
-        List<TemporaWorldRegion> intersectingRegions = blockChangeRegions.stream()
+        List<TemporaWorldRegion> intersectingRegions = regions.stream()
             .filter(r -> r.getDimID() == player.dimension)
             .filter(r -> r.intersectsWith(player.dimension, player.boundingBox))
             .collect(Collectors.toList());

@@ -1,7 +1,6 @@
 package com.colen.tempora.loggers.generic;
 
 import static com.colen.tempora.Tempora.LOG;
-import static com.colen.tempora.loggers.generic.enums.DefaultLogMode.LOG_EVERYWHERE;
 import static com.colen.tempora.utils.ReflectionUtils.getAllTableColumns;
 import static com.colen.tempora.utils.RenderingUtils.squaredDistance;
 
@@ -16,10 +15,6 @@ import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-import com.colen.tempora.loggers.block_change.region_registry.TemporaRegionRegistry;
-import com.colen.tempora.loggers.block_change.region_registry.TemporaWorldRegion;
-import com.colen.tempora.loggers.generic.enums.DefaultLogMode;
-import com.colen.tempora.loggers.generic.enums.LogWriteSafety;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.MinecraftForge;
@@ -30,6 +25,10 @@ import org.jetbrains.annotations.NotNull;
 import com.colen.tempora.TemporaLoggerManager;
 import com.colen.tempora.enums.LoggerEventType;
 import com.colen.tempora.loggers.generic.column.ColumnDef;
+import com.colen.tempora.loggers.generic.enums.LogWriteSafety;
+import com.colen.tempora.regions.LogRule;
+import com.colen.tempora.regions.TemporaRegionRegistry;
+import com.colen.tempora.regions.TemporaWorldRegion;
 import com.colen.tempora.utils.PlayerUtils;
 import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 
@@ -48,6 +47,7 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
     private static final long SECONDS_RENDERING_DURATION = 10;
 
     protected boolean isEnabledByConfig;
+    private boolean logByDefault;
     private Thread queueWorkerThread;
     private volatile boolean shuttingDownDatabaseThread = false;
     private volatile boolean isRunning;
@@ -103,9 +103,19 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
         return LogWriteSafety.NORMAL;
     }
 
-    // This controls if a logger will log everywhere or nowhere by default, with regions defining custom behaviour.
-    public DefaultLogMode defaultLogMode() {
-        return LOG_EVERYWHERE;
+    // Default value of the logByDefault config option. Override to return false for loggers that would produce too
+    // much data to run everywhere, so they only log inside regions that turn them on.
+    protected boolean defaultForLogByDefault() {
+        return true;
+    }
+
+    public boolean isEnabledByConfig() {
+        return isEnabledByConfig;
+    }
+
+    // Whether this logger records events where no region has a rule for it.
+    public boolean logsByDefault() {
+        return logByDefault;
     }
 
     public PositionalLoggerDatabase getDatabaseManager() {
@@ -161,32 +171,19 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
         }
     }
 
-    // Tldr : Blacklist > Whitelist > Default
+    // The smallest region here with a rule for this logger decides, otherwise logByDefault does.
+    // See TemporaRegionRegistry for the full rules.
     public final boolean canLogHere(double x, double y, double z, int dimID) {
+        TemporaWorldRegion region = TemporaRegionRegistry.findDecidingRegion(getLoggerName(), dimID, x, y, z);
+        if (region == null) return logByDefault;
 
-        List<TemporaWorldRegion> regions = TemporaRegionRegistry.allRegionsInDim(dimID);
-        boolean shouldLog = defaultLogMode() == LOG_EVERYWHERE;
-        // Null = no regions, so default to default behaviour for that logger.
-        if (regions == null) return shouldLog;
-
-        for (TemporaWorldRegion region : regions) {
-            if (!region.containsCoords(x, y, z)) continue;
-
-            if (region.inBlackList(this)) {
-                return false; // Immediate exit
-            }
-
-            if (region.inWhiteList(this)) {
-                shouldLog = true;
-            }
-        }
-
-        return shouldLog;
+        return region.getRule(getLoggerName()) == LogRule.ON;
     }
 
     public final void queueEventInfo(EventInfo eventInfo) {
         if (!isEnabledByConfig) return;
         if (!isRunning) return;
+        if (!canLogHere(eventInfo.x, eventInfo.y, eventInfo.z, eventInfo.dimensionID)) return;
 
         // Populate this automatically, as it is fixed per world for all events.
         eventInfo.versionID = ModpackVersionData.CURRENT_VERSION;
@@ -280,6 +277,11 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
 
     public final void genericConfig(@NotNull Configuration config) {
         isEnabledByConfig = config.getBoolean("isEnabled", getLoggerName(), true, "Enables this loggers functionality.");
+        logByDefault = config.getBoolean(
+            "logByDefault",
+            getLoggerName(),
+            defaultForLogByDefault(),
+            "Whether this logger records events in places where no region has a rule for it. Use /tempora_region_rule to turn it ON or OFF inside specific regions.");
         maxShutdownTimeoutMilliseconds = config.getInt(
             "maxShutdownTimeoutMilliseconds",
             getLoggerName(),

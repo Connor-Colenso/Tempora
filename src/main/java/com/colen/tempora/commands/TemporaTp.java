@@ -10,12 +10,19 @@ import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.world.WorldServer;
 
+import com.colen.tempora.commands.command_base.CommandArg;
 import com.colen.tempora.commands.command_base.TemporaCommandBase;
 import com.colen.tempora.utils.CommandUtils;
 
 public class TemporaTp extends TemporaCommandBase {
 
     public static final String TEMPORA_TP = "tempora_tp";
+
+    public TemporaTp() {
+        super(
+            new CommandArg("<x> <y> <z>", "tempora.command.teleport.help.arg0"),
+            new CommandArg("[dim_ID]", "tempora.command.teleport.help.arg1"));
+    }
 
     @Override
     public String getCommandName() {
@@ -25,11 +32,6 @@ public class TemporaTp extends TemporaCommandBase {
     @Override
     public int getRequiredPermissionLevel() {
         return OP_ONLY;
-    }
-
-    @Override
-    public boolean isUsernameIndex(String[] args, int index) {
-        return super.isUsernameIndex(args, index);
     }
 
     @Override
@@ -57,7 +59,7 @@ public class TemporaTp extends TemporaCommandBase {
             MinecraftServer server = MinecraftServer.getServer();
             WorldServer targetWorld = server.worldServerForDimension(targetDim);
             if (targetWorld == null) {
-                throw new WrongUsageException("Invalid dimension ID"); // todo localise
+                throw new WrongUsageException("tempora.dimension.invalid", targetDim);
             }
 
             player.mcServer.getConfigurationManager()
@@ -69,15 +71,11 @@ public class TemporaTp extends TemporaCommandBase {
 
     @Override
     public String getExampleCommand() {
-        return "400 42 -123 1";
+        return "/" + getCommandName() + " 400 42 -123 1";
     }
 
     public IChatComponent getCommandDescription() {
-        return new ChatComponentTranslation("tempora.command.explode.tempora_tp.description");
+        return new ChatComponentTranslation("tempora.command.teleport.help.description");
     }
 
-    @Override
-    public String getTranslationKeyBase() {
-        return "tempora.command.teleport";
-    }
 }

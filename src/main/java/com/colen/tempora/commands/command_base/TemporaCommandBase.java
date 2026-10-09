@@ -62,22 +62,21 @@ public abstract class TemporaCommandBase extends CommandBase {
 
     public abstract String getExampleCommand();
 
-    public abstract String getTranslationKeyBase();
-
     public abstract IChatComponent getCommandDescription();
 
+    // Built from raw formatting codes, as IChatComponent.getFormattedText() only exists on the client.
     public final String getCommandUsage(ICommandSender ignored) {
-        IChatComponent formattedExampleCommand = new ChatComponentText("/" + getCommandName() + " ");
+        StringBuilder usage = new StringBuilder("/").append(getCommandName())
+            .append(' ');
 
         int colourIndex = 0;
         for (CommandArg arg : arguments) {
-            IChatComponent argComponent = new ChatComponentText(arg.argNames + " ");
-            argComponent.getChatStyle()
-                .setColor(getColourAtIndex(colourIndex++));
-            formattedExampleCommand.appendSibling(argComponent);
+            usage.append(getColourAtIndex(colourIndex++))
+                .append(arg.argNames)
+                .append(' ');
         }
 
-        return formattedExampleCommand.getFormattedText();
+        return usage.toString();
     }
 
 }

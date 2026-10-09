@@ -1,7 +1,6 @@
 package com.colen.tempora.loggers.block_change;
 
 import static com.colen.tempora.Tempora.LOG;
-import static com.colen.tempora.loggers.generic.enums.DefaultLogMode.LOG_NOWHERE;
 import static com.colen.tempora.utils.BlockUtils.getPickBlockSafe;
 import static com.colen.tempora.utils.PlayerUtils.UNKNOWN_PLAYER_NAME;
 import static com.colen.tempora.utils.RenderingUtils.CLIENT_EVENT_RENDER_DISTANCE;
@@ -12,7 +11,6 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.UUID;
 
-import com.colen.tempora.loggers.generic.enums.DefaultLogMode;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
@@ -28,7 +26,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import com.colen.tempora.TemporaEvents;
 import com.colen.tempora.enums.LoggerEventType;
-import com.colen.tempora.loggers.block_change.region_registry.TemporaRegionRegistry;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.utils.RenderingUtils;
 import com.colen.tempora.utils.StackTraceUtils;
@@ -37,9 +34,6 @@ import com.colen.tempora.utils.WorldGenPhaseTracker;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-// todo look into logging world gen and marking that separately, such that you can use a useful regen command to restore
-// todo look into flowers not reverting/saving properly.
-// the state of the world.
 public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventInfo> {
 
     @Override
@@ -47,12 +41,12 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
         return TemporaEvents.BLOCK_CHANGE;
     }
 
+    // Every setBlock call in the world is far too much data to log everywhere, so by default this only logs inside
+    // regions that turn it on.
     @Override
-    public DefaultLogMode defaultLogMode() {
-        return LOG_NOWHERE;
+    protected boolean defaultForLogByDefault() {
+        return false;
     }
-
-    private static boolean globalBlockChangeLogging;
 
     public static boolean isLogNBTEnabled() {
         return logNBT;
@@ -122,11 +116,6 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
 
     @Override
     public void handleCustomLoggerConfig(Configuration config) {
-        globalBlockChangeLogging = config.getBoolean("globalBlockChangeLogging", getLoggerName(), false, """
-            If true, overrides all custom regions and logs every setBlock call across the entire world.
-            WARNING: This will generate an enormous number of events and rapidly bloat your database.
-            """);
-
         logNBT = config.getBoolean(
             "logNBT",
             getLoggerName(),
@@ -151,24 +140,34 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
     private static final ThreadLocal<Deque<BlockChangeEventInfo>> BLOCK_STACK = ThreadLocal
         .withInitial(ArrayDeque::new);
 
+    // Pushed in place of a real event for block changes that won't be logged, so HEAD and RETURN stay paired
+    // without paying for a stack trace and NBT capture that would be thrown away.
+    private static final BlockChangeEventInfo SKIPPED = new BlockChangeEventInfo();
+
     public void onSetBlockHead(int x, int y, int z, World world) {
         if (!isEnabledByConfig) return;
 
         Deque<BlockChangeEventInfo> stack = BLOCK_STACK.get();
+        int dimensionID = world.provider.dimensionId;
+
+        // todo log world gen separately?
+        if (WorldGenPhaseTracker.isWorldGen() || !canLogHere(x, y, z, dimensionID)) {
+            stack.push(SKIPPED);
+            return;
+        }
 
         BlockChangeEventInfo e = new BlockChangeEventInfo();
+        stack.push(e);
+
         e.eventID = UUID.randomUUID()
             .toString();
         e.timestamp = System.currentTimeMillis();
         e.stackTraceID = StackTraceUtils.getID(StackTraceUtils.getCallingClassChain()); // TODO PERSISTENCE OF IDS
-        stack.push(e);
 
         e.x = x;
         e.y = y;
         e.z = z;
-        e.dimensionID = world.provider.dimensionId;
-
-        e.isWorldGen = WorldGenPhaseTracker.isWorldGen();
+        e.dimensionID = dimensionID;
 
         // BEFORE state
         Block before = world.getBlock(x, y, z);
@@ -199,8 +198,8 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
 
         BlockChangeEventInfo e = stack.pop();
 
-        // If placement failed, mark as no-op and move on
-        if (!cir.getReturnValue()) {
+        // Not logged here, or the placement failed.
+        if (e == SKIPPED || !cir.getReturnValue()) {
             return;
         }
 
@@ -223,19 +222,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
         recordSetBlock(e.x, e.y, e.z, e, world);
     }
 
-    public static boolean isGlobalBlockChangeLoggingEnabled() {
-        return globalBlockChangeLogging;
-    }
-
     private void recordSetBlock(double x, double y, double z, BlockChangeEventInfo eventInfo, World world) {
-
-        if (eventInfo.isWorldGen) return; // todo log this separately?
-
-        // Only log changes if (x, y, z) is inside a defined region. Unless config has the entire world logging on.
-        if (! (globalBlockChangeLogging || canLogHere(x, y, z, eventInfo.dimensionID))) {
-            return;
-        }
-
         EntityPlayer closestPlayer = world.getClosestPlayer(x, y, z, -1);
         double closestDistance = -1;
 

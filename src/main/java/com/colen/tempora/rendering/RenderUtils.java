@@ -2,7 +2,6 @@ package com.colen.tempora.rendering;
 
 import java.awt.Color;
 import java.util.List;
-import java.util.Random;
 
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
@@ -250,15 +249,6 @@ public abstract class RenderUtils {
         final double camY = view.lastTickPosY + (view.posY - view.lastTickPosY) * pt;
         final double camZ = view.lastTickPosZ + (view.posZ - view.lastTickPosZ) * pt;
         GL11.glTranslated(-camX, -camY, -camZ);
-    }
-
-    private static final Random rand = new Random();
-
-    public static Color getRandomBrightColor() {
-        float hue = rand.nextFloat(); // 0.0 to 1.0
-        float saturation = 0.9f; // Keep saturation high for vivid color
-        float brightness = 1.0f; // Max brightness
-        return Color.getHSBColor(hue, saturation, brightness);
     }
 
     /**

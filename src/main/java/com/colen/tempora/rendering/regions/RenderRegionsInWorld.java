@@ -12,7 +12,7 @@ import net.minecraftforge.client.event.RenderWorldLastEvent;
 import org.lwjgl.opengl.GL11;
 
 import com.colen.tempora.chat.ChatComponentTimeRelative;
-import com.colen.tempora.loggers.block_change.region_registry.TemporaWorldRegion;
+import com.colen.tempora.regions.TemporaWorldRegion;
 import com.colen.tempora.rendering.ClientRegionStore;
 import com.colen.tempora.rendering.RenderUtils;
 import com.colen.tempora.utils.PlayerUtils;
@@ -44,7 +44,7 @@ public final class RenderRegionsInWorld {
                 r.getMaxY() - eps,
                 r.getMaxZ() - eps);
 
-            if (r.getRenderMode() == RegionRenderMode.BLOCK_CHANGE) {
+            if (r.getRenderMode() == RegionRenderMode.REGION) {
                 float[] rgb = r.getColor()
                     .getRGBColorComponents(null);
                 GL11.glColor3f(rgb[0], rgb[1], rgb[2]);

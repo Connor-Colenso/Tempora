@@ -107,8 +107,4 @@ public class QueryEvents extends TemporaCommandBase {
         return "/" + getCommandName() + " 25 3hours PlayerBlockBreakLogger";
     }
 
-    @Override
-    public String getTranslationKeyBase() {
-        return "tempora.command.query_events";
-    }
 }

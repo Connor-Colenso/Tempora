@@ -90,11 +90,7 @@ public class TemporaExplode extends TemporaCommandBase {
 
     @Override
     public String getExampleCommand() {
-        return "5";
+        return "/" + getCommandName() + " 5";
     }
 
-    @Override
-    public String getTranslationKeyBase() {
-        return "tempora.command.explode";
-    }
 }

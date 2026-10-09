@@ -1,28 +1,32 @@
 package com.colen.tempora.commands.regions;
 
+import static com.colen.tempora.Tempora.NETWORK;
 import static com.colen.tempora.utils.CommandUtils.OP_ONLY;
-import static com.colen.tempora.utils.CommandUtils.teleportChatComponent;
 import static com.colen.tempora.utils.PlayerUtils.UNKNOWN_PLAYER_NAME;
 
 import java.util.UUID;
 
-import com.colen.tempora.TemporaEvents;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.event.ClickEvent;
+import net.minecraft.event.HoverEvent;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
+import net.minecraftforge.common.DimensionManager;
 
+import com.colen.tempora.TemporaEvents;
 import com.colen.tempora.commands.command_base.CommandArg;
 import com.colen.tempora.commands.command_base.TemporaCommandBase;
-import com.colen.tempora.loggers.block_change.region_registry.TemporaRegionRegistry;
-import com.colen.tempora.loggers.block_change.region_registry.TemporaWorldRegion;
+import com.colen.tempora.networking.packets.PacketShowRegionInWorld;
+import com.colen.tempora.regions.TemporaRegionRegistry;
+import com.colen.tempora.regions.TemporaWorldRegion;
 import com.colen.tempora.rendering.regions.RegionRenderMode;
 import com.colen.tempora.utils.CommandUtils;
 
 /**
- * Creates an axis‑aligned, integer‑bounded region in the sender’s current dimension
- * and stores it in RegionRegistry.
+ * Creates an axis‑aligned, integer‑bounded region and stores it in the region registry. A new region has no rules,
+ * so it changes nothing until /tempora_region_rule gives it some.
  */
 public class CreateRegion extends TemporaCommandBase {
 
@@ -53,60 +57,45 @@ public class CreateRegion extends TemporaCommandBase {
         }
 
         final String label = args[0];
+        if (TemporaRegionRegistry.getByLabel(label) != null) {
+            IChatComponent msg = new ChatComponentTranslation("tempora.command.create_region.label_taken", label);
+            msg.getChatStyle()
+                .setColor(EnumChatFormatting.RED);
+            sender.addChatMessage(msg);
+            return;
+        }
 
-        // Parse xyz start & xyz end
         int[] coords = new int[6];
         for (int i = 0; i < 6; i++) {
-            try {
-                coords[i] = parseInt(sender, args[i + 1]);
-            } catch (NumberFormatException e) {
-                IChatComponent msg = new ChatComponentTranslation(
-                    "tempora.command.create_region.non_numeric_coordinate",
-                    args[i + 1]);
-                msg.getChatStyle()
-                    .setColor(EnumChatFormatting.RED);
-                sender.addChatMessage(msg);
-                return;
-            }
+            coords[i] = parseInt(sender, args[i + 1]);
         }
 
-        // Dimension ID: optional argument
-        int dimID;
-        if (args.length == 8) {
-            try {
-                dimID = parseInt(sender, args[7]);
-            } catch (NumberFormatException e) {
-                IChatComponent msg = new ChatComponentTranslation(
-                    "tempora.command.create_region.non.numeric.dimension",
-                    args[7]);
-                msg.getChatStyle()
-                    .setColor(EnumChatFormatting.RED);
-                sender.addChatMessage(msg);
-                return;
-            }
-        } else {
-            dimID = sender.getEntityWorld().provider.dimensionId;
+        int dimID = args.length == 8 ? parseInt(sender, args[7]) : sender.getEntityWorld().provider.dimensionId;
+        if (!DimensionManager.isDimensionRegistered(dimID)) {
+            IChatComponent msg = new ChatComponentTranslation("tempora.dimension.invalid", dimID);
+            msg.getChatStyle()
+                .setColor(EnumChatFormatting.RED);
+            sender.addChatMessage(msg);
+            return;
         }
 
-        // Build region
+        // Both corners are inclusive, like /fill, so "0 0 0 4 4 4" covers a 5x5x5 cube. Internally the max bounds
+        // are exclusive, hence the + 1.
         TemporaWorldRegion region = new TemporaWorldRegion(
             dimID,
-            coords[0],
-            coords[1],
-            coords[2],
-            coords[3],
-            coords[4],
-            coords[5]);
+            Math.min(coords[0], coords[3]),
+            Math.min(coords[1], coords[4]),
+            Math.min(coords[2], coords[5]),
+            Math.max(coords[0], coords[3]) + 1,
+            Math.max(coords[1], coords[4]) + 1,
+            Math.max(coords[2], coords[5]) + 1);
 
         region.setLabel(label);
         region.setRegionUUID(
             UUID.randomUUID()
                 .toString());
-        region.setRenderMode(RegionRenderMode.BLOCK_CHANGE);
+        region.setRenderMode(RegionRenderMode.REGION);
         region.setRegionOriginTimeMs(System.currentTimeMillis());
-
-        // todo remove!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        region.addWhitelistedLogger(TemporaEvents.blockChangeLogger);
 
         if (sender instanceof EntityPlayerMP player) {
             region.setPlayerAuthorUUID(
@@ -122,28 +111,33 @@ public class CreateRegion extends TemporaCommandBase {
         ChatComponentTranslation msg = new ChatComponentTranslation(
             "tempora.command.create_region.success",
             label,
-            teleportChatComponent(
-                region.getMinX(),
-                region.getMinY(),
-                region.getMinZ(),
-                dimID,
-                CommandUtils.TeleportType.EXACT),
-            teleportChatComponent(
-                region.getMaxX(),
-                region.getMaxY(),
-                region.getMaxZ(),
-                dimID,
-                CommandUtils.TeleportType.EXACT),
-            teleportChatComponent(
-                region.getMidX(),
-                region.getMidY(),
-                region.getMidZ(),
-                dimID,
-                CommandUtils.TeleportType.EXACT));
+            region.getMinCornerChatComponent(),
+            region.getMaxCornerChatComponent(),
+            region.getMidpointChatComponent());
 
         msg.getChatStyle()
             .setColor(EnumChatFormatting.GREEN);
         sender.addChatMessage(msg);
+
+        // The most common reason to make a region is to log block changes in it, so offer that.
+        String blockLoggingCommand = "/" + SetRegionRule.COMMAND_NAME + " " + label + " " + TemporaEvents.BLOCK_CHANGE + " on";
+        IChatComponent suggestion = new ChatComponentTranslation("tempora.command.create_region.suggest_block_logging");
+        suggestion.getChatStyle()
+            .setColor(EnumChatFormatting.AQUA)
+            .setChatClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, blockLoggingCommand))
+            .setChatHoverEvent(
+                new HoverEvent(
+                    HoverEvent.Action.SHOW_TEXT,
+                    new ChatComponentTranslation("tempora.command.create_region.suggest_block_logging.hover")));
+
+        IChatComponent noRules = new ChatComponentTranslation("tempora.command.create_region.no_rules", suggestion);
+        noRules.getChatStyle()
+            .setColor(EnumChatFormatting.GRAY);
+        sender.addChatMessage(noRules);
+
+        if (sender instanceof EntityPlayerMP player) {
+            NETWORK.sendTo(new PacketShowRegionInWorld.RegionMsg(region), player);
+        }
     }
 
     public IChatComponent getCommandDescription() {
@@ -152,11 +146,6 @@ public class CreateRegion extends TemporaCommandBase {
 
     @Override
     public String getExampleCommand() {
-        return "test 0 0 0 5 5 5 0";
-    }
-
-    @Override
-    public String getTranslationKeyBase() {
-        return "tempora.command.create_region";
+        return "/" + getCommandName() + " spawn -50 0 -50 50 255 50 0";
     }
 }

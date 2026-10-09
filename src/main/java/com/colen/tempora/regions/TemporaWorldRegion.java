@@ -1,23 +1,24 @@
-package com.colen.tempora.loggers.block_change.region_registry;
+package com.colen.tempora.regions;
 
-import static com.colen.tempora.rendering.RenderUtils.getRandomBrightColor;
 import static com.colen.tempora.utils.ChatUtils.createHoverableClickable;
 import static com.colen.tempora.utils.CommandUtils.teleportChatComponent;
 import static com.colen.tempora.utils.PlayerUtils.playerNameFromUUID;
 import static com.colen.tempora.utils.TimeUtils.formatTime;
 
 import java.awt.Color;
-import java.util.HashSet;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Random;
+import java.util.concurrent.ConcurrentSkipListMap;
 
-import com.colen.tempora.TemporaLoggerManager;
-import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
-import net.minecraft.nbt.NBTTagString;
 import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
+
+import org.jetbrains.annotations.Nullable;
 
 import com.colen.tempora.rendering.regions.RegionRenderMode;
 import com.colen.tempora.utils.CommandUtils;
@@ -25,6 +26,8 @@ import com.colen.tempora.utils.CommandUtils;
 public class TemporaWorldRegion {
 
     public static final double BLOCK_EDGE_EPSILON = 0.002;
+
+    private static final Random RANDOM = new Random();
 
     private final int dimID;
     private final double minX, minY, minZ;
@@ -38,20 +41,10 @@ public class TemporaWorldRegion {
     private RegionRenderMode renderMode;
     private String label;
 
-    // Blacklist always wins if regions conflict.
-    private final HashSet<GenericPositionalLogger<?>> eventBlacklist = new HashSet<>();
-    private final HashSet<GenericPositionalLogger<?>> eventWhitelist = new HashSet<>();
-
-    public final boolean inWhiteList(GenericPositionalLogger<?> logger) {
-        return eventWhitelist.contains(logger);
-    }
-
-    public final boolean inBlackList(GenericPositionalLogger<?> logger) {
-        return eventBlacklist.contains(logger);
-    }
-
-    // Todo introduce regions for other concepts, such as allowing/disallowing other loggers.
-    // This could be useful for stopping it logging e.g. mob deaths in a mob farm.
+    // Keyed by logger name rather than the logger itself, so a rule for a logger that is disabled or no longer
+    // exists survives a save/load instead of being dropped. Sorted so rules always display in the same order, and
+    // concurrent because loggers read it from whichever thread fired the event.
+    private final Map<String, LogRule> loggerRules = new ConcurrentSkipListMap<>();
 
     /**
      * Constructor: defines the bounding box coordinates only (x1,y1,z1 -> x2,y2,z2).
@@ -66,7 +59,8 @@ public class TemporaWorldRegion {
         this.maxY = Math.max(y1, y2);
         this.maxZ = Math.max(z1, z2);
 
-        this.color = getRandomBrightColor();
+        // Random hue, but always vivid so the region stands out when rendered.
+        this.color = Color.getHSBColor(RANDOM.nextFloat(), 0.9f, 1.0f);
     }
 
     /* ---------- Getters / Setters ---------- */
@@ -167,30 +161,34 @@ public class TemporaWorldRegion {
         this.label = label;
     }
 
+    /* ---------- Logger rules ---------- */
+
+    public @Nullable LogRule getRule(String loggerName) {
+        return loggerRules.get(loggerName);
+    }
+
+    public Map<String, LogRule> getRules() {
+        return Collections.unmodifiableMap(loggerRules);
+    }
+
+    // Use TemporaRegionRegistry.setRule/clearRule for regions in the registry, so the change is saved.
+    void putRule(String loggerName, LogRule rule) {
+        loggerRules.put(loggerName, rule);
+    }
+
+    boolean removeRule(String loggerName) {
+        return loggerRules.remove(loggerName) != null;
+    }
+
     /* ---------- Helpers ---------- */
 
     public double getVolume() {
         return (maxX - minX) * (maxY - minY) * (maxZ - minZ);
     }
 
-    public final boolean contains(int dim, Number x, Number y, Number z) {
-        if (this.dimID != dim || x == null || y == null || z == null) return false;
-
-        double dx = x.doubleValue();
-        double dy = y.doubleValue();
-        double dz = z.doubleValue();
-
-        return dx >= minX && dx < maxX && dy >= minY && dy < maxY && dz >= minZ && dz < maxZ;
-    }
-
-    public final boolean containsCoords(Number x, Number y, Number z) {
-        if (x == null || y == null || z == null) return false;
-
-        double dx = x.doubleValue();
-        double dy = y.doubleValue();
-        double dz = z.doubleValue();
-
-        return dx >= minX && dx < maxX && dy >= minY && dy < maxY && dz >= minZ && dz < maxZ;
+    // Max bounds are exclusive, so a region covering blocks 0 to 4 has maxX = 5.
+    public final boolean contains(int dim, double x, double y, double z) {
+        return this.dimID == dim && x >= minX && x < maxX && y >= minY && y < maxY && z >= minZ && z < maxZ;
     }
 
     public boolean intersectsWith(int dim, AxisAlignedBB box) {
@@ -219,27 +217,18 @@ public class TemporaWorldRegion {
         tag.setLong("regionOriginTimeMs", regionOriginTimeMs);
         tag.setString("regionUUID", regionUUID);
         tag.setString("playerAuthorUUID", playerAuthorUUID);
-        tag.setString("renderMode", renderMode.toString());
         tag.setInteger("colorRed", color.getRed());
         tag.setInteger("colorGreen", color.getGreen());
         tag.setInteger("colorBlue", color.getBlue());
 
-        // Whitelist / blacklist of event filters.
-        NBTTagList whiteListTag = new NBTTagList();
-        for (GenericPositionalLogger<?> logger : eventWhitelist) {
-            if (logger != null) {
-                whiteListTag.appendTag(new NBTTagString(logger.getLoggerName()));
-            }
+        NBTTagCompound rulesTag = new NBTTagCompound();
+        for (Map.Entry<String, LogRule> rule : loggerRules.entrySet()) {
+            rulesTag.setString(
+                rule.getKey(),
+                rule.getValue()
+                    .name());
         }
-        tag.setTag("eventWhitelist", whiteListTag);
-
-        NBTTagList blackListTag = new NBTTagList();
-        for (GenericPositionalLogger<?> logger : eventBlacklist) {
-            if (logger != null) {
-                blackListTag.appendTag(new NBTTagString(logger.getLoggerName()));
-            }
-        }
-        tag.setTag("eventBlacklist", blackListTag);
+        tag.setTag("loggerRules", rulesTag);
 
         return tag;
     }
@@ -258,53 +247,47 @@ public class TemporaWorldRegion {
         region.regionOriginTimeMs = tag.getLong("regionOriginTimeMs");
         region.regionUUID = tag.getString("regionUUID");
         region.playerAuthorUUID = tag.getString("playerAuthorUUID");
-        region.renderMode = RegionRenderMode.valueOf(tag.getString("renderMode"));
+        // Only real regions are saved, wand highlights are client side only.
+        region.renderMode = RegionRenderMode.REGION;
 
         int colorRed = tag.getInteger("colorRed");
         int colorGreen = tag.getInteger("colorGreen");
         int colorBlue = tag.getInteger("colorBlue");
         region.color = new Color(colorRed, colorGreen, colorBlue);
 
-        // Whitelist / blacklist of event filters.
-        if (tag.hasKey("eventWhitelist")) {
-            NBTTagList whiteListTag = tag.getTagList("eventWhitelist", 8);
-            for (int i = 0; i < whiteListTag.tagCount(); i++) {
-                // Todo null checks (what if logger is removed etc)
-                region.eventWhitelist.add(TemporaLoggerManager.getLogger(whiteListTag.getStringTagAt(i)));
-            }
-        }
-
-        if (tag.hasKey("eventBlacklist")) {
-            NBTTagList blackListTag = tag.getTagList("eventBlacklist", 8);
-            for (int i = 0; i < blackListTag.tagCount(); i++) {
-                region.eventBlacklist.add(TemporaLoggerManager.getLogger(blackListTag.getStringTagAt(i)));
+        NBTTagCompound rulesTag = tag.getCompoundTag("loggerRules");
+        for (String loggerName : rulesTag.func_150296_c()) {
+            LogRule rule = LogRule.fromString(rulesTag.getString(loggerName));
+            if (rule != null) {
+                region.loggerRules.put(loggerName, rule);
             }
         }
 
         return region;
     }
 
+    /* ---------- Chat ---------- */
+
+    // Clickable corner blocks, matching the inclusive coordinates typed into /tempora_create_region.
+    public IChatComponent getMinCornerChatComponent() {
+        return teleportChatComponent(minX, minY, minZ, dimID, CommandUtils.TeleportType.BLOCK);
+    }
+
+    public IChatComponent getMaxCornerChatComponent() {
+        return teleportChatComponent(maxX - 1, maxY - 1, maxZ - 1, dimID, CommandUtils.TeleportType.BLOCK);
+    }
+
+    public IChatComponent getMidpointChatComponent() {
+        return teleportChatComponent(getMidX(), getMidY(), getMidZ(), dimID, CommandUtils.TeleportType.EXACT);
+    }
+
     public IChatComponent getTeleportToRegionChatComponent() {
-        // Centre of the region for a sensible teleport target
-        double cx = (minX + maxX) / 2.0;
-        double cy = (minY + maxY) / 2.0;
-        double cz = (minZ + maxZ) / 2.0;
-
-        // Clickable coordinate component
-        ChatComponentTranslation tp = (ChatComponentTranslation) teleportChatComponent(
-            cx,
-            cy,
-            cz,
-            dimID,
-            CommandUtils.TeleportType.EXACT);
-
-        // Whole entry line
         ChatComponentTranslation line = new ChatComponentTranslation(
             "tempora.command.list_regions.entry",
             createHoverableClickable(label, regionUUID),
-            teleportChatComponent(minX, minY, minZ, dimID, CommandUtils.TeleportType.EXACT),
-            teleportChatComponent(maxX, maxY, maxZ, dimID, CommandUtils.TeleportType.EXACT),
-            tp,
+            getMinCornerChatComponent(),
+            getMaxCornerChatComponent(),
+            getMidpointChatComponent(),
             formatTime(regionOriginTimeMs),
             playerNameFromUUID(playerAuthorUUID));
 
@@ -314,11 +297,35 @@ public class TemporaWorldRegion {
         return line;
     }
 
-    public final void addWhitelistedLogger(GenericPositionalLogger<?> logger) {
-        eventWhitelist.add(logger);
+    // E.g. "Rules: BlockChangeLogger ON, EntityDeathLogger OFF".
+    public IChatComponent getRulesChatComponent() {
+        if (loggerRules.isEmpty()) {
+            IChatComponent none = new ChatComponentTranslation("tempora.region.rules.none");
+            none.getChatStyle()
+                .setColor(EnumChatFormatting.GRAY);
+            return none;
+        }
+
+        IChatComponent rules = new ChatComponentText("");
+        boolean first = true;
+        for (Map.Entry<String, LogRule> rule : loggerRules.entrySet()) {
+            if (!first) rules.appendSibling(new ChatComponentText(", "));
+            first = false;
+
+            rules.appendSibling(new ChatComponentText(rule.getKey() + " "));
+            rules.appendSibling(ruleChatComponent(rule.getValue()));
+        }
+
+        IChatComponent line = new ChatComponentTranslation("tempora.region.rules", rules);
+        line.getChatStyle()
+            .setColor(EnumChatFormatting.GRAY);
+        return line;
     }
 
-    public final void addBlacklistedLogger(GenericPositionalLogger<?> logger) {
-        eventBlacklist.add(logger);
+    public static IChatComponent ruleChatComponent(LogRule rule) {
+        IChatComponent component = new ChatComponentText(rule.name());
+        component.getChatStyle()
+            .setColor(rule == LogRule.ON ? EnumChatFormatting.GREEN : EnumChatFormatting.RED);
+        return component;
     }
 }

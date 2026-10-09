@@ -51,6 +51,13 @@ public class CommandUtils {
         return errorMessage;
     }
 
+    public static IChatComponent regionNotFound(String label) {
+        IChatComponent errorMessage = new ChatComponentTranslation("tempora.region.not_found", label);
+        errorMessage.getChatStyle()
+            .setColor(EnumChatFormatting.RED);
+        return errorMessage;
+    }
+
     public enum TeleportType {
         BLOCK,
         EXACT

@@ -2,7 +2,7 @@ package com.colen.tempora.networking.packets;
 
 import java.awt.Color;
 
-import com.colen.tempora.loggers.block_change.region_registry.TemporaWorldRegion;
+import com.colen.tempora.regions.TemporaWorldRegion;
 import com.colen.tempora.rendering.ClientRegionStore;
 import com.colen.tempora.rendering.regions.RegionRenderMode;
 

@@ -10,22 +10,23 @@ import java.util.List;
 
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
+import net.minecraftforge.common.DimensionManager;
 
 import com.colen.tempora.commands.command_base.CommandArg;
 import com.colen.tempora.commands.command_base.TemporaCommandBase;
-import com.colen.tempora.loggers.block_change.BlockChangeLogger;
-import com.colen.tempora.loggers.block_change.region_registry.TemporaRegionRegistry;
-import com.colen.tempora.loggers.block_change.region_registry.TemporaWorldRegion;
+import com.colen.tempora.regions.TemporaRegionRegistry;
+import com.colen.tempora.regions.TemporaWorldRegion;
 import com.colen.tempora.networking.packets.PacketShowRegionInWorld;
 import com.colen.tempora.utils.CommandUtils;
 
 /**
- * /listregions
- * Lists every stored region and provides a clickable coordinate that
- * teleports the issuer to the centre of that region.
+ * /tempora_list_regions [dim_ID]
+ * Lists every stored region with its rules, and clickable coordinates that teleport the issuer there.
+ * Players also get the regions drawn in the world for a short time.
  */
 public class ListRegions extends TemporaCommandBase {
 
@@ -50,56 +51,42 @@ public class ListRegions extends TemporaCommandBase {
             return;
         }
 
-        if (!(sender instanceof EntityPlayerMP player)) {
-            sender.addChatMessage(CommandUtils.playerOnly());
-            return;
-        }
-
         List<TemporaWorldRegion> regions = TemporaRegionRegistry.getAll();
 
-        Integer dimFilter;
         if (args.length == 1) {
-            dimFilter = parseInt(sender, args[0]);
-        } else {
-            dimFilter = null;
-        }
+            int dimFilter = parseInt(sender, args[0]);
 
-        if (dimFilter != null) {
+            if (!DimensionManager.isDimensionRegistered(dimFilter)) {
+                IChatComponent invalidDim = new ChatComponentTranslation("tempora.dimension.invalid", dimFilter);
+                invalidDim.getChatStyle()
+                    .setColor(EnumChatFormatting.RED);
+                sender.addChatMessage(invalidDim);
+                return;
+            }
+
             regions.removeIf(r -> r.getDimID() != dimFilter);
             if (regions.isEmpty()) {
-                String dimensionName = getDimensionName(dimFilter);
-
-                if (dimensionName == null) {
-                    IChatComponent invalidDim = new ChatComponentTranslation(
-                        "tempora.command.list_regions.filtered.invalid_dimension",
-                        dimFilter);
-                    invalidDim.getChatStyle()
-                        .setColor(EnumChatFormatting.RED);
-                    sender.addChatMessage(invalidDim);
-                } else {
-                    IChatComponent emptyDim = new ChatComponentTranslation(
-                        "tempora.command.list_regions.filtered.no_regions",
-                        dimensionName,
-                        dimFilter);
-                    emptyDim.getChatStyle()
-                        .setColor(EnumChatFormatting.RED);
-                    sender.addChatMessage(emptyDim);
-                }
-
+                IChatComponent emptyDim = new ChatComponentTranslation(
+                    "tempora.command.list_regions.filtered.no_regions",
+                    getDimensionName(dimFilter),
+                    dimFilter);
+                emptyDim.getChatStyle()
+                    .setColor(EnumChatFormatting.RED);
+                sender.addChatMessage(emptyDim);
                 return;
             }
         }
-
-        regions.sort(
-            Comparator.comparingInt(TemporaWorldRegion::getDimID)
-                .thenComparingLong(TemporaWorldRegion::getRenderStartTimeMs));
 
         if (regions.isEmpty()) {
             sender.addChatMessage(new ChatComponentTranslation("tempora.command.list_regions.none"));
             return;
         }
 
-        // List every region
+        regions.sort(
+            Comparator.comparingInt(TemporaWorldRegion::getDimID)
+                .thenComparingLong(TemporaWorldRegion::getRegionOriginTimeMs));
+
+        // List every region, grouped by dimension.
         HashSet<Integer> dimIDsSeen = new HashSet<>();
         for (TemporaWorldRegion r : regions) {
             if (dimIDsSeen.add(r.getDimID())) {
@@ -112,18 +99,14 @@ public class ListRegions extends TemporaCommandBase {
                 sender.addChatMessage(dimBanner);
             }
             sender.addChatMessage(r.getTeleportToRegionChatComponent());
+            sender.addChatMessage(
+                new ChatComponentText("  ").appendSibling(r.getRulesChatComponent()));
         }
 
-        for (TemporaWorldRegion regionToSend : regions) {
-            NETWORK.sendTo(new PacketShowRegionInWorld.RegionMsg(regionToSend), player);
-        }
-
-        if (BlockChangeLogger.isGlobalBlockChangeLoggingEnabled()) {
-            IChatComponent globalLoggingMessage = new ChatComponentTranslation(
-                "tempora.command.list_regions.global.logging.enabled");
-            globalLoggingMessage.getChatStyle()
-                .setColor(EnumChatFormatting.DARK_RED);
-            player.addChatMessage(globalLoggingMessage);
+        if (sender instanceof EntityPlayerMP player) {
+            for (TemporaWorldRegion regionToSend : regions) {
+                NETWORK.sendTo(new PacketShowRegionInWorld.RegionMsg(regionToSend), player);
+            }
         }
     }
 
@@ -133,11 +116,7 @@ public class ListRegions extends TemporaCommandBase {
 
     @Override
     public String getExampleCommand() {
-        return "-1";
+        return "/" + getCommandName() + " -1";
     }
 
-    @Override
-    public String getTranslationKeyBase() {
-        return "tempora.command.list_regions";
-    }
 }

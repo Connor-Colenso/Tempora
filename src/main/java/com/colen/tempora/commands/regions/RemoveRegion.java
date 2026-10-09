@@ -2,35 +2,37 @@ package com.colen.tempora.commands.regions;
 
 import static com.colen.tempora.Tempora.NETWORK;
 import static com.colen.tempora.utils.CommandUtils.OP_ONLY;
-import static com.colen.tempora.utils.CommandUtils.teleportChatComponent;
 
 import java.util.List;
 
-import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
-import net.minecraft.command.WrongUsageException;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.event.ClickEvent;
+import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
+import com.colen.tempora.commands.command_base.CommandArg;
 import com.colen.tempora.commands.command_base.TemporaCommandBase;
-import com.colen.tempora.loggers.block_change.region_registry.TemporaRegionRegistry;
-import com.colen.tempora.loggers.block_change.region_registry.TemporaWorldRegion;
 import com.colen.tempora.networking.packets.PacketRemoveRegionFromClient;
+import com.colen.tempora.regions.TemporaRegionRegistry;
+import com.colen.tempora.regions.TemporaWorldRegion;
 import com.colen.tempora.utils.CommandUtils;
-import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 
 /**
- * /removeregion
- * Deletes every stored region that currently contains the issuing player.
- * (If regions overlap, they are all removed.)
+ * Deletes a region by label, or the region the player is standing in. Regions can be nested, so if the player is
+ * inside more than one, nothing is removed and they are asked to pick one by label instead.
  */
 public class RemoveRegion extends TemporaCommandBase {
 
+    public RemoveRegion() {
+        super(new CommandArg("[label]", "tempora.command.remove_region.help.arg0"));
+    }
+
     @Override
     public String getCommandName() {
-        return "tempora_remove_regions";
+        return "tempora_remove_region";
     }
 
     @Override
@@ -39,83 +41,94 @@ public class RemoveRegion extends TemporaCommandBase {
     }
 
     @Override
-    public void processCommand(ICommandSender sender, String[] args) throws CommandException {
-        // Syntax check
-        if (args.length != 0) {
-            throw new WrongUsageException(getCommandUsage(sender));
-        }
-
-        // remove_region only makes sense for a player because it users the players coords
-        if (!(sender instanceof EntityPlayerMP player)) {
-            sender.addChatMessage(CommandUtils.playerOnly());
+    public void processCommand(ICommandSender sender, String[] args) {
+        if (args.length > 1) {
+            sender.addChatMessage(CommandUtils.wrongUsage(getCommandUsage(sender)));
             return;
         }
 
-        List<TemporaWorldRegion> removed = TemporaRegionRegistry.removeRegionsIntersectingPlayer(player);
-        int removedCount = removed.size();
+        TemporaWorldRegion region;
 
-        ChatComponentTranslation msg;
-        if (removedCount > 0) {
-            // Plural, or not.
-            String key = removedCount == 1 ? "tempora.command.remove_region.removed.single"
-                : "tempora.command.remove_region.removed.plural";
-
-            msg = new ChatComponentTranslation(key, new ChatComponentNumber(removedCount));
-
-            for (TemporaWorldRegion region : removed) {
-                // Deletes them from the players' local renderer immediately.
-                NETWORK.sendTo(new PacketRemoveRegionFromClient(region.getRegionUUID()), player);
-
-                IChatComponent removedMessageOfRegion = new ChatComponentTranslation(
-                    "tempora.region.remove.individual",
-                    region.getLabel(),
-                    teleportChatComponent(
-                        region.getMinX(),
-                        region.getMinY(),
-                        region.getMinZ(),
-                        region.getDimID(),
-                        CommandUtils.TeleportType.EXACT),
-                    teleportChatComponent(
-                        region.getMaxX(),
-                        region.getMaxY(),
-                        region.getMaxZ(),
-                        region.getDimID(),
-                        CommandUtils.TeleportType.EXACT),
-                    teleportChatComponent(
-                        region.getMidX(),
-                        region.getMidY(),
-                        region.getMidZ(),
-                        region.getDimID(),
-                        CommandUtils.TeleportType.EXACT));
-
-                removedMessageOfRegion.getChatStyle()
-                    .setColor(EnumChatFormatting.GREEN);
-
-                player.addChatMessage(removedMessageOfRegion);
+        if (args.length == 1) {
+            region = TemporaRegionRegistry.getByLabel(args[0]);
+            if (region == null) {
+                sender.addChatMessage(CommandUtils.regionNotFound(args[0]));
+                return;
+            }
+        } else {
+            // Without a label, use the region the player is standing in.
+            if (!(sender instanceof EntityPlayerMP player)) {
+                sender.addChatMessage(CommandUtils.playerOnly());
+                return;
             }
 
-            msg.getChatStyle()
-                .setColor(EnumChatFormatting.GREEN);
-            sender.addChatMessage(msg);
-        } else {
-            msg = new ChatComponentTranslation("tempora.command.remove_region.no_region");
-            msg.getChatStyle()
-                .setColor(EnumChatFormatting.RED);
+            List<TemporaWorldRegion> here = TemporaRegionRegistry
+                .regionsContaining(player.dimension, player.posX, player.posY, player.posZ);
+
+            if (here.isEmpty()) {
+                IChatComponent msg = new ChatComponentTranslation("tempora.command.remove_region.no_region");
+                msg.getChatStyle()
+                    .setColor(EnumChatFormatting.RED);
+                sender.addChatMessage(msg);
+                return;
+            }
+
+            if (here.size() > 1) {
+                sendPickOne(sender, here);
+                return;
+            }
+
+            region = here.get(0);
         }
+
+        TemporaRegionRegistry.remove(region);
+
+        // Stops it rendering for anyone currently looking at it.
+        NETWORK.sendToAll(new PacketRemoveRegionFromClient(region.getRegionUUID()));
+
+        IChatComponent msg = new ChatComponentTranslation(
+            "tempora.command.remove_region.removed",
+            region.getLabel(),
+            region.getMinCornerChatComponent(),
+            region.getMaxCornerChatComponent(),
+            region.getMidpointChatComponent());
+        msg.getChatStyle()
+            .setColor(EnumChatFormatting.GREEN);
         sender.addChatMessage(msg);
+    }
+
+    private void sendPickOne(ICommandSender sender, List<TemporaWorldRegion> regions) {
+        IChatComponent header = new ChatComponentTranslation("tempora.command.remove_region.ambiguous", regions.size());
+        header.getChatStyle()
+            .setColor(EnumChatFormatting.YELLOW);
+        sender.addChatMessage(header);
+
+        for (TemporaWorldRegion region : regions) {
+            IChatComponent option = new ChatComponentText(" - " + region.getLabel());
+            option.getChatStyle()
+                .setColor(EnumChatFormatting.AQUA)
+                .setChatClickEvent(
+                    new ClickEvent(
+                        ClickEvent.Action.SUGGEST_COMMAND,
+                        "/" + getCommandName() + " " + region.getLabel()));
+            sender.addChatMessage(option);
+        }
+    }
+
+    @Override
+    public List<String> addTabCompletionOptions(ICommandSender sender, String[] args) {
+        if (args.length == 1) {
+            return getListOfStringsFromIterableMatchingLastWord(args, TemporaRegionRegistry.getAllLabels());
+        }
+        return null;
     }
 
     @Override
     public String getExampleCommand() {
-        return "";
+        return "/" + getCommandName() + " spawn";
     }
 
     public IChatComponent getCommandDescription() {
-        return new ChatComponentTranslation("tempora.command.explode.remove_region.description");
-    }
-
-    @Override
-    public String getTranslationKeyBase() {
-        return "tempora.command.remove_region";
+        return new ChatComponentTranslation("tempora.command.remove_region.help.description");
     }
 }

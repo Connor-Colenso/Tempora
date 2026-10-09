@@ -34,7 +34,10 @@ import com.colen.tempora.utils.TimeUtils;
 public class HomeChunk extends TemporaCommandBase {
 
     public HomeChunk() {
-        super(new CommandArg("<?>", "tempora.command.home_chunk.help.arg0"));
+        super(
+            new CommandArg("<player>", "tempora.command.home_chunk.help.arg0"),
+            new CommandArg("[look_back]", "tempora.command.home_chunk.help.arg1"),
+            new CommandArg("[dim_ID]", "tempora.command.home_chunk.help.arg2"));
     }
 
     @Override
@@ -202,13 +205,9 @@ public class HomeChunk extends TemporaCommandBase {
 
     @Override
     public String getExampleCommand() {
-        return "";
+        return "/" + getCommandName() + " Notch 1month 0";
     }
 
-    @Override
-    public String getTranslationKeyBase() {
-        return "tempora.command.home_chunk";
-    }
 
     public IChatComponent getCommandDescription() {
         return new ChatComponentTranslation("tempora.command.home_chunk.description");

@@ -5,6 +5,9 @@ import net.minecraft.block.material.Material;
 import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.util.IIcon;
 
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+
 public class RenderingErrorBlock extends Block {
 
     private IIcon icon;
@@ -17,6 +20,7 @@ public class RenderingErrorBlock extends Block {
     }
 
     @Override
+    @SideOnly(Side.CLIENT)
     public void registerBlockIcons(IIconRegister reg) {
         this.icon = reg.registerIcon(getTextureName());
     }

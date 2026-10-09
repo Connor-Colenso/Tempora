@@ -54,6 +54,6 @@ public class ClientProxy extends CommonProxy {
             10,
             4,
             256,
-            "This is the maximum range at which events will render for you, be warned, setting this to a high number may cause stability issues when previewing undo operations due to the large number of events inside.");
+            "This is the maximum range at which events will render for you, be warned, setting this to a high number may cause performance issues when a large number of events are rendered at once.");
     }
 }

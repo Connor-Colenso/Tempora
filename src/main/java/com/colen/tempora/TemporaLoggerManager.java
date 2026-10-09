@@ -91,6 +91,17 @@ public final class TemporaLoggerManager {
         return LOGGERS.get(loggerName);
     }
 
+    // For player typed names, where "blockchangelogger" should still find BlockChangeLogger.
+    public static @Nullable GenericPositionalLogger<?> getLoggerIgnoreCase(String loggerName) {
+        for (GenericPositionalLogger<?> logger : LOGGERS.values()) {
+            if (logger.getLoggerName()
+                .equalsIgnoreCase(loggerName)) {
+                return logger;
+            }
+        }
+        return null;
+    }
+
     public static Collection<GenericPositionalLogger<?>> getLoggerList() {
         return Collections.unmodifiableCollection(LOGGERS.values());
     }

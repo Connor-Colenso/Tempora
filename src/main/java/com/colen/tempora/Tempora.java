@@ -3,7 +3,6 @@ package com.colen.tempora;
 import static com.colen.tempora.utils.GenericUtils.isServerSide;
 import static com.colen.tempora.utils.GenericUtils.shouldTemporaRun;
 
-import com.colen.tempora.commands.regions.RegionFilter;
 import net.minecraft.block.Block;
 import net.minecraftforge.common.config.Configuration;
 
@@ -12,12 +11,14 @@ import org.apache.logging.log4j.Logger;
 
 import com.colen.tempora.blocks.RenderingErrorBlock;
 import com.colen.tempora.commands.*;
+import com.colen.tempora.commands.regions.CheckRegionRules;
 import com.colen.tempora.commands.regions.CreateRegion;
 import com.colen.tempora.commands.regions.ListRegions;
 import com.colen.tempora.commands.regions.RemoveRegion;
+import com.colen.tempora.commands.regions.SetRegionRule;
 import com.colen.tempora.events.ServerTickHandler;
-import com.colen.tempora.loggers.block_change.region_registry.TemporaRegionRegistry;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
+import com.colen.tempora.regions.TemporaRegionRegistry;
 import com.colen.tempora.rendering.ClientRegionStore;
 
 import cpw.mods.fml.common.FMLCommonHandler;
@@ -68,23 +69,21 @@ public class Tempora {
     }
 
     @Mod.EventHandler
-    public void serverInit(FMLServerStartingEvent event) {
+    public void serverStarting(FMLServerStartingEvent event) {
+        registerNewCommands(event);
+
+        // Before any logger starts, as loggers check regions for every event.
+        TemporaRegionRegistry.load();
+
         if (shouldTemporaRun()) {
             for (GenericPositionalLogger<?> logger : TemporaLoggerManager.getLoggerList()) {
                 logger.registerEvent();
             }
         }
-    }
-
-    @Mod.EventHandler
-    public void serverStarting(FMLServerStartingEvent event) {
-        registerNewCommands(event);
 
         if (shouldTemporaRun() && isServerSide()) {
             GenericPositionalLogger.onServerStart();
         }
-
-        TemporaRegionRegistry.loadNow();
     }
 
     private void registerNewCommands(FMLServerStartingEvent event) {
@@ -95,7 +94,8 @@ public class Tempora {
         event.registerServerCommand(new CreateRegion());
         event.registerServerCommand(new ListRegions());
         event.registerServerCommand(new RemoveRegion());
-        event.registerServerCommand(new RegionFilter());
+        event.registerServerCommand(new SetRegionRule());
+        event.registerServerCommand(new CheckRegionRules());
         event.registerServerCommand(new TemporaStackTrace());
 
         event.registerServerCommand(new TemporaTp());
@@ -108,8 +108,9 @@ public class Tempora {
     public void serverStopping(FMLServerStoppingEvent event) {
         if (isServerSide()) {
             GenericPositionalLogger.onServerClose();
-            TemporaRegionRegistry.saveIfDirty();
         }
+
+        TemporaRegionRegistry.unload();
 
         ClientRegionStore.onServerClose();
         TemporaStackTrace.clearAll();
