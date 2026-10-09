@@ -148,7 +148,6 @@ public class TemporaHelp extends TemporaCommandBase {
         return "/" + getCommandName() + " tempora_query_events";
     }
 
-
     public IChatComponent getCommandDescription() {
         return new ChatComponentTranslation("tempora.command.help.help.description");
     }

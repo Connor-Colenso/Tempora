@@ -18,9 +18,9 @@ import net.minecraftforge.common.DimensionManager;
 
 import com.colen.tempora.commands.command_base.CommandArg;
 import com.colen.tempora.commands.command_base.TemporaCommandBase;
+import com.colen.tempora.networking.packets.PacketShowRegionInWorld;
 import com.colen.tempora.regions.TemporaRegionRegistry;
 import com.colen.tempora.regions.TemporaWorldRegion;
-import com.colen.tempora.networking.packets.PacketShowRegionInWorld;
 import com.colen.tempora.utils.CommandUtils;
 
 /**
@@ -99,8 +99,7 @@ public class ListRegions extends TemporaCommandBase {
                 sender.addChatMessage(dimBanner);
             }
             sender.addChatMessage(r.getTeleportToRegionChatComponent());
-            sender.addChatMessage(
-                new ChatComponentText("  ").appendSibling(r.getRulesChatComponent()));
+            sender.addChatMessage(new ChatComponentText("  ").appendSibling(r.getRulesChatComponent()));
         }
 
         if (sender instanceof EntityPlayerMP player) {

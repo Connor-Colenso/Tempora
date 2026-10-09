@@ -208,7 +208,6 @@ public class HomeChunk extends TemporaCommandBase {
         return "/" + getCommandName() + " Notch 1month 0";
     }
 
-
     public IChatComponent getCommandDescription() {
         return new ChatComponentTranslation("tempora.command.home_chunk.description");
     }

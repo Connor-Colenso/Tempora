@@ -43,12 +43,7 @@ public class ReflectionUtils {
             ColumnDef.ColumnAccessor accessor = buildColumnAccessor(field);
 
             defs.add(
-                new ColumnDef(
-                    name,
-                    type.getSqlType(),
-                    col.constraints(),
-                    Arrays.asList(col.renamedFrom()),
-                    accessor));
+                new ColumnDef(name, type.getSqlType(), col.constraints(), Arrays.asList(col.renamedFrom()), accessor));
         }
 
         // Freeze before caching

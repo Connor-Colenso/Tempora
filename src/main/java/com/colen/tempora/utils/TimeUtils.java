@@ -100,10 +100,8 @@ public class TimeUtils {
 
     // Smallest first. Same unit lengths as convertToSeconds, so "1month" typed into a command reads back as 1 month.
     private static final TimeUnit[] TIME_UNITS = new TimeUnit[] {
-        new TimeUnit(1, "time.ago.second", "time.ago.seconds"),
-        new TimeUnit(60, "time.ago.minute", "time.ago.minutes"),
-        new TimeUnit(3_600, "time.ago.hour", "time.ago.hours"),
-        new TimeUnit(86_400, "time.ago.day", "time.ago.days"),
+        new TimeUnit(1, "time.ago.second", "time.ago.seconds"), new TimeUnit(60, "time.ago.minute", "time.ago.minutes"),
+        new TimeUnit(3_600, "time.ago.hour", "time.ago.hours"), new TimeUnit(86_400, "time.ago.day", "time.ago.days"),
         new TimeUnit(604_800, "time.ago.week", "time.ago.weeks"),
         new TimeUnit(2_592_000, "time.ago.month", "time.ago.months"),
         new TimeUnit(31_557_600, "time.ago.year", "time.ago.years"),

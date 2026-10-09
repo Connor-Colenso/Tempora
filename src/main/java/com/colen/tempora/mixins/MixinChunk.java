@@ -1,5 +1,7 @@
 package com.colen.tempora.mixins;
 
+import static com.colen.tempora.Tempora.LOG;
+
 import net.minecraft.block.Block;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
@@ -9,8 +11,6 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-
-import static com.colen.tempora.Tempora.LOG;
 
 import com.colen.tempora.TemporaEvents;
 

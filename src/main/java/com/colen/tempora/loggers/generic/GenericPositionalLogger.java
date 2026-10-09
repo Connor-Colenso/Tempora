@@ -231,10 +231,7 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
         try {
             while (!shuttingDownDatabaseThread || !concurrentEventQueue.isEmpty()) {
 
-                EventInfo event = concurrentEventQueue.poll(
-                    QUEUE_POLL_TIMEOUT_MILLISECONDS,
-                    TimeUnit.MILLISECONDS
-                );
+                EventInfo event = concurrentEventQueue.poll(QUEUE_POLL_TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS);
 
                 if (event == null) {
                     continue;
@@ -260,15 +257,15 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
 
         } catch (InterruptedException e) {
             // Expected during shutdown — just exit
-            Thread.currentThread().interrupt();
+            Thread.currentThread()
+                .interrupt();
 
         } catch (Exception e) {
             LOG.error(
                 "Queue worker {} crashed unexpectedly and is shutting down. Remaining queue size={}",
                 getLoggerName(),
                 concurrentEventQueue.size(),
-                e
-            );
+                e);
 
         } finally {
             isRunning = false;
@@ -276,7 +273,8 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
     }
 
     public final void genericConfig(@NotNull Configuration config) {
-        isEnabledByConfig = config.getBoolean("isEnabled", getLoggerName(), true, "Enables this loggers functionality.");
+        isEnabledByConfig = config
+            .getBoolean("isEnabled", getLoggerName(), true, "Enables this loggers functionality.");
         logByDefault = config.getBoolean(
             "logByDefault",
             getLoggerName(),

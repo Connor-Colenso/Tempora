@@ -221,7 +221,8 @@ public class QuerySQL extends TemporaCommandBase {
 
     @Override
     public String getExampleCommand() {
-        return "/" + getCommandName() + " SELECT * FROM PlayerMovementLogger WHERE playerUUID = 'player_uuid_goes_here' AND Y > 80";
+        return "/" + getCommandName()
+            + " SELECT * FROM PlayerMovementLogger WHERE playerUUID = 'player_uuid_goes_here' AND Y > 80";
     }
 
     public IChatComponent getCommandDescription() {

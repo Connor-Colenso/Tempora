@@ -18,7 +18,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import com.colen.tempora.loggers.generic.enums.LogWriteSafety;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentTranslation;
@@ -31,6 +30,7 @@ import org.sqlite.SQLiteConfig;
 
 import com.colen.tempora.Tempora;
 import com.colen.tempora.loggers.generic.column.ColumnDef;
+import com.colen.tempora.loggers.generic.enums.LogWriteSafety;
 import com.colen.tempora.utils.TimeUtils;
 import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 

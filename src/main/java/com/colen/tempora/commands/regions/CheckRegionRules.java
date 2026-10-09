@@ -93,8 +93,7 @@ public class CheckRegionRules extends TemporaCommandBase {
     }
 
     // Mirrors GenericPositionalLogger.canLogHere, but keeps track of why.
-    private static IChatComponent explain(GenericPositionalLogger<?> logger, int dimID, double x, double y,
-        double z) {
+    private static IChatComponent explain(GenericPositionalLogger<?> logger, int dimID, double x, double y, double z) {
         String loggerName = logger.getLoggerName();
 
         LogRule result;

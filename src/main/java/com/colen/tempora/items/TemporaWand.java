@@ -19,8 +19,8 @@ import net.minecraft.util.Facing;
 import net.minecraft.world.World;
 
 import com.colen.tempora.TemporaLoggerManager;
-import com.colen.tempora.regions.TemporaWorldRegion;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
+import com.colen.tempora.regions.TemporaWorldRegion;
 import com.colen.tempora.rendering.ClientRegionStore;
 import com.colen.tempora.rendering.regions.RegionRenderMode;
 import com.colen.tempora.utils.CommandUtils;

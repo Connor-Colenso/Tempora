@@ -72,7 +72,6 @@ public class TemporaStackTrace extends TemporaCommandBase {
         return new ChatComponentTranslation("tempora.command.stacktrace.description");
     }
 
-
     public static void storeStackTrace(String key, List<IChatComponent> stackTrace) {
         STACK_TRACES.put(key, stackTrace);
     }

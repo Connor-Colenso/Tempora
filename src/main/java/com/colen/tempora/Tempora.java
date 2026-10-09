@@ -10,7 +10,13 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.colen.tempora.blocks.RenderingErrorBlock;
-import com.colen.tempora.commands.*;
+import com.colen.tempora.commands.HomeChunk;
+import com.colen.tempora.commands.QueryEvents;
+import com.colen.tempora.commands.QuerySQL;
+import com.colen.tempora.commands.TemporaExplode;
+import com.colen.tempora.commands.TemporaHelp;
+import com.colen.tempora.commands.TemporaStackTrace;
+import com.colen.tempora.commands.TemporaTp;
 import com.colen.tempora.commands.regions.CheckRegionRules;
 import com.colen.tempora.commands.regions.CreateRegion;
 import com.colen.tempora.commands.regions.ListRegions;

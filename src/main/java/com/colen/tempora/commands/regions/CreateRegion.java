@@ -120,7 +120,12 @@ public class CreateRegion extends TemporaCommandBase {
         sender.addChatMessage(msg);
 
         // The most common reason to make a region is to log block changes in it, so offer that.
-        String blockLoggingCommand = "/" + SetRegionRule.COMMAND_NAME + " " + label + " " + TemporaEvents.BLOCK_CHANGE + " on";
+        String blockLoggingCommand = "/" + SetRegionRule.COMMAND_NAME
+            + " "
+            + label
+            + " "
+            + TemporaEvents.BLOCK_CHANGE
+            + " on";
         IChatComponent suggestion = new ChatComponentTranslation("tempora.command.create_region.suggest_block_logging");
         suggestion.getChatStyle()
             .setColor(EnumChatFormatting.AQUA)
