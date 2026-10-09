@@ -36,6 +36,11 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
     }
 
     @Override
+    public @NotNull String getShortName() {
+        return "break";
+    }
+
+    @Override
     public @NotNull PlayerBlockBreakEventInfo newEventInfo() {
         return new PlayerBlockBreakEventInfo();
     }

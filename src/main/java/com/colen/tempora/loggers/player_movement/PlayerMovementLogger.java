@@ -34,6 +34,11 @@ public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovement
     }
 
     @Override
+    public @NotNull String getShortName() {
+        return "movement";
+    }
+
+    @Override
     public @NotNull PlayerMovementEventInfo newEventInfo() {
         return new PlayerMovementEventInfo();
     }

@@ -1,51 +1,46 @@
 package com.colen.tempora.commands;
 
-import static com.colen.tempora.utils.CommandUtils.OP_ONLY;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
-import net.minecraft.command.WrongUsageException;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
-import com.colen.tempora.commands.command_base.CommandArg;
-import com.colen.tempora.commands.command_base.TemporaCommandBase;
+import com.colen.tempora.commands.command_base.TemporaSubcommand;
 
-// Internal command for displaying stack trace info.
-public class TemporaStackTrace extends TemporaCommandBase {
+/**
+ * /tempora trace <key>
+ * Prints a stack trace stored when a block change event was shown. Hidden, as it is run by clicking [STACK TRACE] in
+ * chat.
+ */
+public class TraceCommand extends TemporaSubcommand {
 
     private static final Map<String, List<IChatComponent>> STACK_TRACES = new HashMap<>();
 
-    public TemporaStackTrace() {
-        super(new CommandArg("key", "tempora.command.stacktrace.arg.key"));
+    public TraceCommand() {
+        super("trace", "<key>");
     }
 
     @Override
-    public String getCommandName() {
-        return "tempora_stacktrace";
+    public boolean isHidden() {
+        return true;
     }
 
     @Override
-    public int getRequiredPermissionLevel() {
-        return OP_ONLY;
-    }
-
-    @Override
-    public void processCommand(ICommandSender sender, String[] args) throws CommandException {
+    public void execute(ICommandSender sender, String[] args) {
         if (args.length != 1) {
-            throw new WrongUsageException(getCommandUsage(sender));
+            sendUsageError(sender);
+            return;
         }
 
         String key = args[0];
         List<IChatComponent> trace = STACK_TRACES.get(key);
 
         if (trace == null || trace.isEmpty()) {
-            sender.addChatMessage(new ChatComponentTranslation("tempora.command.stacktrace.not_found", key));
+            sendError(sender, "tempora.command.trace.not_found", key);
             return;
         }
 
@@ -63,13 +58,8 @@ public class TemporaStackTrace extends TemporaCommandBase {
     }
 
     @Override
-    public String getExampleCommand() {
-        return "todo";
-    }
-
-    @Override
-    public IChatComponent getCommandDescription() {
-        return new ChatComponentTranslation("tempora.command.stacktrace.description");
+    public String getExampleArgs() {
+        return "<key>";
     }
 
     public static void storeStackTrace(String key, List<IChatComponent> stackTrace) {

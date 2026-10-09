@@ -14,7 +14,8 @@ import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
 import com.colen.tempora.TemporaEvents;
-import com.colen.tempora.commands.TemporaStackTrace;
+import com.colen.tempora.commands.TemporaCommand;
+import com.colen.tempora.commands.TraceCommand;
 import com.colen.tempora.loggers.generic.GenericEventInfo;
 import com.colen.tempora.loggers.generic.column.Column;
 import com.colen.tempora.utils.BlockUtils;
@@ -94,7 +95,7 @@ public class BlockChangeEventInfo extends GenericEventInfo {
         // Generate a UUID for this trace and store it
         String traceUUID = UUID.randomUUID()
             .toString();
-        TemporaStackTrace.storeStackTrace(traceUUID, stackTraceComponents);
+        TraceCommand.storeStackTrace(traceUUID, stackTraceComponents);
 
         // Build hover text with truncation
         int maxLines = 7;
@@ -135,7 +136,7 @@ public class BlockChangeEventInfo extends GenericEventInfo {
             .setChatClickEvent(
                 new net.minecraft.event.ClickEvent(
                     net.minecraft.event.ClickEvent.Action.RUN_COMMAND,
-                    "/tempora_stacktrace " + traceUUID));
+                    TemporaCommand.TRACE.command(traceUUID)));
 
         // Main message component
         return new ChatComponentTranslation(

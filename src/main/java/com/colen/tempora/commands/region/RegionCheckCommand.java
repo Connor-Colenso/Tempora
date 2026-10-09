@@ -1,12 +1,12 @@
-package com.colen.tempora.commands.regions;
+package com.colen.tempora.commands.region;
 
-import static com.colen.tempora.utils.CommandUtils.OP_ONLY;
 import static com.colen.tempora.utils.GenericUtils.getDimensionName;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
+import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentTranslation;
@@ -14,8 +14,8 @@ import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
 import com.colen.tempora.TemporaLoggerManager;
-import com.colen.tempora.commands.command_base.CommandArg;
-import com.colen.tempora.commands.command_base.TemporaCommandBase;
+import com.colen.tempora.commands.LookupCommand;
+import com.colen.tempora.commands.command_base.TemporaSubcommand;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.regions.LogRule;
 import com.colen.tempora.regions.TemporaRegionRegistry;
@@ -23,54 +23,40 @@ import com.colen.tempora.regions.TemporaWorldRegion;
 import com.colen.tempora.utils.CommandUtils;
 
 /**
- * /tempora_region_check [logger]
+ * /tempora region check [logger]
  * Shows, for each logger, whether it logs at the player's position and what decided that.
  */
-public class CheckRegionRules extends TemporaCommandBase {
+public class RegionCheckCommand extends TemporaSubcommand {
 
-    public CheckRegionRules() {
-        super(new CommandArg("[logger]", "tempora.command.region_check.help.arg0"));
+    public RegionCheckCommand() {
+        super("check", "[logger]");
     }
 
     @Override
-    public String getCommandName() {
-        return "tempora_region_check";
+    public boolean isPlayerOnly() {
+        return true;
     }
 
     @Override
-    public int getRequiredPermissionLevel() {
-        return OP_ONLY;
-    }
-
-    @Override
-    public void processCommand(ICommandSender sender, String[] args) {
-        if (!(sender instanceof EntityPlayerMP player)) {
-            sender.addChatMessage(CommandUtils.playerOnly());
-            return;
-        }
+    public void execute(ICommandSender sender, String[] args) {
+        EntityPlayerMP player = (EntityPlayerMP) sender;
 
         if (args.length > 1) {
-            sender.addChatMessage(CommandUtils.wrongUsage(getCommandUsage(sender)));
+            sendUsageError(sender);
             return;
         }
 
         List<GenericPositionalLogger<?>> loggers = new ArrayList<>();
         if (args.length == 1) {
-            GenericPositionalLogger<?> logger = TemporaLoggerManager.getLoggerIgnoreCase(args[0]);
+            GenericPositionalLogger<?> logger = TemporaLoggerManager.findLogger(args[0]);
             if (logger == null) {
-                IChatComponent msg = new ChatComponentTranslation(
-                    "tempora.command.region_rule.unknown_logger",
-                    args[0],
-                    String.join(", ", TemporaLoggerManager.getAllLoggerNames()));
-                msg.getChatStyle()
-                    .setColor(EnumChatFormatting.RED);
-                sender.addChatMessage(msg);
+                LookupCommand.sendUnknownLogger(sender, args[0]);
                 return;
             }
             loggers.add(logger);
         } else {
             loggers.addAll(TemporaLoggerManager.getLoggerList());
-            loggers.sort(Comparator.comparing(GenericPositionalLogger::getLoggerName));
+            loggers.sort(Comparator.comparing(GenericPositionalLogger::getShortName));
         }
 
         int dimID = player.dimension;
@@ -79,7 +65,7 @@ public class CheckRegionRules extends TemporaCommandBase {
         double z = player.posZ;
 
         IChatComponent header = new ChatComponentTranslation(
-            "tempora.command.region_check.header",
+            "tempora.command.region.check.header",
             CommandUtils.teleportChatComponent(x, y, z, dimID, CommandUtils.TeleportType.EXACT),
             getDimensionName(dimID),
             dimID);
@@ -101,21 +87,21 @@ public class CheckRegionRules extends TemporaCommandBase {
 
         if (!logger.isEnabledByConfig()) {
             result = LogRule.OFF;
-            reason = new ChatComponentTranslation("tempora.command.region_check.reason.disabled");
+            reason = new ChatComponentTranslation("tempora.command.region.check.reason.disabled");
         } else {
             TemporaWorldRegion deciding = TemporaRegionRegistry.findDecidingRegion(loggerName, dimID, x, y, z);
 
             if (deciding == null) {
                 result = logger.logsByDefault() ? LogRule.ON : LogRule.OFF;
-                reason = new ChatComponentTranslation("tempora.command.region_check.reason.default");
+                reason = new ChatComponentTranslation("tempora.command.region.check.reason.default");
             } else {
                 result = deciding.getRule(loggerName);
                 TemporaWorldRegion tiedWith = findTie(deciding, loggerName, dimID, x, y, z);
 
                 reason = tiedWith == null
-                    ? new ChatComponentTranslation("tempora.command.region_check.reason.region", deciding.getLabel())
+                    ? new ChatComponentTranslation("tempora.command.region.check.reason.region", deciding.getLabel())
                     : new ChatComponentTranslation(
-                        "tempora.command.region_check.reason.tie",
+                        "tempora.command.region.check.reason.tie",
                         deciding.getLabel(),
                         tiedWith.getLabel());
             }
@@ -125,8 +111,8 @@ public class CheckRegionRules extends TemporaCommandBase {
             .setColor(EnumChatFormatting.GRAY);
 
         return new ChatComponentTranslation(
-            "tempora.command.region_check.entry",
-            loggerName,
+            "tempora.command.region.check.entry",
+            logger.getShortName(),
             TemporaWorldRegion.ruleChatComponent(result),
             reason);
     }
@@ -146,19 +132,16 @@ public class CheckRegionRules extends TemporaCommandBase {
     }
 
     @Override
-    public List<String> addTabCompletionOptions(ICommandSender sender, String[] args) {
+    public List<String> tabComplete(ICommandSender sender, String[] args) {
         if (args.length == 1) {
-            return CommandUtils.completeLoggerNames(args);
+            return CommandBase
+                .getListOfStringsFromIterableMatchingLastWord(args, TemporaLoggerManager.getAllShortNames());
         }
         return null;
     }
 
     @Override
-    public String getExampleCommand() {
-        return "/" + getCommandName() + " BlockChangeLogger";
-    }
-
-    public IChatComponent getCommandDescription() {
-        return new ChatComponentTranslation("tempora.command.region_check.help.description");
+    public String getExampleArgs() {
+        return "block";
     }
 }

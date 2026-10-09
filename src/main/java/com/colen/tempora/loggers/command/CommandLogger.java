@@ -37,6 +37,11 @@ public class CommandLogger extends GenericPositionalLogger<CommandEventInfo> {
     }
 
     @Override
+    public @NotNull String getShortName() {
+        return "command";
+    }
+
+    @Override
     public @NotNull CommandEventInfo newEventInfo() {
         return new CommandEventInfo();
     }

@@ -1,10 +1,10 @@
-package com.colen.tempora.commands.regions;
+package com.colen.tempora.commands.region;
 
 import static com.colen.tempora.Tempora.NETWORK;
-import static com.colen.tempora.utils.CommandUtils.OP_ONLY;
 
 import java.util.List;
 
+import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.event.ClickEvent;
@@ -13,37 +13,27 @@ import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
-import com.colen.tempora.commands.command_base.CommandArg;
-import com.colen.tempora.commands.command_base.TemporaCommandBase;
+import com.colen.tempora.commands.command_base.TemporaSubcommand;
 import com.colen.tempora.networking.packets.PacketRemoveRegionFromClient;
 import com.colen.tempora.regions.TemporaRegionRegistry;
 import com.colen.tempora.regions.TemporaWorldRegion;
 import com.colen.tempora.utils.CommandUtils;
 
 /**
- * Deletes a region by label, or the region the player is standing in. Regions can be nested, so if the player is
- * inside more than one, nothing is removed and they are asked to pick one by label instead.
+ * /tempora region remove [name]
+ * Deletes a region by name, or the region the player is standing in. Regions can be nested, so if the player is
+ * inside more than one, nothing is removed and they are asked to pick one by name instead.
  */
-public class RemoveRegion extends TemporaCommandBase {
+public class RegionRemoveCommand extends TemporaSubcommand {
 
-    public RemoveRegion() {
-        super(new CommandArg("[label]", "tempora.command.remove_region.help.arg0"));
+    public RegionRemoveCommand() {
+        super("remove", "[name]");
     }
 
     @Override
-    public String getCommandName() {
-        return "tempora_remove_region";
-    }
-
-    @Override
-    public int getRequiredPermissionLevel() {
-        return OP_ONLY;
-    }
-
-    @Override
-    public void processCommand(ICommandSender sender, String[] args) {
+    public void execute(ICommandSender sender, String[] args) {
         if (args.length > 1) {
-            sender.addChatMessage(CommandUtils.wrongUsage(getCommandUsage(sender)));
+            sendUsageError(sender);
             return;
         }
 
@@ -56,7 +46,7 @@ public class RemoveRegion extends TemporaCommandBase {
                 return;
             }
         } else {
-            // Without a label, use the region the player is standing in.
+            // Without a name, use the region the player is standing in.
             if (!(sender instanceof EntityPlayerMP player)) {
                 sender.addChatMessage(CommandUtils.playerOnly());
                 return;
@@ -66,10 +56,7 @@ public class RemoveRegion extends TemporaCommandBase {
                 .regionsContaining(player.dimension, player.posX, player.posY, player.posZ);
 
             if (here.isEmpty()) {
-                IChatComponent msg = new ChatComponentTranslation("tempora.command.remove_region.no_region");
-                msg.getChatStyle()
-                    .setColor(EnumChatFormatting.RED);
-                sender.addChatMessage(msg);
+                sendError(sender, "tempora.command.region.remove.not_in_region");
                 return;
             }
 
@@ -87,7 +74,7 @@ public class RemoveRegion extends TemporaCommandBase {
         NETWORK.sendToAll(new PacketRemoveRegionFromClient(region.getRegionUUID()));
 
         IChatComponent msg = new ChatComponentTranslation(
-            "tempora.command.remove_region.removed",
+            "tempora.command.region.remove.removed",
             region.getLabel(),
             region.getMinCornerChatComponent(),
             region.getMaxCornerChatComponent(),
@@ -98,7 +85,7 @@ public class RemoveRegion extends TemporaCommandBase {
     }
 
     private void sendPickOne(ICommandSender sender, List<TemporaWorldRegion> regions) {
-        IChatComponent header = new ChatComponentTranslation("tempora.command.remove_region.ambiguous", regions.size());
+        IChatComponent header = new ChatComponentTranslation("tempora.command.region.remove.ambiguous", regions.size());
         header.getChatStyle()
             .setColor(EnumChatFormatting.YELLOW);
         sender.addChatMessage(header);
@@ -107,28 +94,21 @@ public class RemoveRegion extends TemporaCommandBase {
             IChatComponent option = new ChatComponentText(" - " + region.getLabel());
             option.getChatStyle()
                 .setColor(EnumChatFormatting.AQUA)
-                .setChatClickEvent(
-                    new ClickEvent(
-                        ClickEvent.Action.SUGGEST_COMMAND,
-                        "/" + getCommandName() + " " + region.getLabel()));
+                .setChatClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, command(region.getLabel())));
             sender.addChatMessage(option);
         }
     }
 
     @Override
-    public List<String> addTabCompletionOptions(ICommandSender sender, String[] args) {
+    public List<String> tabComplete(ICommandSender sender, String[] args) {
         if (args.length == 1) {
-            return getListOfStringsFromIterableMatchingLastWord(args, TemporaRegionRegistry.getAllLabels());
+            return CommandBase.getListOfStringsFromIterableMatchingLastWord(args, TemporaRegionRegistry.getAllLabels());
         }
         return null;
     }
 
     @Override
-    public String getExampleCommand() {
-        return "/" + getCommandName() + " spawn";
-    }
-
-    public IChatComponent getCommandDescription() {
-        return new ChatComponentTranslation("tempora.command.remove_region.help.description");
+    public String getExampleArgs() {
+        return "spawn";
     }
 }

@@ -20,6 +20,7 @@ import net.minecraft.util.IChatComponent;
 
 import org.jetbrains.annotations.Nullable;
 
+import com.colen.tempora.TemporaLoggerManager;
 import com.colen.tempora.rendering.regions.RegionRenderMode;
 import com.colen.tempora.utils.CommandUtils;
 
@@ -268,7 +269,7 @@ public class TemporaWorldRegion {
 
     /* ---------- Chat ---------- */
 
-    // Clickable corner blocks, matching the inclusive coordinates typed into /tempora_create_region.
+    // Clickable corner blocks, matching the inclusive coordinates typed into /tempora region create.
     public IChatComponent getMinCornerChatComponent() {
         return teleportChatComponent(minX, minY, minZ, dimID, CommandUtils.TeleportType.BLOCK);
     }
@@ -283,7 +284,7 @@ public class TemporaWorldRegion {
 
     public IChatComponent getTeleportToRegionChatComponent() {
         ChatComponentTranslation line = new ChatComponentTranslation(
-            "tempora.command.list_regions.entry",
+            "tempora.command.region.list.entry",
             createHoverableClickable(label, regionUUID),
             getMinCornerChatComponent(),
             getMaxCornerChatComponent(),
@@ -297,7 +298,7 @@ public class TemporaWorldRegion {
         return line;
     }
 
-    // E.g. "Rules: BlockChangeLogger ON, EntityDeathLogger OFF".
+    // E.g. "Rules: block ON, death OFF".
     public IChatComponent getRulesChatComponent() {
         if (loggerRules.isEmpty()) {
             IChatComponent none = new ChatComponentTranslation("tempora.region.rules.none");
@@ -312,7 +313,7 @@ public class TemporaWorldRegion {
             if (!first) rules.appendSibling(new ChatComponentText(", "));
             first = false;
 
-            rules.appendSibling(new ChatComponentText(rule.getKey() + " "));
+            rules.appendSibling(new ChatComponentText(TemporaLoggerManager.displayName(rule.getKey()) + " "));
             rules.appendSibling(ruleChatComponent(rule.getValue()));
         }
 

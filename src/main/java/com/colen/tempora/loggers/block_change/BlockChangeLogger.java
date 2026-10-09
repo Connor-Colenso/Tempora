@@ -41,6 +41,11 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
         return TemporaEvents.BLOCK_CHANGE;
     }
 
+    @Override
+    public @NotNull String getShortName() {
+        return "block";
+    }
+
     // Every setBlock call in the world is far too much data to log everywhere, so by default this only logs inside
     // regions that turn it on.
     @Override

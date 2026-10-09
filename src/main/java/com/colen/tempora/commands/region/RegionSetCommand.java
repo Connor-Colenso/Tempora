@@ -1,20 +1,19 @@
-package com.colen.tempora.commands.regions;
-
-import static com.colen.tempora.utils.CommandUtils.OP_ONLY;
+package com.colen.tempora.commands.region;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
+import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
 import com.colen.tempora.TemporaLoggerManager;
-import com.colen.tempora.commands.command_base.CommandArg;
-import com.colen.tempora.commands.command_base.TemporaCommandBase;
+import com.colen.tempora.commands.LookupCommand;
+import com.colen.tempora.commands.command_base.TemporaSubcommand;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.regions.LogRule;
 import com.colen.tempora.regions.TemporaRegionRegistry;
@@ -22,37 +21,23 @@ import com.colen.tempora.regions.TemporaWorldRegion;
 import com.colen.tempora.utils.CommandUtils;
 
 /**
- * /tempora_region_rule <label> <logger|all> <on|off|clear>
+ * /tempora region set <name> <logger|all> <on|off|clear>
  * Sets or clears a region's rule for a logger. See TemporaRegionRegistry for how rules from overlapping regions
  * combine.
  */
-public class SetRegionRule extends TemporaCommandBase {
+public class RegionSetCommand extends TemporaSubcommand {
 
-    public static final String COMMAND_NAME = "tempora_region_rule";
     private static final String ALL_LOGGERS = "all";
     private static final String CLEAR = "clear";
 
-    public SetRegionRule() {
-        super(
-            new CommandArg("<label>", "tempora.command.region_rule.help.arg0"),
-            new CommandArg("<logger|all>", "tempora.command.region_rule.help.arg1"),
-            new CommandArg("<on|off|clear>", "tempora.command.region_rule.help.arg2"));
+    public RegionSetCommand() {
+        super("set", "<name>", "<logger|all>", "<on|off|clear>");
     }
 
     @Override
-    public String getCommandName() {
-        return COMMAND_NAME;
-    }
-
-    @Override
-    public int getRequiredPermissionLevel() {
-        return OP_ONLY;
-    }
-
-    @Override
-    public void processCommand(ICommandSender sender, String[] args) {
+    public void execute(ICommandSender sender, String[] args) {
         if (args.length != 3) {
-            sender.addChatMessage(CommandUtils.wrongUsage(getCommandUsage(sender)));
+            sendUsageError(sender);
             return;
         }
 
@@ -65,7 +50,7 @@ public class SetRegionRule extends TemporaCommandBase {
         boolean clear = args[2].equalsIgnoreCase(CLEAR);
         LogRule rule = LogRule.fromString(args[2]);
         if (!clear && rule == null) {
-            sender.addChatMessage(CommandUtils.wrongUsage(getCommandUsage(sender)));
+            sendUsageError(sender);
             return;
         }
 
@@ -74,13 +59,7 @@ public class SetRegionRule extends TemporaCommandBase {
         if (!allLoggers) {
             loggerName = resolveLoggerName(args[1], region);
             if (loggerName == null) {
-                IChatComponent msg = new ChatComponentTranslation(
-                    "tempora.command.region_rule.unknown_logger",
-                    args[1],
-                    String.join(", ", TemporaLoggerManager.getAllLoggerNames()));
-                msg.getChatStyle()
-                    .setColor(EnumChatFormatting.RED);
-                sender.addChatMessage(msg);
+                LookupCommand.sendUnknownLogger(sender, args[1]);
                 return;
             }
         }
@@ -105,13 +84,13 @@ public class SetRegionRule extends TemporaCommandBase {
 
         IChatComponent msg = loggerName == null
             ? new ChatComponentTranslation(
-                "tempora.command.region_rule.set_all",
+                "tempora.command.region.set.set_all",
                 region.getLabel(),
                 TemporaWorldRegion.ruleChatComponent(rule))
             : new ChatComponentTranslation(
-                "tempora.command.region_rule.set",
+                "tempora.command.region.set.set",
                 region.getLabel(),
-                loggerName,
+                TemporaLoggerManager.displayName(loggerName),
                 TemporaWorldRegion.ruleChatComponent(rule));
         msg.getChatStyle()
             .setColor(EnumChatFormatting.GREEN);
@@ -123,8 +102,9 @@ public class SetRegionRule extends TemporaCommandBase {
                 GenericPositionalLogger<?> logger = TemporaLoggerManager.getLogger(name);
                 if (logger != null && !logger.isEnabledByConfig()) {
                     IChatComponent warning = new ChatComponentTranslation(
-                        "tempora.command.region_rule.logger_disabled",
-                        name);
+                        "tempora.command.region.set.logger_disabled",
+                        logger.getShortName(),
+                        logger.getLoggerName());
                     warning.getChatStyle()
                         .setColor(EnumChatFormatting.GOLD);
                     sender.addChatMessage(warning);
@@ -143,11 +123,17 @@ public class SetRegionRule extends TemporaCommandBase {
                     .keySet())) {
                 TemporaRegionRegistry.clearRule(region, name);
             }
-            msg = new ChatComponentTranslation("tempora.command.region_rule.cleared_all", region.getLabel());
+            msg = new ChatComponentTranslation("tempora.command.region.set.cleared_all", region.getLabel());
         } else if (TemporaRegionRegistry.clearRule(region, loggerName)) {
-            msg = new ChatComponentTranslation("tempora.command.region_rule.cleared", region.getLabel(), loggerName);
+            msg = new ChatComponentTranslation(
+                "tempora.command.region.set.cleared",
+                region.getLabel(),
+                TemporaLoggerManager.displayName(loggerName));
         } else {
-            msg = new ChatComponentTranslation("tempora.command.region_rule.no_rule", region.getLabel(), loggerName);
+            msg = new ChatComponentTranslation(
+                "tempora.command.region.set.no_rule",
+                region.getLabel(),
+                TemporaLoggerManager.displayName(loggerName));
         }
 
         msg.getChatStyle()
@@ -155,10 +141,10 @@ public class SetRegionRule extends TemporaCommandBase {
         sender.addChatMessage(msg);
     }
 
-    // Matches registered loggers ignoring case. Also matches rules already on the region, so a rule for a logger
-    // that has since been removed from the mod can still be cleared.
+    // Matches registered loggers by short or full name. Also matches rules already on the region, so a rule for a
+    // logger that has since been removed from the mod can still be cleared.
     private static String resolveLoggerName(String typed, TemporaWorldRegion region) {
-        GenericPositionalLogger<?> logger = TemporaLoggerManager.getLoggerIgnoreCase(typed);
+        GenericPositionalLogger<?> logger = TemporaLoggerManager.findLogger(typed);
         if (logger != null) return logger.getLoggerName();
 
         for (String existing : region.getRules()
@@ -169,16 +155,17 @@ public class SetRegionRule extends TemporaCommandBase {
     }
 
     @Override
-    public List<String> addTabCompletionOptions(ICommandSender sender, String[] args) {
+    public List<String> tabComplete(ICommandSender sender, String[] args) {
         switch (args.length) {
             case 1:
-                return getListOfStringsFromIterableMatchingLastWord(args, TemporaRegionRegistry.getAllLabels());
+                return CommandBase
+                    .getListOfStringsFromIterableMatchingLastWord(args, TemporaRegionRegistry.getAllLabels());
             case 2:
-                List<String> loggers = new ArrayList<>(TemporaLoggerManager.getAllLoggerNames());
+                List<String> loggers = new ArrayList<>(TemporaLoggerManager.getAllShortNames());
                 loggers.add(ALL_LOGGERS);
-                return getListOfStringsFromIterableMatchingLastWord(args, loggers);
+                return CommandBase.getListOfStringsFromIterableMatchingLastWord(args, loggers);
             case 3:
-                return getListOfStringsMatchingLastWord(
+                return CommandBase.getListOfStringsMatchingLastWord(
                     args,
                     LogRule.ON.name()
                         .toLowerCase(Locale.ROOT),
@@ -191,11 +178,7 @@ public class SetRegionRule extends TemporaCommandBase {
     }
 
     @Override
-    public String getExampleCommand() {
-        return "/" + getCommandName() + " spawn BlockChangeLogger on";
-    }
-
-    public IChatComponent getCommandDescription() {
-        return new ChatComponentTranslation("tempora.command.region_rule.help.description");
+    public String getExampleArgs() {
+        return "spawn block on";
     }
 }

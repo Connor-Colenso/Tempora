@@ -43,6 +43,11 @@ public class InventoryLogger extends GenericPositionalLogger<InventoryEventInfo>
     }
 
     @Override
+    public @NotNull String getShortName() {
+        return "inventory";
+    }
+
+    @Override
     public @NotNull InventoryEventInfo newEventInfo() {
         return new InventoryEventInfo();
     }

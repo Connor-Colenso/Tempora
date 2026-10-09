@@ -1,7 +1,6 @@
 package com.colen.tempora.commands;
 
 import static com.colen.tempora.Tempora.NETWORK;
-import static com.colen.tempora.utils.CommandUtils.OP_ONLY;
 import static com.colen.tempora.utils.ReflectionUtils.getAllTableColumns;
 
 import java.sql.Connection;
@@ -18,45 +17,41 @@ import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
-import net.minecraft.util.IChatComponent;
 
 import com.colen.tempora.TemporaLoggerManager;
-import com.colen.tempora.commands.command_base.CommandArg;
-import com.colen.tempora.commands.command_base.TemporaCommandBase;
+import com.colen.tempora.commands.command_base.TemporaSubcommand;
 import com.colen.tempora.loggers.generic.GenericEventInfo;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.RenderEventPacket;
 import com.colen.tempora.loggers.generic.column.ColumnDef;
 import com.colen.tempora.utils.CommandUtils;
-import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 
-public class QuerySQL extends TemporaCommandBase {
+/**
+ * /tempora sql <SELECT ...>
+ * Runs a read-only query against a logger's database, for investigations /tempora lookup can't express.
+ */
+public class SqlCommand extends TemporaSubcommand {
 
-    public QuerySQL() {
-        super(new CommandArg("<sql_query>", "tempora.command.query_sql.help.arg0"));
+    public SqlCommand() {
+        super("sql", "<SELECT ...>");
     }
 
     // todo config.
     private final static int MAX_RESULTS_TO_SHOW = 100;
 
     @Override
-    public String getCommandName() {
-        return "tempora_query_sql";
+    public boolean isPlayerOnly() {
+        return true;
     }
 
     @Override
-    public int getRequiredPermissionLevel() {
-        return OP_ONLY;
-    }
-
-    @Override
-    public void processCommand(ICommandSender sender, String[] args) {
-
-        if (!(sender instanceof EntityPlayerMP entityPlayerMP)) {
-            sender.addChatMessage(CommandUtils.playerOnly());
+    public void execute(ICommandSender sender, String[] args) {
+        if (args.length == 0) {
+            sendUsageError(sender);
             return;
         }
 
+        EntityPlayerMP entityPlayerMP = (EntityPlayerMP) sender;
         String rawQuery = String.join(" ", args);
 
         // Find logger by name.
@@ -70,7 +65,7 @@ public class QuerySQL extends TemporaCommandBase {
 
         if (targetLogger == null) {
             ChatComponentTranslation msg = new ChatComponentTranslation(
-                "tempora.command.query_sql.invalid_table",
+                "tempora.command.sql.invalid_table",
                 TemporaLoggerManager.getAllLoggerNames());
             msg.getChatStyle()
                 .setColor(EnumChatFormatting.RED);
@@ -79,7 +74,7 @@ public class QuerySQL extends TemporaCommandBase {
         }
 
         if (!isSelectQuery(rawQuery)) {
-            ChatComponentTranslation msg = new ChatComponentTranslation("tempora.command.query_sql.select_only");
+            ChatComponentTranslation msg = new ChatComponentTranslation("tempora.command.sql.select_only");
             msg.getChatStyle()
                 .setColor(EnumChatFormatting.RED);
             sender.addChatMessage(msg);
@@ -95,14 +90,14 @@ public class QuerySQL extends TemporaCommandBase {
             List<String> missing = findMissingColumns(rawQuery, columns);
             if (!missing.isEmpty()) {
                 ChatComponentTranslation missingColsMsg = new ChatComponentTranslation(
-                    "tempora.command.query_sql.missing_columns",
+                    "tempora.command.sql.missing_columns",
                     String.join(", ", missing));
                 missingColsMsg.getChatStyle()
                     .setColor(EnumChatFormatting.RED);
                 sender.addChatMessage(missingColsMsg);
 
                 ChatComponentTranslation adviceMsg = new ChatComponentTranslation(
-                    "tempora.command.query_sql.missing_columns.advice");
+                    "tempora.command.sql.missing_columns.advice");
                 adviceMsg.getChatStyle()
                     .setColor(EnumChatFormatting.RED);
                 sender.addChatMessage(adviceMsg);
@@ -124,21 +119,21 @@ public class QuerySQL extends TemporaCommandBase {
             }
 
             ChatComponentTranslation queryFeedbackMsg = new ChatComponentTranslation(
-                "tempora.command.query_sql.query_display",
+                "tempora.command.sql.query_display",
                 rawQuery);
             queryFeedbackMsg.getChatStyle()
                 .setColor(EnumChatFormatting.GRAY);
 
             if (output.isEmpty()) {
                 ChatComponentTranslation noResultsMsg = new ChatComponentTranslation(
-                    "tempora.command.query_sql.no_results_in",
+                    "tempora.command.sql.no_results_in",
                     targetLogger.getLoggerName());
                 noResultsMsg.getChatStyle()
                     .setColor(EnumChatFormatting.GRAY);
                 sender.addChatMessage(noResultsMsg);
             } else if (output.size() == MAX_RESULTS_TO_SHOW) {
                 ChatComponentTranslation queryMsg = new ChatComponentTranslation(
-                    "tempora.command.query_sql.query_quantity_if_max",
+                    "tempora.command.sql.query_quantity_if_max",
                     output.size(),
                     MAX_RESULTS_TO_SHOW);
                 queryMsg.getChatStyle()
@@ -146,7 +141,7 @@ public class QuerySQL extends TemporaCommandBase {
                 sender.addChatMessage(queryMsg);
             } else {
                 ChatComponentTranslation queryMsg = new ChatComponentTranslation(
-                    "tempora.command.query_sql.query_quantity",
+                    "tempora.command.sql.query_quantity",
                     output.size());
                 queryMsg.getChatStyle()
                     .setColor(EnumChatFormatting.GRAY);
@@ -155,14 +150,14 @@ public class QuerySQL extends TemporaCommandBase {
 
         } catch (SQLException e) {
             ChatComponentTranslation errorMsg = new ChatComponentTranslation(
-                "tempora.command.query_sql.error",
+                "tempora.command.sql.error",
                 e.getMessage());
             errorMsg.getChatStyle()
                 .setColor(EnumChatFormatting.RED);
             sender.addChatMessage(errorMsg);
         } catch (Exception e) {
             ChatComponentTranslation errorMsg = new ChatComponentTranslation(
-                "tempora.command.query_sql.generic_unknown_error",
+                "tempora.command.sql.generic_unknown_error",
                 e.getMessage());
             errorMsg.getChatStyle()
                 .setColor(EnumChatFormatting.RED);
@@ -214,21 +209,15 @@ public class QuerySQL extends TemporaCommandBase {
         }
     }
 
+    // Table names are the full logger names.
     @Override
-    public List<String> addTabCompletionOptions(ICommandSender sender, String[] args) {
+    public List<String> tabComplete(ICommandSender sender, String[] args) {
         return CommandUtils.completeLoggerNames(args);
     }
 
     @Override
-    public String getExampleCommand() {
-        return "/" + getCommandName()
-            + " SELECT * FROM PlayerMovementLogger WHERE playerUUID = 'player_uuid_goes_here' AND Y > 80";
-    }
-
-    public IChatComponent getCommandDescription() {
-        return new ChatComponentTranslation(
-            "tempora.command.query_sql.help.description",
-            new ChatComponentNumber(MAX_RESULTS_TO_SHOW));
+    public String getExampleArgs() {
+        return "SELECT * FROM PlayerMovementLogger WHERE playerUUID = 'player_uuid_goes_here' AND Y > 80";
     }
 
 }

@@ -36,6 +36,11 @@ public class PlayerBlockPlaceLogger extends GenericPositionalLogger<PlayerBlockP
     }
 
     @Override
+    public @NotNull String getShortName() {
+        return "place";
+    }
+
+    @Override
     public @NotNull PlayerBlockPlaceEventInfo newEventInfo() {
         return new PlayerBlockPlaceEventInfo();
     }

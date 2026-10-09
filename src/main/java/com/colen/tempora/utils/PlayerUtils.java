@@ -19,6 +19,8 @@ import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 import net.minecraftforge.common.UsernameCache;
 
+import org.jetbrains.annotations.Nullable;
+
 public class PlayerUtils {
 
     public static final String UNKNOWN_PLAYER_NAME = "tempora.unknown.player";
@@ -119,6 +121,21 @@ public class PlayerUtils {
         }
 
         return completions;
+    }
+
+    // Accepts a UUID, or the name of anyone who has ever joined the server, ignoring case. Null if unknown.
+    public static @Nullable String uuidFromName(String nameOrUUID) {
+        if (isUUID(nameOrUUID)) return nameOrUUID;
+
+        for (Map.Entry<UUID, String> entry : UsernameCache.getMap()
+            .entrySet()) {
+            if (entry.getValue()
+                .equalsIgnoreCase(nameOrUUID)) {
+                return entry.getKey()
+                    .toString();
+            }
+        }
+        return null;
     }
 
     // Utils

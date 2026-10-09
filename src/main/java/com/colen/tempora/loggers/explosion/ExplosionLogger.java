@@ -120,6 +120,11 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionEventInfo>
     }
 
     @Override
+    public @NotNull String getShortName() {
+        return "explosion";
+    }
+
+    @Override
     public Color getColour() {
         return Color.MAGENTA;
     }

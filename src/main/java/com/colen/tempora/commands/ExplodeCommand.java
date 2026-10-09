@@ -1,44 +1,36 @@
 package com.colen.tempora.commands;
 
-import static com.colen.tempora.utils.CommandUtils.OP_ONLY;
-
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentTranslation;
-import net.minecraft.util.IChatComponent;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 
-import com.colen.tempora.commands.command_base.CommandArg;
-import com.colen.tempora.commands.command_base.TemporaCommandBase;
-import com.colen.tempora.utils.CommandUtils;
+import com.colen.tempora.commands.command_base.TemporaSubcommand;
 
-public class TemporaExplode extends TemporaCommandBase {
+/**
+ * /tempora explode <strength>
+ * Blows up the block the player is looking at, for testing explosion logging. Only registered in a development
+ * environment, see TemporaCommand.
+ */
+public class ExplodeCommand extends TemporaSubcommand {
 
-    public TemporaExplode() {
-        super(new CommandArg("<strength>", "tempora.command.explode.help.arg0"));
+    public ExplodeCommand() {
+        super("explode", "<strength>");
     }
 
     @Override
-    public String getCommandName() {
-        return "tempora_explode";
+    public boolean isPlayerOnly() {
+        return true;
     }
 
     @Override
-    public int getRequiredPermissionLevel() {
-        return OP_ONLY;
-    }
-
-    @Override
-    public void processCommand(ICommandSender sender, String[] args) {
-        if (!(sender instanceof EntityPlayerMP player)) {
-            sender.addChatMessage(CommandUtils.playerOnly());
-            return;
-        }
+    public void execute(ICommandSender sender, String[] args) {
+        EntityPlayerMP player = (EntityPlayerMP) sender;
 
         if (args.length != 1) {
-            sender.addChatMessage(CommandUtils.wrongUsage(getCommandUsage(sender)));
+            sendUsageError(sender);
             return;
         }
 
@@ -84,13 +76,9 @@ public class TemporaExplode extends TemporaCommandBase {
         );
     }
 
-    public IChatComponent getCommandDescription() {
-        return new ChatComponentTranslation("tempora.command.explode.help.description");
-    }
-
     @Override
-    public String getExampleCommand() {
-        return "/" + getCommandName() + " 5";
+    public String getExampleArgs() {
+        return "5";
     }
 
 }

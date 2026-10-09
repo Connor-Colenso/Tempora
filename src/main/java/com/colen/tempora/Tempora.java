@@ -4,25 +4,17 @@ import static com.colen.tempora.utils.GenericUtils.isServerSide;
 import static com.colen.tempora.utils.GenericUtils.shouldTemporaRun;
 
 import net.minecraft.block.Block;
+import net.minecraft.item.Item;
 import net.minecraftforge.common.config.Configuration;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.colen.tempora.blocks.RenderingErrorBlock;
-import com.colen.tempora.commands.HomeChunk;
-import com.colen.tempora.commands.QueryEvents;
-import com.colen.tempora.commands.QuerySQL;
-import com.colen.tempora.commands.TemporaExplode;
-import com.colen.tempora.commands.TemporaHelp;
-import com.colen.tempora.commands.TemporaStackTrace;
-import com.colen.tempora.commands.TemporaTp;
-import com.colen.tempora.commands.regions.CheckRegionRules;
-import com.colen.tempora.commands.regions.CreateRegion;
-import com.colen.tempora.commands.regions.ListRegions;
-import com.colen.tempora.commands.regions.RemoveRegion;
-import com.colen.tempora.commands.regions.SetRegionRule;
+import com.colen.tempora.commands.TemporaCommand;
+import com.colen.tempora.commands.TraceCommand;
 import com.colen.tempora.events.ServerTickHandler;
+import com.colen.tempora.items.TemporaWand;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.regions.TemporaRegionRegistry;
 import com.colen.tempora.rendering.ClientRegionStore;
@@ -55,6 +47,7 @@ public class Tempora {
     public static Configuration config;
 
     public static Block renderingErrorBlock = new RenderingErrorBlock();
+    public static Item temporaWand = new TemporaWand();
 
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {
@@ -93,21 +86,7 @@ public class Tempora {
     }
 
     private void registerNewCommands(FMLServerStartingEvent event) {
-        event.registerServerCommand(new QueryEvents());
-        event.registerServerCommand(new QuerySQL());
-        event.registerServerCommand(new HomeChunk());
-
-        event.registerServerCommand(new CreateRegion());
-        event.registerServerCommand(new ListRegions());
-        event.registerServerCommand(new RemoveRegion());
-        event.registerServerCommand(new SetRegionRule());
-        event.registerServerCommand(new CheckRegionRules());
-        event.registerServerCommand(new TemporaStackTrace());
-
-        event.registerServerCommand(new TemporaTp());
-        event.registerServerCommand(new TemporaExplode());
-
-        event.registerServerCommand(new TemporaHelp());
+        event.registerServerCommand(new TemporaCommand());
     }
 
     @Mod.EventHandler
@@ -119,6 +98,6 @@ public class Tempora {
         TemporaRegionRegistry.unload();
 
         ClientRegionStore.onServerClose();
-        TemporaStackTrace.clearAll();
+        TraceCommand.clearAll();
     }
 }

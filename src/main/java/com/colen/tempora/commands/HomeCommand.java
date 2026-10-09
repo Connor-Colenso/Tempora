@@ -2,102 +2,70 @@ package com.colen.tempora.commands;
 
 import static com.colen.tempora.Tempora.LOG;
 import static com.colen.tempora.TemporaEvents.PLAYER_MOVEMENT;
-import static com.colen.tempora.utils.CommandUtils.OP_ONLY;
 import static com.colen.tempora.utils.CommandUtils.teleportChatComponent;
-import static com.colen.tempora.utils.PlayerUtils.UNKNOWN_PLAYER_NAME;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Collections;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
-import net.minecraft.command.CommandException;
+import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
+import net.minecraftforge.common.DimensionManager;
 
 import com.colen.tempora.TemporaLoggerManager;
-import com.colen.tempora.commands.command_base.CommandArg;
-import com.colen.tempora.commands.command_base.TemporaCommandBase;
+import com.colen.tempora.commands.command_base.CommandFilters;
+import com.colen.tempora.commands.command_base.TemporaSubcommand;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.utils.CommandUtils;
 import com.colen.tempora.utils.PlayerUtils;
 import com.colen.tempora.utils.TimeUtils;
 
 /**
- * Finds the chunk with the most position samples for <player>
- * (optionally filtered by time‑window and/or dimension) and
- * teleports to the centre of that chunk.
+ * /tempora home <player> [t:<time>] [dim:<id>]
+ * Finds the chunk a player has spent the most time in, from their movement history. Useful for finding their base.
  */
-public class HomeChunk extends TemporaCommandBase {
+public class HomeCommand extends TemporaSubcommand {
 
-    public HomeChunk() {
-        super(
-            new CommandArg("<player>", "tempora.command.home_chunk.help.arg0"),
-            new CommandArg("[look_back]", "tempora.command.home_chunk.help.arg1"),
-            new CommandArg("[dim_ID]", "tempora.command.home_chunk.help.arg2"));
+    public HomeCommand() {
+        super("home", "<player>", "[t:<time>]", "[dim:<id>]");
     }
 
     @Override
-    public String getCommandName() {
-        return "tempora_home_chunk";
-    }
-
-    @Override
-    public int getRequiredPermissionLevel() {
-        return OP_ONLY;
-    }
-
-    @Override
-    public List<String> addTabCompletionOptions(ICommandSender s, String[] a) {
-        return (a.length == 1) ? PlayerUtils.getTabCompletionForPlayerNames(a[0]) : Collections.emptyList();
-    }
-
-    @Override
-    public void processCommand(ICommandSender sender, String[] args) {
-
-        // Validate
+    public void execute(ICommandSender sender, String[] args) {
         if (args.length < 1) {
-            sender.addChatMessage(
-                new ChatComponentTranslation("tempora.command.home_chunk.usage", getCommandUsage(sender)));
+            sendUsageError(sender);
             return;
         }
 
-        // Player to UUID.
-        final String uuid = PlayerUtils.UUIDToName(args[0]);
-        if (uuid.equals(UNKNOWN_PLAYER_NAME)) {
-            sender.addChatMessage(new ChatComponentTranslation("tempora.command.home_chunk.unknown_player", uuid));
+        final String uuid = PlayerUtils.uuidFromName(args[0]);
+        if (uuid == null) {
+            sendError(sender, "tempora.command.home.unknown_player", args[0]);
             return;
         }
 
-        // Optional params
-        Long lookBackCutoffEpoch = null;
-        Integer forcedDim = null;
+        CommandFilters filters = CommandFilters.parse(sender, args, 1, "t", "dim");
+        if (filters == null) return;
 
-        if (args.length >= 2) {
-            String p = args[1];
-            if (containsLetter(p)) {
-                long seconds = TimeUtils.convertToSeconds(p);
-                lookBackCutoffEpoch = System.currentTimeMillis() - seconds * 1000L;
-            } else {
-                forcedDim = parseDim(p);
-            }
-        }
-        if (args.length >= 3) {
-            forcedDim = parseDim(args[2]);
-        }
+        String time = filters.get("t");
+        Long lookBackCutoffEpoch = time == null ? null
+            : System.currentTimeMillis() - TimeUtils.convertToSeconds(time) * 1000L;
 
-        // Get read-only db conn
+        String dim = filters.get("dim");
+        Integer forcedDim = dim == null ? null : CommandBase.parseInt(sender, dim);
+
         GenericPositionalLogger<?> movementLogger = TemporaLoggerManager.getLogger(PLAYER_MOVEMENT);
-        if (movementLogger == null || movementLogger.getDatabaseManager()
-            .getReadOnlyConnection() == null) {
-            sender.addChatMessage(new ChatComponentTranslation("tempora.command.home_chunk.no_db"));
+        if (movementLogger == null || !movementLogger.isEnabledByConfig()) {
+            sendError(sender, "tempora.command.home.no_db");
             return;
         }
-        Connection conn = movementLogger.getDatabaseManager()
-            .getReadOnlyConnection();
 
         // This query finds the player's most visited chunk (home chunk)
         // First, we group all movement logs by chunk (x >> 4, z >> 4) and dimension
@@ -143,8 +111,8 @@ public class HomeChunk extends TemporaCommandBase {
             .append("WHERE  m.playerUUID = ? ");
         if (lookBackCutoffEpoch != null) sql.append("AND m.timestamp >= ? ");
 
-        // Run query
-        try (PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+        try (Connection conn = movementLogger.getDatabaseManager()
+            .getReadOnlyConnection(); PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
 
             int i = 1;
 
@@ -159,56 +127,55 @@ public class HomeChunk extends TemporaCommandBase {
 
             try (ResultSet rs = stmt.executeQuery()) {
                 if (!rs.next() || rs.getObject("home_x") == null) {
-                    sender.addChatMessage(new ChatComponentTranslation("tempora.command.home_chunk.no_data"));
+                    sender.addChatMessage(new ChatComponentTranslation("tempora.command.home.no_data"));
                     return;
                 }
 
                 double homeX = rs.getDouble("home_x");
                 double homeY = rs.getDouble("home_y");
                 double homeZ = rs.getDouble("home_z");
-                int dim = rs.getInt("dimensionID");
+                int homeDim = rs.getInt("dimensionID");
 
                 IChatComponent tpLink = teleportChatComponent(
                     homeX,
                     homeY,
                     homeZ,
-                    dim,
+                    homeDim,
                     CommandUtils.TeleportType.EXACT);
 
                 sender.addChatMessage(
                     new ChatComponentTranslation(
-                        "tempora.command.home_chunk.result",
+                        "tempora.command.home.result",
                         PlayerUtils.playerNameFromUUID(uuid),
-                        dim,
+                        homeDim,
                         tpLink));
             }
 
         } catch (SQLException e) {
-            LOG.error("HomeChunkCommand SQL failed: {}. With stack trace: {}", e.getMessage(), e);
-            sender.addChatMessage(new ChatComponentTranslation("tempora.command.home_chunk.sql_error"));
-        }
-    }
-
-    private static boolean containsLetter(String s) {
-        for (int c : s.codePoints()
-            .toArray()) if (Character.isLetter(c)) return true;
-        return false;
-    }
-
-    private static int parseDim(String s) {
-        try {
-            return Integer.parseInt(s);
-        } catch (NumberFormatException ex) {
-            throw new CommandException("tempora.command.home_chunk.bad_dim");
+            LOG.error("Home chunk query failed.", e);
+            sendError(sender, "tempora.command.home.sql_error");
         }
     }
 
     @Override
-    public String getExampleCommand() {
-        return "/" + getCommandName() + " Notch 1month 0";
+    public List<String> tabComplete(ICommandSender sender, String[] args) {
+        if (args.length == 1) {
+            return PlayerUtils.getTabCompletionForPlayerNames(args[0]);
+        }
+
+        List<String> dimensions = new ArrayList<>();
+        for (Integer id : DimensionManager.getStaticDimensionIDs()) {
+            dimensions.add(String.valueOf(id));
+        }
+
+        Map<String, List<String>> suggestions = new LinkedHashMap<>();
+        suggestions.put("t", Arrays.asList("1d", "1w", "1mo"));
+        suggestions.put("dim", dimensions);
+        return CommandFilters.complete(args, suggestions);
     }
 
-    public IChatComponent getCommandDescription() {
-        return new ChatComponentTranslation("tempora.command.home_chunk.description");
+    @Override
+    public String getExampleArgs() {
+        return "Notch t:1mo dim:0";
     }
 }

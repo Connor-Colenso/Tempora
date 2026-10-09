@@ -1,5 +1,6 @@
 package com.colen.tempora.utils;
 
+import net.minecraft.launchwrapper.Launch;
 import net.minecraft.world.WorldProvider;
 import net.minecraftforge.common.DimensionManager;
 
@@ -23,6 +24,11 @@ public class GenericUtils {
 
     public static boolean isServerSide() {
         return !isClientSide();
+    }
+
+    // True when launched from the development workspace (runClient, runServer), false in a real modpack.
+    public static boolean isDevEnvironment() {
+        return Boolean.TRUE.equals(Launch.blackboard.get("fml.deobfuscatedEnvironment"));
     }
 
     public static boolean shouldTemporaRun() {

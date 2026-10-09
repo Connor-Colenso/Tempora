@@ -1,13 +1,13 @@
-package com.colen.tempora.commands.regions;
+package com.colen.tempora.commands.region;
 
 import static com.colen.tempora.Tempora.NETWORK;
-import static com.colen.tempora.utils.CommandUtils.OP_ONLY;
 import static com.colen.tempora.utils.GenericUtils.getDimensionName;
 
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 
+import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentText;
@@ -16,69 +16,52 @@ import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 import net.minecraftforge.common.DimensionManager;
 
-import com.colen.tempora.commands.command_base.CommandArg;
-import com.colen.tempora.commands.command_base.TemporaCommandBase;
+import com.colen.tempora.commands.command_base.TemporaSubcommand;
 import com.colen.tempora.networking.packets.PacketShowRegionInWorld;
 import com.colen.tempora.regions.TemporaRegionRegistry;
 import com.colen.tempora.regions.TemporaWorldRegion;
-import com.colen.tempora.utils.CommandUtils;
 
 /**
- * /tempora_list_regions [dim_ID]
- * Lists every stored region with its rules, and clickable coordinates that teleport the issuer there.
- * Players also get the regions drawn in the world for a short time.
+ * /tempora region list [dim_ID]
+ * Lists every region with its rules, and clickable coordinates to teleport there. Players also get the regions drawn
+ * in the world for a short time.
  */
-public class ListRegions extends TemporaCommandBase {
+public class RegionListCommand extends TemporaSubcommand {
 
-    public ListRegions() {
-        super(new CommandArg("[dim_ID]", "tempora.command.list_regions.help.arg0"));
+    public RegionListCommand() {
+        super("list", "[dim_ID]");
     }
 
     @Override
-    public String getCommandName() {
-        return "tempora_list_regions";
-    }
-
-    @Override
-    public int getRequiredPermissionLevel() {
-        return OP_ONLY;
-    }
-
-    @Override
-    public void processCommand(ICommandSender sender, String[] args) {
+    public void execute(ICommandSender sender, String[] args) {
         if (args.length > 1) {
-            sender.addChatMessage(CommandUtils.wrongUsage(getCommandUsage(sender)));
+            sendUsageError(sender);
             return;
         }
 
         List<TemporaWorldRegion> regions = TemporaRegionRegistry.getAll();
 
         if (args.length == 1) {
-            int dimFilter = parseInt(sender, args[0]);
+            int dimFilter = CommandBase.parseInt(sender, args[0]);
 
             if (!DimensionManager.isDimensionRegistered(dimFilter)) {
-                IChatComponent invalidDim = new ChatComponentTranslation("tempora.dimension.invalid", dimFilter);
-                invalidDim.getChatStyle()
-                    .setColor(EnumChatFormatting.RED);
-                sender.addChatMessage(invalidDim);
+                sendError(sender, "tempora.dimension.invalid", dimFilter);
                 return;
             }
 
             regions.removeIf(r -> r.getDimID() != dimFilter);
             if (regions.isEmpty()) {
-                IChatComponent emptyDim = new ChatComponentTranslation(
-                    "tempora.command.list_regions.filtered.no_regions",
+                sendError(
+                    sender,
+                    "tempora.command.region.list.no_regions_in_dim",
                     getDimensionName(dimFilter),
                     dimFilter);
-                emptyDim.getChatStyle()
-                    .setColor(EnumChatFormatting.RED);
-                sender.addChatMessage(emptyDim);
                 return;
             }
         }
 
         if (regions.isEmpty()) {
-            sender.addChatMessage(new ChatComponentTranslation("tempora.command.list_regions.none"));
+            sender.addChatMessage(new ChatComponentTranslation("tempora.command.region.list.none"));
             return;
         }
 
@@ -109,13 +92,8 @@ public class ListRegions extends TemporaCommandBase {
         }
     }
 
-    public IChatComponent getCommandDescription() {
-        return new ChatComponentTranslation("tempora.command.list_regions.help.description");
-    }
-
     @Override
-    public String getExampleCommand() {
-        return "/" + getCommandName() + " -1";
+    public String getExampleArgs() {
+        return "-1";
     }
-
 }

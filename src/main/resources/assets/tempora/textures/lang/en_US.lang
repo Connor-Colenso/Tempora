@@ -11,11 +11,126 @@ message.player_movement=%s was at %s (%s).
 message.inventory_interaction_added=%s added %dx%s (%d:%d) to %s at %s (%s).
 message.inventory_interaction_removed=%s removed %dx%s (%d:%d) from %s at %s (%s).
 message.tempora_wand.checking_pos=Checking %s in %s (ID %s).
+message.tempora_wand.nothing_found=Nothing has been logged at this block.
 message.block_change=The block at %s was set from %s (%d:%d) to %s (%d:%d) (%s) with %s. Closest player was %s (%s blocks away).
 message.inventorylogger.invalid_interaction=Error: invalid interactionType %s in InventoryLogger DB. Please report this.
-message.query_events.showing_results=Found %s results for %s.
-message.query_events.showing_result=Found %s result for %s.
-message.query_events.too_many_pending=Warning: There are %s events waiting to be processed. This may affect the accuracy of the results, as the server may be under heavy load.
+# === Commands ===
+tempora.command.usage=Usage: %s
+tempora.command.usage.hint=See %s for details.
+tempora.command.unknown=There is no Tempora command called '%s'.
+tempora.command.list.header=Tempora commands. Click one to fill it in, hover over it to see what it does:
+tempora.command.bad_filter='%s' isn't a valid filter. Use any of: %s
+tempora.command.unknown_logger=There is no logger called '%s'. Choices are: %s.
+
+tempora.command.help.description=Lists every Tempora command, or shows how to use one, e.g. /tempora help region set.
+tempora.command.help.arg0=Optional. The command to explain, e.g. lookup or region set.
+tempora.command.help.label.description=Description: %s
+tempora.command.help.label.usage=Usage: %s
+tempora.command.help.label.example=Example: %s
+
+tempora.command.lookup.description=Shows the latest events around you and draws them in the world. Every filter is optional and they can go in any order. By default it searches 10 blocks around you, over the last 3 days, in every logger.
+tempora.command.lookup.arg0=How many blocks around you to search, default 10.
+tempora.command.lookup.arg1=How far back to look, e.g. 30m, 6h, 1d, 2w, default 3d.
+tempora.command.lookup.arg2=Which loggers to search, comma separated, e.g. break,place. Default is every logger.
+tempora.command.lookup.showing_results=Found %s results for %s.
+tempora.command.lookup.showing_result=Found %s result for %s.
+tempora.command.lookup.too_many_pending=Warning: There are %s events waiting to be processed. This may affect the accuracy of the results, as the server may be under heavy load.
+tempora.command.lookup.query_failed=Database query failed on %s: %s
+tempora.command.lookup.nothing_found=Nothing was logged within %s blocks of you in the last %s.
+
+tempora.command.home.description=Finds the chunk a player has spent the most time in, from their movement history. Useful for finding their base.
+tempora.command.home.arg0=Name of the player to look up.
+tempora.command.home.arg1=Optional. Only use movement from this far back, e.g. 1mo, 2w.
+tempora.command.home.arg2=Optional. Only look in this dimension.
+tempora.command.home.result=Player %s is most active in dim %s, click %s to visit location.
+tempora.command.home.unknown_player=No player called '%s' has joined this server.
+tempora.command.home.no_db=Movement logging is disabled, so there is no movement history to search.
+tempora.command.home.no_data=No movement data found for that query.
+tempora.command.home.sql_error=Database error while querying movement data, see console for details.
+
+tempora.command.sql.description=Runs a read-only SELECT query against a logger's database and shows the results in chat, for investigations /tempora lookup can't express.
+tempora.command.sql.arg0=A read-only SELECT query. The table name is the full logger name, e.g. PlayerMovementLogger.
+tempora.command.sql.select_only=Only SELECT queries are allowed.
+tempora.command.sql.missing_columns=Query missing required columns: %s
+tempora.command.sql.missing_columns.advice=It is highly recommended to use SELECT * instead of specifying columns.
+tempora.command.sql.no_results_in=No results found in %s.
+tempora.command.sql.query_display=Query: %s.
+tempora.command.sql.error=SQL Error: %s.
+tempora.command.sql.generic_unknown_error=Generic unknown error (Please report).
+tempora.command.sql.query_quantity=Found %s matching results.
+tempora.command.sql.query_quantity_if_max=Showing the first %s results (server limit: %s). Additional matches may be hidden.
+tempora.command.sql.invalid_table=Couldn't find table. Choices are, %s.
+
+tempora.command.wand.description=Gives you a Tempora wand. Left click a block to see its history, right click a face to see the history of the space in front of it.
+tempora.command.wand.given=You have been given a Tempora wand. Left click a block to see its history, right click a face to see the space in front of it.
+
+tempora.command.tp.description=Teleports you to a position, in any dimension. Tempora's clickable coordinates use this.
+tempora.command.tp.arg0=Position to teleport to.
+tempora.command.tp.arg1=Optional. Dimension to teleport to, defaults to your current one.
+tempora.command.teleport.display=[%s %s %s]
+tempora.command.teleport.hover=Click to teleport [%s, ID %s]
+
+tempora.command.trace.description=Prints a stored stack trace. It runs when you click [STACK TRACE] on a block change, it isn't meant to be typed.
+tempora.command.trace.arg0=The key of the stored stack trace.
+tempora.command.trace.not_found=No stack trace was found for key: %s.
+tempora.command.stacktrace.brackets=[STACK TRACE]
+tempora.command.full.stacktrace=FULL STACK TRACE
+tempora.command.click.reveal.stacktrace=Click to reveal full stack trace (%s deep).
+
+tempora.command.explode.description=Creates an explosion at the block you are looking at, for testing that explosions are logged. Only exists in a development environment.
+tempora.command.explode.arg0=Strength of the explosion, TNT is 4.
+tempora.command.explode.no_block_in_sight=No block in sight.
+tempora.command.explode.force.must.be.numeric=Force must be a number.
+
+# === Regions ===
+tempora.region.not_found=No region is called '%s'. Use /tempora region list to see them all.
+tempora.region.rules=Rules: %s
+tempora.region.rules.none=No rules, so this region doesn't change what gets logged.
+tempora.region.dimension_banner=-- Regions in %s (ID %s) --
+
+tempora.command.region.create.description=Creates a named region between two corner blocks, both included. Coordinates can be relative to you, e.g. ~-50. On its own a region changes nothing, use /tempora region set to turn loggers on or off inside it.
+tempora.command.region.create.arg0=Unique name for the region, used by the other region commands.
+tempora.command.region.create.arg1=First corner block. ~ means your own position.
+tempora.command.region.create.arg2=Opposite corner block.
+tempora.command.region.create.arg3=Optional. Dimension ID, defaults to your current dimension.
+tempora.command.region.create.success=Created region %s | Bounds: %s -> %s | Midpoint: %s.
+tempora.command.region.create.name_taken=A region called '%s' already exists. Names must be unique.
+tempora.command.region.create.relative_needs_player=Relative coordinates (~) can only be used by a player.
+tempora.command.region.create.no_rules=It has no rules yet, so it won't change what gets logged. %s
+tempora.command.region.create.suggest_block_logging=[Log block changes here]
+tempora.command.region.create.suggest_block_logging.hover=Fills in the command to turn block change logging ON in this region.
+
+tempora.command.region.list.description=Lists every region with its rules, and briefly draws them in the world around you.
+tempora.command.region.list.arg0=Optional. Only list regions in this dimension.
+tempora.command.region.list.none=No regions defined.
+tempora.command.region.list.entry=Region %s | Bounds: %s -> %s | Midpoint: %s | Created %s by %s.
+tempora.command.region.list.no_regions_in_dim=%s (ID %s) has no regions.
+
+tempora.command.region.remove.description=Deletes a region and its rules. Without a name, deletes the region you are standing in.
+tempora.command.region.remove.arg0=Optional. Name of the region to delete.
+tempora.command.region.remove.removed=Removed region %s | Bounds: %s -> %s | Midpoint: %s.
+tempora.command.region.remove.not_in_region=You are not inside a region.
+tempora.command.region.remove.ambiguous=You are inside %s regions, click one to remove it:
+
+tempora.command.region.set.description=Turns a logger ON or OFF inside a region, or clears the rule. Where regions overlap, the smallest one with a rule for that logger decides, and ON wins between equally sized regions. Where no region has a rule, the logger's logByDefault config applies.
+tempora.command.region.set.arg0=Name of the region.
+tempora.command.region.set.arg1=Logger to set the rule for, or all for every logger.
+tempora.command.region.set.arg2=on to always log here, off to never log here, clear to remove the rule.
+tempora.command.region.set.set=Region %s: %s is now %s.
+tempora.command.region.set.set_all=Region %s: all loggers are now %s.
+tempora.command.region.set.cleared=Region %s: removed the rule for %s.
+tempora.command.region.set.cleared_all=Region %s: removed all rules.
+tempora.command.region.set.no_rule=Region %s has no rule for %s, nothing to clear.
+tempora.command.region.set.logger_disabled=Note: %s is disabled in the config (isEnabled=false under %s), so it won't log anywhere until that is turned back on.
+
+tempora.command.region.check.description=Shows whether each logger records events where you are standing, and which region or config option decided it.
+tempora.command.region.check.arg0=Optional. Only check this logger.
+tempora.command.region.check.header=Logging at %s in %s (ID %s):
+tempora.command.region.check.entry=%s: %s (%s)
+tempora.command.region.check.reason.disabled=disabled in config
+tempora.command.region.check.reason.default=no region rule here, using logByDefault from config
+tempora.command.region.check.reason.region=rule in region '%s'
+tempora.command.region.check.reason.tie=rule in region '%s', which is the same size as '%s' and ON wins ties
 tempora.op.warning.queue.too.large=Warning: %s has %s events pending, Tempora is struggling to keep up. You may be logging too much or a large event has occurred (explosion etc).
 
 player.tempora_wand.unauthorised=§c[ALERT]§r %s attempted to use a Tempora wand without authorisation.
@@ -49,129 +164,13 @@ tempora.uuid.display=UUID: %s
 tempora.uuid.click_to_copy=Click to copy UUID.
 
 # === Generic errors ===
-tempora.range.negative=Range cannot be negative, stop trying to break me!
-tempora.range.zero=Range cannot be zero.
-
 tempora.unknown.player=[UNKNOWN PLAYER]
 tempora.unknown.cause=[UNKNOWN CAUSE]
 tempora.unknown.error=[UNKNOWN ERROR]
 
 tempora.dimension.invalid=Dimension %s does not exist.
 
-# === Command messages ===
-tempora.command.usage=Usage: %s
 event.command.executed=%s executed
-
-tempora.command.query_sql.select_only=Only SELECT queries are allowed.
-tempora.command.query_sql.missing_columns=Query missing required columns: %s
-tempora.command.query_sql.missing_columns.advice=It is highly recommended to use SELECT * instead of specifying columns.
-tempora.command.query_sql.no_results_in=No results found in %s.
-tempora.command.query_sql.query_display=Query: %s.
-tempora.command.query_sql.error=SQL Error: %s.
-tempora.command.query_sql.generic_unknown_error=Generic unknown error (Please report).
-tempora.command.query_sql.query_quantity=Found %s matching results.
-tempora.command.query_sql.query_quantity_if_max=Showing the first %s results (server limit: %s). Additional matches may be hidden.
-tempora.command.query_sql.invalid_table=Couldn't find table. Choices are, %s.
-tempora.command.query_sql.help.arg0=A read-only SELECT query. The table name is the logger name, e.g. PlayerMovementLogger.
-tempora.command.query_sql.help.description=Runs a read-only SELECT query against a logger's database and shows the results in chat, for investigations /tempora_query_events can't express.
-
-tempora.command.home_chunk.no_db=Unable to query movement data – database unavailable.
-tempora.command.home_chunk.usage=Usage: %s
-tempora.command.home_chunk.result=Player %s is most active in dim %s, click %s to visit location.
-tempora.command.home_chunk.unknown_player=No location data for player %s available.
-tempora.command.home_chunk.no_data=No movement data found for that query.
-tempora.command.home_chunk.sql_error=Database error while querying movement data, see console for details.
-tempora.command.home_chunk.bad_dim=Bad <dim> value, must be an integer.
-tempora.command.home_chunk.description=Attempts to determine a players most used chunk, useful for finding their base.
-tempora.command.home_chunk.help.arg0=Name of the player to look up.
-tempora.command.home_chunk.help.arg1=Optional. Only use movement from this far back, e.g. 1month, 2weeks. A number here is read as a dimension ID instead.
-tempora.command.home_chunk.help.arg2=Optional. Only look in this dimension.
-
-tempora.command.teleport.display=[%s %s %s]
-tempora.command.teleport.hover=Click to teleport [%s, ID %s]
-tempora.command.teleport.help.description=Teleports you to a position, in any dimension. Tempora's clickable coordinates use this.
-tempora.command.teleport.help.arg0=Position to teleport to.
-tempora.command.teleport.help.arg1=Optional. Dimension to teleport to, defaults to your current one.
-
-# === Regions ===
-tempora.region.not_found=No region is labelled '%s'. Use /tempora_list_regions to see them all.
-tempora.region.rules=Rules: %s
-tempora.region.rules.none=No rules, so this region doesn't change what gets logged.
-tempora.region.dimension_banner=-- Regions in %s (ID %s) --
-
-tempora.command.create_region.help.description=Creates a named region between two corner blocks. On its own a region changes nothing, use /tempora_region_rule to turn loggers on or off inside it.
-tempora.command.create_region.help.arg0=Unique name for the region, used by the other region commands.
-tempora.command.create_region.help.arg1=First corner block, included in the region.
-tempora.command.create_region.help.arg2=Opposite corner block, included in the region.
-tempora.command.create_region.help.arg3=Optional. Dimension ID, defaults to your current dimension.
-tempora.command.create_region.success=Created region %s | Bounds: %s -> %s | Midpoint: %s.
-tempora.command.create_region.label_taken=A region labelled '%s' already exists. Labels must be unique.
-tempora.command.create_region.no_rules=It has no rules yet, so it won't change what gets logged. %s
-tempora.command.create_region.suggest_block_logging=[Log block changes here]
-tempora.command.create_region.suggest_block_logging.hover=Fills in the command to turn BlockChangeLogger ON in this region.
-
-tempora.command.remove_region.help.description=Deletes a region and its rules. Without a label, deletes the region you are standing in.
-tempora.command.remove_region.help.arg0=Optional. Label of the region to delete.
-tempora.command.remove_region.removed=Removed region %s | Bounds: %s -> %s | Midpoint: %s.
-tempora.command.remove_region.no_region=You are not inside a region.
-tempora.command.remove_region.ambiguous=You are inside %s regions, click one to remove it:
-
-tempora.command.list_regions.help.description=Lists every region with its rules, and briefly draws them in the world around you.
-tempora.command.list_regions.help.arg0=Optional. Only list regions in this dimension.
-tempora.command.list_regions.none=No regions defined.
-tempora.command.list_regions.entry=Region %s | Bounds: %s -> %s | Midpoint: %s | Created %s by %s.
-tempora.command.list_regions.filtered.no_regions=%s (ID %s) has no regions.
-
-tempora.command.region_rule.help.description=Turns a logger ON or OFF inside a region, or clears the rule. Where regions overlap, the smallest one with a rule for that logger decides, and ON wins between equally sized regions. Where no region has a rule, the logger's logByDefault config applies.
-tempora.command.region_rule.help.arg0=Label of the region.
-tempora.command.region_rule.help.arg1=Logger to set the rule for, or all for every logger.
-tempora.command.region_rule.help.arg2=on to always log here, off to never log here, clear to remove the rule.
-tempora.command.region_rule.unknown_logger=There is no logger called '%s'. Choices are: %s.
-tempora.command.region_rule.set=Region %s: %s is now %s.
-tempora.command.region_rule.set_all=Region %s: all loggers are now %s.
-tempora.command.region_rule.cleared=Region %s: removed the rule for %s.
-tempora.command.region_rule.cleared_all=Region %s: removed all rules.
-tempora.command.region_rule.no_rule=Region %s has no rule for %s, nothing to clear.
-tempora.command.region_rule.logger_disabled=Note: %s is disabled in the config (isEnabled=false), so it won't log anywhere until that is turned back on.
-
-tempora.command.region_check.help.description=Shows whether each logger records events where you are standing, and which region or config option decided it.
-tempora.command.region_check.help.arg0=Optional. Only check this logger.
-tempora.command.region_check.header=Logging at %s in %s (ID %s):
-tempora.command.region_check.entry=%s: %s (%s)
-tempora.command.region_check.reason.disabled=disabled in config
-tempora.command.region_check.reason.default=no region rule here, using logByDefault from config
-tempora.command.region_check.reason.region=rule in region '%s'
-tempora.command.region_check.reason.tie=rule in region '%s', which is the same size as '%s' and ON wins ties
-
-tempora.command.query_events.bad_filter=Filter "%s" is invalid.
-tempora.command.query_events.query_failed=Database query failed on %s: %s
-tempora.command.query_events.no_results=No results found for %s.
-tempora.command.query_events.help.arg0=Range in blocks.
-tempora.command.query_events.help.arg1=Time to look back, e.g. 1day, 5mins.
-tempora.command.query_events.help.arg2=Logger to query.
-tempora.command.query_events.help.description=Query all events from a specific logger within a radius of where you are located, looking back the amount of time specified. E.g. 1day means it looks back over the last day and finds the 5 most recent events. Shows results in chat and visualizes them for the player if applicable.
-# Description for the query-by-coordinate command
-
-tempora.command.explode.no_block_in_sight=No block in sight.
-tempora.command.explode.force.must.be.numeric=Force must be a number.
-tempora.command.explode.help.description=Creates an explosion at the block you are looking at, for testing that explosions are logged.
-tempora.command.explode.help.arg0=Strength of the explosion, TNT is 4.
-
-tempora.command.stacktrace.description=Prints a previously stored stack trace for the given key. This is an internal command coupled with other functions, don't execute it directly.
-tempora.command.stacktrace.arg.key=The unique key or UUID associated with the stored stack trace.
-tempora.command.stacktrace.not_found=No stack trace was found for key: %s.
-
-tempora.command.stacktrace.brackets=[STACK TRACE]
-tempora.command.full.stacktrace=FULL STACK TRACE
-tempora.command.click.reveal.stacktrace=Click to reveal full stack trace (%s deep).
-
-tempora.command.help.label.description=Description: %s
-tempora.command.help.label.usage=Usage: %s
-tempora.command.help.label.example=Example: %s
-tempora.command.help.help.description=Shows what a Tempora command does and how to use it.
-tempora.command.help.help.arg0=Name of the command, without the slash.
-tempora.command.help.command_not_found=There is no command called '%s'.
-tempora.command.help.command_not_from_tempora='%s' is not a Tempora command.
 
 # === HUD ===
 tempora.HUD.region.descriptor.plural=Currently inside %s regions:

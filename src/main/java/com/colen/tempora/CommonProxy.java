@@ -10,7 +10,6 @@ import net.minecraftforge.common.config.Configuration;
 import com.colen.tempora.blocks.RenderingErrorItemBlock;
 import com.colen.tempora.chat.TemporaChatRegistry;
 import com.colen.tempora.events.OnWorldLoad;
-import com.colen.tempora.items.TemporaWand;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.GenericRenderEventPacketHandler;
 import com.colen.tempora.loggers.generic.RenderEventPacket;
@@ -28,7 +27,7 @@ public class CommonProxy {
 
     public void preInit(FMLPreInitializationEvent event) {
         Tempora.config = new Configuration(event.getSuggestedConfigurationFile());
-        GameRegistry.registerItem(new TemporaWand(), "admin_wand");
+        GameRegistry.registerItem(Tempora.temporaWand, "admin_wand");
         GameRegistry.registerBlock(renderingErrorBlock, RenderingErrorItemBlock.class, "renderingErrorBlock");
 
         TemporaChatRegistry.register();

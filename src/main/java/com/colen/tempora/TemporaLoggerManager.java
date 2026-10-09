@@ -52,6 +52,10 @@ public final class TemporaLoggerManager {
             throw new IllegalStateException("Logger already registered: " + loggerName);
         }
 
+        if (findLogger(logger.getShortName()) != null) {
+            throw new IllegalStateException("Logger short name already in use: " + logger.getShortName());
+        }
+
         if (CLASS_TO_ID.containsKey(eventInfoClass)) {
             throw new IllegalStateException("EventInfo already registered: " + eventInfoClass.getName());
         }
@@ -91,15 +95,31 @@ public final class TemporaLoggerManager {
         return LOGGERS.get(loggerName);
     }
 
-    // For player typed names, where "blockchangelogger" should still find BlockChangeLogger.
-    public static @Nullable GenericPositionalLogger<?> getLoggerIgnoreCase(String loggerName) {
+    // For names players type: the short name ("break") or the full logger name, ignoring case.
+    public static @Nullable GenericPositionalLogger<?> findLogger(String typed) {
         for (GenericPositionalLogger<?> logger : LOGGERS.values()) {
-            if (logger.getLoggerName()
-                .equalsIgnoreCase(loggerName)) {
+            if (logger.getShortName()
+                .equalsIgnoreCase(typed)
+                || logger.getLoggerName()
+                    .equalsIgnoreCase(typed)) {
                 return logger;
             }
         }
         return null;
+    }
+
+    // How a logger is shown to players. Falls back to the stored name for loggers that no longer exist.
+    public static String displayName(String loggerName) {
+        GenericPositionalLogger<?> logger = LOGGERS.get(loggerName);
+        return logger == null ? loggerName : logger.getShortName();
+    }
+
+    public static List<String> getAllShortNames() {
+        return LOGGERS.values()
+            .stream()
+            .map(GenericPositionalLogger::getShortName)
+            .sorted()
+            .collect(Collectors.toList());
     }
 
     public static Collection<GenericPositionalLogger<?>> getLoggerList() {

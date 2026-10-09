@@ -34,6 +34,11 @@ public class EntityPositionLogger extends GenericPositionalLogger<EntityPosition
     }
 
     @Override
+    public @NotNull String getShortName() {
+        return "entity";
+    }
+
+    @Override
     public @NotNull EntityPositionEventInfo newEventInfo() {
         return new EntityPositionEventInfo();
     }

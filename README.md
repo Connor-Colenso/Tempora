@@ -10,8 +10,8 @@ in-game by operators.
 
 - **Per-event-type logging** — block changes, player movement, entity spawns/deaths,
   explosions, inventory transfers, item use, and command history, each in its own SQLite database file.
-- **In-game querying** — look up what happened at a location or time (`/tempora_query_events`),
-  or run a read-only SQL query directly against a logger's table (`/tempora_query_sql`).
+- **In-game querying** — look up what happened around you (`/tempora lookup`), click blocks with
+  the Tempora wand, or run a read-only SQL query directly against a logger's table (`/tempora sql`).
 - **Regions** — turn individual loggers on or off in specific areas of the world, e.g. log every
   block change around spawn, or stop logging mob deaths in a mob farm. See [Regions](#regions).
 - **Configurable retention and durability** — per-logger data retention window, and a choice
@@ -22,26 +22,35 @@ in-game by operators.
 
 ## Commands
 
-All commands below require operator permission (permission level 2).
+Everything is under one command, `/tempora` (or `/tem` for short), which lists the subcommands when
+run on its own. All of them require operator permission (permission level 2), and
+`/tempora help <command>` explains any of them.
 
 | Command | Purpose |
 |---|---|
-| `/tempora_query_events` | Find logged events near a position and time. |
-| `/tempora_query_sql` | Run a read-only `SELECT` against a logger's table for ad-hoc investigation. |
-| `/tempora_home_chunk` | Find a player's most-visited chunk, based on movement history. |
-| `/tempora_create_region` / `/tempora_list_regions` / `/tempora_remove_region` | Manage regions. |
-| `/tempora_region_rule` | Turn a logger on or off inside a region. |
-| `/tempora_region_check` | Show which loggers record events where you stand, and why. |
-| `/tempora_tp` | Teleport to a logged event's location. |
-| `/tempora_explode` | Trigger a test explosion (for verifying explosion logging). |
-| `/tempora_stacktrace` | Inspect the stack trace recorded against a logged event. |
-| `/tempora_help` | List all Tempora commands and their usage. |
+| `/tempora lookup [r:<radius>] [t:<time>] [l:<logger,...>]` | Show the latest events around you. Every filter is optional and they go in any order, e.g. `/tempora lookup t:1d l:break,place`. Defaults to 10 blocks, the last 3 days, every logger. |
+| `/tempora home <player> [t:<time>] [dim:<id>]` | Find a player's most-visited chunk, based on movement history. |
+| `/tempora sql <SELECT ...>` | Run a read-only `SELECT` against a logger's table for ad-hoc investigation. |
+| `/tempora wand` | Get the Tempora wand. Left click a block to see its history, right click a face for the space in front of it. |
+| `/tempora region create <name> <x1 y1 z1> <x2 y2 z2> [dim]` | Create a region. Coordinates can be relative to you, e.g. `~-50`. |
+| `/tempora region list [dim]` / `/tempora region remove [name]` | List or delete regions. |
+| `/tempora region set <name> <logger\|all> <on\|off\|clear>` | Turn a logger on or off inside a region. |
+| `/tempora region check [logger]` | Show which loggers record events where you stand, and why. |
+| `/tempora help [command]` | List every command, or explain one, e.g. `/tempora help region set`. |
+
+Loggers have short names for commands: `block`, `break`, `place`, `explosion`, `command`, `death`,
+`spawn`, `entity`, `inventory`, `item` and `movement`. The full names (e.g. `PlayerBlockBreakLogger`)
+also work, and are the table names for `/tempora sql`.
+
+`/tempora tp` and `/tempora trace` also exist, but are run by clicking Tempora's chat output rather
+than typed. `/tempora explode <strength>`, for testing explosion logging, only exists in a development
+environment.
 
 ## Regions
 
-A region is a named box of blocks, created with `/tempora_create_region <label> <x1> <y1> <z1> <x2> <y2> <z2> [dim]`
+A region is a named box of blocks, created with `/tempora region create <name> <x1> <y1> <z1> <x2> <y2> <z2> [dim]`
 (both corners included). On its own a region changes nothing. Give it rules with
-`/tempora_region_rule <label> <logger|all> <on|off|clear>`.
+`/tempora region set <name> <logger|all> <on|off|clear>`.
 
 To decide whether a logger records an event at a position:
 
@@ -50,10 +59,10 @@ To decide whether a logger records an event at a position:
 2. If equally sized regions disagree, **ON wins**, since a missing record is worse than an extra one.
 3. If no region has a rule for the logger, its `logByDefault` config option applies.
 
-`BlockChangeLogger` logs every `setBlock` call, which is far too much data to record everywhere, so
-it defaults to `logByDefault=false` and only logs inside regions that turn it on. Every other logger
-defaults to logging everywhere. `/tempora_region_check` shows the result at your position and which
-region (or config option) decided it.
+`BlockChangeLogger` (`block`) logs every `setBlock` call, which is far too much data to record
+everywhere, so it defaults to `logByDefault=false` and only logs inside regions that turn it on.
+Every other logger defaults to logging everywhere. `/tempora region check` shows the result at your
+position and which region (or config option) decided it.
 
 ## Configuration
 
@@ -71,7 +80,7 @@ Each logger has its own config section (in the standard Forge config file) with:
 For server operators: Tempora records player UUIDs, movement history, block changes (with
 container contents at the time of breaking, for some loggers), inventory transfers, and full
 command text/arguments, retained for the configured `oldestDataCutoff` window. Any operator can
-query this data via `/tempora_query_sql` or `/tempora_query_events`.
+query this data via `/tempora sql` or `/tempora lookup`.
 
 ## License
 

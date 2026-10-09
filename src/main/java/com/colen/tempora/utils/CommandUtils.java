@@ -1,7 +1,5 @@
 package com.colen.tempora.utils;
 
-import static com.colen.tempora.commands.TemporaTp.TEMPORA_TP;
-
 import java.util.List;
 
 import net.minecraft.command.CommandBase;
@@ -16,6 +14,7 @@ import net.minecraft.util.IChatComponent;
 import org.jetbrains.annotations.NotNull;
 
 import com.colen.tempora.TemporaLoggerManager;
+import com.colen.tempora.commands.TemporaCommand;
 import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 
 public class CommandUtils {
@@ -32,13 +31,6 @@ public class CommandUtils {
 
     public static void sendNewLine(ICommandSender sender) {
         sender.addChatMessage(new ChatComponentText(""));
-    }
-
-    public static IChatComponent wrongUsage(String commandUsage) {
-        IChatComponent errorMessage = new ChatComponentTranslation("tempora.command.usage", commandUsage);
-        errorMessage.getChatStyle()
-            .setColor(EnumChatFormatting.RED);
-        return errorMessage;
     }
 
     // Note this is not localised, because it may be called from terminal, which has no localisation functionality.
@@ -81,7 +73,7 @@ public class CommandUtils {
             z += 0.5;
         }
 
-        String cmd = "/" + TEMPORA_TP + " " + x + " " + y + " " + z + " " + dimID;
+        String cmd = TemporaCommand.TELEPORT.command(x, y, z, dimID);
 
         IChatComponent hoverText = new ChatComponentTranslation(
             "tempora.command.teleport.hover",

@@ -18,7 +18,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
@@ -259,17 +258,13 @@ public class PositionalLoggerDatabase {
         }
     }
 
-    // -1 passed into seconds, equates to, find any event that occurred here, no matter how long ago.
-    public void queryEventsAtPosAndTime(ICommandSender sender, int centreX, int centreY, int centreZ, long seconds) {
-        if (!(sender instanceof EntityPlayerMP player)) return;
-
-        // radius 0 means an exact match – the SQL below
-        // (ABS(x - ?) <= radius) becomes x == ?, y == ?, z == ?
-        queryEventByCoordinate(sender, centreX, centreY, centreZ, 0, seconds, player.dimension);
-    }
-
-    public void queryEventByCoordinate(ICommandSender sender, int centreX, int centreY, int centreZ, int radius,
-        long seconds, int dimensionId) {
+    /**
+     * Shows the player the latest events within a cube of the given radius around a position, and draws them in the
+     * world. A radius of 0 means exactly that block. Negative seconds means no time limit. Says nothing if there are
+     * no events, so callers checking many loggers can report that once. Returns how many events were shown.
+     */
+    public int showEventsNear(EntityPlayerMP player, int centreX, int centreY, int centreZ, int radius, long seconds,
+        int dimensionId) {
 
         String sql = String.format("""
             SELECT * FROM %s
@@ -310,63 +305,55 @@ public class PositionalLoggerDatabase {
 
             try (ResultSet rs = ps.executeQuery()) {
                 List<? extends GenericEventInfo> eventDataList = genericPositionalLogger.generateQueryResults(rs);
+                if (eventDataList.isEmpty()) return 0;
 
-                if (eventDataList.isEmpty()) {
-                    IChatComponent noResults = new ChatComponentTranslation(
-                        "tempora.command.query_events.no_results",
-                        genericPositionalLogger.getLoggerName());
-                    noResults.getChatStyle()
-                        .setColor(EnumChatFormatting.GRAY);
-                    sender.addChatMessage(noResults);
+                int eventsFound = eventDataList.size();
+                // Plural or not.
+                String langKey = (eventsFound == 1) ? "tempora.command.lookup.showing_result"
+                    : "tempora.command.lookup.showing_results";
 
-                } else {
-                    int eventsFound = eventDataList.size();
-                    // Plural or not.
-                    String langKey = (eventsFound == 1) ? "message.query_events.showing_result"
-                        : "message.query_events.showing_results";
+                IChatComponent showingResults = new ChatComponentTranslation(
+                    langKey,
+                    new ChatComponentNumber(eventsFound),
+                    genericPositionalLogger.getShortName());
+                showingResults.getChatStyle()
+                    .setColor(EnumChatFormatting.GRAY);
+                player.addChatMessage(showingResults);
 
-                    IChatComponent showingResults = new ChatComponentTranslation(
-                        langKey,
-                        new ChatComponentNumber(eventsFound),
-                        genericPositionalLogger.getLoggerName());
-                    showingResults.getChatStyle()
-                        .setColor(EnumChatFormatting.GRAY);
-                    sender.addChatMessage(showingResults);
-
-                    // If events waiting to process is large, then warn the user.
-                    // Shouldn't really be happening.
-                    if (genericPositionalLogger.getQueueSize() > 100) {
-                        IChatComponent tooMany = new ChatComponentTranslation(
-                            "message.query_events.too_many_pending",
-                            new ChatComponentNumber(genericPositionalLogger.getQueueSize()));
-                        tooMany.getChatStyle()
-                            .setColor(EnumChatFormatting.DARK_RED);
-                        sender.addChatMessage(tooMany);
-                    }
-
-                    // EntityPlayerMP specific stuff, like sending animation positions to the user and the text
-                    // itself.
-                    EntityPlayerMP player = (EntityPlayerMP) sender;
-
-                    // Do not remove!
-                    Collections.reverse(eventDataList);
-
-                    String uuid = player.getUniqueID()
-                        .toString();
-                    eventDataList.forEach(p -> sender.addChatMessage(p.localiseText(uuid)));
-
-                    // This tells the client what to render in the world, if anything.
-                    for (GenericEventInfo eventData : eventDataList) {
-                        NETWORK.sendTo(new RenderEventPacket(eventData), player);
-                    }
+                // If events waiting to process is large, then warn the user.
+                // Shouldn't really be happening.
+                if (genericPositionalLogger.getQueueSize() > 100) {
+                    IChatComponent tooMany = new ChatComponentTranslation(
+                        "tempora.command.lookup.too_many_pending",
+                        new ChatComponentNumber(genericPositionalLogger.getQueueSize()));
+                    tooMany.getChatStyle()
+                        .setColor(EnumChatFormatting.DARK_RED);
+                    player.addChatMessage(tooMany);
                 }
+
+                // Do not remove!
+                Collections.reverse(eventDataList);
+
+                String uuid = player.getUniqueID()
+                    .toString();
+                eventDataList.forEach(p -> player.addChatMessage(p.localiseText(uuid)));
+
+                // This tells the client what to render in the world, if anything.
+                for (GenericEventInfo eventData : eventDataList) {
+                    NETWORK.sendTo(new RenderEventPacket(eventData), player);
+                }
+
+                return eventsFound;
             }
         } catch (SQLException e) {
-            sender.addChatMessage(
-                new ChatComponentTranslation(
-                    "tempora.command.query_events.query_failed",
-                    genericPositionalLogger.getLoggerName(),
-                    e.getMessage()));
+            IChatComponent failed = new ChatComponentTranslation(
+                "tempora.command.lookup.query_failed",
+                genericPositionalLogger.getShortName(),
+                e.getMessage());
+            failed.getChatStyle()
+                .setColor(EnumChatFormatting.RED);
+            player.addChatMessage(failed);
+            return 0;
         }
     }
 

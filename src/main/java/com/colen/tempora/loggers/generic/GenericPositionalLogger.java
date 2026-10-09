@@ -157,6 +157,9 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
     // Logger name is also the SQL table name. So choose it and be careful not to rename it.
     public abstract @NotNull String getLoggerName();
 
+    // What players type and see in commands, e.g. "break". Unlike getLoggerName, this can be changed freely.
+    public abstract @NotNull String getShortName();
+
     public void handleCustomLoggerConfig(Configuration config) {}
 
     public final void registerEvent() {
@@ -279,7 +282,7 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
             "logByDefault",
             getLoggerName(),
             defaultForLogByDefault(),
-            "Whether this logger records events in places where no region has a rule for it. Use /tempora_region_rule to turn it ON or OFF inside specific regions.");
+            "Whether this logger records events in places where no region has a rule for it. Use /tempora region set to turn it ON or OFF inside specific regions.");
         maxShutdownTimeoutMilliseconds = config.getInt(
             "maxShutdownTimeoutMilliseconds",
             getLoggerName(),

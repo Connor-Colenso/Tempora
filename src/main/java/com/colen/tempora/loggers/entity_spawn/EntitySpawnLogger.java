@@ -34,6 +34,11 @@ public class EntitySpawnLogger extends GenericPositionalLogger<EntitySpawnEventI
     }
 
     @Override
+    public @NotNull String getShortName() {
+        return "spawn";
+    }
+
+    @Override
     public @NotNull EntitySpawnEventInfo newEventInfo() {
         return new EntitySpawnEventInfo();
     }

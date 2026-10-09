@@ -31,6 +31,11 @@ public class ItemUseLogger extends GenericPositionalLogger<ItemUseEventInfo> {
     }
 
     @Override
+    public @NotNull String getShortName() {
+        return "item";
+    }
+
+    @Override
     public @NotNull ItemUseEventInfo newEventInfo() {
         return new ItemUseEventInfo();
     }

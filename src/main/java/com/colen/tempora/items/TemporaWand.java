@@ -19,7 +19,7 @@ import net.minecraft.util.Facing;
 import net.minecraft.world.World;
 
 import com.colen.tempora.TemporaLoggerManager;
-import com.colen.tempora.loggers.generic.GenericPositionalLogger;
+import com.colen.tempora.commands.LookupCommand;
 import com.colen.tempora.regions.TemporaWorldRegion;
 import com.colen.tempora.rendering.ClientRegionStore;
 import com.colen.tempora.rendering.regions.RegionRenderMode;
@@ -97,10 +97,15 @@ public class TemporaWand extends Item {
                     getDimensionName(player.dimension),
                     player.dimension).setChatStyle(new ChatStyle().setColor(EnumChatFormatting.RED)));
 
-            for (GenericPositionalLogger<?> logger : TemporaLoggerManager.getLoggerList()) {
-                logger.getDatabaseManager()
-                    .queryEventsAtPosAndTime(player, x, y, z, -1);
-            }
+            LookupCommand.showEvents(
+                (EntityPlayerMP) player,
+                TemporaLoggerManager.getLoggerList(),
+                x,
+                y,
+                z,
+                0,
+                -1,
+                new ChatComponentTranslation("message.tempora_wand.nothing_found"));
         }
     }
 }

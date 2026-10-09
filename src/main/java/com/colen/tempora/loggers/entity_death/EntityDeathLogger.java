@@ -33,6 +33,11 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathEventI
     }
 
     @Override
+    public @NotNull String getShortName() {
+        return "death";
+    }
+
+    @Override
     public @NotNull EntityDeathEventInfo newEventInfo() {
         return new EntityDeathEventInfo();
     }
