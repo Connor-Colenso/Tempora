@@ -2,6 +2,7 @@ package com.colen.tempora;
 
 import static com.colen.tempora.utils.ReflectionUtils.getAllTableColumns;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -19,7 +20,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.colen.tempora.loggers.generic.GenericEventInfo;
+import com.colen.tempora.loggers.generic.GenericGlobalLogger;
+import com.colen.tempora.loggers.generic.GenericLogger;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
+import com.colen.tempora.loggers.generic.PositionalEventInfo;
 
 public final class TemporaLoggerManager {
 
@@ -27,7 +31,7 @@ public final class TemporaLoggerManager {
 
     /* ---------------- LOGGER REGISTRY ---------------- */
 
-    private static final Map<String, GenericPositionalLogger<?>> LOGGERS = new HashMap<>();
+    private static final Map<String, GenericLogger<?>> LOGGERS = new HashMap<>();
 
     /* ---------------- REGISTRY ---------------- */
 
@@ -42,12 +46,14 @@ public final class TemporaLoggerManager {
     /* ---------------- PACKET REGISTRATION ---------------- */
 
     /**
-     * Adds a logger. Call this while mods load (preInit, init or postInit), on both client and server. Anything wrong
-     * with the logger (names, columns) is reported here, rather than when the server starts.
+     * Adds a logger, either kind: a {@link GenericPositionalLogger} for events at a place, or a
+     * {@link GenericGlobalLogger} for events that belong to the whole server. Call this while mods load (preInit, init
+     * or postInit), on both client and server. Anything wrong with the logger (names, columns) is reported here, rather
+     * than when the server starts.
      * <p>
      * See TemporaEvents.java in Tempora mod for example usages.
      */
-    public static <EventInfo extends GenericEventInfo> void register(GenericPositionalLogger<EventInfo> logger,
+    public static <EventInfo extends GenericEventInfo> void register(GenericLogger<EventInfo> logger,
         Supplier<EventInfo> factory) {
 
         // 1. Validate inputs
@@ -56,7 +62,7 @@ public final class TemporaLoggerManager {
 
         String loggerName = logger.getLoggerName();
 
-        if (GenericPositionalLogger.areLoggersStarted()) {
+        if (GenericLogger.areLoggersStarted()) {
             throw new IllegalStateException(
                 "Logger " + loggerName
                     + " was registered while the server is running. Register loggers while mods load (preInit, init or postInit).");
@@ -118,7 +124,7 @@ public final class TemporaLoggerManager {
 
     /** Reads every registered logger's settings. Loggers registered afterwards read theirs as they register. */
     public static void loadConfig(Configuration config) {
-        for (GenericPositionalLogger<?> logger : LOGGERS.values()) {
+        for (GenericLogger<?> logger : LOGGERS.values()) {
             configure(logger, config);
         }
         configLoaded = true;
@@ -126,7 +132,7 @@ public final class TemporaLoggerManager {
         if (config.hasChanged()) config.save();
     }
 
-    private static void configure(GenericPositionalLogger<?> logger, Configuration config) {
+    private static void configure(GenericLogger<?> logger, Configuration config) {
         logger.handleCustomLoggerConfig(config);
         logger.genericConfig(config);
     }
@@ -141,13 +147,22 @@ public final class TemporaLoggerManager {
 
     /* ---------------- LOGGER ACCESS ---------------- */
 
-    public static @Nullable GenericPositionalLogger<?> getLogger(String loggerName) {
+    public static @Nullable GenericLogger<?> getLogger(String loggerName) {
         return LOGGERS.get(loggerName);
     }
 
-    // For names players type: the short name ("break") or the full logger name, ignoring case.
-    public static @Nullable GenericPositionalLogger<?> findLogger(String typed) {
-        for (GenericPositionalLogger<?> logger : LOGGERS.values()) {
+    /** The named logger if it is a positional one, else null. Typed for adding events the server sent to draw. */
+    @SuppressWarnings("unchecked")
+    public static <T extends PositionalEventInfo> @Nullable GenericPositionalLogger<T> getPositionalLogger(
+        String loggerName) {
+        return LOGGERS.get(loggerName) instanceof GenericPositionalLogger<?>logger ? (GenericPositionalLogger<T>) logger
+            : null;
+    }
+
+    // For names players type: the short name ("break") or the full logger name, ignoring case. Either kind of logger,
+    // so commands can tell the player when they named the wrong kind.
+    public static @Nullable GenericLogger<?> findLogger(String typed) {
+        for (GenericLogger<?> logger : LOGGERS.values()) {
             if (logger.getShortName()
                 .equalsIgnoreCase(typed)
                 || logger.getLoggerName()
@@ -160,32 +175,52 @@ public final class TemporaLoggerManager {
 
     // How a logger is shown to players. Falls back to the stored name for loggers that no longer exist.
     public static String displayName(String loggerName) {
-        GenericPositionalLogger<?> logger = LOGGERS.get(loggerName);
+        GenericLogger<?> logger = LOGGERS.get(loggerName);
         return logger == null ? loggerName : logger.getShortName();
     }
 
-    public static List<String> getAllShortNames() {
-        return LOGGERS.values()
-            .stream()
-            .map(GenericPositionalLogger::getShortName)
+    /** Every logger, of both kinds. */
+    public static Collection<GenericLogger<?>> getLoggerList() {
+        return Collections.unmodifiableCollection(LOGGERS.values());
+    }
+
+    public static List<GenericPositionalLogger<?>> getPositionalLoggers() {
+        List<GenericPositionalLogger<?>> loggers = new ArrayList<>();
+        for (GenericLogger<?> logger : LOGGERS.values()) {
+            if (logger instanceof GenericPositionalLogger<?>positional) loggers.add(positional);
+        }
+        return loggers;
+    }
+
+    public static List<GenericGlobalLogger<?>> getGlobalLoggers() {
+        List<GenericGlobalLogger<?>> loggers = new ArrayList<>();
+        for (GenericLogger<?> logger : LOGGERS.values()) {
+            if (logger instanceof GenericGlobalLogger<?>global) loggers.add(global);
+        }
+        return loggers;
+    }
+
+    public static List<String> getPositionalShortNames() {
+        return shortNames(getPositionalLoggers());
+    }
+
+    public static List<String> getGlobalShortNames() {
+        return shortNames(getGlobalLoggers());
+    }
+
+    private static List<String> shortNames(Collection<? extends GenericLogger<?>> loggers) {
+        return loggers.stream()
+            .map(GenericLogger::getShortName)
             .sorted()
             .collect(Collectors.toList());
     }
 
-    public static Collection<GenericPositionalLogger<?>> getLoggerList() {
-        return Collections.unmodifiableCollection(LOGGERS.values());
-    }
-
-    @SuppressWarnings("unchecked")
-    public static <T extends GenericEventInfo> GenericPositionalLogger<T> getTypedLogger(String loggerName) {
-        return (GenericPositionalLogger<T>) LOGGERS.get(loggerName);
-    }
-
+    /** Every logger's full name, which is also its table name. */
     @NotNull
     public static List<String> getAllLoggerNames() {
         return LOGGERS.values()
             .stream()
-            .map(GenericPositionalLogger::getLoggerName)
+            .map(GenericLogger::getLoggerName)
             .collect(Collectors.toList());
     }
 

@@ -16,7 +16,7 @@ import net.minecraft.util.IChatComponent;
 import com.colen.tempora.TemporaEvents;
 import com.colen.tempora.commands.TemporaCommand;
 import com.colen.tempora.commands.TraceCommand;
-import com.colen.tempora.loggers.generic.GenericEventInfo;
+import com.colen.tempora.loggers.generic.PositionalEventInfo;
 import com.colen.tempora.loggers.generic.column.Column;
 import com.colen.tempora.utils.BlockUtils;
 import com.colen.tempora.utils.CommandUtils;
@@ -28,7 +28,7 @@ import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 import cpw.mods.fml.common.network.ByteBufUtils;
 import io.netty.buffer.ByteBuf;
 
-public class BlockChangeEventInfo extends GenericEventInfo {
+public class BlockChangeEventInfo extends PositionalEventInfo {
 
     @Column(constraints = "NOT NULL")
     public int beforeBlockID;

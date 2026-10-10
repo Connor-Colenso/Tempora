@@ -19,12 +19,15 @@ import org.jetbrains.annotations.Nullable;
 import com.colen.tempora.TemporaLoggerManager;
 import com.colen.tempora.commands.command_base.CommandFilters;
 import com.colen.tempora.commands.command_base.TemporaSubcommand;
+import com.colen.tempora.loggers.generic.GenericGlobalLogger;
+import com.colen.tempora.loggers.generic.GenericLogger;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.utils.TimeUtils;
 
 /**
  * /tempora lookup [r:<radius>] [t:<time>] [l:<logger,...>]
- * Shows the latest events around the player, from every logger unless narrowed down with l:.
+ * Shows the latest events around the player, from every positional logger unless narrowed down with l:. Global
+ * loggers, which have no position, are looked up with /tempora global instead.
  */
 public class LookupCommand extends TemporaSubcommand {
 
@@ -65,29 +68,34 @@ public class LookupCommand extends TemporaSubcommand {
             new ChatComponentTranslation("tempora.command.lookup.nothing_found", radius, time));
     }
 
-    // Comma separated logger names, or every logger if null. Null, after telling the sender, if a name is unknown.
+    // Comma separated positional logger names, or every positional logger if null. Null, after telling the sender,
+    // if a name is unknown or a global logger.
     public static @Nullable List<GenericPositionalLogger<?>> parseLoggers(ICommandSender sender,
         @Nullable String names) {
-        if (names == null) return new ArrayList<>(TemporaLoggerManager.getLoggerList());
+        if (names == null) return TemporaLoggerManager.getPositionalLoggers();
 
         List<GenericPositionalLogger<?>> loggers = new ArrayList<>();
         for (String name : names.split(",")) {
-            GenericPositionalLogger<?> logger = TemporaLoggerManager.findLogger(name);
-            if (logger == null) {
-                sendUnknownLogger(sender, name);
+            GenericLogger<?> logger = TemporaLoggerManager.findLogger(name);
+            if (logger instanceof GenericGlobalLogger) {
+                sendError(
+                    sender,
+                    "tempora.command.lookup.global_logger",
+                    logger.getShortName(),
+                    TemporaCommand.GLOBAL.command("l:" + logger.getShortName()));
                 return null;
             }
-            if (!loggers.contains(logger)) loggers.add(logger);
+            if (!(logger instanceof GenericPositionalLogger<?>positional)) {
+                sendUnknownLogger(sender, name, TemporaLoggerManager.getPositionalShortNames());
+                return null;
+            }
+            if (!loggers.contains(positional)) loggers.add(positional);
         }
         return loggers;
     }
 
-    public static void sendUnknownLogger(ICommandSender sender, String name) {
-        sendError(
-            sender,
-            "tempora.command.unknown_logger",
-            name,
-            String.join(", ", TemporaLoggerManager.getAllShortNames()));
+    public static void sendUnknownLogger(ICommandSender sender, String name, List<String> choices) {
+        sendError(sender, "tempora.command.unknown_logger", name, String.join(", ", choices));
     }
 
     // Shows each logger's events near a position, then a single "nothing found" line if none of them had any. A
@@ -99,8 +107,7 @@ public class LookupCommand extends TemporaSubcommand {
             // A logger that is disabled, or failed to start, has no database to read.
             if (logger.notStarted()) continue;
 
-            found += logger.getDatabaseManager()
-                .showEventsNear(player, x, y, z, radius, seconds, player.dimension);
+            found += logger.showEventsNear(player, x, y, z, radius, seconds, player.dimension);
         }
 
         if (found == 0) {
@@ -115,7 +122,7 @@ public class LookupCommand extends TemporaSubcommand {
         Map<String, List<String>> suggestions = new LinkedHashMap<>();
         suggestions.put("r", Arrays.asList("5", "10", "25", "50"));
         suggestions.put("t", Arrays.asList("1h", "1d", "3d", "1w", "1mo"));
-        suggestions.put("l", TemporaLoggerManager.getAllShortNames());
+        suggestions.put("l", TemporaLoggerManager.getPositionalShortNames());
         return CommandFilters.complete(args, suggestions);
     }
 

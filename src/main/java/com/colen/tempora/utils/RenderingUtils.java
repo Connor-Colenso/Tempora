@@ -11,8 +11,8 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 
 import com.colen.tempora.Tempora;
-import com.colen.tempora.loggers.generic.GenericEventInfo;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
+import com.colen.tempora.loggers.generic.PositionalEventInfo;
 import com.colen.tempora.rendering.RenderUtils;
 import com.colen.tempora.utils.nbt.NBTUtils;
 
@@ -20,9 +20,8 @@ public class RenderingUtils {
 
     public static int CLIENT_EVENT_RENDER_DISTANCE;
 
-    public static void quickRenderBlockWithHighlightAndChecks(RenderWorldLastEvent e, GenericEventInfo eventInfo,
-        int blockID, int metadata, String encodedNBT, String playerUUID,
-        GenericPositionalLogger<? extends GenericEventInfo> logger) {
+    public static void quickRenderBlockWithHighlightAndChecks(RenderWorldLastEvent e, PositionalEventInfo eventInfo,
+        int blockID, int metadata, String encodedNBT, String playerUUID, GenericPositionalLogger<?> logger) {
         try {
             NBTTagCompound nbt = null;
             if (!Objects.equals(encodedNBT, NO_NBT) && !Objects.equals(encodedNBT, NBT_DISABLED)) {
@@ -72,7 +71,7 @@ public class RenderingUtils {
         }
     }
 
-    public static double squaredDistance(GenericEventInfo e, double x, double y, double z) {
+    public static double squaredDistance(PositionalEventInfo e, double x, double y, double z) {
         double dx = e.x - x;
         double dy = e.y - y;
         double dz = e.z - z;

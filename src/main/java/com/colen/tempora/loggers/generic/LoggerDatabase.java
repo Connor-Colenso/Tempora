@@ -1,7 +1,6 @@
 package com.colen.tempora.loggers.generic;
 
 import static com.colen.tempora.Tempora.LOG;
-import static com.colen.tempora.Tempora.NETWORK;
 import static com.colen.tempora.utils.DatabaseUtils.jdbcUrl;
 import static com.colen.tempora.utils.ReflectionUtils.getAllTableColumns;
 
@@ -11,17 +10,11 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.sql.Timestamp;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.util.ChatComponentTranslation;
-import net.minecraft.util.EnumChatFormatting;
-import net.minecraft.util.IChatComponent;
 import net.minecraftforge.common.config.Configuration;
 
 import org.jetbrains.annotations.NotNull;
@@ -31,27 +24,25 @@ import com.colen.tempora.Tempora;
 import com.colen.tempora.loggers.generic.column.ColumnDef;
 import com.colen.tempora.loggers.generic.enums.LogWriteSafety;
 import com.colen.tempora.utils.TimeUtils;
-import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 
-public class PositionalLoggerDatabase {
+public class LoggerDatabase {
 
     private static final String OLDEST_DATA_DEFAULT = "4months";
 
     private LogWriteSafety durabilityMode;
-    public static String oldestDataCutoff;
+    private String oldestDataCutoff;
 
-    private static final int MAX_RESULTS = 5;
-    private Connection positionalLoggerDBConnection;
-    private final GenericPositionalLogger<?> genericPositionalLogger;
+    private Connection dbConnection;
+    private final GenericLogger<?> logger;
     private PreparedStatement addDataInjectionStatement; // Pre made injection statement
     private List<ColumnDef> columnDefs; // Instantiate upon first database insertion.
 
-    public PositionalLoggerDatabase(GenericPositionalLogger<?> eventToLogGenericPositionalLogger) {
-        genericPositionalLogger = eventToLogGenericPositionalLogger;
+    public LoggerDatabase(GenericLogger<?> logger) {
+        this.logger = logger;
     }
 
     public void initialiseDatabase() throws SQLException {
-        String loggerName = genericPositionalLogger.getLoggerName();
+        String loggerName = logger.getLoggerName();
         Tempora.LOG.info("Initialising {} database.", loggerName);
 
         initDbConnection();
@@ -61,32 +52,30 @@ public class PositionalLoggerDatabase {
             enableHighRiskFastMode();
         }
 
-        positionalLoggerDBConnection.setAutoCommit(false);
+        dbConnection.setAutoCommit(false);
 
         initTable();
 
-        // Only make indexes if they do not already exist.
-        if (!tableHasIndexes()) {
-            createAllIndexes();
-        }
+        // Cheap when they already exist, and adds any index a newer version of the logger needs.
+        createIndexes();
 
         removeOldDatabaseData();
         performWALCheckpoint();
     }
 
     private void initDbConnection() throws SQLException {
-        String dbUrl = jdbcUrl(genericPositionalLogger.getLoggerName() + ".db");
-        positionalLoggerDBConnection = DriverManager.getConnection(dbUrl);
+        String dbUrl = jdbcUrl(logger.getLoggerName() + ".db");
+        dbConnection = DriverManager.getConnection(dbUrl);
     }
 
     public void closeDbConnection() throws SQLException {
-        positionalLoggerDBConnection.close();
-        positionalLoggerDBConnection = null;
+        dbConnection.close();
+        dbConnection = null;
     }
 
     private void initTable() throws SQLException {
-        String tableName = genericPositionalLogger.getLoggerName();
-        List<ColumnDef> columns = getAllTableColumns(genericPositionalLogger);
+        String tableName = logger.getLoggerName();
+        List<ColumnDef> columns = getAllTableColumns(logger);
 
         // Create the table if it doesn't exist.
         StringBuilder createSQL = new StringBuilder();
@@ -109,14 +98,13 @@ public class PositionalLoggerDatabase {
             .append(");");
 
         // Execute statement
-        try (PreparedStatement stmt = positionalLoggerDBConnection.prepareStatement(createSQL.toString())) {
+        try (PreparedStatement stmt = dbConnection.prepareStatement(createSQL.toString())) {
             stmt.execute();
         }
 
         // Step 2: Read existing columns and their declared SQL types.
         Map<String, String> existingColumnTypes = new HashMap<>();
-        try (PreparedStatement stmt = positionalLoggerDBConnection
-            .prepareStatement("PRAGMA table_info(" + tableName + ");")) {
+        try (PreparedStatement stmt = dbConnection.prepareStatement("PRAGMA table_info(" + tableName + ");")) {
             ResultSet rs = stmt.executeQuery();
 
             while (rs.next()) {
@@ -133,7 +121,7 @@ public class PositionalLoggerDatabase {
                 if (!existingColumnTypes.containsKey(oldName)) continue;
 
                 String renameSQL = "ALTER TABLE " + tableName + " RENAME COLUMN " + oldName + " TO " + col.name + ";";
-                positionalLoggerDBConnection.prepareStatement(renameSQL)
+                dbConnection.prepareStatement(renameSQL)
                     .execute();
 
                 LOG.info(
@@ -162,7 +150,7 @@ public class PositionalLoggerDatabase {
                 }
 
                 alterSQL.append(";");
-                positionalLoggerDBConnection.prepareStatement(alterSQL.toString())
+                dbConnection.prepareStatement(alterSQL.toString())
                     .execute();
 
                 existingColumnTypes.put(col.name, col.type);
@@ -186,14 +174,14 @@ public class PositionalLoggerDatabase {
     }
 
     private void removeOldDatabaseData() {
-        final String loggerName = genericPositionalLogger.getLoggerName();
+        final String loggerName = logger.getLoggerName();
         Tempora.LOG.info("Removing data older than {} from {}.", oldestDataCutoff, loggerName);
 
         try {
             // Prepare SQL statement with the safe table name
             String sql = "DELETE FROM " + loggerName + " WHERE timestamp < ?";
 
-            try (PreparedStatement p_stmt = positionalLoggerDBConnection.prepareStatement(sql)) {
+            try (PreparedStatement p_stmt = dbConnection.prepareStatement(sql)) {
                 // Set the parameter for the PreparedStatement
                 long time = System.currentTimeMillis() - TimeUtils.convertToSeconds(oldestDataCutoff) * 1000;
                 p_stmt.setLong(1, time);
@@ -208,11 +196,11 @@ public class PositionalLoggerDatabase {
         } catch (Exception e) {
             LOG.error(
                 "An error occurred while erasing old data in table '{}' — oldestDataCutoff={} (check Tempora config).",
-                genericPositionalLogger.getLoggerName(),
+                logger.getLoggerName(),
                 oldestDataCutoff,
                 e);
 
-            throw new RuntimeException("Database cleanup failed: " + genericPositionalLogger.getLoggerName(), e);
+            throw new RuntimeException("Database cleanup failed: " + logger.getLoggerName(), e);
         }
     }
 
@@ -222,20 +210,18 @@ public class PositionalLoggerDatabase {
             st.execute("PRAGMA wal_autocheckpoint=10000;");
             st.execute("PRAGMA temp_store = MEMORY;"); // todo review
         } catch (SQLException e) {
-            LOG.error("Unable to enable high-risk mode for {}.", genericPositionalLogger.getLoggerName(), e);
-            throw new RuntimeException(
-                "Failed to enable high-risk mode for logger " + genericPositionalLogger.getLoggerName(),
-                e);
+            LOG.error("Unable to enable high-risk mode for {}.", logger.getLoggerName(), e);
+            throw new RuntimeException("Failed to enable high-risk mode for logger " + logger.getLoggerName(), e);
         }
     }
 
     public Connection getDBConn() {
-        return positionalLoggerDBConnection;
+        return dbConnection;
     }
 
     public @NotNull Connection getReadOnlyConnection() {
         try {
-            String dbUrl = jdbcUrl(genericPositionalLogger.getLoggerName() + ".db");
+            String dbUrl = jdbcUrl(logger.getLoggerName() + ".db");
 
             SQLiteConfig config = new SQLiteConfig();
             config.setReadOnly(true);
@@ -250,123 +236,21 @@ public class PositionalLoggerDatabase {
 
             return conn;
         } catch (Exception e) {
-            LOG.error(
-                "Could not establish readonly connection to {} database.",
-                genericPositionalLogger.getLoggerName(),
-                e);
+            LOG.error("Could not establish readonly connection to {} database.", logger.getLoggerName(), e);
             throw new RuntimeException("Failed to open readonly connection");
-        }
-    }
-
-    /**
-     * Shows the player the latest events within a cube of the given radius around a position, and draws them in the
-     * world. A radius of 0 means exactly that block. Negative seconds means no time limit. Says nothing if there are
-     * no events, so callers checking many loggers can report that once. Returns how many events were shown.
-     */
-    public int showEventsNear(EntityPlayerMP player, int centreX, int centreY, int centreZ, int radius, long seconds,
-        int dimensionId) {
-
-        String sql = String.format("""
-            SELECT * FROM %s
-            WHERE x BETWEEN ? AND ?
-              AND y BETWEEN ? AND ?
-              AND z BETWEEN ? AND ?
-              AND dimensionID = ?
-              AND timestamp >= ?
-            ORDER BY timestamp DESC
-            LIMIT ?;
-            """, genericPositionalLogger.getLoggerName());
-
-        try (Connection conn = getReadOnlyConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            // X range
-            ps.setInt(1, centreX - radius);
-            ps.setInt(2, centreX + radius);
-
-            // Y range
-            ps.setInt(3, centreY - radius);
-            ps.setInt(4, centreY + radius);
-
-            // Z range
-            ps.setInt(5, centreZ - radius);
-            ps.setInt(6, centreZ + radius);
-
-            // Dimension ID
-            ps.setInt(7, dimensionId);
-
-            if (seconds < 0) {
-                // Don’t apply any timestamp filter, fetch everything.
-                ps.setTimestamp(8, new Timestamp(0));
-            } else {
-                ps.setTimestamp(8, new Timestamp(System.currentTimeMillis() - seconds * 1000L));
-            }
-
-            ps.setInt(9, MAX_RESULTS);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                List<? extends GenericEventInfo> eventDataList = genericPositionalLogger.generateQueryResults(rs);
-                if (eventDataList.isEmpty()) return 0;
-
-                int eventsFound = eventDataList.size();
-                // Plural or not.
-                String langKey = (eventsFound == 1) ? "tempora.command.lookup.showing_result"
-                    : "tempora.command.lookup.showing_results";
-
-                IChatComponent showingResults = new ChatComponentTranslation(
-                    langKey,
-                    new ChatComponentNumber(eventsFound),
-                    genericPositionalLogger.getShortName());
-                showingResults.getChatStyle()
-                    .setColor(EnumChatFormatting.GRAY);
-                player.addChatMessage(showingResults);
-
-                // If events waiting to process is large, then warn the user.
-                // Shouldn't really be happening.
-                if (genericPositionalLogger.getQueueSize() > 100) {
-                    IChatComponent tooMany = new ChatComponentTranslation(
-                        "tempora.command.lookup.too_many_pending",
-                        new ChatComponentNumber(genericPositionalLogger.getQueueSize()));
-                    tooMany.getChatStyle()
-                        .setColor(EnumChatFormatting.DARK_RED);
-                    player.addChatMessage(tooMany);
-                }
-
-                // Do not remove!
-                Collections.reverse(eventDataList);
-
-                String uuid = player.getUniqueID()
-                    .toString();
-                eventDataList.forEach(p -> player.addChatMessage(p.localiseText(uuid)));
-
-                // This tells the client what to render in the world, if anything.
-                for (GenericEventInfo eventData : eventDataList) {
-                    NETWORK.sendTo(new RenderEventPacket(eventData), player);
-                }
-
-                return eventsFound;
-            }
-        } catch (SQLException e) {
-            IChatComponent failed = new ChatComponentTranslation(
-                "tempora.command.lookup.query_failed",
-                genericPositionalLogger.getShortName(),
-                e.getMessage());
-            failed.getChatStyle()
-                .setColor(EnumChatFormatting.RED);
-            player.addChatMessage(failed);
-            return 0;
         }
     }
 
     public GenericEventInfo queryEventByEventID(String eventID) {
 
-        String sqlQuery = "SELECT * FROM " + genericPositionalLogger.getLoggerName() + " WHERE eventID == ? LIMIT 1";
+        String sqlQuery = "SELECT * FROM " + logger.getLoggerName() + " WHERE eventID == ? LIMIT 1";
 
         try (Connection conn = getReadOnlyConnection(); PreparedStatement ps = conn.prepareStatement(sqlQuery)) {
 
             ps.setString(1, eventID);
 
             ResultSet rs = ps.executeQuery();
-            List<? extends GenericEventInfo> packets = genericPositionalLogger.generateQueryResults(rs);
+            List<? extends GenericEventInfo> packets = logger.generateQueryResults(rs);
             if (packets.isEmpty()) return null;
 
             return packets.get(0);
@@ -374,7 +258,7 @@ public class PositionalLoggerDatabase {
         } catch (Exception e) {
             LOG.error(
                 "SQL query failed for table '{}' by eventID={}. Query: {}",
-                genericPositionalLogger.getLoggerName(),
+                logger.getLoggerName(),
                 eventID,
                 sqlQuery,
                 e);
@@ -383,85 +267,56 @@ public class PositionalLoggerDatabase {
         return null;
     }
 
-    private boolean tableHasIndexes() {
-        String tableName = genericPositionalLogger.getLoggerName();
+    private void createIndexes() {
+        String tableName = logger.getLoggerName();
 
-        String sql = """
-            SELECT 1
-            FROM sqlite_master
-            WHERE type = 'index'
-              AND tbl_name = ?
-            LIMIT 1;
-            """;
-
-        try (PreparedStatement ps = positionalLoggerDBConnection.prepareStatement(sql)) {
-            ps.setString(1, tableName);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                return rs.next(); // true if at least one index exists
+        try (Statement stmt = dbConnection.createStatement()) {
+            for (Map.Entry<String, String> index : logger.tableIndexes()
+                .entrySet()) {
+                stmt.execute(
+                    String.format(
+                        "CREATE INDEX IF NOT EXISTS idx_%s_%s ON %s (%s);",
+                        tableName,
+                        index.getKey(),
+                        tableName,
+                        index.getValue()));
             }
-
-        } catch (SQLException e) {
-            LOG.error("Failed to check indexes for table '{}'", tableName, e);
-            throw new RuntimeException(e);
-        }
-    }
-
-    private void createAllIndexes() {
-        String tableName = genericPositionalLogger.getLoggerName();
-
-        LOG.info("Creating indexes for Tempora database: {}", tableName);
-
-        String createCompositeIndex = String.format(
-            "CREATE INDEX IF NOT EXISTS idx_%s_xyz_dimension_time ON %s (dimensionID, x, y, z, timestamp DESC);",
-            tableName,
-            tableName);
-
-        String createTimestampIndex = String
-            .format("CREATE INDEX IF NOT EXISTS idx_%s_timestamp ON %s (timestamp DESC);", tableName, tableName);
-
-        try (Statement stmt = positionalLoggerDBConnection.createStatement()) {
-            stmt.execute(createCompositeIndex);
-            stmt.execute(createTimestampIndex);
         } catch (SQLException e) {
             throw new IllegalStateException("Could not create index for " + tableName, e);
         }
-
-        LOG.info("Successfully created indexes for Tempora database: {}", tableName);
     }
 
     private void performWALCheckpoint() throws SQLException {
-        positionalLoggerDBConnection.commit();
-        try (Statement st = positionalLoggerDBConnection.createStatement()) {
+        dbConnection.commit();
+        try (Statement st = dbConnection.createStatement()) {
             st.execute("PRAGMA wal_checkpoint(TRUNCATE)");
         }
     }
 
     public void genericConfig(@NotNull Configuration config) {
-        String raw = config
-            .get(
-                genericPositionalLogger.getLoggerName(),
-                "logWriteSafety",
-                genericPositionalLogger.defaultLogWriteSafetyMode()
-                    .name(),
-                """
-                    NORMAL – Safer, but slower
-                      - Best for long-term stability.
-                      - Every event is saved to disk right away, so even if your server crashes or the power goes out, your logs will be intact.
-                      - Slightly slower performance, may reduce TPS during heavy activity like world edits or explosions.
+        String raw = config.get(
+            logger.getLoggerName(),
+            "logWriteSafety",
+            logger.defaultLogWriteSafetyMode()
+                .name(),
+            """
+                NORMAL – Safer, but slower
+                  - Best for long-term stability.
+                  - Every event is saved to disk right away, so even if your server crashes or the power goes out, your logs will be intact.
+                  - Slightly slower performance, may reduce TPS during heavy activity like world edits or explosions.
 
-                    HIGH_RISK – Much faster, but riskier
-                      - Boosts performance by delaying how often logs are saved to disk.
-                      - WARNING: if your server crashes or shuts down suddenly, the last few seconds of logs may be lost or corrupted. This does **not** affect your world, only the Tempora logs.
-                      - Only recommended if you make regular backups or can afford to lose a few seconds of log data.
-                    """)
+                HIGH_RISK – Much faster, but riskier
+                  - Boosts performance by delaying how often logs are saved to disk.
+                  - WARNING: if your server crashes or shuts down suddenly, the last few seconds of logs may be lost or corrupted. This does **not** affect your world, only the Tempora logs.
+                  - Only recommended if you make regular backups or can afford to lose a few seconds of log data.
+                """)
             .getString()
             .trim()
             .toUpperCase();
 
         oldestDataCutoff = config.getString(
             "oldestDataCutoff",
-            genericPositionalLogger.getLoggerName(),
+            logger.getLoggerName(),
             OLDEST_DATA_DEFAULT,
             "Any records older than this relative to server boot, will be erased. This is unrecoverable, be careful!");
 
@@ -471,7 +326,7 @@ public class PositionalLoggerDatabase {
             throw new RuntimeException(
                 "Invalid DurabilityMode \"" + raw
                     + "\" in "
-                    + genericPositionalLogger.getLoggerName()
+                    + logger.getLoggerName()
                     + ". Valid values are "
                     + LogWriteSafety.NORMAL
                     + " or "
@@ -489,7 +344,7 @@ public class PositionalLoggerDatabase {
     }
 
     public String generateInsertSQL() {
-        List<ColumnDef> columns = getAllTableColumns(genericPositionalLogger);
+        List<ColumnDef> columns = getAllTableColumns(logger);
 
         // Join the column names for the INSERT clause
         String columnList = columns.stream()
@@ -501,15 +356,13 @@ public class PositionalLoggerDatabase {
             .map(c -> "?")
             .collect(Collectors.joining(", "));
 
-        return "INSERT INTO " + genericPositionalLogger
-            .getLoggerName() + " (" + columnList + ") VALUES (" + placeholders + ")";
+        return "INSERT INTO " + logger.getLoggerName() + " (" + columnList + ") VALUES (" + placeholders + ")";
     }
 
     // This is responsible for saving the actual events to a database. It seems rather convoluted,
     // but is trying to optimise and minimise the impact of heavy reflection usage.
     public <EventInfo extends GenericEventInfo> void insertBatch(List<EventInfo> eventInfoQueue) throws SQLException {
-        if (positionalLoggerDBConnection == null)
-            throw new SQLException("Database connection is null for " + genericPositionalLogger.getLoggerName());
+        if (dbConnection == null) throw new SQLException("Database connection is null for " + logger.getLoggerName());
         if (eventInfoQueue == null || eventInfoQueue.isEmpty()) {
             return;
         }
@@ -517,8 +370,8 @@ public class PositionalLoggerDatabase {
         if (addDataInjectionStatement == null || columnDefs == null) {
             final String sql = generateInsertSQL();
 
-            columnDefs = getAllTableColumns(genericPositionalLogger);
-            addDataInjectionStatement = positionalLoggerDBConnection.prepareStatement(sql);
+            columnDefs = getAllTableColumns(logger);
+            addDataInjectionStatement = dbConnection.prepareStatement(sql);
         }
 
         for (EventInfo eventInfo : eventInfoQueue) {
@@ -535,17 +388,17 @@ public class PositionalLoggerDatabase {
 
         try {
             addDataInjectionStatement.executeBatch();
-            positionalLoggerDBConnection.commit();
+            dbConnection.commit();
         } catch (SQLException e) {
             // Leave the connection/statement usable for the next batch instead of abandoning them
             // half-committed.
             try {
                 addDataInjectionStatement.clearBatch();
-                positionalLoggerDBConnection.rollback();
+                dbConnection.rollback();
             } catch (SQLException rollbackFailure) {
                 LOG.error(
                     "Failed to roll back {} after a failed batch insert.",
-                    genericPositionalLogger.getLoggerName(),
+                    logger.getLoggerName(),
                     rollbackFailure);
             }
             throw e;
@@ -553,7 +406,7 @@ public class PositionalLoggerDatabase {
     }
 
     public void shutdownDatabase() throws SQLException {
-        if (positionalLoggerDBConnection != null && !positionalLoggerDBConnection.isClosed()) {
+        if (dbConnection != null && !dbConnection.isClosed()) {
             closeDbConnection();
         } else {
             throw new IllegalStateException("Could not shutdown database connection");
@@ -561,6 +414,6 @@ public class PositionalLoggerDatabase {
     }
 
     public void rollback() throws SQLException {
-        positionalLoggerDBConnection.rollback();
+        dbConnection.rollback();
     }
 }

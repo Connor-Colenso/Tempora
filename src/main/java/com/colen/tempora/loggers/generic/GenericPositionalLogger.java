@@ -1,65 +1,43 @@
 package com.colen.tempora.loggers.generic;
 
-import static com.colen.tempora.Tempora.LOG;
-import static com.colen.tempora.utils.ReflectionUtils.getAllTableColumns;
+import static com.colen.tempora.Tempora.NETWORK;
 import static com.colen.tempora.utils.RenderingUtils.squaredDistance;
 
 import java.awt.Color;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.TimeUnit;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
-import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
 
-import org.jetbrains.annotations.NotNull;
-
-import com.colen.tempora.TemporaLoggerManager;
-import com.colen.tempora.enums.LoggerEventType;
-import com.colen.tempora.loggers.generic.column.ColumnDef;
-import com.colen.tempora.loggers.generic.enums.LogWriteSafety;
 import com.colen.tempora.regions.LogRule;
 import com.colen.tempora.regions.TemporaRegionRegistry;
 import com.colen.tempora.regions.TemporaWorldRegion;
-import com.colen.tempora.utils.PlayerUtils;
-import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 
-import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
+/**
+ * A logger for events that happen at a place, such as a block breaking or a mob dying. Each event is stored with its
+ * dimension and position, follows region rules, is looked up around a position (/tempora lookup, the wand), and can be
+ * drawn in the world on the client.
+ */
 @SuppressWarnings("SqlDialectInspection")
-public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo> {
+public abstract class GenericPositionalLogger<EventInfo extends PositionalEventInfo> extends GenericLogger<EventInfo> {
 
-    protected PositionalLoggerDatabase databaseManager = new PositionalLoggerDatabase(this);
-
-    private ArrayBlockingQueue<EventInfo> concurrentEventQueue; // Must be init'd after config load, so it can set the
     protected List<EventInfo> transparentEventsToRenderInWorld = new ArrayList<>();
     protected List<EventInfo> nonTransparentEventsToRenderInWorld = new ArrayList<>();
     private static final long SECONDS_RENDERING_DURATION = 10;
 
-    protected boolean isEnabledByConfig;
+    private static final int MAX_RESULTS = 5;
+
     private boolean logByDefault;
-    private Thread queueWorkerThread;
-    private volatile boolean shuttingDownDatabaseThread = false;
-    private volatile boolean isRunning;
-    // Started for the current server: database open, worker running (until it crashes, see isRunning).
-    private volatile boolean started;
-
-    private static volatile boolean loggersStarted;
-
-    private int maxShutdownTimeoutMilliseconds;
-    private int maxEventsInQueueBeforeServerFreeze;
-    private static final int QUEUE_POLL_TIMEOUT_MILLISECONDS = 1000;
 
     public void addEventToRender(EventInfo event) {
         event.eventRenderCreationTime = System.currentTimeMillis();
@@ -104,18 +82,10 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
         list.sort((a, b) -> Double.compare(squaredDistance(b, px, py, pz), squaredDistance(a, px, py, pz)));
     }
 
-    protected LogWriteSafety defaultLogWriteSafetyMode() {
-        return LogWriteSafety.NORMAL;
-    }
-
     // Default value of the logByDefault config option. Override to return false for loggers that would produce too
     // much data to run everywhere, so they only log inside regions that turn them on.
     protected boolean defaultForLogByDefault() {
         return true;
-    }
-
-    public boolean isEnabledByConfig() {
-        return isEnabledByConfig;
     }
 
     // Whether this logger records events where no region has a rule for it.
@@ -123,71 +93,9 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
         return logByDefault;
     }
 
-    public PositionalLoggerDatabase getDatabaseManager() {
-        return databaseManager;
-    }
-
-    public abstract @NotNull LoggerEventType getLoggerEventType();
-
-    public abstract @NotNull EventInfo newEventInfo();
-
-    public @NotNull List<EventInfo> generateQueryResults(ResultSet resultSet) throws SQLException {
-
-        List<EventInfo> eventList = new ArrayList<>();
-
-        // Cached, immutable column definitions
-        List<ColumnDef> columns = getAllTableColumns(this);
-
-        while (resultSet.next()) {
-
-            EventInfo element = newEventInfo();
-
-            // Populate column-mapped fields (base fields inherited from GenericEventInfo included)
-            for (ColumnDef col : columns) {
-                ColumnDef.ColumnAccessor accessor = col.columnAccessor;
-
-                Object value = accessor.reader.read(resultSet, col.name);
-                accessor.set(element, value);
-            }
-
-            eventList.add(element);
-        }
-
-        return eventList;
-    }
-
     /** Draws this logger's recent lookup results in the world. Loggers with nothing to draw can leave this alone. */
     @SideOnly(Side.CLIENT)
     public void renderEventsInWorld(RenderWorldLastEvent renderEvent) {}
-
-    // Logger name is also the SQL table name. So choose it and be careful not to rename it.
-    public abstract @NotNull String getLoggerName();
-
-    // What players type and see in commands, e.g. "break". Unlike getLoggerName, this can be changed freely.
-    public abstract @NotNull String getShortName();
-
-    public void handleCustomLoggerConfig(Configuration config) {}
-
-    public final void registerEvent() {
-        if (!getLoggerEventType().shouldRegister()) return;
-
-        // A logger whose event handlers Forge rejects (e.g. a malformed @SubscribeEvent in another mod's logger) must
-        // not stop the server starting. It can still log what is reported to it directly.
-        try {
-            switch (getLoggerEventType()) {
-                case ForgeEvent -> MinecraftForge.EVENT_BUS.register(this);
-                case MinecraftEvent -> FMLCommonHandler.instance()
-                    .bus()
-                    .register(this);
-                default -> throw new IllegalStateException("Unknown LoggerEventType: " + getLoggerEventType());
-            }
-        } catch (RuntimeException e) {
-            LOG.error(
-                "Could not register {} for events, so it will miss everything it listens for.",
-                getLoggerName(),
-                e);
-        }
-    }
 
     // The smallest region here with a rule for this logger decides, otherwise logByDefault does.
     // See TemporaRegionRegistry for the full rules.
@@ -204,248 +112,90 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
      * {@link com.colen.tempora.api.TemporaApi}.
      */
     protected final void logEvent(EventInfo eventInfo, int dimensionID, double x, double y, double z) {
-        eventInfo.eventID = UUID.randomUUID()
-            .toString();
-        eventInfo.timestamp = System.currentTimeMillis();
         eventInfo.dimensionID = dimensionID;
         eventInfo.x = x;
         eventInfo.y = y;
         eventInfo.z = z;
 
-        queueEventInfo(eventInfo);
+        logNewEvent(eventInfo);
     }
 
-    public final void queueEventInfo(EventInfo eventInfo) {
-        if (!isEnabledByConfig) return;
-        if (!isRunning) return;
-        if (!canLogHere(eventInfo.x, eventInfo.y, eventInfo.z, eventInfo.dimensionID)) return;
-
-        // Populate this automatically, as it is fixed per world for all events.
-        eventInfo.versionID = ModpackVersionData.CURRENT_VERSION;
-
-        // Blocking & thread safe.
-        try {
-            if (getQueueSize() >= maxEventsInQueueBeforeServerFreeze) {
-                LOG.warn(
-                    "Maximum queue size of {} reached for {}, slowing server down.",
-                    maxEventsInQueueBeforeServerFreeze,
-                    getLoggerName());
-                PlayerUtils.sendMessageToOps(
-                    "tempora.op.warning.queue.too.large",
-                    getLoggerName(),
-                    new ChatComponentNumber(getQueueSize()));
-            }
-            concurrentEventQueue.put(eventInfo);
-        } catch (InterruptedException e) {
-            LOG.error("Queue worker for {} was interrupted while queueing an event.", getLoggerName());
-        }
+    @Override
+    final boolean shouldRecord(EventInfo eventInfo) {
+        return canLogHere(eventInfo.x, eventInfo.y, eventInfo.z, eventInfo.dimensionID);
     }
 
-    private void startQueueWorker() {
-        shuttingDownDatabaseThread = false;
-        isRunning = true;
-
-        concurrentEventQueue = new ArrayBlockingQueue<>(maxEventsInQueueBeforeServerFreeze);
-
-        queueWorkerThread = new Thread(this::queueLoop, "Tempora-" + getLoggerName());
-        queueWorkerThread.setDaemon(false);
-        queueWorkerThread.setUncaughtExceptionHandler((thr, ex) -> {
-            LOG.fatal(
-                "Queue worker in thread '{}' crashed – this is a serious failure! This logger is now disabled.",
-                thr.getName(),
-                ex);
-            // Shut down the logger and prevent new events queueing.
-            isRunning = false;
-        });
-        queueWorkerThread.start();
-    }
-
-    private void queueLoop() {
-        List<EventInfo> buffer = new ArrayList<>(maxEventsInQueueBeforeServerFreeze);
-
-        try {
-            while (!shuttingDownDatabaseThread || !concurrentEventQueue.isEmpty()) {
-
-                EventInfo event = concurrentEventQueue.poll(QUEUE_POLL_TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS);
-
-                if (event == null) {
-                    continue;
-                }
-
-                buffer.add(event);
-                concurrentEventQueue.drainTo(buffer, 5000);
-
-                try {
-                    databaseManager.insertBatch(buffer);
-                } catch (Exception e) {
-                    // A single bad/transient batch (a bad value, disk full, SQLITE_BUSY, ...) must not
-                    // permanently kill this logger's worker thread — log it and keep draining the queue.
-                    LOG.error(
-                        "Failed to insert a batch of {} event(s) for {}. This batch is dropped, logging continues.",
-                        buffer.size(),
-                        getLoggerName(),
-                        e);
-                } finally {
-                    buffer.clear();
-                }
-            }
-
-        } catch (InterruptedException e) {
-            // Expected during shutdown — just exit
-            Thread.currentThread()
-                .interrupt();
-
-        } catch (Exception e) {
-            LOG.error(
-                "Queue worker {} crashed unexpectedly and is shutting down. Remaining queue size={}",
-                getLoggerName(),
-                concurrentEventQueue.size(),
-                e);
-
-        } finally {
-            isRunning = false;
-        }
-    }
-
-    public final void genericConfig(@NotNull Configuration config) {
-        isEnabledByConfig = config
-            .getBoolean("isEnabled", getLoggerName(), true, "Enables this loggers functionality.");
+    @Override
+    final void kindConfig(Configuration config) {
         logByDefault = config.getBoolean(
             "logByDefault",
             getLoggerName(),
             defaultForLogByDefault(),
             "Whether this logger records events in places where no region has a rule for it. Use /tempora region set to turn it ON or OFF inside specific regions.");
-        maxShutdownTimeoutMilliseconds = config.getInt(
-            "maxShutdownTimeoutMilliseconds",
-            getLoggerName(),
-            QUEUE_POLL_TIMEOUT_MILLISECONDS * 20,
-            QUEUE_POLL_TIMEOUT_MILLISECONDS * 2,
-            Integer.MAX_VALUE,
-            "Maximum time (in milliseconds) to wait for this logger to flush and stop during shutdown. Use 0 to wait forever until all queued events are written.");
-
-        maxEventsInQueueBeforeServerFreeze = config.getInt(
-            "maxEventsInQueueBeforeServerFreeze",
-            getLoggerName(),
-            30_000,
-            5_000,
-            1_000_000,
-            "Maximum amount of events that can be queued before the server will stop tick processing to try catch up. If this is happening a lot, you are logging too much.");
-
-        databaseManager.genericConfig(config);
     }
 
-    // Run on server startup/world load.
-    private void initialiseLogger() {
-        try {
-            databaseManager.initialiseDatabase();
-            startQueueWorker();
-            started = true;
-
-        } catch (SQLException e) {
-            throw new RuntimeException("[Tempora] Failed to initialise database for logger " + getLoggerName(), e);
-        }
+    @Override
+    final Map<String, String> tableIndexes() {
+        Map<String, String> indexes = super.tableIndexes();
+        indexes.put("xyz_dimension_time", "dimensionID, x, y, z, timestamp DESC");
+        return indexes;
     }
 
     /**
-     * Whether this logger started for the current server, so its database is open. False when it is disabled, or
-     * failed to start.
+     * Shows the player the latest events within a cube of the given radius around a position, and draws them in the
+     * world. A radius of 0 means exactly that block. Negative seconds means no time limit. Says nothing if there are
+     * no events, so callers checking many loggers can report that once. Returns how many events were shown.
      */
-    public final boolean notStarted() {
-        return !started;
-    }
+    public final int showEventsNear(EntityPlayerMP player, int centreX, int centreY, int centreZ, int radius,
+        long seconds, int dimensionId) {
 
-    // --------------------------------------
-    // Static methods
-    // --------------------------------------
+        String sql = String.format("""
+            SELECT * FROM %s
+            WHERE x BETWEEN ? AND ?
+              AND y BETWEEN ? AND ?
+              AND z BETWEEN ? AND ?
+              AND dimensionID = ?
+              AND timestamp >= ?
+            ORDER BY timestamp DESC
+            LIMIT ?;
+            """, getLoggerName());
 
-    /** Whether the loggers have been started for the current server. */
-    public static boolean areLoggersStarted() {
-        return loggersStarted;
-    }
-
-    public static void onServerStart() {
-        loggersStarted = true;
-
-        if (!TemporaLoggerManager.getLoggerList()
-            .isEmpty()) {
-            LOG.info("Opening Tempora loggers.");
-        } else {
-            LOG.info("All Tempora loggers are disabled by config.");
-        }
-
-        for (GenericPositionalLogger<?> logger : TemporaLoggerManager.getLoggerList()) {
-            if (logger.isEnabledByConfig) {
-                LOG.info("Initialising {} logger.", logger.getLoggerName());
-                try {
-                    logger.initialiseLogger();
-                } catch (Exception e) {
-                    // One logger that cannot start (a database it cannot open, a broken logger from another mod)
-                    // must not take the server, or the other loggers, down with it.
-                    LOG.error(
-                        "{} failed to start, so it will not log anything until the server restarts. Other loggers are unaffected.",
-                        logger.getLoggerName(),
-                        e);
-                    logger.closeAfterFailedStart();
-                }
-            } else {
-                LOG.info("Skipped {}, not enabled in config.", logger.getLoggerName());
-            }
-        }
-    }
-
-    public static void onServerClose() {
-        // Each logger separately: one that fails to close must not leave the others' (non-daemon) worker threads
-        // running, which would stop the server from exiting.
-        for (GenericPositionalLogger<?> logger : TemporaLoggerManager.getLoggerList()) {
-            if (!logger.started) continue;
-
-            try {
-                logger.shutdownQueueWorkerThreads();
-                logger.databaseManager.shutdownDatabase();
-            } catch (Exception e) {
-                LOG.error("Error closing {}.", logger.getLoggerName(), e);
-            } finally {
-                // Just to ensure that we are not carrying data over to a new world opening.
-                logger.concurrentEventQueue.clear();
-                logger.started = false;
-            }
-        }
-
-        loggersStarted = false;
-    }
-
-    private void closeAfterFailedStart() {
-        isRunning = false;
-        // Stops the worker, in case it got as far as starting.
-        shuttingDownDatabaseThread = true;
+        List<EventInfo> events;
         try {
-            databaseManager.shutdownDatabase();
-        } catch (Exception ignored) {
-            // It never opened.
+            events = queryEvents(sql, ps -> {
+                // X range
+                ps.setInt(1, centreX - radius);
+                ps.setInt(2, centreX + radius);
+
+                // Y range
+                ps.setInt(3, centreY - radius);
+                ps.setInt(4, centreY + radius);
+
+                // Z range
+                ps.setInt(5, centreZ - radius);
+                ps.setInt(6, centreZ + radius);
+
+                // Dimension ID
+                ps.setInt(7, dimensionId);
+
+                // Don't apply any timestamp filter for negative seconds, fetch everything.
+                ps.setLong(8, seconds < 0 ? 0 : System.currentTimeMillis() - seconds * 1000L);
+
+                ps.setInt(9, MAX_RESULTS);
+            });
+        } catch (SQLException e) {
+            sendQueryFailed(player, e);
+            return 0;
         }
-    }
 
-    private void shutdownQueueWorkerThreads() throws InterruptedException {
-        shuttingDownDatabaseThread = true;
+        sendEventsInChat(player, events);
 
-        // Wait to shut down, should be near instant if queue is low.
-        LOG.info(
-            "Attempting to shut down queue worker {} for logger {}. There are {} events remaining to be processed within {}ms.",
-            queueWorkerThread.getName(),
-            getLoggerName(),
-            concurrentEventQueue.size(),
-            maxShutdownTimeoutMilliseconds);
-        queueWorkerThread.join(maxShutdownTimeoutMilliseconds);
-
-        if (queueWorkerThread.isAlive()) {
-            queueWorkerThread.interrupt();
-            LOG.error(
-                "Queue worker {} for logger {} did not stop in time. Tempora discarded {} events.",
-                queueWorkerThread.getName(),
-                getLoggerName(),
-                concurrentEventQueue.size());
-            queueWorkerThread.join();
+        // This tells the client what to render in the world, if anything.
+        for (EventInfo eventData : events) {
+            NETWORK.sendTo(new RenderEventPacket(eventData), player);
         }
+
+        return events.size();
     }
 
     public void clearOldEventsToRender() {
@@ -458,10 +208,5 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
 
     public Color getColour() {
         return Color.RED;
-    }
-
-    public int getQueueSize() {
-        // Null until the logger starts.
-        return concurrentEventQueue == null ? 0 : concurrentEventQueue.size();
     }
 }

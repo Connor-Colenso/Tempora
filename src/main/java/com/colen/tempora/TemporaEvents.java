@@ -22,6 +22,10 @@ import com.colen.tempora.loggers.player_block_place.PlayerBlockPlaceEventInfo;
 import com.colen.tempora.loggers.player_block_place.PlayerBlockPlaceLogger;
 import com.colen.tempora.loggers.player_movement.PlayerMovementEventInfo;
 import com.colen.tempora.loggers.player_movement.PlayerMovementLogger;
+import com.colen.tempora.loggers.tps.TPSEventInfo;
+import com.colen.tempora.loggers.tps.TPSLogger;
+import com.colen.tempora.loggers.weather.WeatherEventInfo;
+import com.colen.tempora.loggers.weather.WeatherLogger;
 
 public class TemporaEvents {
 
@@ -38,6 +42,10 @@ public class TemporaEvents {
     public static PlayerBlockPlaceLogger playerBlockPlaceLogger = new PlayerBlockPlaceLogger();
     public static PlayerMovementLogger playerMovementLogger = new PlayerMovementLogger();
 
+    // Global loggers, for events with no position.
+    public static TPSLogger tpsLogger = new TPSLogger();
+    public static WeatherLogger weatherLogger = new WeatherLogger();
+
     // Logger names. DO NOT RENAME IT. This WILL break all past data.
     public static final String BLOCK_CHANGE = "BlockChangeLogger";
     public static final String COMMAND = "CommandLogger";
@@ -50,6 +58,8 @@ public class TemporaEvents {
     public static final String PLAYER_BLOCK_BREAK = "PlayerBlockBreakLogger";
     public static final String PLAYER_BLOCK_PLACE = "PlayerBlockPlaceLogger";
     public static final String PLAYER_MOVEMENT = "PlayerMovementLogger";
+    public static final String TPS = "TPSLogger";
+    public static final String WEATHER = "WeatherLogger";
 
     public static void registerAll() {
 
@@ -64,5 +74,8 @@ public class TemporaEvents {
         TemporaLoggerManager.register(playerBlockBreakLogger, PlayerBlockBreakEventInfo::new);
         TemporaLoggerManager.register(playerBlockPlaceLogger, PlayerBlockPlaceEventInfo::new);
         TemporaLoggerManager.register(playerMovementLogger, PlayerMovementEventInfo::new);
+
+        TemporaLoggerManager.register(tpsLogger, TPSEventInfo::new);
+        TemporaLoggerManager.register(weatherLogger, WeatherEventInfo::new);
     }
 }

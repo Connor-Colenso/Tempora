@@ -16,6 +16,8 @@ import net.minecraft.util.IChatComponent;
 import com.colen.tempora.TemporaLoggerManager;
 import com.colen.tempora.commands.LookupCommand;
 import com.colen.tempora.commands.command_base.TemporaSubcommand;
+import com.colen.tempora.loggers.generic.GenericGlobalLogger;
+import com.colen.tempora.loggers.generic.GenericLogger;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.regions.LogRule;
 import com.colen.tempora.regions.TemporaRegionRegistry;
@@ -24,7 +26,8 @@ import com.colen.tempora.utils.CommandUtils;
 
 /**
  * /tempora region check [logger]
- * Shows, for each logger, whether it logs at the player's position and what decided that.
+ * Shows, for each positional logger, whether it logs at the player's position and what decided that. Global loggers
+ * have no position, so regions never affect them.
  */
 public class RegionCheckCommand extends TemporaSubcommand {
 
@@ -48,14 +51,18 @@ public class RegionCheckCommand extends TemporaSubcommand {
 
         List<GenericPositionalLogger<?>> loggers = new ArrayList<>();
         if (args.length == 1) {
-            GenericPositionalLogger<?> logger = TemporaLoggerManager.findLogger(args[0]);
-            if (logger == null) {
-                LookupCommand.sendUnknownLogger(sender, args[0]);
+            GenericLogger<?> logger = TemporaLoggerManager.findLogger(args[0]);
+            if (logger instanceof GenericGlobalLogger) {
+                sendError(sender, "tempora.command.region.global_logger", logger.getShortName());
                 return;
             }
-            loggers.add(logger);
+            if (!(logger instanceof GenericPositionalLogger<?>positional)) {
+                LookupCommand.sendUnknownLogger(sender, args[0], TemporaLoggerManager.getPositionalShortNames());
+                return;
+            }
+            loggers.add(positional);
         } else {
-            loggers.addAll(TemporaLoggerManager.getLoggerList());
+            loggers.addAll(TemporaLoggerManager.getPositionalLoggers());
             loggers.sort(Comparator.comparing(GenericPositionalLogger::getShortName));
         }
 
@@ -135,7 +142,7 @@ public class RegionCheckCommand extends TemporaSubcommand {
     public List<String> tabComplete(ICommandSender sender, String[] args) {
         if (args.length == 1) {
             return CommandBase
-                .getListOfStringsFromIterableMatchingLastWord(args, TemporaLoggerManager.getAllShortNames());
+                .getListOfStringsFromIterableMatchingLastWord(args, TemporaLoggerManager.getPositionalShortNames());
         }
         return null;
     }

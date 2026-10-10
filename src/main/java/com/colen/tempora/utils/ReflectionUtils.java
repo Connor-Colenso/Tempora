@@ -11,8 +11,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.colen.tempora.loggers.generic.GenericEventInfo;
-import com.colen.tempora.loggers.generic.GenericPositionalLogger;
+import com.colen.tempora.loggers.generic.GenericLogger;
 import com.colen.tempora.loggers.generic.column.Column;
 import com.colen.tempora.loggers.generic.column.ColumnDef;
 import com.colen.tempora.loggers.generic.column.ColumnType;
@@ -21,17 +20,17 @@ public class ReflectionUtils {
 
     private static final ConcurrentHashMap<String, List<ColumnDef>> CACHED_COLUMN_DEFS_MAP = new ConcurrentHashMap<>();
 
-    public static List<ColumnDef> getAllTableColumns(GenericPositionalLogger<?> genericPositionalLogger) {
+    public static List<ColumnDef> getAllTableColumns(GenericLogger<?> logger) {
 
         // Cache hit
-        List<ColumnDef> cached = CACHED_COLUMN_DEFS_MAP.get(genericPositionalLogger.getLoggerName());
+        List<ColumnDef> cached = CACHED_COLUMN_DEFS_MAP.get(logger.getLoggerName());
         if (cached != null) {
             return cached;
         }
 
         List<ColumnDef> defs = new ArrayList<>();
 
-        for (Field field : getColumnFieldsAlphabetically(genericPositionalLogger)) {
+        for (Field field : getColumnFieldsAlphabetically(logger)) {
 
             Column col = field.getAnnotation(Column.class);
 
@@ -48,7 +47,7 @@ public class ReflectionUtils {
 
         // Freeze before caching
         List<ColumnDef> immutable = Collections.unmodifiableList(defs);
-        CACHED_COLUMN_DEFS_MAP.put(genericPositionalLogger.getLoggerName(), immutable);
+        CACHED_COLUMN_DEFS_MAP.put(logger.getLoggerName(), immutable);
 
         return immutable;
     }
@@ -99,8 +98,7 @@ public class ReflectionUtils {
 
     // Helpers.
 
-    private static List<Field> getColumnFieldsAlphabetically(
-        GenericPositionalLogger<? extends GenericEventInfo> logger) {
+    private static List<Field> getColumnFieldsAlphabetically(GenericLogger<?> logger) {
 
         List<Class<?>> hierarchy = new ArrayList<>();
 

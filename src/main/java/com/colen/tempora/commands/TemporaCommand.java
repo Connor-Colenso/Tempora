@@ -26,6 +26,8 @@ public class TemporaCommand extends CommandBase {
     private static final List<String> ALIASES = Collections.singletonList("tem");
 
     // Kept so chat output can build clickable commands for them.
+    public static final LookupCommand LOOKUP = new LookupCommand();
+    public static final GlobalCommand GLOBAL = new GlobalCommand();
     public static final TeleportCommand TELEPORT = new TeleportCommand();
     public static final TraceCommand TRACE = new TraceCommand();
     public static final RegionSetCommand REGION_SET = new RegionSetCommand();
@@ -33,7 +35,8 @@ public class TemporaCommand extends CommandBase {
     private static final TemporaSubcommandGroup ROOT = new TemporaSubcommandGroup("");
 
     static {
-        ROOT.add(new LookupCommand());
+        ROOT.add(LOOKUP);
+        ROOT.add(GLOBAL);
         ROOT.add(new HomeCommand());
         ROOT.add(new SqlCommand());
         ROOT.add(new WandCommand());

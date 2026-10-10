@@ -99,7 +99,7 @@ public class TemporaWand extends Item {
 
             LookupCommand.showEvents(
                 (EntityPlayerMP) player,
-                TemporaLoggerManager.getLoggerList(),
+                TemporaLoggerManager.getPositionalLoggers(),
                 x,
                 y,
                 z,

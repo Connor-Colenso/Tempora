@@ -24,7 +24,7 @@ public final class RenderEventsInWorld {
     @SuppressWarnings("unused")
     @SubscribeEvent
     public void onRender(RenderWorldLastEvent e) {
-        for (GenericPositionalLogger<?> positionalLogger : TemporaLoggerManager.getLoggerList()) {
+        for (GenericPositionalLogger<?> positionalLogger : TemporaLoggerManager.getPositionalLoggers()) {
             if (brokenLoggers.contains(positionalLogger.getLoggerName())) continue;
 
             try {

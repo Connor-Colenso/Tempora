@@ -11,7 +11,7 @@ import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
 import com.colen.tempora.TemporaEvents;
-import com.colen.tempora.loggers.generic.GenericEventInfo;
+import com.colen.tempora.loggers.generic.PositionalEventInfo;
 import com.colen.tempora.loggers.generic.column.Column;
 import com.colen.tempora.utils.CommandUtils;
 import com.colen.tempora.utils.TimeUtils;
@@ -19,7 +19,7 @@ import com.colen.tempora.utils.TimeUtils;
 import cpw.mods.fml.common.network.ByteBufUtils;
 import io.netty.buffer.ByteBuf;
 
-public class EntityPositionEventInfo extends GenericEventInfo {
+public class EntityPositionEventInfo extends PositionalEventInfo {
 
     @Column(constraints = "NOT NULL")
     public String entityName;

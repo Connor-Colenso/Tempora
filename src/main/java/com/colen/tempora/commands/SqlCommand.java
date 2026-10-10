@@ -21,7 +21,8 @@ import net.minecraft.util.EnumChatFormatting;
 import com.colen.tempora.TemporaLoggerManager;
 import com.colen.tempora.commands.command_base.TemporaSubcommand;
 import com.colen.tempora.loggers.generic.GenericEventInfo;
-import com.colen.tempora.loggers.generic.GenericPositionalLogger;
+import com.colen.tempora.loggers.generic.GenericLogger;
+import com.colen.tempora.loggers.generic.PositionalEventInfo;
 import com.colen.tempora.loggers.generic.RenderEventPacket;
 import com.colen.tempora.loggers.generic.column.ColumnDef;
 import com.colen.tempora.utils.CommandUtils;
@@ -55,8 +56,8 @@ public class SqlCommand extends TemporaSubcommand {
         String rawQuery = String.join(" ", args);
 
         // Find logger by name.
-        GenericPositionalLogger<?> targetLogger = null;
-        for (GenericPositionalLogger<?> logger : TemporaLoggerManager.getLoggerList()) {
+        GenericLogger<?> targetLogger = null;
+        for (GenericLogger<?> logger : TemporaLoggerManager.getLoggerList()) {
             if (rawQuery.contains(logger.getLoggerName())) {
                 targetLogger = logger;
                 break;
@@ -114,8 +115,10 @@ public class SqlCommand extends TemporaSubcommand {
                         entityPlayerMP.getPersistentID()
                             .toString()));
 
-                // Render info.
-                NETWORK.sendTo(new RenderEventPacket(eventData), entityPlayerMP);
+                // Render info. Global events have no position to draw.
+                if (eventData instanceof PositionalEventInfo positionalEvent) {
+                    NETWORK.sendTo(new RenderEventPacket(positionalEvent), entityPlayerMP);
+                }
             }
 
             ChatComponentTranslation queryFeedbackMsg = new ChatComponentTranslation(
@@ -190,7 +193,7 @@ public class SqlCommand extends TemporaSubcommand {
             .startsWith("select");
     }
 
-    private List<? extends GenericEventInfo> executeReadOnlyQuery(GenericPositionalLogger<?> logger, String sql)
+    private List<? extends GenericEventInfo> executeReadOnlyQuery(GenericLogger<?> logger, String sql)
         throws SQLException {
 
         try (Connection roConn = logger.getDatabaseManager()

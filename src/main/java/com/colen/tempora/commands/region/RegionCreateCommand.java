@@ -24,7 +24,7 @@ import com.colen.tempora.TemporaEvents;
 import com.colen.tempora.TemporaLoggerManager;
 import com.colen.tempora.commands.TemporaCommand;
 import com.colen.tempora.commands.command_base.TemporaSubcommand;
-import com.colen.tempora.loggers.generic.GenericPositionalLogger;
+import com.colen.tempora.loggers.generic.GenericLogger;
 import com.colen.tempora.networking.packets.PacketShowRegionInWorld;
 import com.colen.tempora.regions.TemporaRegionRegistry;
 import com.colen.tempora.regions.TemporaWorldRegion;
@@ -105,7 +105,7 @@ public class RegionCreateCommand extends TemporaSubcommand {
         sender.addChatMessage(created);
 
         // The most common reason to make a region is to log block changes in it, so offer that.
-        GenericPositionalLogger<?> blockLogger = TemporaLoggerManager.getLogger(TemporaEvents.BLOCK_CHANGE);
+        GenericLogger<?> blockLogger = TemporaLoggerManager.getLogger(TemporaEvents.BLOCK_CHANGE);
         String blockLoggingCommand = TemporaCommand.REGION_SET.command(name, blockLogger.getShortName(), "on");
         IChatComponent suggestion = new ChatComponentTranslation("tempora.command.region.create.suggest_block_logging");
         suggestion.getChatStyle()

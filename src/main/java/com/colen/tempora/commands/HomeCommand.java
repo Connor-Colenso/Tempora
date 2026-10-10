@@ -23,7 +23,7 @@ import net.minecraftforge.common.DimensionManager;
 import com.colen.tempora.TemporaLoggerManager;
 import com.colen.tempora.commands.command_base.CommandFilters;
 import com.colen.tempora.commands.command_base.TemporaSubcommand;
-import com.colen.tempora.loggers.generic.GenericPositionalLogger;
+import com.colen.tempora.loggers.generic.GenericLogger;
 import com.colen.tempora.utils.CommandUtils;
 import com.colen.tempora.utils.PlayerUtils;
 import com.colen.tempora.utils.TimeUtils;
@@ -61,7 +61,7 @@ public class HomeCommand extends TemporaSubcommand {
         String dim = filters.get("dim");
         Integer forcedDim = dim == null ? null : CommandBase.parseInt(sender, dim);
 
-        GenericPositionalLogger<?> movementLogger = TemporaLoggerManager.getLogger(PLAYER_MOVEMENT);
+        GenericLogger<?> movementLogger = TemporaLoggerManager.getLogger(PLAYER_MOVEMENT);
         if (movementLogger == null || movementLogger.notStarted()) {
             sendError(sender, "tempora.command.home.no_db");
             return;

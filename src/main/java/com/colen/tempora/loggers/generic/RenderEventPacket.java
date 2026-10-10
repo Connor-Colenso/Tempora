@@ -11,11 +11,11 @@ import io.netty.buffer.ByteBuf;
 public class RenderEventPacket implements IMessage {
 
     // Null on the client when the event could not be read, see fromBytes.
-    public GenericEventInfo eventInfo;
+    public PositionalEventInfo eventInfo;
 
     public RenderEventPacket() {}
 
-    public RenderEventPacket(GenericEventInfo eventInfo) {
+    public RenderEventPacket(PositionalEventInfo eventInfo) {
         this.eventInfo = eventInfo;
     }
 
@@ -32,9 +32,9 @@ public class RenderEventPacket implements IMessage {
     public void fromBytes(ByteBuf buf) {
         String loggerName = ByteBufUtils.readUTF8String(buf);
 
-        // A logger only the server has, e.g. from a server-side mod. Nothing to draw.
-        GenericEventInfo event = TemporaLoggerManager.createEventInfo(loggerName);
-        if (event == null) return;
+        // A logger only the server has, e.g. from a server-side mod. Nothing to draw. Only positional events are sent,
+        // so one that is not positional here means the two sides have different versions of its mod.
+        if (!(TemporaLoggerManager.createEventInfo(loggerName) instanceof PositionalEventInfo event)) return;
 
         try {
             event.fromBytes(buf);

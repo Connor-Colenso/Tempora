@@ -13,9 +13,10 @@ public class GenericRenderEventPacketHandler implements IMessageHandler<RenderEv
     public IMessage onMessage(RenderEventPacket pkt, MessageContext ctx) {
         // Null when this client has no such logger, or could not read the event.
         if (ctx.side == Side.CLIENT && pkt.eventInfo != null) {
-            GenericEventInfo event = pkt.eventInfo;
-            TemporaLoggerManager.getTypedLogger(event.getLoggerName())
-                .addEventToRender(event);
+            PositionalEventInfo event = pkt.eventInfo;
+            GenericPositionalLogger<PositionalEventInfo> logger = TemporaLoggerManager
+                .getPositionalLogger(event.getLoggerName());
+            if (logger != null) logger.addEventToRender(event);
         }
         return null;
     }

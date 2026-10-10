@@ -11,7 +11,7 @@ import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 
 import com.colen.tempora.TemporaEvents;
-import com.colen.tempora.loggers.generic.GenericEventInfo;
+import com.colen.tempora.loggers.generic.PositionalEventInfo;
 import com.colen.tempora.loggers.generic.column.Column;
 import com.colen.tempora.utils.CommandUtils;
 import com.colen.tempora.utils.PlayerUtils;
@@ -21,7 +21,7 @@ import com.colen.tempora.utils.nbt.NBTUtils;
 import cpw.mods.fml.common.network.ByteBufUtils;
 import io.netty.buffer.ByteBuf;
 
-public class InventoryEventInfo extends GenericEventInfo {
+public class InventoryEventInfo extends PositionalEventInfo {
 
     // Chat packets cannot carry arbitrarily large hover text, so huge NBT (full backpacks, AE2 cells) is not shown.
     private static final int MAX_HOVER_NBT_LENGTH = 8192;

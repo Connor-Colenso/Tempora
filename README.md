@@ -4,14 +4,18 @@ A Forge (Minecraft 1.7.10, GTNH ecosystem) server-side mod for tracking griefing
 player activity. It's a slimmed-down alternative to Prism/CoreProtect/LogBlock: block changes
 (inside the regions you choose), player movement, inventory transfers, entity deaths/spawns,
 explosions, item use, and commands are logged to a local SQLite database and can be queried
-in-game by operators.
+in-game by operators. Server-wide events with no position, such as weather changes and TPS, are
+logged too.
 
 ## Features
 
 - **Per-event-type logging** — block changes, player movement, entity spawns/deaths,
   explosions, inventory transfers, item use, and command history, each in its own SQLite database file.
+- **Server-wide logging** — weather changes and TPS, which happen everywhere rather than at a
+  place. See [Logger kinds](#logger-kinds).
 - **In-game querying** — look up what happened around you (`/tempora lookup`), click blocks with
-  the Tempora wand, or run a read-only SQL query directly against a logger's table (`/tempora sql`).
+  the Tempora wand, see the latest server-wide events (`/tempora global`), or run a read-only SQL
+  query directly against a logger's table (`/tempora sql`).
 - **Regions** — turn individual loggers on or off in specific areas of the world, e.g. log every
   block change around spawn, or stop logging mob deaths in a mob farm. See [Regions](#regions).
 - **Configurable retention and durability** — per-logger data retention window, and a choice
@@ -28,7 +32,8 @@ run on its own. All of them require operator permission (permission level 2), an
 
 | Command | Purpose |
 |---|---|
-| `/tempora lookup [r:<radius>] [t:<time>] [l:<logger,...>]` | Show the latest events around you. Every filter is optional and they go in any order, e.g. `/tempora lookup t:1d l:break,place`. Defaults to 10 blocks, the last 3 days, every logger. |
+| `/tempora lookup [r:<radius>] [t:<time>] [l:<logger,...>]` | Show the latest events around you. Every filter is optional and they go in any order, e.g. `/tempora lookup t:1d l:break,place`. Defaults to 10 blocks, the last 3 days, every positional logger. |
+| `/tempora global [t:<time>] [l:<logger,...>] [n:<count>]` | Show the latest events from the global loggers (weather, TPS), from anywhere, including the server console. Defaults to the last 10 events of each over the last 3 days. |
 | `/tempora home <player> [t:<time>] [dim:<id>]` | Find a player's most-visited chunk, based on movement history. |
 | `/tempora sql <SELECT ...>` | Run a read-only `SELECT` against a logger's table for ad-hoc investigation. |
 | `/tempora wand` | Get the Tempora wand. Left click a block to see its history, right click a face for the space in front of it. |
@@ -39,8 +44,24 @@ run on its own. All of them require operator permission (permission level 2), an
 | `/tempora help [command]` | List every command, or explain one, e.g. `/tempora help region set`. |
 
 Loggers have short names for commands: `block`, `break`, `place`, `explosion`, `command`, `death`,
-`spawn`, `entity`, `inventory`, `item` and `movement`. The full names (e.g. `PlayerBlockBreakLogger`)
-also work, and are the table names for `/tempora sql`.
+`spawn`, `entity`, `inventory`, `item` and `movement`, plus the global `weather` and `tps`. The full
+names (e.g. `PlayerBlockBreakLogger`) also work, and are the table names for `/tempora sql`.
+
+## Logger kinds
+
+Every logger is one of two kinds:
+
+- **Positional** loggers record events that happen at a place: block changes, breaks and
+  placements, explosions, deaths, inventory transfers and so on. Each event is stored with its
+  dimension and coordinates, follows [region](#regions) rules, is looked up around a position
+  (`/tempora lookup`, the wand) and can be drawn in the world.
+- **Global** loggers record events that belong to the whole server, so they have no coordinates.
+  Regions don't affect them, and `/tempora global` shows them wherever you are. Tempora has two:
+  - `weather` records each dimension's weather changing between clear, rain and thunder, whatever
+    changed it (the weather cycle, `/weather`, another mod). Dimensions without a sky are skipped.
+  - `tps` records the server's TPS every `loggingIntervalSeconds` (default 60): the mean and
+    slowest tick time since the last record, and the TPS that mean works out to, as `/forge tps`
+    does.
 
 `/tempora tp` and `/tempora trace` also exist, but are run by clicking Tempora's chat output rather
 than typed. `/tempora explode <strength>`, for testing explosion logging, only exists in a development
@@ -59,6 +80,9 @@ To decide whether a logger records an event at a position:
 2. If equally sized regions disagree, **ON wins**, since a missing record is worse than an extra one.
 3. If no region has a rule for the logger, its `logByDefault` config option applies.
 
+Regions only affect positional loggers. Global loggers, such as `weather`, have no position, so
+they log everywhere whenever they are enabled.
+
 `BlockChangeLogger` (`block`) logs every `setBlock` call, which is far too much data to record
 everywhere, so it defaults to `logByDefault=false` and only logs inside regions that turn it on.
 Every other logger defaults to logging everywhere. `/tempora region check` shows the result at your
@@ -70,6 +94,7 @@ Each logger has its own config section (in the standard Forge config file) with:
 
 - `isEnabled` — turns the logger off entirely, regardless of regions.
 - `logByDefault` — whether the logger records events where no region has a rule for it.
+  Positional loggers only.
 - `logWriteSafety` — `NORMAL` (fsync every batch, safe) or `HIGH_RISK` (faster, but the last few
   seconds of *logs* — not world data — may be lost on a crash).
 - `oldestDataCutoff` — how long to retain logged events before they're deleted (e.g. `4months`).
@@ -110,10 +135,33 @@ Javadoc says what it records and when to call it.
 
 ### Adding your own logger
 
-A mod can also add a logger of its own. Subclass `GenericPositionalLogger` and `GenericEventInfo`
-(with `@Column` fields of type `boolean`, `int`, `long`, `float`, `double` or `String`), and register it
-with `TemporaLoggerManager.register(logger, MyEventInfo::new)` while mods load (preInit, init or
-postInit). It gets its own database, config section, region rules and `/tempora lookup` support.
+A mod can also add a logger of its own, of either [kind](#logger-kinds). Subclass one of these pairs,
+giving the event `@Column` fields of type `boolean`, `int`, `long`, `float`, `double` or `String`:
+
+| Kind | Logger | Event | Log an event with |
+|---|---|---|---|
+| Positional | `GenericPositionalLogger` | `PositionalEventInfo` | `logEvent(event, dimensionID, x, y, z)` |
+| Global | `GenericGlobalLogger` | `GlobalEventInfo` | `logEvent(event)` |
+
+Register it with `TemporaLoggerManager.register(logger, MyEventInfo::new)` while mods load (preInit,
+init or postInit). Both kinds get their own database, config section and `/tempora sql` support; a
+positional logger also gets region rules and `/tempora lookup`, a global one `/tempora global`. Feed
+it events from your own methods, calling its `logEvent` (see `WeatherLogger` and `TPSLogger` for
+global examples):
+
+```java
+public class ReactorLogger extends GenericGlobalLogger<ReactorEventInfo> {
+
+    // getLoggerName(), getShortName(), newEventInfo() and getLoggerEventType() as for any logger.
+
+    public void logMeltdown(int dimensionID, String reactorName) {
+        ReactorEventInfo event = new ReactorEventInfo();
+        event.dimensionID = dimensionID;
+        event.reactorName = reactorName;
+        logEvent(event);
+    }
+}
+```
 
 - Mistakes such as mismatched names or a column type Tempora can't store are reported when the logger
   registers, not when the server starts.
@@ -126,7 +174,8 @@ postInit). It gets its own database, config section, region rules and `/tempora 
 
 For server operators: Tempora records player UUIDs, movement history, block changes (with
 container contents at the time of breaking, for some loggers), inventory transfers, and full
-command text/arguments, retained for the configured `oldestDataCutoff` window. Any operator can
+command text/arguments, plus server-wide weather and TPS, retained for the configured
+`oldestDataCutoff` window. Any operator can
 query this data via `/tempora sql` or `/tempora lookup`.
 
 ## License
