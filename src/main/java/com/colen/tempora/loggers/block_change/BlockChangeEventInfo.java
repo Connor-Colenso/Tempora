@@ -78,8 +78,8 @@ public class BlockChangeEventInfo extends PositionalEventInfo {
     @Override
     public IChatComponent localiseText(String commandIssuerUUID) {
         // Block names
-        IChatComponent beforeBlockName = BlockUtils.getUnlocalisedChatComponent(beforePickBlockID, beforePickBlockMeta);
-        IChatComponent afterBlockName = BlockUtils.getUnlocalisedChatComponent(afterPickBlockID, afterPickBlockMeta);
+        IChatComponent beforeBlockName = BlockUtils.getBlockNameChatComponent(beforePickBlockID, beforePickBlockMeta);
+        IChatComponent afterBlockName = BlockUtils.getBlockNameChatComponent(afterPickBlockID, afterPickBlockMeta);
 
         IChatComponent coords = teleportChatComponent(x, y, z, dimensionID, CommandUtils.TeleportType.BLOCK);
         IChatComponent timeAgo = TimeUtils.formatTime(timestamp);

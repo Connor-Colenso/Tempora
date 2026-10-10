@@ -62,7 +62,7 @@ public class PlayerBlockPlaceEventInfo extends PositionalEventInfo {
     @Override
     public IChatComponent localiseText(String commandIssuerUUID) {
         // Use normalized pickBlockID and pickBlockMeta for the translation key
-        IChatComponent block = BlockUtils.getUnlocalisedChatComponent(pickBlockID, pickBlockMeta);
+        IChatComponent block = BlockUtils.getBlockNameChatComponent(pickBlockID, pickBlockMeta);
 
         // Clickable coords component
         IChatComponent coords = teleportChatComponent(x, y, z, dimensionID, CommandUtils.TeleportType.BLOCK);

@@ -17,7 +17,9 @@
     "MixinStructureStart",
     "accessors.InventoryLargeChestAccessor"
   ],
-  "client": [],
+  "client": [
+    "accessors.ForgeHooksClientAccessor"
+  ],
   "server": [
   ]
 }

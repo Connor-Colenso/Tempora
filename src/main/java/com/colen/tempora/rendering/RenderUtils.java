@@ -17,12 +17,14 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
+import net.minecraftforge.client.ForgeHooksClient;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
+import com.colen.tempora.mixins.accessors.ForgeHooksClientAccessor;
 import com.colen.tempora.rendering.FakeWorld.FakeWorld;
 
 import appeng.block.networking.BlockCableBus;
@@ -145,9 +147,10 @@ public abstract class RenderUtils {
         fakeWorld.block = block;
         fakeWorld.tileEntity = tileEntity;
         fakeWorld.metadata = metadata;
-        fakeWorld.x = (int) x;
-        fakeWorld.y = (int) y;
-        fakeWorld.z = (int) z;
+        // The block is rendered at the origin, so the fake world must answer for the origin too.
+        fakeWorld.x = 0;
+        fakeWorld.y = 0;
+        fakeWorld.z = 0;
         rb.blockAccess = fakeWorld;
 
         // AE2 CableBus hack if needed
@@ -163,10 +166,24 @@ public abstract class RenderUtils {
         GL11.glScaled(SCALE_FACTOR, SCALE_FACTOR, SCALE_FACTOR);
         GL11.glTranslated(-0.5, -0.5, -0.5);
 
-        // Block render
-        tes.startDrawingQuads();
-        rb.renderBlockByRenderType(block, 0, 0, 0);
-        tes.draw();
+        // Block render. Outside chunk rendering Forge's world render pass is -1, and some renderers (GregTech machines)
+        // only draw their textures in the pass they belong to, so walk the passes the way chunk rendering does.
+        int prevRenderPass = ForgeHooksClient.getWorldRenderPass();
+        try {
+            for (int pass = 0; pass < 2; pass++) {
+                if (!block.canRenderInPass(pass)) continue;
+                ForgeHooksClientAccessor.tempora$setWorldRenderPass(pass);
+                if (pass == 1) {
+                    GL11.glEnable(GL11.GL_BLEND);
+                    GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+                }
+                tes.startDrawingQuads();
+                rb.renderBlockByRenderType(block, 0, 0, 0);
+                tes.draw();
+            }
+        } finally {
+            ForgeHooksClientAccessor.tempora$setWorldRenderPass(prevRenderPass);
+        }
 
         // Optionally render logger regions
         if (System.currentTimeMillis() / 500 % 2 == 0) {

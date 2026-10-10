@@ -61,7 +61,7 @@ public class PlayerBlockBreakEventInfo extends PositionalEventInfo {
 
     @Override
     public IChatComponent localiseText(String commandIssuerUUID) {
-        IChatComponent block = BlockUtils.getUnlocalisedChatComponent(pickBlockID, pickBlockMeta);
+        IChatComponent block = BlockUtils.getBlockNameChatComponent(pickBlockID, pickBlockMeta);
         IChatComponent coords = teleportChatComponent(x, y, z, dimensionID, CommandUtils.TeleportType.BLOCK);
 
         IChatComponent timeAgo = TimeUtils.formatTime(timestamp);
