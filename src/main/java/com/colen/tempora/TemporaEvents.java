@@ -25,9 +25,18 @@ import com.colen.tempora.loggers.player_movement.PlayerMovementLogger;
 
 public class TemporaEvents {
 
-    // We keep these references they need external access from mixins to log.
-    public static InventoryLogger inventoryLogger = new InventoryLogger();
+    // We keep these references as mixins and the API (com.colen.tempora.api.TemporaApi) log through them.
     public static BlockChangeLogger blockChangeLogger = new BlockChangeLogger();
+    public static CommandLogger commandLogger = new CommandLogger();
+    public static EntityDeathLogger entityDeathLogger = new EntityDeathLogger();
+    public static EntityPositionLogger entityPositionLogger = new EntityPositionLogger();
+    public static EntitySpawnLogger entitySpawnLogger = new EntitySpawnLogger();
+    public static ExplosionLogger explosionLogger = new ExplosionLogger();
+    public static InventoryLogger inventoryLogger = new InventoryLogger();
+    public static ItemUseLogger itemUseLogger = new ItemUseLogger();
+    public static PlayerBlockBreakLogger playerBlockBreakLogger = new PlayerBlockBreakLogger();
+    public static PlayerBlockPlaceLogger playerBlockPlaceLogger = new PlayerBlockPlaceLogger();
+    public static PlayerMovementLogger playerMovementLogger = new PlayerMovementLogger();
 
     // Logger names. DO NOT RENAME IT. This WILL break all past data.
     public static final String BLOCK_CHANGE = "BlockChangeLogger";
@@ -45,15 +54,15 @@ public class TemporaEvents {
     public static void registerAll() {
 
         TemporaLoggerManager.register(blockChangeLogger, BlockChangeEventInfo::new);
-        TemporaLoggerManager.register(new CommandLogger(), CommandEventInfo::new);
-        TemporaLoggerManager.register(new EntityDeathLogger(), EntityDeathEventInfo::new);
-        TemporaLoggerManager.register(new EntityPositionLogger(), EntityPositionEventInfo::new);
-        TemporaLoggerManager.register(new EntitySpawnLogger(), EntitySpawnEventInfo::new);
-        TemporaLoggerManager.register(new ExplosionLogger(), ExplosionEventInfo::new);
+        TemporaLoggerManager.register(commandLogger, CommandEventInfo::new);
+        TemporaLoggerManager.register(entityDeathLogger, EntityDeathEventInfo::new);
+        TemporaLoggerManager.register(entityPositionLogger, EntityPositionEventInfo::new);
+        TemporaLoggerManager.register(entitySpawnLogger, EntitySpawnEventInfo::new);
+        TemporaLoggerManager.register(explosionLogger, ExplosionEventInfo::new);
         TemporaLoggerManager.register(inventoryLogger, InventoryEventInfo::new);
-        TemporaLoggerManager.register(new ItemUseLogger(), ItemUseEventInfo::new);
-        TemporaLoggerManager.register(new PlayerBlockBreakLogger(), PlayerBlockBreakEventInfo::new);
-        TemporaLoggerManager.register(new PlayerBlockPlaceLogger(), PlayerBlockPlaceEventInfo::new);
-        TemporaLoggerManager.register(new PlayerMovementLogger(), PlayerMovementEventInfo::new);
+        TemporaLoggerManager.register(itemUseLogger, ItemUseEventInfo::new);
+        TemporaLoggerManager.register(playerBlockBreakLogger, PlayerBlockBreakEventInfo::new);
+        TemporaLoggerManager.register(playerBlockPlaceLogger, PlayerBlockPlaceEventInfo::new);
+        TemporaLoggerManager.register(playerMovementLogger, PlayerMovementEventInfo::new);
     }
 }

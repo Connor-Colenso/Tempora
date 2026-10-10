@@ -1,9 +1,7 @@
 package com.colen.tempora.loggers.player_movement;
 
-import java.util.UUID;
-
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.config.Configuration;
 
 import org.jetbrains.annotations.NotNull;
@@ -17,8 +15,6 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.PlayerEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.common.gameevent.TickEvent.PlayerTickEvent;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 
 // This class logs three items to the same database.
 // 1. Player movement every n ticks. By default, n = 200 ticks.
@@ -41,12 +37,6 @@ public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovement
     @Override
     public @NotNull PlayerMovementEventInfo newEventInfo() {
         return new PlayerMovementEventInfo();
-    }
-
-    @Override
-    @SideOnly(Side.CLIENT)
-    public void renderEventsInWorld(RenderWorldLastEvent renderEvent) {
-
     }
 
     private int playerMovementLoggingInterval;
@@ -72,7 +62,7 @@ public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovement
         if (!isEnabledByConfig) return;
         if (!(event.player instanceof EntityPlayerMP player)) return;
 
-        logPosition(player);
+        logPlayerPosition(player);
     }
 
     @SubscribeEvent
@@ -80,7 +70,7 @@ public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovement
         if (!isEnabledByConfig) return;
         if (!(event.player instanceof EntityPlayerMP player)) return;
 
-        logPosition(player);
+        logPlayerPosition(player);
     }
 
     @SubscribeEvent
@@ -93,23 +83,18 @@ public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovement
             .getMinecraftServerInstance()
             .getTickCounter() % playerMovementLoggingInterval != 0) return;
 
-        logPosition(player);
+        logPlayerPosition(player);
     }
 
-    private void logPosition(EntityPlayerMP player) {
-        PlayerMovementEventInfo eventInfo = new PlayerMovementEventInfo();
+    /** Logs where a player is right now, e.g. straight after teleporting them. */
+    public void logPlayerPosition(EntityPlayer player) {
+        if (!isEnabledByConfig) return;
 
-        eventInfo.eventID = UUID.randomUUID()
-            .toString();
-        eventInfo.x = player.posX;
-        eventInfo.y = player.posY;
-        eventInfo.z = player.posZ;
-        eventInfo.dimensionID = player.worldObj.provider.dimensionId;
-        eventInfo.timestamp = System.currentTimeMillis();
+        PlayerMovementEventInfo eventInfo = new PlayerMovementEventInfo();
         eventInfo.playerUUID = player.getUniqueID()
             .toString();
 
-        queueEventInfo(eventInfo);
+        logEvent(eventInfo, player.worldObj.provider.dimensionId, player.posX, player.posY, player.posZ);
     }
 
 }

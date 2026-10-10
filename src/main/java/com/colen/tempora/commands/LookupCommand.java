@@ -96,8 +96,8 @@ public class LookupCommand extends TemporaSubcommand {
         int z, int radius, long seconds, IChatComponent nothingFound) {
         int found = 0;
         for (GenericPositionalLogger<?> logger : loggers) {
-            // A disabled logger has no database to read.
-            if (!logger.isEnabledByConfig()) continue;
+            // A logger that is disabled, or failed to start, has no database to read.
+            if (logger.notStarted()) continue;
 
             found += logger.getDatabaseManager()
                 .showEventsNear(player, x, y, z, radius, seconds, player.dimension);

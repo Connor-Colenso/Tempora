@@ -9,11 +9,13 @@
     "MixinChunk",
     "MixinChunkProviderGenerate",
     "MixinEntity",
+    "MixinEntityPlayerMP",
     "MixinFMLNetworkHandler",
     "MixinGameRegistry",
-    "MixinNetHandlerPlayServer",
-    "MixinNetworkMonitor",
-    "MixinStructureStart"
+    "MixinItemInWorldManager",
+    "MixinNetworkManager",
+    "MixinStructureStart",
+    "accessors.InventoryLargeChestAccessor"
   ],
   "client": [],
   "server": [

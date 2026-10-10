@@ -2,8 +2,6 @@ package com.colen.tempora.loggers.entity_spawn;
 
 import static com.colen.tempora.utils.GenericUtils.isClientSide;
 
-import java.util.UUID;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
@@ -76,33 +74,35 @@ public class EntitySpawnLogger extends GenericPositionalLogger<EntitySpawnEventI
         if (!isEnabledByConfig) return;
         if (isClientSide()) return;
         if (event.isCanceled()) return;
-        if (event.entity instanceof EntityPlayerMP) return;
-        if (event.entity instanceof EntityItem) return;
-        if (event.entity instanceof EntityXPOrb) return;
 
-        IEntityMixin entityMixin = (IEntityMixin) event.entity;
+        logEntitySpawn(event.entity);
+    }
+
+    /**
+     * Logs an entity appearing in the world. Each entity is only ever logged once, so calling this for one that was
+     * already logged does nothing. Players, dropped items and XP orbs are not logged.
+     */
+    public void logEntitySpawn(Entity entity) {
+        if (!isEnabledByConfig) return;
+        if (entity instanceof EntityPlayerMP) return;
+        if (entity instanceof EntityItem) return;
+        if (entity instanceof EntityXPOrb) return;
+
+        IEntityMixin entityMixin = (IEntityMixin) entity;
         if (entityMixin.getTempora$HasBeenLogged()) return;
 
         // Mark as logged, this is persistent with nbt.
         entityMixin.setTempora$HasBeenLogged(true);
 
         EntitySpawnEventInfo eventInfo = new EntitySpawnEventInfo();
-        eventInfo.eventID = UUID.randomUUID()
-            .toString();
-        eventInfo.x = event.entity.posX;
-        eventInfo.y = event.entity.posY;
-        eventInfo.z = event.entity.posZ;
-        eventInfo.dimensionID = event.entity.dimension;
-        eventInfo.timestamp = System.currentTimeMillis();
-
-        eventInfo.entityName = event.entity.getCommandSenderName();
-        eventInfo.entityUUID = event.entity.getUniqueID()
+        eventInfo.entityName = entity.getCommandSenderName();
+        eventInfo.entityUUID = entity.getUniqueID()
             .toString();
 
-        eventInfo.rotationYaw = event.entity.rotationYaw;
-        eventInfo.rotationPitch = event.entity.rotationPitch;
+        eventInfo.rotationYaw = entity.rotationYaw;
+        eventInfo.rotationPitch = entity.rotationPitch;
 
-        queueEventInfo(eventInfo);
+        logEvent(eventInfo, entity.dimension, entity.posX, entity.posY, entity.posZ);
     }
 
 }

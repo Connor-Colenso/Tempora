@@ -1,15 +1,16 @@
 package com.colen.tempora.loggers.entity_death;
 
 import static com.colen.tempora.utils.GenericUtils.isClientSide;
+import static com.colen.tempora.utils.PlayerUtils.UNKNOWN_CAUSE;
 
-import java.util.UUID;
+import javax.annotation.Nullable;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
-import net.minecraft.entity.item.EntityItem;
-import net.minecraft.entity.item.EntityXPOrb;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.util.DamageSource;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 
@@ -75,29 +76,26 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathEventI
     public void onEntityDeath(LivingDeathEvent event) {
         if (!isEnabledByConfig) return;
         if (isClientSide()) return;
-        if (event.entityLiving instanceof EntityPlayerMP) return; // No players allowed here, this is for mobs only.
-        if (event.entity instanceof EntityItem) return;
-        if (event.entity instanceof EntityXPOrb) return;
         if (event.isCanceled()) return;
 
+        logEntityDeath(event.entityLiving, event.source);
+    }
+
+    /** Logs a mob dying, and what killed it. Players are not logged here, this is for mobs only. */
+    public void logEntityDeath(EntityLivingBase entity, @Nullable DamageSource source) {
+        if (!isEnabledByConfig) return;
+        if (entity instanceof EntityPlayerMP) return;
+
         EntityDeathEventInfo eventInfo = new EntityDeathEventInfo();
-        eventInfo.eventID = UUID.randomUUID()
-            .toString();
-        eventInfo.x = event.entity.posX;
-        eventInfo.y = event.entity.posY;
-        eventInfo.z = event.entity.posZ;
-        eventInfo.dimensionID = event.entity.dimension;
-        eventInfo.timestamp = System.currentTimeMillis();
-
-        eventInfo.nameOfDeadEntity = EntityList.getEntityString(event.entityLiving);
-        eventInfo.entityUUID = event.entityLiving.getUniqueID()
+        eventInfo.nameOfDeadEntity = EntityList.getEntityString(entity);
+        eventInfo.entityUUID = entity.getUniqueID()
             .toString();
 
-        eventInfo.rotationYaw = event.entityLiving.rotationYaw;
-        eventInfo.rotationPitch = event.entityLiving.rotationPitch;
+        eventInfo.rotationYaw = entity.rotationYaw;
+        eventInfo.rotationPitch = entity.rotationPitch;
 
         // Get what killed it.
-        Entity trueSource = event.source.getEntity();
+        Entity trueSource = source == null ? null : source.getEntity();
         if (trueSource != null) {
             if (trueSource instanceof EntityPlayerMP player) {
                 // This is specific for players
@@ -108,11 +106,13 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathEventI
                 eventInfo.killedBy = "[" + trueSource.getClass()
                     .getSimpleName() + "]";
             }
+        } else if (source != null) {
+            eventInfo.killedBy = "[" + source.damageType + "]";
         } else {
-            eventInfo.killedBy = "[" + event.source.damageType + "]";
+            eventInfo.killedBy = UNKNOWN_CAUSE;
         }
 
-        queueEventInfo(eventInfo);
+        logEvent(eventInfo, entity.dimension, entity.posX, entity.posY, entity.posZ);
     }
 
 }

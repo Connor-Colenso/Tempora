@@ -62,7 +62,7 @@ public class HomeCommand extends TemporaSubcommand {
         Integer forcedDim = dim == null ? null : CommandBase.parseInt(sender, dim);
 
         GenericPositionalLogger<?> movementLogger = TemporaLoggerManager.getLogger(PLAYER_MOVEMENT);
-        if (movementLogger == null || !movementLogger.isEnabledByConfig()) {
+        if (movementLogger == null || movementLogger.notStarted()) {
             sendError(sender, "tempora.command.home.no_db");
             return;
         }

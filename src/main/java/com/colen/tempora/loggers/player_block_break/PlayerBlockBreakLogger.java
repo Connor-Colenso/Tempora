@@ -6,12 +6,15 @@ import static com.colen.tempora.utils.PlayerUtils.UNKNOWN_PLAYER_NAME;
 import static com.colen.tempora.utils.nbt.NBTUtils.getEncodedTileEntityNBT;
 
 import java.util.List;
-import java.util.UUID;
+
+import javax.annotation.Nullable;
 
 import net.minecraft.block.Block;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.world.World;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.event.world.BlockEvent;
@@ -102,22 +105,25 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
         if (isClientSide()) return;
         if (event.isCanceled()) return;
 
+        logBlockBreak(event.getPlayer(), event.world, event.x, event.y, event.z, event.block, event.blockMetadata);
+    }
+
+    /**
+     * Logs a block being broken. Call this before the block is removed, so its tile entity's NBT can still be read.
+     * {@code player} may be null when nobody in particular broke it.
+     */
+    public void logBlockBreak(@Nullable EntityPlayer player, World world, int x, int y, int z, Block block,
+        int metadata) {
+        if (!isEnabledByConfig) return;
+
         PlayerBlockBreakEventInfo eventInfo = new PlayerBlockBreakEventInfo();
-        eventInfo.eventID = UUID.randomUUID()
-            .toString();
-        eventInfo.x = event.x;
-        eventInfo.y = event.y;
-        eventInfo.z = event.z;
-        eventInfo.dimensionID = event.world.provider.dimensionId;
-        eventInfo.timestamp = System.currentTimeMillis();
+        eventInfo.blockID = Block.getIdFromBlock(block);
+        eventInfo.metadata = metadata;
 
-        eventInfo.blockID = Block.getIdFromBlock(event.block);
-        eventInfo.metadata = event.blockMetadata;
-
-        eventInfo.encodedNBT = getEncodedTileEntityNBT(event.world, event.x, event.y, event.z, logNBT);
+        eventInfo.encodedNBT = getEncodedTileEntityNBT(world, x, y, z, logNBT);
 
         // Calculate pickBlockID and pickBlockMeta using getPickBlock
-        ItemStack pickStack = getPickBlockSafe(event.block, event.world, event.x, event.y, event.z);
+        ItemStack pickStack = getPickBlockSafe(block, world, x, y, z);
         if (pickStack != null && pickStack.getItem() != null) {
             eventInfo.pickBlockID = Item.getIdFromItem(pickStack.getItem());
             eventInfo.pickBlockMeta = pickStack.getItemDamage();
@@ -127,14 +133,13 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
             eventInfo.pickBlockMeta = eventInfo.metadata;
         }
 
-        if (event.getPlayer() instanceof EntityPlayerMP) {
-            eventInfo.playerUUID = event.getPlayer()
-                .getUniqueID()
+        if (player instanceof EntityPlayerMP) {
+            eventInfo.playerUUID = player.getUniqueID()
                 .toString();
         } else {
             eventInfo.playerUUID = UNKNOWN_PLAYER_NAME;
         }
 
-        queueEventInfo(eventInfo);
+        logEvent(eventInfo, world.provider.dimensionId, x, y, z);
     }
 }

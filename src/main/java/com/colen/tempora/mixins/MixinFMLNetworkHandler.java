@@ -1,6 +1,7 @@
 package com.colen.tempora.mixins;
 
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.inventory.Container;
 import net.minecraft.world.World;
 
 import org.spongepowered.asm.mixin.Mixin;
@@ -8,19 +9,25 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import com.colen.tempora.utils.LastInvPos;
+import com.colen.tempora.loggers.inventory.ContainerHosts;
+import com.llamalad7.mixinextras.sugar.Share;
+import com.llamalad7.mixinextras.sugar.ref.LocalRef;
 
 import cpw.mods.fml.common.network.internal.FMLNetworkHandler;
 
+// Records which block a mod GUI was opened for, so the inventory logger knows where its container is.
 @Mixin(value = FMLNetworkHandler.class, remap = false)
 public abstract class MixinFMLNetworkHandler {
 
-    @Inject(method = "openGui", at = @At("HEAD"), remap = false)
-    private static void tempora$onOpenGui(EntityPlayer player, Object mod, int guiId, World world, int x, int y, int z,
-        CallbackInfo ci) {
+    @Inject(method = "openGui", at = @At("HEAD"))
+    private static void tempora$beforeOpenGui(EntityPlayer player, Object mod, int guiId, World world, int x, int y,
+        int z, CallbackInfo ci, @Share("tempora$containerBefore") LocalRef<Container> containerBefore) {
+        containerBefore.set(player.openContainer);
+    }
 
-        int dim = world.provider.dimensionId;
-        LastInvPos pos = new LastInvPos(dim, x, y, z);
-        LastInvPos.LAST_OPENED.put(player.getUniqueID(), pos);
+    @Inject(method = "openGui", at = @At("RETURN"))
+    private static void tempora$afterOpenGui(EntityPlayer player, Object mod, int guiId, World world, int x, int y,
+        int z, CallbackInfo ci, @Share("tempora$containerBefore") LocalRef<Container> containerBefore) {
+        ContainerHosts.onGuiOpened(player, containerBefore.get(), world, x, y, z);
     }
 }

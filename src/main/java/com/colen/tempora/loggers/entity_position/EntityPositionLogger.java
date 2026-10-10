@@ -2,8 +2,6 @@ package com.colen.tempora.loggers.entity_position;
 
 import static com.colen.tempora.utils.GenericUtils.isClientSide;
 
-import java.util.UUID;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
@@ -91,27 +89,29 @@ public class EntityPositionLogger extends GenericPositionalLogger<EntityPosition
         if (event.isCanceled()) return;
         if (event.entityLiving.ticksExisted % entityMovementLoggingInterval != 0) return; // As an example, track every
                                                                                           // 20 seconds.
-        if (event.entityLiving instanceof EntityPlayerMP) return; // Do not track players here, we do this elsewhere.
-        if (event.entity instanceof EntityItem) return;
-        if (event.entity instanceof EntityXPOrb) return;
+
+        logEntityPosition(event.entityLiving);
+    }
+
+    /**
+     * Logs where an entity is right now. Players are not logged here (see PlayerMovementLogger), nor are dropped items
+     * and XP orbs.
+     */
+    public void logEntityPosition(Entity entity) {
+        if (!isEnabledByConfig) return;
+        if (entity instanceof EntityPlayerMP) return;
+        if (entity instanceof EntityItem) return;
+        if (entity instanceof EntityXPOrb) return;
 
         EntityPositionEventInfo eventInfo = new EntityPositionEventInfo();
-        eventInfo.eventID = UUID.randomUUID()
-            .toString();
-        eventInfo.x = event.entityLiving.posX;
-        eventInfo.y = event.entityLiving.posY;
-        eventInfo.z = event.entityLiving.posZ;
-        eventInfo.dimensionID = event.entityLiving.dimension;
-        eventInfo.timestamp = System.currentTimeMillis();
+        eventInfo.rotationYaw = entity.rotationYaw;
+        eventInfo.rotationPitch = entity.rotationPitch;
 
-        eventInfo.rotationYaw = event.entityLiving.rotationYaw;
-        eventInfo.rotationPitch = event.entityLiving.rotationPitch;
-
-        eventInfo.entityName = event.entityLiving.getCommandSenderName();
-        eventInfo.entityUUID = event.entityLiving.getUniqueID()
+        eventInfo.entityName = entity.getCommandSenderName();
+        eventInfo.entityUUID = entity.getUniqueID()
             .toString();
 
-        queueEventInfo(eventInfo);
+        logEvent(eventInfo, entity.dimension, entity.posX, entity.posY, entity.posZ);
     }
 
 }

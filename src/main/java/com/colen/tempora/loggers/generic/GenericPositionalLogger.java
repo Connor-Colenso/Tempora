@@ -12,6 +12,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
@@ -51,6 +52,10 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
     private Thread queueWorkerThread;
     private volatile boolean shuttingDownDatabaseThread = false;
     private volatile boolean isRunning;
+    // Started for the current server: database open, worker running (until it crashes, see isRunning).
+    private volatile boolean started;
+
+    private static volatile boolean loggersStarted;
 
     private int maxShutdownTimeoutMilliseconds;
     private int maxEventsInQueueBeforeServerFreeze;
@@ -151,8 +156,9 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
         return eventList;
     }
 
+    /** Draws this logger's recent lookup results in the world. Loggers with nothing to draw can leave this alone. */
     @SideOnly(Side.CLIENT)
-    public abstract void renderEventsInWorld(RenderWorldLastEvent renderEvent);
+    public void renderEventsInWorld(RenderWorldLastEvent renderEvent) {}
 
     // Logger name is also the SQL table name. So choose it and be careful not to rename it.
     public abstract @NotNull String getLoggerName();
@@ -165,12 +171,21 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
     public final void registerEvent() {
         if (!getLoggerEventType().shouldRegister()) return;
 
-        switch (getLoggerEventType()) {
-            case ForgeEvent -> MinecraftForge.EVENT_BUS.register(this);
-            case MinecraftEvent -> FMLCommonHandler.instance()
-                .bus()
-                .register(this);
-            default -> throw new IllegalStateException("Unknown LoggerEventType: " + getLoggerEventType());
+        // A logger whose event handlers Forge rejects (e.g. a malformed @SubscribeEvent in another mod's logger) must
+        // not stop the server starting. It can still log what is reported to it directly.
+        try {
+            switch (getLoggerEventType()) {
+                case ForgeEvent -> MinecraftForge.EVENT_BUS.register(this);
+                case MinecraftEvent -> FMLCommonHandler.instance()
+                    .bus()
+                    .register(this);
+                default -> throw new IllegalStateException("Unknown LoggerEventType: " + getLoggerEventType());
+            }
+        } catch (RuntimeException e) {
+            LOG.error(
+                "Could not register {} for events, so it will miss everything it listens for.",
+                getLoggerName(),
+                e);
         }
     }
 
@@ -181,6 +196,23 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
         if (region == null) return logByDefault;
 
         return region.getRule(getLoggerName()) == LogRule.ON;
+    }
+
+    /**
+     * Fills in what every event shares (id, time and place) and queues it. Each logger's own log methods build their
+     * event with this, whether they were triggered by Forge or reported by another mod through
+     * {@link com.colen.tempora.api.TemporaApi}.
+     */
+    protected final void logEvent(EventInfo eventInfo, int dimensionID, double x, double y, double z) {
+        eventInfo.eventID = UUID.randomUUID()
+            .toString();
+        eventInfo.timestamp = System.currentTimeMillis();
+        eventInfo.dimensionID = dimensionID;
+        eventInfo.x = x;
+        eventInfo.y = y;
+        eventInfo.z = z;
+
+        queueEventInfo(eventInfo);
     }
 
     public final void queueEventInfo(EventInfo eventInfo) {
@@ -307,21 +339,33 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
         try {
             databaseManager.initialiseDatabase();
             startQueueWorker();
+            started = true;
 
         } catch (SQLException e) {
             throw new RuntimeException("[Tempora] Failed to initialise database for logger " + getLoggerName(), e);
         }
     }
 
-    private void clearEvents() {
-        concurrentEventQueue.clear();
+    /**
+     * Whether this logger started for the current server, so its database is open. False when it is disabled, or
+     * failed to start.
+     */
+    public final boolean notStarted() {
+        return !started;
     }
 
     // --------------------------------------
     // Static methods
     // --------------------------------------
 
+    /** Whether the loggers have been started for the current server. */
+    public static boolean areLoggersStarted() {
+        return loggersStarted;
+    }
+
     public static void onServerStart() {
+        loggersStarted = true;
+
         if (!TemporaLoggerManager.getLoggerList()
             .isEmpty()) {
             LOG.info("Opening Tempora loggers.");
@@ -332,7 +376,17 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
         for (GenericPositionalLogger<?> logger : TemporaLoggerManager.getLoggerList()) {
             if (logger.isEnabledByConfig) {
                 LOG.info("Initialising {} logger.", logger.getLoggerName());
-                logger.initialiseLogger();
+                try {
+                    logger.initialiseLogger();
+                } catch (Exception e) {
+                    // One logger that cannot start (a database it cannot open, a broken logger from another mod)
+                    // must not take the server, or the other loggers, down with it.
+                    LOG.error(
+                        "{} failed to start, so it will not log anything until the server restarts. Other loggers are unaffected.",
+                        logger.getLoggerName(),
+                        e);
+                    logger.closeAfterFailedStart();
+                }
             } else {
                 LOG.info("Skipped {}, not enabled in config.", logger.getLoggerName());
             }
@@ -340,21 +394,34 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
     }
 
     public static void onServerClose() {
-        try {
-            for (GenericPositionalLogger<?> logger : TemporaLoggerManager.getLoggerList()) {
-                if (logger.isEnabledByConfig) {
-                    logger.shutdownQueueWorkerThreads();
-                    logger.databaseManager.shutdownDatabase();
-                }
-            }
+        // Each logger separately: one that fails to close must not leave the others' (non-daemon) worker threads
+        // running, which would stop the server from exiting.
+        for (GenericPositionalLogger<?> logger : TemporaLoggerManager.getLoggerList()) {
+            if (!logger.started) continue;
 
-        } catch (Exception e) {
-            LOG.error("Error closing resources.", e);
-        } finally {
-            // Just to ensure that we are not carrying data over to a new world opening.
-            for (GenericPositionalLogger<?> logger : TemporaLoggerManager.getLoggerList()) {
-                if (logger.isEnabledByConfig) logger.clearEvents();
+            try {
+                logger.shutdownQueueWorkerThreads();
+                logger.databaseManager.shutdownDatabase();
+            } catch (Exception e) {
+                LOG.error("Error closing {}.", logger.getLoggerName(), e);
+            } finally {
+                // Just to ensure that we are not carrying data over to a new world opening.
+                logger.concurrentEventQueue.clear();
+                logger.started = false;
             }
+        }
+
+        loggersStarted = false;
+    }
+
+    private void closeAfterFailedStart() {
+        isRunning = false;
+        // Stops the worker, in case it got as far as starting.
+        shuttingDownDatabaseThread = true;
+        try {
+            databaseManager.shutdownDatabase();
+        } catch (Exception ignored) {
+            // It never opened.
         }
     }
 
@@ -394,6 +461,7 @@ public abstract class GenericPositionalLogger<EventInfo extends GenericEventInfo
     }
 
     public int getQueueSize() {
-        return concurrentEventQueue.size();
+        // Null until the logger starts.
+        return concurrentEventQueue == null ? 0 : concurrentEventQueue.size();
     }
 }

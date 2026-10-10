@@ -5,17 +5,21 @@ import static com.colen.tempora.utils.PlayerUtils.UNKNOWN_CAUSE;
 import static com.colen.tempora.utils.PlayerUtils.UNKNOWN_PLAYER_NAME;
 
 import java.awt.Color;
+import java.util.Collections;
 import java.util.List;
-import java.util.UUID;
+
+import javax.annotation.Nullable;
 
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.world.ChunkPosition;
+import net.minecraft.world.Explosion;
 import net.minecraft.world.World;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.event.world.ExplosionEvent;
@@ -141,46 +145,51 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionEventInfo>
         if (isClientSide()) return;
         if (event.isCanceled()) return;
 
-        final World world = event.world;
-        final float strength = event.explosion.explosionSize;
-        final double x = event.explosion.explosionX;
-        final double y = event.explosion.explosionY;
-        final double z = event.explosion.explosionZ;
-        final Entity exploder = event.explosion.getExplosivePlacedBy();
-        final String exploderName;
-        if (exploder != null) {
-            exploderName = exploder.getUniqueID()
+        Explosion explosion = event.explosion;
+        // Whoever lit the TNT, or the creeper itself, rather than the TNT entity.
+        Entity exploder = explosion.getExplosivePlacedBy() != null ? explosion.getExplosivePlacedBy()
+            : explosion.exploder;
+
+        logExplosion(
+            event.world,
+            explosion.explosionX,
+            explosion.explosionY,
+            explosion.explosionZ,
+            explosion.explosionSize,
+            exploder,
+            explosion.affectedBlockPositions);
+    }
+
+    /**
+     * Logs an explosion. {@code exploder} is whatever is responsible, if known: a living entity is stored by UUID, any
+     * other entity by its class name. {@code affectedBlocks} are the positions it destroyed, if known.
+     */
+    public void logExplosion(World world, double x, double y, double z, float strength, @Nullable Entity exploder,
+        @Nullable List<ChunkPosition> affectedBlocks) {
+        if (!isEnabledByConfig) return;
+
+        ExplosionEventInfo eventInfo = new ExplosionEventInfo();
+        eventInfo.strength = strength;
+
+        if (exploder instanceof EntityLivingBase) {
+            eventInfo.exploderUUID = exploder.getUniqueID()
                 .toString();
-        } else if (event.explosion.exploder != null) {
-            exploderName = event.explosion.exploder.getClass()
+        } else if (exploder != null) {
+            eventInfo.exploderUUID = exploder.getClass()
                 .getSimpleName();
         } else {
-            exploderName = UNKNOWN_CAUSE;
+            eventInfo.exploderUUID = UNKNOWN_CAUSE;
         }
 
         EntityPlayer closestPlayer = world.getClosestPlayer(x, y, z, -1);
-
-        ExplosionEventInfo eventInfo = new ExplosionEventInfo();
-
-        eventInfo.eventID = UUID.randomUUID()
-            .toString();
-        eventInfo.x = event.explosion.explosionX;
-        eventInfo.y = event.explosion.explosionY;
-        eventInfo.z = event.explosion.explosionZ;
-        eventInfo.dimensionID = world.provider.dimensionId;
-        eventInfo.timestamp = System.currentTimeMillis();
-
-        eventInfo.strength = strength;
-        eventInfo.exploderUUID = exploderName;
-
         eventInfo.closestPlayerUUID = closestPlayer != null ? closestPlayer.getUniqueID()
             .toString() : UNKNOWN_PLAYER_NAME;
-
         eventInfo.closestPlayerDistance = closestPlayer != null ? closestPlayer.getDistance(x, y, z) : -1;
 
-        eventInfo.affectedBlockCoordinates = ChunkPositionUtils.encodePositions(event.explosion.affectedBlockPositions);
+        eventInfo.affectedBlockCoordinates = ChunkPositionUtils
+            .encodePositions(affectedBlocks == null ? Collections.emptyList() : affectedBlocks);
 
-        queueEventInfo(eventInfo);
+        logEvent(eventInfo, world.provider.dimensionId, x, y, z);
     }
 
 }

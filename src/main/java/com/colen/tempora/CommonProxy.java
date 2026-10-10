@@ -10,7 +10,6 @@ import net.minecraftforge.common.config.Configuration;
 import com.colen.tempora.blocks.RenderingErrorItemBlock;
 import com.colen.tempora.chat.TemporaChatRegistry;
 import com.colen.tempora.events.OnWorldLoad;
-import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.GenericRenderEventPacketHandler;
 import com.colen.tempora.loggers.generic.RenderEventPacket;
 import com.colen.tempora.networking.handlers.PacketRemoveClientRegionByUUID;
@@ -48,16 +47,8 @@ public class CommonProxy {
 
         TemporaEvents.registerAll();
 
-        // Each logger handles their own config settings.
-        for (GenericPositionalLogger<?> logger : TemporaLoggerManager.getLoggerList()) {
-            logger.handleCustomLoggerConfig(Tempora.config);
-            logger.genericConfig(Tempora.config);
-        }
-
-        // After the config handling is done.
-        if (Tempora.config.hasChanged()) {
-            Tempora.config.save();
-        }
+        // Each logger handles their own config settings. Loggers other mods register later read theirs as they do.
+        TemporaLoggerManager.loadConfig(Tempora.config);
 
         MinecraftForge.EVENT_BUS.register(new OnWorldLoad());
 

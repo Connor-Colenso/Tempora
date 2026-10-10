@@ -2,13 +2,11 @@ package com.colen.tempora.loggers.item_use;
 
 import static com.colen.tempora.utils.GenericUtils.isClientSide;
 
-import java.util.UUID;
+import javax.annotation.Nullable;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.world.World;
-import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.entity.player.PlayerUseItemEvent;
 
@@ -20,8 +18,6 @@ import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 
 public class ItemUseLogger extends GenericPositionalLogger<ItemUseEventInfo> {
 
@@ -41,12 +37,6 @@ public class ItemUseLogger extends GenericPositionalLogger<ItemUseEventInfo> {
     }
 
     @Override
-    @SideOnly(Side.CLIENT)
-    public void renderEventsInWorld(RenderWorldLastEvent renderEvent) {
-
-    }
-
-    @Override
     public @NotNull LoggerEventType getLoggerEventType() {
         return LoggerEventType.ForgeEvent;
     }
@@ -61,7 +51,7 @@ public class ItemUseLogger extends GenericPositionalLogger<ItemUseEventInfo> {
 
         if (event.action == PlayerInteractEvent.Action.RIGHT_CLICK_AIR
             || event.action == PlayerInteractEvent.Action.RIGHT_CLICK_BLOCK) {
-            logItemUse(event.entityPlayer);
+            logItemUse(event.entityPlayer, event.entityPlayer.getCurrentEquippedItem());
         }
     }
 
@@ -69,28 +59,21 @@ public class ItemUseLogger extends GenericPositionalLogger<ItemUseEventInfo> {
     @SuppressWarnings("unused")
     public void onItemUseStart(final @NotNull PlayerUseItemEvent.Start event) {
         if (!isEnabledByConfig) return;
+        if (isClientSide()) return;
         if (event.isCanceled()) return;
 
-        logItemUse(event.entityPlayer);
+        logItemUse(event.entityPlayer, event.entityPlayer.getCurrentEquippedItem());
     }
 
-    private void logItemUse(final @NotNull EntityPlayer player) {
-        final World world = player.worldObj;
-        final ItemStack usedItem = player.getCurrentEquippedItem();
+    /** Logs a player using an item (or their empty hand), at the player's position. */
+    public void logItemUse(final @NotNull EntityPlayer player, final @Nullable ItemStack usedItem) {
+        if (!isEnabledByConfig) return;
 
         ItemUseEventInfo eventInfo = new ItemUseEventInfo();
-        eventInfo.eventID = UUID.randomUUID()
-            .toString();
-        eventInfo.x = player.posX;
-        eventInfo.y = player.posY;
-        eventInfo.z = player.posZ;
-        eventInfo.dimensionID = world.provider.dimensionId;
-        eventInfo.timestamp = System.currentTimeMillis();
-
         eventInfo.playerUUID = player.getUniqueID()
             .toString();
 
-        if (usedItem != null) {
+        if (usedItem != null && usedItem.getItem() != null) {
             eventInfo.itemID = Item.getIdFromItem(usedItem.getItem());
             eventInfo.itemMetadata = usedItem.getItemDamage();
         } else {
@@ -98,7 +81,7 @@ public class ItemUseLogger extends GenericPositionalLogger<ItemUseEventInfo> {
             eventInfo.itemMetadata = 0;
         }
 
-        queueEventInfo(eventInfo);
+        logEvent(eventInfo, player.worldObj.provider.dimensionId, player.posX, player.posY, player.posZ);
     }
 
 }

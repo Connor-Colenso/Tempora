@@ -4,6 +4,9 @@ import static com.colen.tempora.Tempora.LOG;
 import static com.colen.tempora.utils.BlockUtils.getPickBlockSafe;
 import static com.colen.tempora.utils.PlayerUtils.UNKNOWN_PLAYER_NAME;
 import static com.colen.tempora.utils.RenderingUtils.CLIENT_EVENT_RENDER_DISTANCE;
+import static com.colen.tempora.utils.nbt.NBTUtils.NBT_DISABLED;
+import static com.colen.tempora.utils.nbt.NBTUtils.NO_NBT;
+import static com.colen.tempora.utils.nbt.NBTUtils.encodeToString;
 import static com.colen.tempora.utils.nbt.NBTUtils.getEncodedTileEntityNBT;
 
 import java.util.ArrayDeque;
@@ -11,12 +14,15 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.UUID;
 
+import javax.annotation.Nullable;
+
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.config.Configuration;
@@ -208,7 +214,60 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
             return;
         }
 
-        // AFTER state
+        fillAfterState(e, world, x, y, z);
+        recordSetBlock(e.x, e.y, e.z, e, world);
+    }
+
+    /**
+     * Logs a block change that did not go through {@code Chunk.func_150807_a}, so the mixin never saw it, e.g. a block
+     * written straight into the chunk's storage. Call this after the change, with what was there before: the old block,
+     * its metadata, and its tile entity's NBT if it had one.
+     */
+    public void logBlockChange(World world, int x, int y, int z, Block before, int beforeMetadata,
+        @Nullable NBTTagCompound beforeTileEntityNBT) {
+        if (!isEnabledByConfig) return;
+
+        int dimensionID = world.provider.dimensionId;
+        if (WorldGenPhaseTracker.isWorldGen() || !canLogHere(x, y, z, dimensionID)) return;
+
+        BlockChangeEventInfo e = new BlockChangeEventInfo();
+        e.eventID = UUID.randomUUID()
+            .toString();
+        e.timestamp = System.currentTimeMillis();
+        e.stackTraceID = StackTraceUtils.getID(StackTraceUtils.getCallingClassChain());
+
+        e.x = x;
+        e.y = y;
+        e.z = z;
+        e.dimensionID = dimensionID;
+
+        // BEFORE state, as reported. The world already holds the new block, so the pick block can only come from the
+        // metadata rather than from the block in the world.
+        e.beforeBlockID = Block.getIdFromBlock(before);
+        e.beforeMetadata = beforeMetadata;
+
+        Item beforeItem = Item.getItemFromBlock(before);
+        if (beforeItem != null) {
+            e.beforePickBlockID = Item.getIdFromItem(beforeItem);
+            e.beforePickBlockMeta = before.damageDropped(beforeMetadata);
+        } else {
+            e.beforePickBlockID = e.beforeBlockID;
+            e.beforePickBlockMeta = e.beforeMetadata;
+        }
+
+        if (beforeTileEntityNBT == null) {
+            e.beforeEncodedNBT = NO_NBT;
+        } else if (logNBT) {
+            e.beforeEncodedNBT = encodeToString(beforeTileEntityNBT);
+        } else {
+            e.beforeEncodedNBT = NBT_DISABLED;
+        }
+
+        fillAfterState(e, world, x, y, z);
+        recordSetBlock(x, y, z, e, world);
+    }
+
+    private static void fillAfterState(BlockChangeEventInfo e, World world, int x, int y, int z) {
         Block after = world.getBlock(x, y, z);
         e.afterBlockID = Block.getIdFromBlock(after);
         e.afterMetadata = world.getBlockMetadata(x, y, z);
@@ -223,8 +282,6 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
         }
 
         e.afterEncodedNBT = getEncodedTileEntityNBT(world, x, y, z, BlockChangeLogger.isLogNBTEnabled());
-
-        recordSetBlock(e.x, e.y, e.z, e, world);
     }
 
     private void recordSetBlock(double x, double y, double z, BlockChangeEventInfo eventInfo, World world) {

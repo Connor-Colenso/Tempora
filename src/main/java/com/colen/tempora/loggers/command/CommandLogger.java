@@ -6,10 +6,9 @@ import static com.colen.tempora.utils.GenericUtils.isClientSide;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 import net.minecraft.client.renderer.entity.RenderManager;
-import net.minecraft.command.ICommand;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.StatCollector;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
@@ -89,24 +88,20 @@ public class CommandLogger extends GenericPositionalLogger<CommandEventInfo> {
         if (event.isCanceled()) return;
 
         if (event.sender instanceof EntityPlayerMP player) {
-            ICommand command = event.command;
-            String[] args = event.parameters;
-
-            CommandEventInfo eventInfo = new CommandEventInfo();
-            eventInfo.eventID = UUID.randomUUID()
-                .toString();
-            eventInfo.x = player.posX;
-            eventInfo.y = player.posY;
-            eventInfo.z = player.posZ;
-            eventInfo.dimensionID = player.dimension;
-            eventInfo.timestamp = System.currentTimeMillis();
-
-            eventInfo.playerUUID = player.getUniqueID()
-                .toString();
-            eventInfo.commandName = command.getCommandName();
-            eventInfo.arguments = String.join(" ", args);
-
-            queueEventInfo(eventInfo);
+            logCommand(player, event.command.getCommandName(), event.parameters);
         }
+    }
+
+    /** Logs a command a player ran, at the player's position. */
+    public void logCommand(EntityPlayer player, String commandName, String[] arguments) {
+        if (!isEnabledByConfig) return;
+
+        CommandEventInfo eventInfo = new CommandEventInfo();
+        eventInfo.playerUUID = player.getUniqueID()
+            .toString();
+        eventInfo.commandName = commandName;
+        eventInfo.arguments = String.join(" ", arguments);
+
+        logEvent(eventInfo, player.dimension, player.posX, player.posY, player.posZ);
     }
 }

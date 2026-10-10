@@ -75,6 +75,53 @@ Each logger has its own config section (in the standard Forge config file) with:
 - `oldestDataCutoff` — how long to retain logged events before they're deleted (e.g. `4months`).
 - A maximum in-memory queue size per logger, to bound memory use if the database falls behind.
 
+## API for other mods
+
+Some actions never reach Tempora by themselves: items put into a drawer or barrel by clicking it,
+blocks broken by a tool that skips Forge's events, explosions that aren't vanilla ones, or blocks
+written straight into chunk storage. Other mods can report these through
+`com.colen.tempora.api.TemporaApi`. Reported events are stored and looked up exactly like the ones
+Tempora logs itself, and follow the same config and region rules.
+
+Compile against Tempora's API jar (the `api` classifier) and only call it when Tempora is loaded:
+
+```java
+if (Loader.isModLoaded(TemporaApi.MODID)) {
+    TemporaApi.logItemsAdded(player, insertedStack, inserted, this);
+}
+```
+
+| Method | Logger |
+|---|---|
+| `logItemsAdded`, `logItemsRemoved` | `inventory` |
+| `logBlockBreak` (call before removing the block) | `break` |
+| `logBlockPlace` | `place` |
+| `logBlockChange` (only for changes that bypass `Chunk.func_150807_a`) | `block` |
+| `logExplosion` | `explosion` |
+| `logItemUse` | `item` |
+| `logCommand` | `command` |
+| `logPlayerPosition` | `movement` |
+| `logEntitySpawn` | `spawn` |
+| `logEntityDeath` | `death` |
+| `logEntityPosition` | `entity` |
+
+Calls only do anything on the server thread, and only while that logger is turned on. Each method's
+Javadoc says what it records and when to call it.
+
+### Adding your own logger
+
+A mod can also add a logger of its own. Subclass `GenericPositionalLogger` and `GenericEventInfo`
+(with `@Column` fields of type `boolean`, `int`, `long`, `float`, `double` or `String`), and register it
+with `TemporaLoggerManager.register(logger, MyEventInfo::new)` while mods load (preInit, init or
+postInit). It gets its own database, config section, region rules and `/tempora lookup` support.
+
+- Mistakes such as mismatched names or a column type Tempora can't store are reported when the logger
+  registers, not when the server starts.
+- A logger that fails later (its database won't open, its in-world rendering throws) is switched off
+  on its own, and the rest of Tempora carries on.
+- Register it on the client too if its events should be drawn in the world. Clients that don't have
+  it simply skip its events.
+
 ## Data collected
 
 For server operators: Tempora records player UUIDs, movement history, block changes (with
