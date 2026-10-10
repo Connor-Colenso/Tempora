@@ -47,7 +47,7 @@ public class CommandLogger extends GenericPositionalLogger<CommandEventInfo> {
 
     @Override
     @SideOnly(Side.CLIENT)
-    public void renderEventsInWorld(RenderWorldLastEvent renderEvent) {
+    public void renderEventTextInWorld(RenderWorldLastEvent renderEvent) {
         RenderManager renderManager = RenderManager.instance;
         sortByDistanceDescending(transparentEventsToRenderInWorld, renderEvent);
 

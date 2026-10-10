@@ -3,7 +3,9 @@ package com.colen.tempora.rendering;
 import static com.colen.tempora.Tempora.LOG;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 
@@ -24,12 +26,23 @@ public final class RenderEventsInWorld {
     @SuppressWarnings("unused")
     @SubscribeEvent
     public void onRender(RenderWorldLastEvent e) {
-        for (GenericPositionalLogger<?> positionalLogger : TemporaLoggerManager.getPositionalLoggers()) {
+        List<GenericPositionalLogger<?>> loggers = TemporaLoggerManager.getPositionalLoggers();
+
+        // Text is drawn through walls, so it goes after every logger's blocks and entities, which would cover it.
+        forEachWorkingLogger(loggers, logger -> logger.renderEventsInWorld(e));
+        forEachWorkingLogger(loggers, logger -> {
+            logger.renderEventTextInWorld(e);
+            logger.clearOldEventsToRender();
+        });
+    }
+
+    private void forEachWorkingLogger(List<GenericPositionalLogger<?>> loggers,
+        Consumer<GenericPositionalLogger<?>> draw) {
+        for (GenericPositionalLogger<?> positionalLogger : loggers) {
             if (brokenLoggers.contains(positionalLogger.getLoggerName())) continue;
 
             try {
-                positionalLogger.renderEventsInWorld(e);
-                positionalLogger.clearOldEventsToRender();
+                draw.accept(positionalLogger);
             } catch (RuntimeException | LinkageError ex) {
                 brokenLoggers.add(positionalLogger.getLoggerName());
                 LOG.error(

@@ -97,6 +97,13 @@ public abstract class GenericPositionalLogger<EventInfo extends PositionalEventI
     @SideOnly(Side.CLIENT)
     public void renderEventsInWorld(RenderWorldLastEvent renderEvent) {}
 
+    /**
+     * Draws floating text for this logger's recent lookup results. Runs after every logger's
+     * {@link #renderEventsInWorld}, as text is drawn through walls and so would be covered by any block drawn after it.
+     */
+    @SideOnly(Side.CLIENT)
+    public void renderEventTextInWorld(RenderWorldLastEvent renderEvent) {}
+
     // The smallest region here with a rule for this logger decides, otherwise logByDefault does.
     // See TemporaRegionRegistry for the full rules.
     public final boolean canLogHere(double x, double y, double z, int dimID) {

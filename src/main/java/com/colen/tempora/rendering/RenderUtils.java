@@ -24,7 +24,6 @@ import org.lwjgl.opengl.GL13;
 
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.rendering.FakeWorld.FakeWorld;
-import com.gtnewhorizons.modularui.api.GlStateManager;
 
 import appeng.block.networking.BlockCableBus;
 import appeng.client.render.BusRenderHelper;
@@ -111,6 +110,10 @@ public abstract class RenderUtils {
 
         GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
         GL11.glPushMatrix();
+
+        // RenderBlocks bakes shading and tint (such as grass colour) into vertex colours. GL lighting left on by
+        // anything drawn earlier this frame ignores those and draws the block dark grey.
+        GL11.glDisable(GL11.GL_LIGHTING);
 
         // Calculate interpolated player position for shifting origin
         double px = mc.thePlayer.lastTickPosX + (mc.thePlayer.posX - mc.thePlayer.lastTickPosX) * e.partialTicks;
@@ -215,14 +218,18 @@ public abstract class RenderUtils {
         FontRenderer fontrenderer = Minecraft.getMinecraft().fontRenderer;
         if (fontrenderer == null) return;
 
-        GlStateManager.pushMatrix();
-        GlStateManager.translate(x, y, z);
-        GlStateManager.rotate(-renderManager.playerViewY, 0.0F, 1.0F, 0.0F);
-        GlStateManager.rotate(renderManager.playerViewX, 1.0F, 0.0F, 0.0F);
-        GlStateManager.scale(-0.025F, -0.025F, 0.025F);
-        GlStateManager.disableLighting();
-        GlStateManager.disableDepth();
-        GlStateManager.enableBlend();
+        // Restores lighting, depth and blending as they were, rather than forcing them on or off afterwards. Leaving
+        // lighting on made blocks drawn after the text come out dark grey.
+        GL11.glPushAttrib(GL11.GL_ENABLE_BIT | GL11.GL_COLOR_BUFFER_BIT | GL11.GL_CURRENT_BIT);
+        GL11.glPushMatrix();
+        GL11.glTranslated(x, y, z);
+        GL11.glRotatef(-renderManager.playerViewY, 0.0F, 1.0F, 0.0F);
+        GL11.glRotatef(renderManager.playerViewX, 1.0F, 0.0F, 0.0F);
+        GL11.glScalef(-0.025F, -0.025F, 0.025F);
+        GL11.glDisable(GL11.GL_LIGHTING);
+        GL11.glDisable(GL11.GL_DEPTH_TEST);
+        GL11.glEnable(GL11.GL_BLEND);
+        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 
         int fontHeight = fontrenderer.FONT_HEIGHT;
         // Start so that the overall text block is vertically centered
@@ -234,10 +241,8 @@ public abstract class RenderUtils {
             yOffset += fontHeight;
         }
 
-        GlStateManager.enableDepth();
-        GlStateManager.enableLighting();
-        GlStateManager.disableBlend();
-        GlStateManager.popMatrix();
+        GL11.glPopMatrix();
+        GL11.glPopAttrib();
     }
 
     public static void correctForCamera(RenderWorldLastEvent e) {
