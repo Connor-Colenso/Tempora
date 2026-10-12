@@ -1,5 +1,7 @@
 package com.colen.tempora.utils;
 
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityList;
 import net.minecraft.launchwrapper.Launch;
 import net.minecraft.world.WorldProvider;
 import net.minecraftforge.common.DimensionManager;
@@ -15,6 +17,17 @@ public class GenericUtils {
         WorldProvider provider = DimensionManager.createProviderFor(dimID);
         provider.setDimension(dimID);
         return provider.getDimensionName();
+    }
+
+    /**
+     * The name an entity is registered under in EntityList, e.g. "CaveSpider", which chat translates into its name and
+     * the client turns back into the entity to draw it. Falls back to the class name for entities no mod registered.
+     */
+    public static String entityRegistryName(Entity entity) {
+        String name = EntityList.getEntityString(entity);
+        return name != null ? name
+            : entity.getClass()
+                .getSimpleName();
     }
 
     public static boolean isClientSide() {

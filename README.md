@@ -170,6 +170,22 @@ public class ReactorLogger extends GenericGlobalLogger<ReactorEventInfo> {
 - Register it on the client too if its events should be drawn in the world. Clients that don't have
   it simply skip its events.
 
+#### Drawing a positional logger's events
+
+Lookup results are sent to the player's client and drawn in the world for a few seconds. Drawing
+lives apart from the logger, in an `EventRenderer` registered from your **client** proxy, after the
+logger itself:
+
+```java
+EventRenderers.register(myLogger, new MyEventRenderer());
+```
+
+A renderer is handed only the events in the player's dimension within render distance, farthest
+first, and draws in world coordinates. `BlockEventRenderer`, `EntityEventRenderer` and
+`PlayerGhostRenderer` cover the common cases: draw a block, a mob, or the player who did it. The
+client only knows what the event's `toBytes`/`fromBytes` send, so include the fields your renderer
+needs. A logger without a renderer still shows each event as an outlined block with a label.
+
 ## Data collected
 
 For server operators: Tempora records player UUIDs, movement history, block changes (with

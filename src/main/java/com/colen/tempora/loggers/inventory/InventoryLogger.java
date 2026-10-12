@@ -1,30 +1,21 @@
 package com.colen.tempora.loggers.inventory;
 
-import java.util.List;
-
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.entity.EntityClientPlayerMP;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 
 import org.jetbrains.annotations.NotNull;
-import org.lwjgl.opengl.GL11;
 
 import com.colen.tempora.TemporaEvents;
 import com.colen.tempora.enums.LoggerEventType;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
-import com.colen.tempora.rendering.RenderUtils;
 import com.colen.tempora.utils.nbt.NBTUtils;
 
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 
 /**
  * Logs items players move into and out of containers. The tracking itself lives in {@link InventoryTransaction}, which
@@ -53,33 +44,6 @@ public class InventoryLogger extends GenericPositionalLogger<InventoryEventInfo>
     @Override
     public @NotNull LoggerEventType getLoggerEventType() {
         return LoggerEventType.ForgeEvent;
-    }
-
-    @Override
-    @SideOnly(Side.CLIENT)
-    public void renderEventsInWorld(RenderWorldLastEvent renderEvent) {
-        List<InventoryEventInfo> sortedList = getSortedLatestEventsByDistance(
-            transparentEventsToRenderInWorld,
-            renderEvent);
-
-        Minecraft mc = Minecraft.getMinecraft();
-        EntityClientPlayerMP player = mc.thePlayer;
-
-        double px = player.lastTickPosX + (player.posX - player.lastTickPosX) * renderEvent.partialTicks;
-        double py = player.lastTickPosY + (player.posY - player.lastTickPosY) * renderEvent.partialTicks;
-        double pz = player.lastTickPosZ + (player.posZ - player.lastTickPosZ) * renderEvent.partialTicks;
-
-        GL11.glPushMatrix();
-        GL11.glTranslated(-px, -py, -pz);
-
-        for (InventoryEventInfo iqe : sortedList) {
-            GL11.glPushMatrix();
-            GL11.glTranslated(iqe.x, iqe.y, iqe.z);
-            RenderUtils.renderRegion(0, 0, 0, 1, 1, 1, 0.655, 0.125, 0.8);
-            GL11.glPopMatrix();
-        }
-
-        GL11.glPopMatrix();
     }
 
     // Items dropped or thrown out while a container is open have to be told apart from items that went into it.

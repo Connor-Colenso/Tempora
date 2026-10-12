@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import net.minecraft.block.Block;
 import net.minecraft.event.HoverEvent;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatComponentTranslation;
@@ -250,12 +249,6 @@ public class BlockChangeEventInfo extends PositionalEventInfo {
 
         ByteBufUtils.writeUTF8String(buf, closestPlayerUUID);
         buf.writeDouble(closestPlayerDistance);
-    }
-
-    @Override
-    public boolean needsTransparencyToRender() {
-        return !Block.getBlockById(beforePickBlockID)
-            .isOpaqueCube();
     }
 
     @Override

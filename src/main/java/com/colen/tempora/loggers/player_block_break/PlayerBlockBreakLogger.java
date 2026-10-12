@@ -5,8 +5,6 @@ import static com.colen.tempora.utils.GenericUtils.isClientSide;
 import static com.colen.tempora.utils.PlayerUtils.UNKNOWN_PLAYER_NAME;
 import static com.colen.tempora.utils.nbt.NBTUtils.getEncodedTileEntityNBT;
 
-import java.util.List;
-
 import javax.annotation.Nullable;
 
 import net.minecraft.block.Block;
@@ -15,7 +13,6 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
-import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.event.world.BlockEvent;
 
@@ -24,12 +21,9 @@ import org.jetbrains.annotations.NotNull;
 import com.colen.tempora.TemporaEvents;
 import com.colen.tempora.enums.LoggerEventType;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
-import com.colen.tempora.utils.RenderingUtils;
 
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 
 public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockBreakEventInfo> {
 
@@ -49,36 +43,6 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
     }
 
     private static boolean logNBT;
-
-    @Override
-    @SideOnly(Side.CLIENT)
-    public void renderEventsInWorld(RenderWorldLastEvent renderEvent) {
-        List<PlayerBlockBreakEventInfo> sortedList = getSortedLatestEventsByDistance(
-            transparentEventsToRenderInWorld,
-            renderEvent);
-
-        for (PlayerBlockBreakEventInfo pbbEventInfo : sortedList) {
-            RenderingUtils.quickRenderBlockWithHighlightAndChecks(
-                renderEvent,
-                pbbEventInfo,
-                pbbEventInfo.blockID,
-                pbbEventInfo.metadata,
-                pbbEventInfo.encodedNBT,
-                pbbEventInfo.playerUUID,
-                this);
-        }
-
-        for (PlayerBlockBreakEventInfo pbbEventInfo : nonTransparentEventsToRenderInWorld) {
-            RenderingUtils.quickRenderBlockWithHighlightAndChecks(
-                renderEvent,
-                pbbEventInfo,
-                pbbEventInfo.blockID,
-                pbbEventInfo.metadata,
-                pbbEventInfo.encodedNBT,
-                pbbEventInfo.playerUUID,
-                this);
-        }
-    }
 
     @Override
     public void handleCustomLoggerConfig(Configuration config) {

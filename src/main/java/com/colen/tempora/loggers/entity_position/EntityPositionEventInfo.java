@@ -38,6 +38,8 @@ public class EntityPositionEventInfo extends PositionalEventInfo {
         super.fromBytes(buf);
         entityName = ByteBufUtils.readUTF8String(buf);
         entityUUID = ByteBufUtils.readUTF8String(buf);
+        rotationYaw = buf.readFloat();
+        rotationPitch = buf.readFloat();
     }
 
     @Override
@@ -45,6 +47,8 @@ public class EntityPositionEventInfo extends PositionalEventInfo {
         super.toBytes(buf);
         ByteBufUtils.writeUTF8String(buf, entityName);
         ByteBufUtils.writeUTF8String(buf, entityUUID);
+        buf.writeFloat(rotationYaw);
+        buf.writeFloat(rotationPitch);
     }
 
     @Override

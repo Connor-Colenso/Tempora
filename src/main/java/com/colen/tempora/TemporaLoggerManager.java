@@ -23,7 +23,6 @@ import com.colen.tempora.loggers.generic.GenericEventInfo;
 import com.colen.tempora.loggers.generic.GenericGlobalLogger;
 import com.colen.tempora.loggers.generic.GenericLogger;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
-import com.colen.tempora.loggers.generic.PositionalEventInfo;
 
 public final class TemporaLoggerManager {
 
@@ -149,14 +148,6 @@ public final class TemporaLoggerManager {
 
     public static @Nullable GenericLogger<?> getLogger(String loggerName) {
         return LOGGERS.get(loggerName);
-    }
-
-    /** The named logger if it is a positional one, else null. Typed for adding events the server sent to draw. */
-    @SuppressWarnings("unchecked")
-    public static <T extends PositionalEventInfo> @Nullable GenericPositionalLogger<T> getPositionalLogger(
-        String loggerName) {
-        return LOGGERS.get(loggerName) instanceof GenericPositionalLogger<?>logger ? (GenericPositionalLogger<T>) logger
-            : null;
     }
 
     // For names players type: the short name ("break") or the full logger name, ignoring case. Either kind of logger,

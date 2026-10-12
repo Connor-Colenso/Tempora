@@ -43,11 +43,6 @@ public class CommandEventInfo extends PositionalEventInfo {
     }
 
     @Override
-    public boolean needsTransparencyToRender() {
-        return true;
-    }
-
-    @Override
     public IChatComponent localiseText(String commandIssuerUUID) {
         // Relative time (as a chat component with hover info)
         IChatComponent timeAgo = TimeUtils.formatTime(timestamp);

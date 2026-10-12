@@ -1,86 +1,30 @@
 package com.colen.tempora.loggers.generic;
 
 import static com.colen.tempora.Tempora.NETWORK;
-import static com.colen.tempora.utils.RenderingUtils.squaredDistance;
 
-import java.awt.Color;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.config.Configuration;
 
 import com.colen.tempora.regions.LogRule;
 import com.colen.tempora.regions.TemporaRegionRegistry;
 import com.colen.tempora.regions.TemporaWorldRegion;
 
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
-
 /**
  * A logger for events that happen at a place, such as a block breaking or a mob dying. Each event is stored with its
- * dimension and position, follows region rules, is looked up around a position (/tempora lookup, the wand), and can be
- * drawn in the world on the client.
+ * dimension and position, follows region rules, and is looked up around a position (/tempora lookup, the wand). Lookup
+ * results are sent to the player's client, which draws them with the renderer registered for this logger in
+ * {@link com.colen.tempora.rendering.events.EventRenderers}.
  */
 @SuppressWarnings("SqlDialectInspection")
 public abstract class GenericPositionalLogger<EventInfo extends PositionalEventInfo> extends GenericLogger<EventInfo> {
 
-    protected List<EventInfo> transparentEventsToRenderInWorld = new ArrayList<>();
-    protected List<EventInfo> nonTransparentEventsToRenderInWorld = new ArrayList<>();
-    private static final long SECONDS_RENDERING_DURATION = 10;
-
     private static final int MAX_RESULTS = 5;
 
     private boolean logByDefault;
-
-    public void addEventToRender(EventInfo event) {
-        event.eventRenderCreationTime = System.currentTimeMillis();
-
-        if (event.needsTransparencyToRender()) {
-            transparentEventsToRenderInWorld.add(event);
-        } else {
-            nonTransparentEventsToRenderInWorld.add(event);
-        }
-    }
-
-    @SideOnly(Side.CLIENT)
-    public List<EventInfo> getSortedLatestEventsByDistance(Collection<EventInfo> input, RenderWorldLastEvent e) {
-        Minecraft mc = Minecraft.getMinecraft();
-        int playerDim = mc.thePlayer.dimension;
-
-        Map<String, EventInfo> latestPerBlock = new HashMap<>();
-
-        for (EventInfo element : input) {
-            if (element.dimensionID != playerDim) continue;
-
-            String key = (int) element.x + "," + (int) element.y + "," + (int) element.z;
-            EventInfo existing = latestPerBlock.get(key);
-
-            if (existing == null || element.timestamp > existing.timestamp) {
-                latestPerBlock.put(key, element);
-            }
-        }
-
-        List<EventInfo> sorted = new ArrayList<>(latestPerBlock.values());
-        sortByDistanceDescending(sorted, e);
-        return sorted;
-    }
-
-    @SideOnly(Side.CLIENT)
-    public void sortByDistanceDescending(List<EventInfo> list, RenderWorldLastEvent e) {
-        Minecraft mc = Minecraft.getMinecraft();
-        double px = mc.thePlayer.lastTickPosX + (mc.thePlayer.posX - mc.thePlayer.lastTickPosX) * e.partialTicks;
-        double py = mc.thePlayer.lastTickPosY + (mc.thePlayer.posY - mc.thePlayer.lastTickPosY) * e.partialTicks;
-        double pz = mc.thePlayer.lastTickPosZ + (mc.thePlayer.posZ - mc.thePlayer.lastTickPosZ) * e.partialTicks;
-
-        list.sort((a, b) -> Double.compare(squaredDistance(b, px, py, pz), squaredDistance(a, px, py, pz)));
-    }
 
     // Default value of the logByDefault config option. Override to return false for loggers that would produce too
     // much data to run everywhere, so they only log inside regions that turn them on.
@@ -92,17 +36,6 @@ public abstract class GenericPositionalLogger<EventInfo extends PositionalEventI
     public boolean logsByDefault() {
         return logByDefault;
     }
-
-    /** Draws this logger's recent lookup results in the world. Loggers with nothing to draw can leave this alone. */
-    @SideOnly(Side.CLIENT)
-    public void renderEventsInWorld(RenderWorldLastEvent renderEvent) {}
-
-    /**
-     * Draws floating text for this logger's recent lookup results. Runs after every logger's
-     * {@link #renderEventsInWorld}, as text is drawn through walls and so would be covered by any block drawn after it.
-     */
-    @SideOnly(Side.CLIENT)
-    public void renderEventTextInWorld(RenderWorldLastEvent renderEvent) {}
 
     // The smallest region here with a rule for this logger decides, otherwise logByDefault does.
     // See TemporaRegionRegistry for the full rules.
@@ -203,17 +136,5 @@ public abstract class GenericPositionalLogger<EventInfo extends PositionalEventI
         }
 
         return events.size();
-    }
-
-    public void clearOldEventsToRender() {
-        double expiryCutoff = System.currentTimeMillis() - SECONDS_RENDERING_DURATION * 1000L;
-        transparentEventsToRenderInWorld
-            .removeIf(eventPosition -> eventPosition.eventRenderCreationTime < expiryCutoff);
-        nonTransparentEventsToRenderInWorld
-            .removeIf(eventPosition -> eventPosition.eventRenderCreationTime < expiryCutoff);
-    }
-
-    public Color getColour() {
-        return Color.RED;
     }
 }

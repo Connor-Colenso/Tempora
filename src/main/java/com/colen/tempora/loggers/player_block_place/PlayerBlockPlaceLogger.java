@@ -5,8 +5,6 @@ import static com.colen.tempora.utils.GenericUtils.isClientSide;
 import static com.colen.tempora.utils.PlayerUtils.UNKNOWN_PLAYER_NAME;
 import static com.colen.tempora.utils.nbt.NBTUtils.getEncodedTileEntityNBT;
 
-import java.util.List;
-
 import javax.annotation.Nullable;
 
 import net.minecraft.block.Block;
@@ -15,7 +13,6 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
-import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.event.world.BlockEvent.PlaceEvent;
 
@@ -24,12 +21,9 @@ import org.jetbrains.annotations.NotNull;
 import com.colen.tempora.TemporaEvents;
 import com.colen.tempora.enums.LoggerEventType;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
-import com.colen.tempora.utils.RenderingUtils;
 
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 
 public class PlayerBlockPlaceLogger extends GenericPositionalLogger<PlayerBlockPlaceEventInfo> {
 
@@ -60,36 +54,6 @@ public class PlayerBlockPlaceLogger extends GenericPositionalLogger<PlayerBlockP
                 If true, it will log the NBT of all blocks changes which interact with this event. This improves rendering of events and gives a better history.
                 WARNING: NBT may be large and this could cause the database to grow much quicker.
                 """);
-    }
-
-    @Override
-    @SideOnly(Side.CLIENT)
-    public void renderEventsInWorld(RenderWorldLastEvent renderEvent) {
-        List<PlayerBlockPlaceEventInfo> sortedList = getSortedLatestEventsByDistance(
-            transparentEventsToRenderInWorld,
-            renderEvent);
-
-        for (PlayerBlockPlaceEventInfo pbpEventInfo : sortedList) {
-            RenderingUtils.quickRenderBlockWithHighlightAndChecks(
-                renderEvent,
-                pbpEventInfo,
-                pbpEventInfo.blockID,
-                pbpEventInfo.metadata,
-                pbpEventInfo.encodedNBT,
-                pbpEventInfo.playerUUID,
-                this);
-        }
-
-        for (PlayerBlockPlaceEventInfo pbpEventInfo : nonTransparentEventsToRenderInWorld) {
-            RenderingUtils.quickRenderBlockWithHighlightAndChecks(
-                renderEvent,
-                pbpEventInfo,
-                pbpEventInfo.blockID,
-                pbpEventInfo.metadata,
-                pbpEventInfo.encodedNBT,
-                pbpEventInfo.playerUUID,
-                this);
-        }
     }
 
     @Override

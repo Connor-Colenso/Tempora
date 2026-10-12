@@ -2,7 +2,6 @@ package com.colen.tempora.loggers.player_block_place;
 
 import static com.colen.tempora.utils.CommandUtils.teleportChatComponent;
 
-import net.minecraft.block.Block;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 
@@ -79,12 +78,6 @@ public class PlayerBlockPlaceEventInfo extends PositionalEventInfo {
             metadata,
             coords,
             timeAgo);
-    }
-
-    @Override
-    public boolean needsTransparencyToRender() {
-        return !Block.getBlockById(blockID)
-            .isOpaqueCube();
     }
 
     @Override

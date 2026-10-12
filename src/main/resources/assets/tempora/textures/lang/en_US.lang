@@ -186,8 +186,6 @@ tempora.unknown.error=[UNKNOWN ERROR]
 
 tempora.dimension.invalid=Dimension %s does not exist.
 
-event.command.executed=%s executed
-
 # === HUD ===
 tempora.HUD.region.descriptor.plural=Currently inside %s regions:
 tempora.HUD.region.descriptor.singular=Currently inside %s region:
@@ -200,6 +198,16 @@ tempora.warning.server.slowdown=Tempora slowed the server to let %s catch up on 
 # === Renderer ===
 tempora.render.regions.author=Created by %s
 tempora.render.regions.created_on=Created %s
+
+# Labels drawn above events in the world.
+tempora.render.event.died=%s died
+tempora.render.event.killed_by=Killed by %s
+tempora.render.event.spawned=%s spawned
+tempora.render.event.explosion=Explosion, strength %s
+tempora.render.event.item_used=Used %s
+tempora.render.event.empty_hand=an empty hand
+tempora.render.event.items_in=+%s %s
+tempora.render.event.items_out=-%s %s
 
 tile.renderingErrorBlock.name=Tempora rendering error
 tooltip.temporasRenderingBlockError=If you are seeing this, something has likely gone wrong with Temporas event rendering. Please report it, thanks!

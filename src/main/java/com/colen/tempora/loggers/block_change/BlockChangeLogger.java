@@ -3,28 +3,23 @@ package com.colen.tempora.loggers.block_change;
 import static com.colen.tempora.Tempora.LOG;
 import static com.colen.tempora.utils.BlockUtils.getPickBlockSafe;
 import static com.colen.tempora.utils.PlayerUtils.UNKNOWN_PLAYER_NAME;
-import static com.colen.tempora.utils.RenderingUtils.CLIENT_EVENT_RENDER_DISTANCE;
 import static com.colen.tempora.utils.nbt.NBTUtils.NBT_DISABLED;
 import static com.colen.tempora.utils.nbt.NBTUtils.NO_NBT;
 import static com.colen.tempora.utils.nbt.NBTUtils.encodeToString;
 import static com.colen.tempora.utils.nbt.NBTUtils.getEncodedTileEntityNBT;
 
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.Deque;
 import java.util.UUID;
 
 import javax.annotation.Nullable;
 
 import net.minecraft.block.Block;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
-import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.config.Configuration;
 
 import org.jetbrains.annotations.NotNull;
@@ -33,12 +28,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import com.colen.tempora.TemporaEvents;
 import com.colen.tempora.enums.LoggerEventType;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
-import com.colen.tempora.utils.RenderingUtils;
 import com.colen.tempora.utils.StackTraceUtils;
 import com.colen.tempora.utils.WorldGenPhaseTracker;
-
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 
 public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventInfo> {
 
@@ -64,66 +55,6 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
     }
 
     private static boolean logNBT;
-
-    // Client side usage only.
-    ArrayList<BlockChangeEventInfo> filteredNonTransparentBuffer = new ArrayList<>();
-    ArrayList<BlockChangeEventInfo> filteredTransparentBuffer = new ArrayList<>();
-
-    @Override
-    @SideOnly(Side.CLIENT)
-    public void renderEventsInWorld(RenderWorldLastEvent renderEvent) {
-        Minecraft mc = Minecraft.getMinecraft();
-        EntityPlayerSP player = mc.thePlayer;
-
-        if (player == null) return;
-
-        double maxDistSq = CLIENT_EVENT_RENDER_DISTANCE * CLIENT_EVENT_RENDER_DISTANCE;
-
-        // Clear and pre-size buffers
-        filteredNonTransparentBuffer.clear();
-        filteredTransparentBuffer.clear();
-
-        filteredNonTransparentBuffer.ensureCapacity(nonTransparentEventsToRenderInWorld.size());
-        filteredTransparentBuffer.ensureCapacity(transparentEventsToRenderInWorld.size());
-
-        // --- NON-TRANSPARENT ---
-        for (BlockChangeEventInfo event : nonTransparentEventsToRenderInWorld) {
-            if (event.dimensionID != player.dimension) continue;
-            if (player.getDistanceSq(event.x, event.y, event.z) > maxDistSq) continue;
-            filteredNonTransparentBuffer.add(event);
-        }
-
-        for (BlockChangeEventInfo bcEventInfo : filteredNonTransparentBuffer) {
-            RenderingUtils.quickRenderBlockWithHighlightAndChecks(
-                renderEvent,
-                bcEventInfo,
-                bcEventInfo.beforeBlockID,
-                bcEventInfo.beforeMetadata,
-                bcEventInfo.beforeEncodedNBT,
-                bcEventInfo.closestPlayerUUID,
-                this);
-        }
-
-        // --- TRANSPARENT ---
-        for (BlockChangeEventInfo event : transparentEventsToRenderInWorld) {
-            if (event.dimensionID != player.dimension) continue;
-            if (player.getDistanceSq(event.x, event.y, event.z) > maxDistSq) continue;
-            filteredTransparentBuffer.add(event);
-        }
-
-        for (BlockChangeEventInfo bcEventInfo : getSortedLatestEventsByDistance(
-            filteredTransparentBuffer,
-            renderEvent)) {
-            RenderingUtils.quickRenderBlockWithHighlightAndChecks(
-                renderEvent,
-                bcEventInfo,
-                bcEventInfo.beforeBlockID,
-                bcEventInfo.beforeMetadata,
-                bcEventInfo.beforeEncodedNBT,
-                bcEventInfo.closestPlayerUUID,
-                this);
-        }
-    }
 
     @Override
     public void handleCustomLoggerConfig(Configuration config) {

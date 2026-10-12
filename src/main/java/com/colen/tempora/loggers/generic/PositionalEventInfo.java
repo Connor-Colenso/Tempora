@@ -20,11 +20,7 @@ public abstract class PositionalEventInfo extends GenericEventInfo {
     @Column(constraints = "NOT NULL")
     public double z;
 
-    // ----- Internal use only -----
-
-    // These fields purely dictate rendering info and are not relevant elsewhere.
-    public long eventRenderCreationTime;
-
+    // What the client is sent to draw this event. Subclasses add their own fields after these.
     public void fromBytes(ByteBuf buf) {
         x = buf.readDouble();
         y = buf.readDouble();
@@ -44,9 +40,4 @@ public abstract class PositionalEventInfo extends GenericEventInfo {
         ByteBufUtils.writeUTF8String(buf, eventID);
         // versionID Not applicable for the client.
     }
-
-    public boolean needsTransparencyToRender() {
-        return false;
-    }
-
 }

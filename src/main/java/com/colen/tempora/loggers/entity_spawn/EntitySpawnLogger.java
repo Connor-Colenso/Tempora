@@ -1,14 +1,12 @@
 package com.colen.tempora.loggers.entity_spawn;
 
+import static com.colen.tempora.utils.GenericUtils.entityRegistryName;
 import static com.colen.tempora.utils.GenericUtils.isClientSide;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityList;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.item.EntityXPOrb;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 
 import org.jetbrains.annotations.NotNull;
@@ -17,12 +15,9 @@ import com.colen.tempora.TemporaEvents;
 import com.colen.tempora.enums.LoggerEventType;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.mixin_interfaces.IEntityMixin;
-import com.colen.tempora.rendering.RenderUtils;
 
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 
 public class EntitySpawnLogger extends GenericPositionalLogger<EntitySpawnEventInfo> {
 
@@ -39,28 +34,6 @@ public class EntitySpawnLogger extends GenericPositionalLogger<EntitySpawnEventI
     @Override
     public @NotNull EntitySpawnEventInfo newEventInfo() {
         return new EntitySpawnEventInfo();
-    }
-
-    @Override
-    @SideOnly(Side.CLIENT)
-    public void renderEventsInWorld(RenderWorldLastEvent renderEvent) {
-        sortByDistanceDescending(transparentEventsToRenderInWorld, renderEvent);
-
-        for (EntitySpawnEventInfo esEventInfo : transparentEventsToRenderInWorld) {
-            Entity entity = EntityList.createEntityByName(esEventInfo.entityName, Minecraft.getMinecraft().theWorld);
-
-            // Render mob
-            RenderUtils.renderEntityInWorld(
-                entity,
-                esEventInfo.x,
-                esEventInfo.y,
-                esEventInfo.z,
-                esEventInfo.rotationYaw,
-                esEventInfo.rotationPitch);
-
-            // Render bounding box (optional, matches location)
-            RenderUtils.renderEntityAABBInWorld(entity, esEventInfo.x, esEventInfo.y, esEventInfo.z, 0, 0, 1.0);
-        }
     }
 
     @Override
@@ -95,7 +68,7 @@ public class EntitySpawnLogger extends GenericPositionalLogger<EntitySpawnEventI
         entityMixin.setTempora$HasBeenLogged(true);
 
         EntitySpawnEventInfo eventInfo = new EntitySpawnEventInfo();
-        eventInfo.entityName = entity.getCommandSenderName();
+        eventInfo.entityName = entityRegistryName(entity);
         eventInfo.entityUUID = entity.getUniqueID()
             .toString();
 
