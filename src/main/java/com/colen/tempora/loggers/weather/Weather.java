@@ -4,15 +4,23 @@ import java.util.Locale;
 
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.world.World;
 
 /** The weather players see in a world. Stored in the database by name. */
 public enum Weather {
 
-    CLEAR,
-    RAIN,
-    THUNDER;
+    CLEAR(EnumChatFormatting.GOLD),
+    RAIN(EnumChatFormatting.BLUE),
+    THUNDER(EnumChatFormatting.DARK_PURPLE);
+
+    // How it is coloured in chat.
+    private final EnumChatFormatting colour;
+
+    Weather(EnumChatFormatting colour) {
+        this.colour = colour;
+    }
 
     // What the world shows right now, rather than the target its weather is moving towards. This is what players see,
     // and also catches dimensions whose mods run their own weather.
@@ -27,9 +35,12 @@ public enum Weather {
         for (Weather weather : values()) {
             if (weather.name()
                 .equals(storedName)) {
-                return new ChatComponentTranslation(
+                IChatComponent name = new ChatComponentTranslation(
                     "tempora.weather." + weather.name()
                         .toLowerCase(Locale.ROOT));
+                name.getChatStyle()
+                    .setColor(weather.colour);
+                return name;
             }
         }
         return new ChatComponentText(storedName);

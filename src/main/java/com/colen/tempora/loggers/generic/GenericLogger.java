@@ -16,7 +16,9 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 import net.minecraft.command.ICommandSender;
-import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.event.ClickEvent;
+import net.minecraft.event.HoverEvent;
+import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
@@ -322,24 +324,37 @@ public abstract class GenericLogger<EventInfo extends GenericEventInfo> {
     }
 
     /**
-     * Says how many events were found, then lists them in chat, oldest first. Takes them newest first, as they are
-     * queried. Says nothing if there are none, so callers checking many loggers can report that once.
+     * Shows a header naming this logger and how many events were found, then lists them in chat, oldest first. Takes
+     * them newest first, as they are queried, and how many the query was limited to, so the header can say when there
+     * may be more. Clicking the header fills in {@code narrowCommand}, to search this logger alone. Says nothing if
+     * there are none, so callers checking many loggers can report that once.
      */
-    final void sendEventsInChat(ICommandSender sender, List<EventInfo> newestFirst) {
+    final void sendEventsInChat(ICommandSender sender, List<EventInfo> newestFirst, int limit, String narrowCommand) {
         if (newestFirst.isEmpty()) return;
 
         int eventsFound = newestFirst.size();
-        // Plural or not.
-        String langKey = (eventsFound == 1) ? "tempora.command.lookup.showing_result"
-            : "tempora.command.lookup.showing_results";
 
-        IChatComponent showingResults = new ChatComponentTranslation(
-            langKey,
-            new ChatComponentNumber(eventsFound),
-            getShortName());
-        showingResults.getChatStyle()
+        IChatComponent name = new ChatComponentText(getShortName());
+        name.getChatStyle()
+            .setColor(EnumChatFormatting.WHITE)
+            .setBold(true);
+
+        IChatComponent count = new ChatComponentTranslation(
+            eventsFound >= limit ? "tempora.command.lookup.header.latest" : "tempora.command.lookup.header.count",
+            eventsFound);
+        count.getChatStyle()
             .setColor(EnumChatFormatting.GRAY);
-        sender.addChatMessage(showingResults);
+
+        IChatComponent hover = new ChatComponentTranslation("tempora.command.lookup.header.hover", getShortName());
+        hover.getChatStyle()
+            .setColor(EnumChatFormatting.GRAY);
+
+        IChatComponent header = new ChatComponentTranslation("tempora.command.lookup.header", name, count);
+        header.getChatStyle()
+            .setColor(EnumChatFormatting.GOLD)
+            .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hover))
+            .setChatClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, narrowCommand));
+        sender.addChatMessage(header);
 
         // If events waiting to process is large, then warn the user.
         // Shouldn't really be happening.
@@ -348,18 +363,15 @@ public abstract class GenericLogger<EventInfo extends GenericEventInfo> {
                 "tempora.command.lookup.too_many_pending",
                 new ChatComponentNumber(getQueueSize()));
             tooMany.getChatStyle()
-                .setColor(EnumChatFormatting.DARK_RED);
+                .setColor(EnumChatFormatting.GOLD);
             sender.addChatMessage(tooMany);
         }
-
-        String uuid = sender instanceof EntityPlayerMP player ? player.getUniqueID()
-            .toString() : PlayerUtils.UNKNOWN_PLAYER_NAME;
 
         // Newest at the bottom, where chat is read from.
         for (int i = eventsFound - 1; i >= 0; i--) {
             sender.addChatMessage(
                 newestFirst.get(i)
-                    .localiseText(uuid));
+                    .localiseText());
         }
     }
 

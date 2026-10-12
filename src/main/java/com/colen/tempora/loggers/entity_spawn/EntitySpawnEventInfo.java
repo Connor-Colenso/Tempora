@@ -1,16 +1,12 @@
 package com.colen.tempora.loggers.entity_spawn;
 
-import static com.colen.tempora.utils.CommandUtils.teleportChatComponent;
-import static com.colen.tempora.utils.PlayerUtils.entityUUIDChatComponent;
-
-import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 
 import com.colen.tempora.TemporaEvents;
+import com.colen.tempora.chat.EventChat;
 import com.colen.tempora.loggers.generic.PositionalEventInfo;
 import com.colen.tempora.loggers.generic.column.Column;
 import com.colen.tempora.utils.CommandUtils;
-import com.colen.tempora.utils.TimeUtils;
 
 import cpw.mods.fml.common.network.ByteBufUtils;
 import io.netty.buffer.ByteBuf;
@@ -48,17 +44,12 @@ public class EntitySpawnEventInfo extends PositionalEventInfo {
     }
 
     @Override
-    public IChatComponent localiseText(String commandIssuerUUID) {
-        IChatComponent coords = teleportChatComponent(x, y, z, dimensionID, CommandUtils.TeleportType.EXACT);
-        IChatComponent timeAgo = TimeUtils.formatTime(timestamp);
-        IChatComponent uuidChatComponent = entityUUIDChatComponent(entityUUID);
-
-        return new ChatComponentTranslation(
+    public IChatComponent localiseText() {
+        return EventChat.line(
             "message.entity_spawn",
-            new ChatComponentTranslation("entity." + entityName + ".name"), // todo review
-            uuidChatComponent,
-            coords,
-            timeAgo);
+            EventChat.time(timestamp),
+            EventChat.entity(entityName, entityUUID),
+            EventChat.where(this, CommandUtils.TeleportType.EXACT));
     }
 
     @Override

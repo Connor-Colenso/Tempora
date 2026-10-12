@@ -1,6 +1,6 @@
 package com.colen.tempora.loggers.inventory;
 
-import static com.colen.tempora.utils.CommandUtils.teleportChatComponent;
+import static com.gtnewhorizon.gtnhlib.util.numberformatting.NumberFormatUtil.formatNumber;
 
 import net.minecraft.event.HoverEvent;
 import net.minecraft.item.Item;
@@ -8,14 +8,14 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
 import com.colen.tempora.TemporaEvents;
+import com.colen.tempora.chat.EventChat;
 import com.colen.tempora.loggers.generic.PositionalEventInfo;
 import com.colen.tempora.loggers.generic.column.Column;
 import com.colen.tempora.utils.CommandUtils;
-import com.colen.tempora.utils.PlayerUtils;
-import com.colen.tempora.utils.TimeUtils;
 import com.colen.tempora.utils.nbt.NBTUtils;
 
 import cpw.mods.fml.common.network.ByteBufUtils;
@@ -73,56 +73,55 @@ public class InventoryEventInfo extends PositionalEventInfo {
     }
 
     @Override
-    public IChatComponent localiseText(String commandIssuerUUID) {
-        IChatComponent formattedTime = TimeUtils.formatTime(timestamp);
-
-        IChatComponent itemDetails = itemChatComponent();
-
-        // Todo what about e.g. player backbacks, do we need to handle block coords differently?
-        IChatComponent coords = teleportChatComponent(x, y, z, dimensionID, CommandUtils.TeleportType.BLOCK);
-
+    public IChatComponent localiseText() {
         InventoryLogger.Direction dir = InventoryLogger.Direction.fromDbId(interactionType);
-
         if (dir == null) {
-            return new ChatComponentTranslation("message.inventorylogger.invalid_interaction", interactionType);
+            IChatComponent invalid = new ChatComponentTranslation("message.inventory.invalid", interactionType);
+            invalid.getChatStyle()
+                .setColor(EnumChatFormatting.RED);
+            return invalid;
         }
 
-        String translationKey = dir.isAddition() ? "message.inventory_interaction_added"
-            : "message.inventory_interaction_removed";
+        // Green for items put in, red for items taken out.
+        boolean added = dir.isAddition();
+        IChatComponent count = EventChat
+            .text(formatNumber(stackSize), added ? EnumChatFormatting.GREEN : EnumChatFormatting.RED);
 
-        return new ChatComponentTranslation(
-            translationKey,
-            PlayerUtils.playerNameFromUUID(playerUUID),
-            stackSize,
-            itemDetails,
-            itemId,
-            itemMetadata,
-            new ChatComponentTranslation(containerName),
-            coords,
-            formattedTime);
+        // Text, as the container's name was already worked out on the server, and a renamed chest can hold a %.
+        IChatComponent container = EventChat.text(containerName, EnumChatFormatting.WHITE);
+
+        // Containers carried by a player (backpacks, wireless terminals) are logged at the player, which is still the
+        // block worth teleporting to.
+        return EventChat.line(
+            added ? "message.inventory.added" : "message.inventory.removed",
+            EventChat.time(timestamp),
+            EventChat.player(playerUUID),
+            count,
+            itemChatComponent(),
+            container,
+            EventChat.where(this, CommandUtils.TeleportType.BLOCK));
     }
 
     // The item's name, with its tooltip on hover when the NBT was logged.
     private IChatComponent itemChatComponent() {
         Item item = Item.getItemById(itemId);
         if (item == null) {
-            return new ChatComponentText("[unknown item " + itemId + ":" + itemMetadata + "]");
+            return EventChat.text("[unknown item " + itemId + ":" + itemMetadata + "]", EnumChatFormatting.WHITE);
         }
 
-        ItemStack itemStack = new ItemStack(item, stackSize, itemMetadata);
+        ItemStack itemStack = new ItemStack(item, 1, itemMetadata);
         NBTTagCompound tag = decodeItemNBT();
         if (tag != null) itemStack.setTagCompound(tag);
 
         // Already localised here, like vanilla's own item mentions.
-        IChatComponent itemDetails = new ChatComponentText(itemStack.getDisplayName());
+        IChatComponent itemDetails = EventChat.text(itemStack.getDisplayName(), EnumChatFormatting.WHITE);
 
-        if (tag != null) {
-            String hoverNBT = itemStack.writeToNBT(new NBTTagCompound())
-                .toString();
-            if (hoverNBT.length() <= MAX_HOVER_NBT_LENGTH) {
-                itemDetails.getChatStyle()
-                    .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_ITEM, new ChatComponentText(hoverNBT)));
-            }
+        // The item's own tooltip on hover, NBT and all, unless the NBT is too big to send.
+        String hoverNBT = itemStack.writeToNBT(new NBTTagCompound())
+            .toString();
+        if (hoverNBT.length() <= MAX_HOVER_NBT_LENGTH) {
+            itemDetails.getChatStyle()
+                .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_ITEM, new ChatComponentText(hoverNBT)));
         }
 
         return itemDetails;

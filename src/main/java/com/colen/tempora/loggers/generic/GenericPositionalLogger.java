@@ -9,6 +9,7 @@ import java.util.Map;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.common.config.Configuration;
 
+import com.colen.tempora.commands.TemporaCommand;
 import com.colen.tempora.regions.LogRule;
 import com.colen.tempora.regions.TemporaRegionRegistry;
 import com.colen.tempora.regions.TemporaWorldRegion;
@@ -128,7 +129,7 @@ public abstract class GenericPositionalLogger<EventInfo extends PositionalEventI
             return 0;
         }
 
-        sendEventsInChat(player, events);
+        sendEventsInChat(player, events, MAX_RESULTS, TemporaCommand.LOOKUP.command("l:" + getShortName()));
 
         // This tells the client what to render in the world, if anything.
         for (EventInfo eventData : events) {

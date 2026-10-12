@@ -1,23 +1,26 @@
 package com.colen.tempora.loggers.explosion;
 
 import static com.colen.tempora.utils.ChatUtils.ONE_DP;
-import static com.colen.tempora.utils.CommandUtils.teleportChatComponent;
+import static com.colen.tempora.utils.PlayerUtils.UNKNOWN_CAUSE;
 import static com.gtnewhorizon.gtnhlib.util.numberformatting.NumberFormatUtil.formatNumber;
 import static cpw.mods.fml.common.network.ByteBufUtils.readVarInt;
 import static cpw.mods.fml.common.network.ByteBufUtils.varIntByteCount;
 import static cpw.mods.fml.common.network.ByteBufUtils.writeVarInt;
 
+import net.minecraft.event.HoverEvent;
 import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
 import org.apache.commons.lang3.Validate;
 
 import com.colen.tempora.TemporaEvents;
+import com.colen.tempora.chat.EventChat;
 import com.colen.tempora.loggers.generic.PositionalEventInfo;
 import com.colen.tempora.loggers.generic.column.Column;
+import com.colen.tempora.utils.ChunkPositionUtils;
 import com.colen.tempora.utils.CommandUtils;
 import com.colen.tempora.utils.PlayerUtils;
-import com.colen.tempora.utils.TimeUtils;
 import com.google.common.base.Charsets;
 
 import cpw.mods.fml.common.network.ByteBufUtils;
@@ -73,18 +76,38 @@ public class ExplosionEventInfo extends PositionalEventInfo {
     }
 
     @Override
-    public IChatComponent localiseText(String commandIssuerUUID) {
-        IChatComponent coords = teleportChatComponent(x, y, z, dimensionID, CommandUtils.TeleportType.EXACT);
-        IChatComponent timeAgo = TimeUtils.formatTime(timestamp);
+    public IChatComponent localiseText() {
+        IChatComponent when = EventChat.time(timestamp);
+        IChatComponent where = EventChat.where(this, CommandUtils.TeleportType.EXACT);
+        IChatComponent power = EventChat.text(formatNumber(strength, ONE_DP), EnumChatFormatting.WHITE);
 
-        return new ChatComponentTranslation(
-            "message.explosion",
-            PlayerUtils.playerNameFromUUID(exploderUUID),
-            formatNumber(strength, ONE_DP),
-            closestPlayerUUID,
-            formatNumber(closestPlayerDistance, ONE_DP),
-            coords,
-            timeAgo);
+        // A player by UUID, anything else by its EntityList name (older rows have a living entity's UUID, or a class
+        // name).
+        IChatComponent line;
+        if (exploderUUID == null || UNKNOWN_CAUSE.equals(exploderUUID)) {
+            line = EventChat.line("message.explosion.unknown", when, where, power);
+        } else {
+            IChatComponent exploder = PlayerUtils.isUUID(exploderUUID) ? EventChat.player(exploderUUID)
+                : EventChat.entityName(exploderUUID);
+            line = EventChat.line("message.explosion", when, exploder, where, power);
+        }
+
+        // The rest is on hover, so the line fits.
+        IChatComponent details = new ChatComponentTranslation(
+            "message.explosion.destroyed",
+            ChunkPositionUtils.decodePositions(affectedBlockCoordinates)
+                .size());
+        if (closestPlayerDistance >= 0) {
+            details.appendText("\n")
+                .appendSibling(
+                    new ChatComponentTranslation(
+                        "message.explosion.closest_player",
+                        PlayerUtils.playerNameFromUUID(closestPlayerUUID),
+                        formatNumber(closestPlayerDistance, ONE_DP)));
+        }
+        line.getChatStyle()
+            .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, EventChat.grey(details)));
+        return line;
     }
 
     @Override

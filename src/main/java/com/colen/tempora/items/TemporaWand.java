@@ -94,8 +94,8 @@ public class TemporaWand extends Item {
                 new ChatComponentTranslation(
                     "message.tempora_wand.checking_pos",
                     teleportChatComponent(x, y, z, player.dimension, CommandUtils.TeleportType.BLOCK),
-                    getDimensionName(player.dimension),
-                    player.dimension).setChatStyle(new ChatStyle().setColor(EnumChatFormatting.RED)));
+                    getDimensionName(player.dimension))
+                        .setChatStyle(new ChatStyle().setColor(EnumChatFormatting.GRAY)));
 
             LookupCommand.showEvents(
                 (EntityPlayerMP) player,

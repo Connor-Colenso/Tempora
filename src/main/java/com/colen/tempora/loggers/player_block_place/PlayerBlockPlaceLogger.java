@@ -10,6 +10,7 @@ import javax.annotation.Nullable;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
@@ -77,6 +78,9 @@ public class PlayerBlockPlaceLogger extends GenericPositionalLogger<PlayerBlockP
      */
     public void logBlockPlace(@Nullable EntityPlayer player, World world, int x, int y, int z, Block block) {
         if (!isEnabledByConfig) return;
+        // Forge reports every block an item use changed, and some (AE2 cable parts) leave one of them as air, which
+        // was never placed.
+        if (block == Blocks.air) return;
 
         PlayerBlockPlaceEventInfo eventInfo = new PlayerBlockPlaceEventInfo();
         eventInfo.blockID = Block.getIdFromBlock(block);

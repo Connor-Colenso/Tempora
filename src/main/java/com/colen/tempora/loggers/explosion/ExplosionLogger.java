@@ -1,5 +1,6 @@
 package com.colen.tempora.loggers.explosion;
 
+import static com.colen.tempora.utils.GenericUtils.entityRegistryName;
 import static com.colen.tempora.utils.GenericUtils.isClientSide;
 import static com.colen.tempora.utils.PlayerUtils.UNKNOWN_CAUSE;
 import static com.colen.tempora.utils.PlayerUtils.UNKNOWN_PLAYER_NAME;
@@ -10,7 +11,6 @@ import java.util.List;
 import javax.annotation.Nullable;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.world.ChunkPosition;
 import net.minecraft.world.Explosion;
@@ -72,8 +72,9 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionEventInfo>
     }
 
     /**
-     * Logs an explosion. {@code exploder} is whatever is responsible, if known: a living entity is stored by UUID, any
-     * other entity by its class name. {@code affectedBlocks} are the positions it destroyed, if known.
+     * Logs an explosion. {@code exploder} is whatever is responsible, if known: a player is stored by UUID, anything
+     * else by its EntityList name, e.g. Creeper, so chat can name it. {@code affectedBlocks} are the positions it
+     * destroyed, if known.
      */
     public void logExplosion(World world, double x, double y, double z, float strength, @Nullable Entity exploder,
         @Nullable List<ChunkPosition> affectedBlocks) {
@@ -82,12 +83,11 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionEventInfo>
         ExplosionEventInfo eventInfo = new ExplosionEventInfo();
         eventInfo.strength = strength;
 
-        if (exploder instanceof EntityLivingBase) {
+        if (exploder instanceof EntityPlayer) {
             eventInfo.exploderUUID = exploder.getUniqueID()
                 .toString();
         } else if (exploder != null) {
-            eventInfo.exploderUUID = exploder.getClass()
-                .getSimpleName();
+            eventInfo.exploderUUID = entityRegistryName(exploder);
         } else {
             eventInfo.exploderUUID = UNKNOWN_CAUSE;
         }

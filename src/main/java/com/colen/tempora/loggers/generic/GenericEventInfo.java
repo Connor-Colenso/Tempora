@@ -23,7 +23,7 @@ public abstract class GenericEventInfo {
     // Only the two kinds extend this directly.
     GenericEventInfo() {}
 
-    public abstract IChatComponent localiseText(String commandIssuerUUID);
+    public abstract IChatComponent localiseText();
 
     public abstract String getLoggerName();
 

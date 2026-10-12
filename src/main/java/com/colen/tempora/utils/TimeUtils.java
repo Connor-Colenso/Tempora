@@ -1,7 +1,5 @@
 package com.colen.tempora.utils;
 
-import static com.gtnewhorizon.gtnhlib.util.numberformatting.NumberFormatUtil.formatNumber;
-
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Locale;
@@ -20,7 +18,7 @@ import com.colen.tempora.chat.ChatComponentTimeRelative;
 public class TimeUtils {
 
     /**
-     * Formats a given timestamp (in milliseconds) to a string saying how long ago it was, e.g. 1 hour ago.
+     * Formats a given timestamp (in milliseconds) to a string saying how long ago it was, e.g. 1.5h ago.
      * Hovering over it will reveal a string based on the default system timezone.
      * The format used is "yyyy-MM-dd HH:mm:ss z".
      *
@@ -88,30 +86,27 @@ public class TimeUtils {
     private static class TimeUnit {
 
         public final double inSeconds; // how many seconds this unit represents
-        public final String singularKey;
-        public final String pluralKey;
+        public final String key;
 
-        public TimeUnit(double inSeconds, String singularKey, String pluralKey) {
+        public TimeUnit(double inSeconds, String key) {
             this.inSeconds = inSeconds;
-            this.singularKey = singularKey;
-            this.pluralKey = pluralKey;
+            this.key = key;
         }
     }
 
-    // Smallest first. Same unit lengths as convertToSeconds, so "1month" typed into a command reads back as 1 month.
-    private static final TimeUnit[] TIME_UNITS = new TimeUnit[] {
-        new TimeUnit(1, "time.ago.second", "time.ago.seconds"), new TimeUnit(60, "time.ago.minute", "time.ago.minutes"),
-        new TimeUnit(3_600, "time.ago.hour", "time.ago.hours"), new TimeUnit(86_400, "time.ago.day", "time.ago.days"),
-        new TimeUnit(604_800, "time.ago.week", "time.ago.weeks"),
-        new TimeUnit(2_592_000, "time.ago.month", "time.ago.months"),
-        new TimeUnit(31_557_600, "time.ago.year", "time.ago.years"),
-        new TimeUnit(315_576_000, "time.ago.decade", "time.ago.decades") };
+    // Smallest first. Same unit lengths as convertToSeconds, so "1mo" typed into a command reads back as 1mo ago.
+    private static final TimeUnit[] TIME_UNITS = new TimeUnit[] { new TimeUnit(1, "time.ago.seconds"),
+        new TimeUnit(60, "time.ago.minutes"), new TimeUnit(3_600, "time.ago.hours"),
+        new TimeUnit(86_400, "time.ago.days"), new TimeUnit(604_800, "time.ago.weeks"),
+        new TimeUnit(2_592_000, "time.ago.months"), new TimeUnit(31_557_600, "time.ago.years") };
 
+    /** How long ago a time was, in the largest unit it has reached at least one of, e.g. 6.4 and "6.4m ago". */
     public static DurationParts relativeTimeAgoFormatter(long pastUnixEpochMillis) {
         double elapsedSeconds = (Instant.now()
             .toEpochMilli() - pastUnixEpochMillis) / 1000.0;
 
-        // Use the largest unit that the elapsed time has reached at least one of.
+        if (elapsedSeconds < 1) return new DurationParts(0, "time.ago.now");
+
         TimeUnit unit = TIME_UNITS[0];
         for (TimeUnit candidate : TIME_UNITS) {
             if (elapsedSeconds >= candidate.inSeconds) {
@@ -119,10 +114,7 @@ public class TimeUtils {
             }
         }
 
-        double value = elapsedSeconds / unit.inSeconds;
-        // A bit of a hack, but we want to know how this number will render to the user.
-        String key = (formatNumber(value).equals("1")) ? unit.singularKey : unit.pluralKey;
-        return new DurationParts(value, key);
+        return new DurationParts(elapsedSeconds / unit.inSeconds, unit.key);
     }
 
     // Conversion map for all our units.

@@ -1,10 +1,10 @@
 package com.colen.tempora.loggers.block_change;
 
-import static com.colen.tempora.utils.CommandUtils.teleportChatComponent;
+import static com.colen.tempora.utils.ChatUtils.ONE_DP;
+import static com.gtnewhorizon.gtnhlib.util.numberformatting.NumberFormatUtil.formatNumber;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 import net.minecraft.event.HoverEvent;
 import net.minecraft.util.ChatComponentText;
@@ -13,15 +13,13 @@ import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
 import com.colen.tempora.TemporaEvents;
+import com.colen.tempora.chat.EventChat;
 import com.colen.tempora.commands.TemporaCommand;
 import com.colen.tempora.commands.TraceCommand;
 import com.colen.tempora.loggers.generic.PositionalEventInfo;
 import com.colen.tempora.loggers.generic.column.Column;
-import com.colen.tempora.utils.BlockUtils;
 import com.colen.tempora.utils.CommandUtils;
-import com.colen.tempora.utils.PlayerUtils;
 import com.colen.tempora.utils.StackTraceUtils;
-import com.colen.tempora.utils.TimeUtils;
 import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 
 import cpw.mods.fml.common.network.ByteBufUtils;
@@ -75,26 +73,50 @@ public class BlockChangeEventInfo extends PositionalEventInfo {
     private String stackTrace;
 
     @Override
-    public IChatComponent localiseText(String commandIssuerUUID) {
-        // Block names
-        IChatComponent beforeBlockName = BlockUtils.getBlockNameChatComponent(beforePickBlockID, beforePickBlockMeta);
-        IChatComponent afterBlockName = BlockUtils.getBlockNameChatComponent(afterPickBlockID, afterPickBlockMeta);
+    public IChatComponent localiseText() {
+        IChatComponent when = EventChat.time(timestamp);
+        IChatComponent before = EventChat.block(beforePickBlockID, beforePickBlockMeta, beforeBlockID, beforeMetadata);
+        IChatComponent after = EventChat.block(afterPickBlockID, afterPickBlockMeta, afterBlockID, afterMetadata);
+        IChatComponent where = EventChat.where(this, CommandUtils.TeleportType.BLOCK);
+        IChatComponent trace = traceComponent();
 
-        IChatComponent coords = teleportChatComponent(x, y, z, dimensionID, CommandUtils.TeleportType.BLOCK);
-        IChatComponent timeAgo = TimeUtils.formatTime(timestamp);
+        // A negative distance means no player was in the world.
+        if (closestPlayerDistance < 0) {
+            return EventChat.line("message.block_change.no_player", when, before, after, where, trace);
+        }
 
-        // Closest player info
-        IChatComponent closestPlayerName = PlayerUtils.playerNameFromUUID(closestPlayerUUID);
-        ChatComponentNumber closestPlayerDist = new ChatComponentNumber(closestPlayerDistance);
+        // Only the nearest player, not necessarily who did it, so how near they were is on hover.
+        IChatComponent closestPlayer = EventChat.player(closestPlayerUUID);
+        closestPlayer.getChatStyle()
+            .setChatHoverEvent(
+                new HoverEvent(
+                    HoverEvent.Action.SHOW_TEXT,
+                    EventChat.grey(
+                        new ChatComponentTranslation(
+                            "message.block_change.closest_player",
+                            formatNumber(closestPlayerDistance, ONE_DP)))));
+
+        return EventChat.line("message.block_change", when, before, after, where, closestPlayer, trace);
+    }
+
+    // [Trace], showing the end of the stack trace that changed the block on hover, and all of it on click.
+    private IChatComponent traceComponent() {
+        String stackTrace = StackTraceUtils.findStackTrace(stackTraceID);
+        if (stackTrace == null) {
+            // Trace IDs are only kept until the server stops, so changes logged before a restart have none.
+            IChatComponent missing = new ChatComponentTranslation("tempora.command.stacktrace.missing");
+            missing.getChatStyle()
+                .setColor(EnumChatFormatting.DARK_GRAY);
+            return missing;
+        }
 
         // Generate full stack trace as a list of IChatComponents
-        List<IChatComponent> stackTraceComponents = generateStackTraceComponents(
-            StackTraceUtils.getStackTrace(stackTraceID));
+        List<IChatComponent> stackTraceComponents = generateStackTraceComponents(stackTrace);
 
-        // Generate a UUID for this trace and store it
-        String traceUUID = UUID.randomUUID()
-            .toString();
-        TraceCommand.storeStackTrace(traceUUID, stackTraceComponents);
+        // Stored under the trace's own ID, so showing the same trace again replaces it rather than storing another
+        // copy.
+        String traceKey = String.valueOf(stackTraceID);
+        TraceCommand.storeStackTrace(traceKey, stackTraceComponents);
 
         // Build hover text with truncation
         int maxLines = 7;
@@ -135,22 +157,9 @@ public class BlockChangeEventInfo extends PositionalEventInfo {
             .setChatClickEvent(
                 new net.minecraft.event.ClickEvent(
                     net.minecraft.event.ClickEvent.Action.RUN_COMMAND,
-                    TemporaCommand.TRACE.command(traceUUID)));
+                    TemporaCommand.TRACE.command(traceKey)));
 
-        // Main message component
-        return new ChatComponentTranslation(
-            "message.block_change",
-            coords,
-            beforeBlockName,
-            beforeBlockID,
-            beforeMetadata,
-            afterBlockName,
-            afterBlockID,
-            afterMetadata,
-            timeAgo,
-            stackTraceComponent,
-            closestPlayerName,
-            closestPlayerDist);
+        return stackTraceComponent;
     }
 
     // Generates a full stack trace as a list of IChatComponents

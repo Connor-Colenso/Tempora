@@ -2,13 +2,15 @@ package com.colen.tempora.loggers.weather;
 
 import static com.colen.tempora.utils.GenericUtils.getDimensionName;
 
+import net.minecraft.event.HoverEvent;
 import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
 import com.colen.tempora.TemporaEvents;
+import com.colen.tempora.chat.EventChat;
 import com.colen.tempora.loggers.generic.GlobalEventInfo;
 import com.colen.tempora.loggers.generic.column.Column;
-import com.colen.tempora.utils.TimeUtils;
 
 public class WeatherEventInfo extends GlobalEventInfo {
 
@@ -24,14 +26,20 @@ public class WeatherEventInfo extends GlobalEventInfo {
     public String previousWeather;
 
     @Override
-    public IChatComponent localiseText(String commandIssuerUUID) {
-        return new ChatComponentTranslation(
+    public IChatComponent localiseText() {
+        IChatComponent dimension = EventChat.text(getDimensionName(dimensionID), EnumChatFormatting.WHITE);
+        dimension.getChatStyle()
+            .setChatHoverEvent(
+                new HoverEvent(
+                    HoverEvent.Action.SHOW_TEXT,
+                    EventChat.grey(new ChatComponentTranslation("tempora.chat.dimension_id", dimensionID))));
+
+        return EventChat.line(
             "message.weather",
-            getDimensionName(dimensionID),
-            dimensionID,
+            EventChat.time(timestamp),
+            dimension,
             Weather.chatComponent(previousWeather),
-            Weather.chatComponent(weather),
-            TimeUtils.formatTime(timestamp));
+            Weather.chatComponent(weather));
     }
 
     @Override

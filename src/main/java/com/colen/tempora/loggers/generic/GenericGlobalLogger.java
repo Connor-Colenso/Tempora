@@ -5,6 +5,8 @@ import java.util.List;
 
 import net.minecraft.command.ICommandSender;
 
+import com.colen.tempora.commands.TemporaCommand;
+
 /**
  * A logger for events that belong to the whole server rather than a place, such as the weather changing or the
  * server's TPS. Its events have no position, so region rules never apply to them and they are never drawn in the
@@ -48,7 +50,7 @@ public abstract class GenericGlobalLogger<EventInfo extends GlobalEventInfo> ext
             return 0;
         }
 
-        sendEventsInChat(sender, events);
+        sendEventsInChat(sender, events, limit, TemporaCommand.GLOBAL.command("l:" + getShortName()));
         return events.size();
     }
 }

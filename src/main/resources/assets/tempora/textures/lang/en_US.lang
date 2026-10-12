@@ -1,21 +1,34 @@
-# === Messages ===
-message.block_break=%s broke %s (%d:%d) at %s (%s).
-message.block_place=%s placed %s (%d:%d) at %s (%s).
-message.command_issued=%s issued command /%s %s at %s (%s).
-message.entity_death=%s with %s was killed by %s at %s (%s).
-message.entity_position=%s with %s was located at %s (%s).
-message.entity_spawn=%s with %s spawned at %s (%s).
-message.explosion=Explosion caused by %s with strength %s near player %s (%s meters away) at %s (%s).
-message.item_use=%s used %s (%d:%d) at %s (%s).
-message.player_movement=%s was at %s (%s).
-message.inventory_interaction_added=%s added %dx%s (%d:%d) to %s at %s (%s).
-message.inventory_interaction_removed=%s removed %dx%s (%d:%d) from %s at %s (%s).
-message.tempora_wand.checking_pos=Checking %s in %s (ID %s).
+# === Event lines ===
+# Every line reads: when, who, did what, where. Colours are set in code, the words here show grey.
+message.block_break=%s %s broke %s at %s
+message.block_place=%s %s placed %s at %s
+message.block_change=%s %s became %s at %s near %s %s
+message.block_change.no_player=%s %s became %s at %s %s
+message.block_change.closest_player=Closest player was %s blocks away.
+message.command_issued=%s %s ran %s at %s
+message.command_issued.hover=Click to put this command in your chat box.
+message.entity_death.killed=%s %s killed %s at %s
+message.entity_death.died=%s %s died (%s) at %s
+message.entity_death.unknown=%s %s died at %s
+message.entity_position=%s %s was at %s
+message.entity_spawn=%s %s spawned at %s
+message.explosion=%s Explosion by %s at %s, power %s
+message.explosion.unknown=%s Explosion at %s, power %s
+message.explosion.destroyed=Destroyed %s blocks.
+message.explosion.closest_player=Closest player was %s, %s blocks away.
+message.item_use=%s %s used %s at %s
+message.item_use.empty_hand=%s %s clicked with an empty hand at %s
+message.player_movement=%s %s was at %s
+message.inventory.added=%s %s put %s %s in %s at %s
+message.inventory.removed=%s %s took %s %s from %s at %s
+message.inventory.invalid=Unknown inventory interaction %s in the inventory database. Please report this.
+message.weather=%s %s went from %s to %s
+message.tps=%s TPS %s, mean tick %sms, worst %sms
+message.tempora_wand.checking_pos=Checking %s in %s
 message.tempora_wand.nothing_found=Nothing has been logged at this block.
-message.weather=The weather in %s (ID %s) changed from %s to %s (%s).
-message.tps=TPS was %s, with a mean tick of %s ms and a slowest tick of %s ms (%s).
-message.block_change=The block at %s was set from %s (%d:%d) to %s (%d:%d) (%s) with %s. Closest player was %s (%s blocks away).
-message.inventorylogger.invalid_interaction=Error: invalid interactionType %s in InventoryLogger DB. Please report this.
+tempora.chat.id=ID %s:%s
+tempora.chat.dimension_id=Dimension ID %s
+
 # === Commands ===
 tempora.command.usage=Usage: %s
 tempora.command.usage.hint=See %s for details.
@@ -35,9 +48,11 @@ tempora.command.lookup.description=Shows the latest events around you and draws 
 tempora.command.lookup.arg0=How many blocks around you to search, default 10.
 tempora.command.lookup.arg1=How far back to look, e.g. 30m, 6h, 1d, 2w, default 3d.
 tempora.command.lookup.arg2=Which loggers to search, comma separated, e.g. break,place. Default is every logger.
-tempora.command.lookup.showing_results=Found %s results for %s.
-tempora.command.lookup.showing_result=Found %s result for %s.
-tempora.command.lookup.too_many_pending=Warning: There are %s events waiting to be processed. This may affect the accuracy of the results, as the server may be under heavy load.
+tempora.command.lookup.header=» %s %s
+tempora.command.lookup.header.count=(%s)
+tempora.command.lookup.header.latest=(latest %s)
+tempora.command.lookup.header.hover=Click to search only %s.
+tempora.command.lookup.too_many_pending=%s events are still waiting to be saved, so the newest may be missing.
 tempora.command.lookup.query_failed=Database query failed on %s: %s
 tempora.command.lookup.nothing_found=Nothing was logged within %s blocks of you in the last %s.
 tempora.command.lookup.global_logger=%s isn't tied to a place, so it can't be looked up around you. Use %s instead.
@@ -65,12 +80,11 @@ tempora.command.sql.select_only=Only SELECT queries are allowed.
 tempora.command.sql.missing_columns=Query missing required columns: %s
 tempora.command.sql.missing_columns.advice=It is highly recommended to use SELECT * instead of specifying columns.
 tempora.command.sql.no_results_in=No results found in %s.
-tempora.command.sql.query_display=Query: %s.
 tempora.command.sql.error=SQL Error: %s.
 tempora.command.sql.generic_unknown_error=Generic unknown error (Please report).
 tempora.command.sql.query_quantity=Found %s matching results.
 tempora.command.sql.query_quantity_if_max=Showing the first %s results (server limit: %s). Additional matches may be hidden.
-tempora.command.sql.invalid_table=Couldn't find table. Choices are, %s.
+tempora.command.sql.invalid_table=The query must name a logger table: %s.
 
 tempora.command.wand.description=Gives you a Tempora wand. Left click a block to see its history, right click a face to see the history of the space in front of it.
 tempora.command.wand.given=You have been given a Tempora wand. Left click a block to see its history, right click a face to see the space in front of it.
@@ -79,14 +93,17 @@ tempora.command.tp.description=Teleports you to a position, in any dimension. Te
 tempora.command.tp.arg0=Position to teleport to.
 tempora.command.tp.arg1=Optional. Dimension to teleport to, defaults to your current one.
 tempora.command.teleport.display=[%s %s %s]
-tempora.command.teleport.hover=Click to teleport [%s, ID %s]
+tempora.command.teleport.hover=Click to teleport.
+tempora.command.teleport.dimension=%s (ID %s)
+tempora.command.teleport.exact=Exactly %s
 
-tempora.command.trace.description=Prints a stored stack trace. It runs when you click [STACK TRACE] on a block change, it isn't meant to be typed.
+tempora.command.trace.description=Prints a stored stack trace. It runs when you click [Trace] on a block change, it isn't meant to be typed.
 tempora.command.trace.arg0=The key of the stored stack trace.
 tempora.command.trace.not_found=No stack trace was found for key: %s.
-tempora.command.stacktrace.brackets=[STACK TRACE]
-tempora.command.full.stacktrace=FULL STACK TRACE
-tempora.command.click.reveal.stacktrace=Click to reveal full stack trace (%s deep).
+tempora.command.stacktrace.brackets=[Trace]
+tempora.command.stacktrace.missing=[No trace]
+tempora.command.full.stacktrace=Full stack trace
+tempora.command.click.reveal.stacktrace=Click to see all %s lines.
 
 tempora.command.explode.description=Creates an explosion at the block you are looking at, for testing that explosions are logged. Only exists in a development environment.
 tempora.command.explode.arg0=Strength of the explosion, TNT is 4.
@@ -155,25 +172,15 @@ tempora.weather.thunder=thunderstorm
 # This does not exist in vanilla MC somehow?
 tile.air.name=Air
 
-# === Plural time frames ===
-time.ago.decades=%s decades ago
-time.ago.years=%s years ago
-time.ago.months=%s months ago
-time.ago.weeks=%s weeks ago
-time.ago.days=%s days ago
-time.ago.hours=%s hours ago
-time.ago.minutes=%s minutes ago
-time.ago.seconds=%s seconds ago
-
-# === Singular time frames ===
-time.ago.decade=%s decade ago
-time.ago.year=%s year ago
-time.ago.month=%s month ago
-time.ago.week=%s week ago
-time.ago.day=%s day ago
-time.ago.hour=%s hour ago
-time.ago.minute=%s minute ago
-time.ago.second=%s second ago
+# === Time ago ===
+time.ago.now=just now
+time.ago.seconds=%ss ago
+time.ago.minutes=%sm ago
+time.ago.hours=%sh ago
+time.ago.days=%sd ago
+time.ago.weeks=%sw ago
+time.ago.months=%smo ago
+time.ago.years=%sy ago
 
 # === UUID ===
 tempora.uuid.display=UUID: %s

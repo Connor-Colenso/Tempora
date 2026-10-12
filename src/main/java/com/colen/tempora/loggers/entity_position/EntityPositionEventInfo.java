@@ -1,20 +1,12 @@
 package com.colen.tempora.loggers.entity_position;
 
-import static com.colen.tempora.utils.CommandUtils.teleportChatComponent;
-
-import net.minecraft.event.ClickEvent;
-import net.minecraft.event.HoverEvent;
-import net.minecraft.util.ChatComponentText;
-import net.minecraft.util.ChatComponentTranslation;
-import net.minecraft.util.ChatStyle;
-import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
 import com.colen.tempora.TemporaEvents;
+import com.colen.tempora.chat.EventChat;
 import com.colen.tempora.loggers.generic.PositionalEventInfo;
 import com.colen.tempora.loggers.generic.column.Column;
 import com.colen.tempora.utils.CommandUtils;
-import com.colen.tempora.utils.TimeUtils;
 
 import cpw.mods.fml.common.network.ByteBufUtils;
 import io.netty.buffer.ByteBuf;
@@ -52,25 +44,12 @@ public class EntityPositionEventInfo extends PositionalEventInfo {
     }
 
     @Override
-    public IChatComponent localiseText(String commandIssuerUUID) {
-        IChatComponent coords = teleportChatComponent(x, y, z, dimensionID, CommandUtils.TeleportType.EXACT);
-        IChatComponent timeAgo = TimeUtils.formatTime(timestamp);
-
-        IChatComponent clickToCopy = new ChatComponentTranslation("tempora.uuid.click_to_copy");
-        clickToCopy.getChatStyle()
-            .setColor(EnumChatFormatting.GRAY);
-
-        IChatComponent uuidChatComponent = new ChatComponentText("[UUID]").setChatStyle(
-            new ChatStyle().setColor(EnumChatFormatting.AQUA)
-                .setChatClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, entityUUID))
-                .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, clickToCopy)));
-
-        return new ChatComponentTranslation(
+    public IChatComponent localiseText() {
+        return EventChat.line(
             "message.entity_position",
-            new ChatComponentTranslation("entity." + entityName + ".name"),
-            uuidChatComponent,
-            coords,
-            timeAgo);
+            EventChat.time(timestamp),
+            EventChat.entity(entityName, entityUUID),
+            EventChat.where(this, CommandUtils.TeleportType.EXACT));
     }
 
     @Override

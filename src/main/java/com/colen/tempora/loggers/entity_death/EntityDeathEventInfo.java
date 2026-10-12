@@ -1,17 +1,17 @@
 package com.colen.tempora.loggers.entity_death;
 
-import static com.colen.tempora.utils.CommandUtils.teleportChatComponent;
-import static com.colen.tempora.utils.PlayerUtils.entityUUIDChatComponent;
+import java.util.Locale;
 
-import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
+import net.minecraft.util.StatCollector;
 
 import com.colen.tempora.TemporaEvents;
+import com.colen.tempora.chat.EventChat;
 import com.colen.tempora.loggers.generic.PositionalEventInfo;
 import com.colen.tempora.loggers.generic.column.Column;
 import com.colen.tempora.utils.CommandUtils;
 import com.colen.tempora.utils.PlayerUtils;
-import com.colen.tempora.utils.TimeUtils;
 
 import cpw.mods.fml.common.network.ByteBufUtils;
 import io.netty.buffer.ByteBuf;
@@ -54,19 +54,40 @@ public class EntityDeathEventInfo extends PositionalEventInfo {
     }
 
     @Override
-    public IChatComponent localiseText(String commandIssuerUUID) {
-        IChatComponent coords = teleportChatComponent(x, y, z, dimensionID, CommandUtils.TeleportType.EXACT);
-        IChatComponent timeAgo = TimeUtils.formatTime(timestamp);
+    public IChatComponent localiseText() {
+        IChatComponent when = EventChat.time(timestamp);
+        IChatComponent victim = EventChat.entity(nameOfDeadEntity, entityUUID);
+        IChatComponent where = EventChat.where(this, CommandUtils.TeleportType.EXACT);
 
-        IChatComponent uuidChatComponent = entityUUIDChatComponent(entityUUID);
+        // Players are stored by UUID. Anything else is in brackets: a mob by its EntityList name, e.g. [Zombie] (older
+        // rows have its class, e.g. [EntityZombie]), or a damage type such as [fall] or [inFire].
+        if (PlayerUtils.isUUID(killedBy)) {
+            return EventChat.line("message.entity_death.killed", when, EventChat.player(killedBy), victim, where);
+        }
 
-        return new ChatComponentTranslation(
-            "message.entity_death",
-            new ChatComponentTranslation("entity." + nameOfDeadEntity + ".name"),
-            uuidChatComponent,
-            PlayerUtils.playerNameFromUUID(killedBy), // Maybe a UUID
-            coords,
-            timeAgo);
+        if (killedBy != null && killedBy.length() > 2 && killedBy.startsWith("[") && killedBy.endsWith("]")) {
+            String cause = killedBy.substring(1, killedBy.length() - 1);
+            if (isEntity(cause)) {
+                return EventChat.line("message.entity_death.killed", when, EventChat.entityName(cause), victim, where);
+            }
+
+            // inFire -> in fire.
+            String damage = cause.replaceAll("([a-z])([A-Z])", "$1 $2")
+                .toLowerCase(Locale.ROOT);
+            return EventChat.line(
+                "message.entity_death.died",
+                when,
+                victim,
+                EventChat.text(damage, EnumChatFormatting.WHITE),
+                where);
+        }
+
+        return EventChat.line("message.entity_death.unknown", when, victim, where);
+    }
+
+    // Vanilla's damage types start lower case and have no translated entity name, mobs do one or the other.
+    private static boolean isEntity(String cause) {
+        return Character.isUpperCase(cause.charAt(0)) || StatCollector.canTranslate("entity." + cause + ".name");
     }
 
     @Override

@@ -4,14 +4,13 @@ import static com.colen.tempora.utils.ChatUtils.ONE_DP;
 import static com.gtnewhorizon.gtnhlib.util.numberformatting.NumberFormatUtil.formatNumber;
 
 import net.minecraft.util.ChatComponentText;
-import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
 import com.colen.tempora.TemporaEvents;
+import com.colen.tempora.chat.EventChat;
 import com.colen.tempora.loggers.generic.GlobalEventInfo;
 import com.colen.tempora.loggers.generic.column.Column;
-import com.colen.tempora.utils.TimeUtils;
 
 /** The server's tick rate over one logging interval, ending at the event's timestamp. */
 public class TPSEventInfo extends GlobalEventInfo {
@@ -28,18 +27,18 @@ public class TPSEventInfo extends GlobalEventInfo {
     public double maxTickMs;
 
     @Override
-    public IChatComponent localiseText(String commandIssuerUUID) {
+    public IChatComponent localiseText() {
         IChatComponent tpsText = new ChatComponentText(formatNumber(tps, ONE_DP));
         tpsText.getChatStyle()
             .setColor(
                 tps >= 18 ? EnumChatFormatting.GREEN : tps >= 15 ? EnumChatFormatting.YELLOW : EnumChatFormatting.RED);
 
-        return new ChatComponentTranslation(
+        return EventChat.line(
             "message.tps",
+            EventChat.time(timestamp),
             tpsText,
-            formatNumber(meanTickMs, ONE_DP),
-            formatNumber(maxTickMs, ONE_DP),
-            TimeUtils.formatTime(timestamp));
+            EventChat.text(formatNumber(meanTickMs, ONE_DP), EnumChatFormatting.WHITE),
+            EventChat.text(formatNumber(maxTickMs, ONE_DP), EnumChatFormatting.WHITE));
     }
 
     @Override

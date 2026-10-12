@@ -3,6 +3,8 @@ package com.colen.tempora.utils;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.annotation.Nullable;
+
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 
@@ -45,13 +47,10 @@ public class StackTraceUtils {
         return id;
     }
 
-    public static String getStackTrace(long stackTraceID) {
-        String stackTrace = stackTraceMap.inverse()
+    /** The stack trace with this ID, or null if it is not known, e.g. it was logged before the server restarted. */
+    public static @Nullable String findStackTrace(long stackTraceID) {
+        return stackTraceMap.inverse()
             .get(stackTraceID);
-        if (stackTrace == null) {
-            throw new IllegalStateException("Stack trace id " + stackTraceID + " not found, this should not happen.");
-        }
-        return stackTrace;
     }
 
     // public static void clear() {

@@ -1,6 +1,7 @@
 package com.colen.tempora.utils;
 
 import java.util.List;
+import java.util.Locale;
 
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
@@ -10,12 +11,12 @@ import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
+import net.minecraft.util.MathHelper;
 
 import org.jetbrains.annotations.NotNull;
 
 import com.colen.tempora.TemporaLoggerManager;
 import com.colen.tempora.commands.TemporaCommand;
-import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 
 public class CommandUtils {
 
@@ -58,15 +59,31 @@ public class CommandUtils {
     public static @NotNull IChatComponent teleportChatComponent(double x, double y, double z, final int dimID,
         final TeleportType teleportType) {
 
-        // Translation‑driven teleport options.
+        // Shown as the block it is in, like the F3 screen, as that is all a lookup needs and it keeps lines short.
         IChatComponent display = new ChatComponentTranslation(
             "tempora.command.teleport.display",
-            new ChatComponentNumber(x),
-            new ChatComponentNumber(y),
-            new ChatComponentNumber(z));
+            MathHelper.floor_double(x),
+            MathHelper.floor_double(y),
+            MathHelper.floor_double(z));
 
-        // Offset the teleport to put the player in the middle of the block, but show the
-        // correct coordinate always (above logic).
+        IChatComponent hoverText = new ChatComponentTranslation("tempora.command.teleport.hover");
+        hoverText.appendText("\n")
+            .appendSibling(
+                new ChatComponentTranslation(
+                    "tempora.command.teleport.dimension",
+                    GenericUtils.getDimensionName(dimID),
+                    dimID));
+        if (teleportType == TeleportType.EXACT) {
+            hoverText.appendText("\n")
+                .appendSibling(
+                    new ChatComponentTranslation(
+                        "tempora.command.teleport.exact",
+                        String.format(Locale.ROOT, "%.2f, %.2f, %.2f", x, y, z)));
+        }
+        hoverText.getChatStyle()
+            .setColor(EnumChatFormatting.GRAY);
+
+        // Offset the teleport to put the player in the middle of the block.
         if (teleportType == TeleportType.BLOCK) {
             x += 0.5;
             y += 0.5;
@@ -74,13 +91,6 @@ public class CommandUtils {
         }
 
         String cmd = TemporaCommand.TELEPORT.command(x, y, z, dimID);
-
-        IChatComponent hoverText = new ChatComponentTranslation(
-            "tempora.command.teleport.hover",
-            GenericUtils.getDimensionName(dimID),
-            dimID);
-        hoverText.getChatStyle()
-            .setColor(EnumChatFormatting.GRAY);
 
         display.getChatStyle()
             .setColor(EnumChatFormatting.AQUA)

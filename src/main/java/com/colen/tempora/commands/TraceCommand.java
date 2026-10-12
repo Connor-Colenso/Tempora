@@ -13,7 +13,7 @@ import com.colen.tempora.commands.command_base.TemporaSubcommand;
 
 /**
  * /tempora trace <key>
- * Prints a stack trace stored when a block change event was shown. Hidden, as it is run by clicking [STACK TRACE] in
+ * Prints a stack trace stored when a block change event was shown. Hidden, as it is run by clicking [Trace] in
  * chat.
  */
 public class TraceCommand extends TemporaSubcommand {

@@ -1,21 +1,25 @@
 package com.colen.tempora.loggers.command;
 
-import static com.colen.tempora.utils.CommandUtils.teleportChatComponent;
-
+import net.minecraft.event.ClickEvent;
+import net.minecraft.event.HoverEvent;
+import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
 import com.colen.tempora.TemporaEvents;
+import com.colen.tempora.chat.EventChat;
 import com.colen.tempora.loggers.generic.PositionalEventInfo;
 import com.colen.tempora.loggers.generic.column.Column;
 import com.colen.tempora.utils.CommandUtils;
-import com.colen.tempora.utils.PlayerUtils;
-import com.colen.tempora.utils.TimeUtils;
 
 import cpw.mods.fml.common.network.ByteBufUtils;
 import io.netty.buffer.ByteBuf;
 
 public class CommandEventInfo extends PositionalEventInfo {
+
+    // Commands longer than this are cut short in chat.
+    private static final int MAX_SHOWN_LENGTH = 40;
 
     @Column(constraints = "NOT NULL")
     public String playerUUID;
@@ -43,20 +47,26 @@ public class CommandEventInfo extends PositionalEventInfo {
     }
 
     @Override
-    public IChatComponent localiseText(String commandIssuerUUID) {
-        // Relative time (as a chat component with hover info)
-        IChatComponent timeAgo = TimeUtils.formatTime(timestamp);
+    public IChatComponent localiseText() {
+        String command = "/" + commandName + (arguments.isEmpty() ? "" : " " + arguments);
 
-        // Clickable coordinates with limited float precision
-        IChatComponent coords = teleportChatComponent(x, y, z, dimensionID, CommandUtils.TeleportType.EXACT);
+        // Long commands are cut short so the line fits, the whole of it is on hover. Clicking puts it in the chat box.
+        boolean cut = command.length() > MAX_SHOWN_LENGTH;
+        IChatComponent shown = EventChat
+            .text(cut ? command.substring(0, MAX_SHOWN_LENGTH - 3) + "..." : command, EnumChatFormatting.WHITE);
 
-        return new ChatComponentTranslation(
+        IChatComponent hover = new ChatComponentText(cut ? command + "\n" : "");
+        hover.appendSibling(new ChatComponentTranslation("message.command_issued.hover"));
+        shown.getChatStyle()
+            .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, EventChat.grey(hover)))
+            .setChatClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, command));
+
+        return EventChat.line(
             "message.command_issued",
-            PlayerUtils.playerNameFromUUID(playerUUID),
-            commandName,
-            arguments,
-            coords,
-            timeAgo);
+            EventChat.time(timestamp),
+            EventChat.player(playerUUID),
+            shown,
+            EventChat.where(this, CommandUtils.TeleportType.EXACT));
     }
 
     @Override

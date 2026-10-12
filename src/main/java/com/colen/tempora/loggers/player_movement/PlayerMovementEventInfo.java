@@ -1,16 +1,12 @@
 package com.colen.tempora.loggers.player_movement;
 
-import static com.colen.tempora.utils.CommandUtils.teleportChatComponent;
-
-import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 
 import com.colen.tempora.TemporaEvents;
+import com.colen.tempora.chat.EventChat;
 import com.colen.tempora.loggers.generic.PositionalEventInfo;
 import com.colen.tempora.loggers.generic.column.Column;
 import com.colen.tempora.utils.CommandUtils;
-import com.colen.tempora.utils.PlayerUtils;
-import com.colen.tempora.utils.TimeUtils;
 
 import cpw.mods.fml.common.network.ByteBufUtils;
 import io.netty.buffer.ByteBuf;
@@ -38,15 +34,12 @@ public class PlayerMovementEventInfo extends PositionalEventInfo {
     }
 
     @Override
-    public IChatComponent localiseText(String commandIssuerUUID) {
-        IChatComponent formattedTime = TimeUtils.formatTime(timestamp);
-        IChatComponent coords = teleportChatComponent(x, y, z, dimensionID, CommandUtils.TeleportType.EXACT);
-
-        return new ChatComponentTranslation(
+    public IChatComponent localiseText() {
+        return EventChat.line(
             "message.player_movement",
-            PlayerUtils.playerNameFromUUID(playerUUID),
-            coords,
-            formattedTime);
+            EventChat.time(timestamp),
+            EventChat.player(playerUUID),
+            EventChat.where(this, CommandUtils.TeleportType.EXACT));
     }
 
 }

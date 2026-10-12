@@ -67,7 +67,7 @@ public class SqlCommand extends TemporaSubcommand {
         if (targetLogger == null) {
             ChatComponentTranslation msg = new ChatComponentTranslation(
                 "tempora.command.sql.invalid_table",
-                TemporaLoggerManager.getAllLoggerNames());
+                String.join(", ", TemporaLoggerManager.getAllLoggerNames()));
             msg.getChatStyle()
                 .setColor(EnumChatFormatting.RED);
             sender.addChatMessage(msg);
@@ -110,22 +110,13 @@ public class SqlCommand extends TemporaSubcommand {
 
             // We do this first, to not bury the info below, in case of a long response.
             for (GenericEventInfo eventData : output) {
-                sender.addChatMessage(
-                    eventData.localiseText(
-                        entityPlayerMP.getPersistentID()
-                            .toString()));
+                sender.addChatMessage(eventData.localiseText());
 
                 // Render info. Global events have no position to draw.
                 if (eventData instanceof PositionalEventInfo positionalEvent) {
                     NETWORK.sendTo(new RenderEventPacket(positionalEvent), entityPlayerMP);
                 }
             }
-
-            ChatComponentTranslation queryFeedbackMsg = new ChatComponentTranslation(
-                "tempora.command.sql.query_display",
-                rawQuery);
-            queryFeedbackMsg.getChatStyle()
-                .setColor(EnumChatFormatting.GRAY);
 
             if (output.isEmpty()) {
                 ChatComponentTranslation noResultsMsg = new ChatComponentTranslation(

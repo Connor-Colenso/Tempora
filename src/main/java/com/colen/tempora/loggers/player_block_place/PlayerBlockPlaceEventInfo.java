@@ -1,17 +1,12 @@
 package com.colen.tempora.loggers.player_block_place;
 
-import static com.colen.tempora.utils.CommandUtils.teleportChatComponent;
-
-import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 
 import com.colen.tempora.TemporaEvents;
+import com.colen.tempora.chat.EventChat;
 import com.colen.tempora.loggers.generic.PositionalEventInfo;
 import com.colen.tempora.loggers.generic.column.Column;
-import com.colen.tempora.utils.BlockUtils;
 import com.colen.tempora.utils.CommandUtils;
-import com.colen.tempora.utils.PlayerUtils;
-import com.colen.tempora.utils.TimeUtils;
 
 import cpw.mods.fml.common.network.ByteBufUtils;
 import io.netty.buffer.ByteBuf;
@@ -59,25 +54,13 @@ public class PlayerBlockPlaceEventInfo extends PositionalEventInfo {
     }
 
     @Override
-    public IChatComponent localiseText(String commandIssuerUUID) {
-        // Use normalized pickBlockID and pickBlockMeta for the translation key
-        IChatComponent block = BlockUtils.getBlockNameChatComponent(pickBlockID, pickBlockMeta);
-
-        // Clickable coords component
-        IChatComponent coords = teleportChatComponent(x, y, z, dimensionID, CommandUtils.TeleportType.BLOCK);
-
-        // Relative time component
-        IChatComponent timeAgo = TimeUtils.formatTime(timestamp);
-
-        // Create translation with playerName, block, raw blockID:metadata, coords, and timeAgo
-        return new ChatComponentTranslation(
+    public IChatComponent localiseText() {
+        return EventChat.line(
             "message.block_place",
-            PlayerUtils.playerNameFromUUID(playerUUID),
-            block,
-            blockID,
-            metadata,
-            coords,
-            timeAgo);
+            EventChat.time(timestamp),
+            EventChat.player(playerUUID),
+            EventChat.block(pickBlockID, pickBlockMeta, blockID, metadata),
+            EventChat.where(this, CommandUtils.TeleportType.BLOCK));
     }
 
     @Override

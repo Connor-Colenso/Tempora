@@ -74,9 +74,8 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathEventI
                 eventInfo.killedBy = player.getUniqueID()
                     .toString();
             } else {
-                // For non-player entities
-                eventInfo.killedBy = "[" + trueSource.getClass()
-                    .getSimpleName() + "]";
+                // Other entities by their EntityList name, e.g. [Zombie], which chat shows translated.
+                eventInfo.killedBy = "[" + entityRegistryName(trueSource) + "]";
             }
         } else if (source != null) {
             eventInfo.killedBy = "[" + source.damageType + "]";
