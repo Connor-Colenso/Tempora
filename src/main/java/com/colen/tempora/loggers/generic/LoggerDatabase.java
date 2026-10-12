@@ -22,20 +22,24 @@ import org.sqlite.SQLiteConfig;
 
 import com.colen.tempora.Tempora;
 import com.colen.tempora.loggers.generic.column.ColumnDef;
-import com.colen.tempora.loggers.generic.enums.LogWriteSafety;
 import com.colen.tempora.utils.TimeUtils;
 
 public class LoggerDatabase {
 
     private static final String OLDEST_DATA_DEFAULT = "4months";
+    private static final int CACHE_SIZE_MEGABYTES_DEFAULT = 16;
 
-    private LogWriteSafety durabilityMode;
+    // Old events are deleted this many at a time, so pruning never holds up writing new events for long.
+    private static final int PRUNE_BATCH_SIZE = 5_000;
+
     private String oldestDataCutoff;
+    private long oldestDataMilliseconds; // Parsed from oldestDataCutoff when the database opens.
+    private int cacheSizeMegabytes;
 
     private Connection dbConnection;
     private final GenericLogger<?> logger;
     private PreparedStatement addDataInjectionStatement; // Pre made injection statement
-    private List<ColumnDef> columnDefs; // Instantiate upon first database insertion.
+    private List<ColumnDef> insertedColumns; // Instantiate upon first database insertion.
 
     public LoggerDatabase(GenericLogger<?> logger) {
         this.logger = logger;
@@ -45,13 +49,9 @@ public class LoggerDatabase {
         String loggerName = logger.getLoggerName();
         Tempora.LOG.info("Initialising {} database.", loggerName);
 
+        oldestDataMilliseconds = parseOldestDataCutoff();
+
         initDbConnection();
-
-        if (isHighRiskModeEnabled()) {
-            Tempora.LOG.info("The database for {} has high risk mode enabled.", loggerName);
-            enableHighRiskFastMode();
-        }
-
         dbConnection.setAutoCommit(false);
 
         initTable();
@@ -59,18 +59,42 @@ public class LoggerDatabase {
         // Cheap when they already exist, and adds any index a newer version of the logger needs.
         createIndexes();
 
-        removeOldDatabaseData();
-        performWALCheckpoint();
+        dbConnection.commit();
     }
 
     private void initDbConnection() throws SQLException {
         String dbUrl = jdbcUrl(logger.getLoggerName() + ".db");
-        dbConnection = DriverManager.getConnection(dbUrl);
+
+        SQLiteConfig config = new SQLiteConfig();
+        // WAL lets lookups read while events are being written, and with synchronous=NORMAL a commit doesn't wait for
+        // the disk. A server crash loses nothing that was committed, a power cut at most the last few commits, and
+        // neither can corrupt the database.
+        config.setJournalMode(SQLiteConfig.JournalMode.WAL);
+        config.setSynchronous(SQLiteConfig.SynchronousMode.NORMAL);
+        // Negative means KiB rather than pages.
+        config.setCacheSize(-cacheSizeMegabytes * 1024);
+
+        dbConnection = DriverManager.getConnection(dbUrl, config.toProperties());
+    }
+
+    private long parseOldestDataCutoff() {
+        try {
+            return TimeUtils.convertToSeconds(oldestDataCutoff) * 1000;
+        } catch (RuntimeException e) {
+            throw new IllegalStateException(
+                "Invalid oldestDataCutoff \"" + oldestDataCutoff
+                    + "\" for "
+                    + logger.getLoggerName()
+                    + " (check Tempora config).",
+                e);
+        }
     }
 
     public void closeDbConnection() throws SQLException {
         dbConnection.close();
         dbConnection = null;
+        // Belonged to the closed connection, so it is made again for the next world opened.
+        addDataInjectionStatement = null;
     }
 
     private void initTable() throws SQLException {
@@ -173,45 +197,33 @@ public class LoggerDatabase {
         }
     }
 
-    private void removeOldDatabaseData() {
-        final String loggerName = logger.getLoggerName();
-        Tempora.LOG.info("Removing data older than {} from {}.", oldestDataCutoff, loggerName);
+    /**
+     * Deletes up to {@link #PRUNE_BATCH_SIZE} of the oldest events older than oldestDataCutoff, and returns whether
+     * there may be more to delete. Run by the logger's worker thread between writes, so it never holds up the server.
+     * The freed space is reused for new events, so the file stops growing once it holds oldestDataCutoff's worth.
+     */
+    boolean pruneOldData() {
+        String tableName = logger.getLoggerName();
+        String sql = "DELETE FROM " + tableName
+            + " WHERE eventID IN (SELECT eventID FROM "
+            + tableName
+            + " WHERE timestamp < ? ORDER BY timestamp LIMIT ?)";
 
-        try {
-            // Prepare SQL statement with the safe table name
-            String sql = "DELETE FROM " + loggerName + " WHERE timestamp < ?";
+        try (PreparedStatement ps = dbConnection.prepareStatement(sql)) {
+            ps.setLong(1, System.currentTimeMillis() - oldestDataMilliseconds);
+            ps.setInt(2, PRUNE_BATCH_SIZE);
 
-            try (PreparedStatement p_stmt = dbConnection.prepareStatement(sql)) {
-                // Set the parameter for the PreparedStatement
-                long time = System.currentTimeMillis() - TimeUtils.convertToSeconds(oldestDataCutoff) * 1000;
-                p_stmt.setLong(1, time);
-
-                // Execute the update
-                p_stmt.executeUpdate();
-            } catch (SQLException e) {
-                LOG.error("SQL error, could not erase old data.", e);
-                throw new RuntimeException(e);
-            }
-
-        } catch (Exception e) {
-            LOG.error(
-                "An error occurred while erasing old data in table '{}' — oldestDataCutoff={} (check Tempora config).",
-                logger.getLoggerName(),
-                oldestDataCutoff,
-                e);
-
-            throw new RuntimeException("Database cleanup failed: " + logger.getLoggerName(), e);
-        }
-    }
-
-    private void enableHighRiskFastMode() {
-        try (Statement st = getDBConn().createStatement()) {
-            st.execute("PRAGMA synchronous=OFF;");
-            st.execute("PRAGMA wal_autocheckpoint=10000;");
-            st.execute("PRAGMA temp_store = MEMORY;"); // todo review
+            int deleted = ps.executeUpdate();
+            dbConnection.commit();
+            return deleted == PRUNE_BATCH_SIZE;
         } catch (SQLException e) {
-            LOG.error("Unable to enable high-risk mode for {}.", logger.getLoggerName(), e);
-            throw new RuntimeException("Failed to enable high-risk mode for logger " + logger.getLoggerName(), e);
+            LOG.error("Could not delete old data from {}, will try again later.", tableName, e);
+            try {
+                dbConnection.rollback();
+            } catch (SQLException rollbackFailure) {
+                LOG.error("Failed to roll back {} after a failed prune.", tableName, rollbackFailure);
+            }
+            return false;
         }
     }
 
@@ -241,13 +253,13 @@ public class LoggerDatabase {
         }
     }
 
-    public GenericEventInfo queryEventByEventID(String eventID) {
+    public GenericEventInfo queryEventByEventID(long eventID) {
 
         String sqlQuery = "SELECT * FROM " + logger.getLoggerName() + " WHERE eventID == ? LIMIT 1";
 
         try (Connection conn = getReadOnlyConnection(); PreparedStatement ps = conn.prepareStatement(sqlQuery)) {
 
-            ps.setString(1, eventID);
+            ps.setLong(1, eventID);
 
             ResultSet rs = ps.executeQuery();
             List<? extends GenericEventInfo> packets = logger.generateQueryResults(rs);
@@ -286,65 +298,31 @@ public class LoggerDatabase {
         }
     }
 
-    private void performWALCheckpoint() throws SQLException {
-        dbConnection.commit();
-        try (Statement st = dbConnection.createStatement()) {
-            st.execute("PRAGMA wal_checkpoint(TRUNCATE)");
-        }
-    }
-
     public void genericConfig(@NotNull Configuration config) {
-        String raw = config.get(
-            logger.getLoggerName(),
-            "logWriteSafety",
-            logger.defaultLogWriteSafetyMode()
-                .name(),
-            """
-                NORMAL – Safer, but slower
-                  - Best for long-term stability.
-                  - Every event is saved to disk right away, so even if your server crashes or the power goes out, your logs will be intact.
-                  - Slightly slower performance, may reduce TPS during heavy activity like world edits or explosions.
-
-                HIGH_RISK – Much faster, but riskier
-                  - Boosts performance by delaying how often logs are saved to disk.
-                  - WARNING: if your server crashes or shuts down suddenly, the last few seconds of logs may be lost or corrupted. This does **not** affect your world, only the Tempora logs.
-                  - Only recommended if you make regular backups or can afford to lose a few seconds of log data.
-                """)
-            .getString()
-            .trim()
-            .toUpperCase();
-
         oldestDataCutoff = config.getString(
             "oldestDataCutoff",
             logger.getLoggerName(),
             OLDEST_DATA_DEFAULT,
-            "Any records older than this relative to server boot, will be erased. This is unrecoverable, be careful!");
+            "Records older than this are erased, checked every few minutes while the server runs. This is unrecoverable, be careful!");
 
-        try {
-            durabilityMode = LogWriteSafety.valueOf(raw);
-        } catch (IllegalArgumentException ex) {
-            throw new RuntimeException(
-                "Invalid DurabilityMode \"" + raw
-                    + "\" in "
-                    + logger.getLoggerName()
-                    + ". Valid values are "
-                    + LogWriteSafety.NORMAL
-                    + " or "
-                    + LogWriteSafety.HIGH_RISK
-                    + ".",
-                ex);
-        }
-
+        cacheSizeMegabytes = config.getInt(
+            "databaseCacheSizeMB",
+            logger.getLoggerName(),
+            CACHE_SIZE_MEGABYTES_DEFAULT,
+            1,
+            4096,
+            "The most memory (in MB) SQLite may use to cache this logger's database. A bigger cache makes writing to a large database faster. Only used as the database grows into it.");
     }
 
-    // Use the fastest durability mode: may lose or corrupt the DB on sudden power loss.
-    // Only recommended if recent data loss is acceptable and backups exist.
-    private boolean isHighRiskModeEnabled() {
-        return durabilityMode == LogWriteSafety.HIGH_RISK;
+    // Every column but those SQLite fills in itself, i.e. the eventID.
+    private List<ColumnDef> getInsertedColumns() {
+        return getAllTableColumns(logger).stream()
+            .filter(col -> !col.isAssignedByDatabase())
+            .collect(Collectors.toList());
     }
 
     public String generateInsertSQL() {
-        List<ColumnDef> columns = getAllTableColumns(logger);
+        List<ColumnDef> columns = getInsertedColumns();
 
         // Join the column names for the INSERT clause
         String columnList = columns.stream()
@@ -367,17 +345,17 @@ public class LoggerDatabase {
             return;
         }
 
-        if (addDataInjectionStatement == null || columnDefs == null) {
+        if (addDataInjectionStatement == null || insertedColumns == null) {
             final String sql = generateInsertSQL();
 
-            columnDefs = getAllTableColumns(logger);
+            insertedColumns = getInsertedColumns();
             addDataInjectionStatement = dbConnection.prepareStatement(sql);
         }
 
         for (EventInfo eventInfo : eventInfoQueue) {
             int index = 1;
 
-            for (ColumnDef columnDef : columnDefs) {
+            for (ColumnDef columnDef : insertedColumns) {
                 Object value = columnDef.columnAccessor.get(eventInfo);
 
                 columnDef.columnAccessor.binder.bind(addDataInjectionStatement, index++, value);

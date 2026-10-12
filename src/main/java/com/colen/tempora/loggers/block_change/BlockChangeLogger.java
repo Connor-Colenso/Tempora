@@ -10,7 +10,6 @@ import static com.colen.tempora.utils.nbt.NBTUtils.getEncodedTileEntityNBT;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.UUID;
 
 import javax.annotation.Nullable;
 
@@ -101,8 +100,6 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
         BlockChangeEventInfo e = new BlockChangeEventInfo();
         stack.push(e);
 
-        e.eventID = UUID.randomUUID()
-            .toString();
         e.timestamp = System.currentTimeMillis();
         e.stackTraceID = StackTraceUtils.getID(StackTraceUtils.getCallingClassChain()); // TODO PERSISTENCE OF IDS
 
@@ -162,8 +159,6 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
         if (WorldGenPhaseTracker.isWorldGen() || !canLogHere(x, y, z, dimensionID)) return;
 
         BlockChangeEventInfo e = new BlockChangeEventInfo();
-        e.eventID = UUID.randomUUID()
-            .toString();
         e.timestamp = System.currentTimeMillis();
         e.stackTraceID = StackTraceUtils.getID(StackTraceUtils.getCallingClassChain());
 

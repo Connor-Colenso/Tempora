@@ -27,6 +27,11 @@ public class ColumnDef {
         return name;
     }
 
+    // An INTEGER PRIMARY KEY is the table's rowid, which SQLite fills in itself on insert.
+    public boolean isAssignedByDatabase() {
+        return "INTEGER".equals(type) && "PRIMARY KEY".equalsIgnoreCase(extraCondition);
+    }
+
     // --------------------------------------
     // Accessor (read + write)
     // --------------------------------------

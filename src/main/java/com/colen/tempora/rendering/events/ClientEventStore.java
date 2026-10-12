@@ -28,7 +28,7 @@ public final class ClientEventStore {
 
     // Logger name -> event id -> the event. Keyed by id, so an event sent again (two lookups in a row) is drawn
     // once, and stays for the full time again.
-    private static final Map<String, Map<String, ReceivedEvent>> EVENTS = new LinkedHashMap<>();
+    private static final Map<String, Map<Long, ReceivedEvent>> EVENTS = new LinkedHashMap<>();
 
     private ClientEventStore() {}
 
@@ -40,10 +40,10 @@ public final class ClientEventStore {
     public static void expire() {
         long cutoff = System.currentTimeMillis() - RENDER_DURATION_MILLISECONDS;
 
-        Iterator<Map<String, ReceivedEvent>> loggers = EVENTS.values()
+        Iterator<Map<Long, ReceivedEvent>> loggers = EVENTS.values()
             .iterator();
         while (loggers.hasNext()) {
-            Map<String, ReceivedEvent> events = loggers.next();
+            Map<Long, ReceivedEvent> events = loggers.next();
             events.values()
                 .removeIf(received -> received.receivedAt < cutoff);
             if (events.isEmpty()) loggers.remove();
@@ -65,7 +65,7 @@ public final class ClientEventStore {
      */
     @SuppressWarnings("unchecked")
     public static <E extends PositionalEventInfo> List<E> visible(String loggerName, EventRenderContext context) {
-        Map<String, ReceivedEvent> events = EVENTS.get(loggerName);
+        Map<Long, ReceivedEvent> events = EVENTS.get(loggerName);
         if (events == null) return Collections.emptyList();
 
         double maxDistanceSq = (double) renderDistance * renderDistance;

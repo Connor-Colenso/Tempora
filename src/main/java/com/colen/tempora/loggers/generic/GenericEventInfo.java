@@ -14,8 +14,10 @@ public abstract class GenericEventInfo {
     @Column(constraints = "NOT NULL")
     public long timestamp;
 
+    // The table's rowid, so it costs nothing to store or index. SQLite assigns it when the event is written, counting
+    // up, so it is 0 until then and only unique within its own logger.
     @Column(constraints = "PRIMARY KEY")
-    public String eventID;
+    public long eventID;
 
     @Column(constraints = "NOT NULL")
     public int versionID;

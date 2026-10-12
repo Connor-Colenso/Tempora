@@ -78,7 +78,7 @@ public abstract class GenericPositionalLogger<EventInfo extends PositionalEventI
     @Override
     final Map<String, String> tableIndexes() {
         Map<String, String> indexes = super.tableIndexes();
-        indexes.put("xyz_dimension_time", "dimensionID, x, y, z, timestamp DESC");
+        indexes.put("xyz_dimension_time", "dimensionID, x, y, z, timestamp");
         return indexes;
     }
 

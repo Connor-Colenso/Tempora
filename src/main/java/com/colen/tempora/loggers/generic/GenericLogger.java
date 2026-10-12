@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
@@ -30,7 +29,6 @@ import org.jetbrains.annotations.NotNull;
 import com.colen.tempora.TemporaLoggerManager;
 import com.colen.tempora.enums.LoggerEventType;
 import com.colen.tempora.loggers.generic.column.ColumnDef;
-import com.colen.tempora.loggers.generic.enums.LogWriteSafety;
 import com.colen.tempora.utils.PlayerUtils;
 import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 
@@ -55,23 +53,26 @@ public abstract class GenericLogger<EventInfo extends GenericEventInfo> {
 
     protected boolean isEnabledByConfig;
     private Thread queueWorkerThread;
+    // Set at shutdown: the worker writes what is still queued, then exits.
     private volatile boolean shuttingDownDatabaseThread = false;
+    // Set when shutdown gives up waiting: the worker exits without writing the rest.
+    private volatile boolean abandonQueue = false;
     private volatile boolean isRunning;
     // Started for the current server: database open, worker running (until it crashes, see isRunning).
     private volatile boolean started;
+    private volatile long lastQueueFullWarning;
 
     private static volatile boolean loggersStarted;
 
     private int maxShutdownTimeoutMilliseconds;
     private int maxEventsInQueueBeforeServerFreeze;
     private static final int QUEUE_POLL_TIMEOUT_MILLISECONDS = 1000;
+    private static final int MAX_EVENTS_PER_BATCH = 5000;
+    private static final long PRUNE_INTERVAL_MILLISECONDS = TimeUnit.MINUTES.toMillis(10);
+    private static final long QUEUE_FULL_WARNING_INTERVAL_MILLISECONDS = TimeUnit.SECONDS.toMillis(10);
 
     // Only the two kinds extend this directly.
     GenericLogger() {}
-
-    protected LogWriteSafety defaultLogWriteSafetyMode() {
-        return LogWriteSafety.NORMAL;
-    }
 
     public boolean isEnabledByConfig() {
         return isEnabledByConfig;
@@ -140,12 +141,10 @@ public abstract class GenericLogger<EventInfo extends GenericEventInfo> {
     }
 
     /**
-     * Fills in what every event shares (id and time) and queues it. Each kind of logger wraps this in its own logEvent,
-     * which fills in what that kind adds, such as the position.
+     * Fills in what every event shares (its time, the database assigns its id) and queues it. Each kind of logger wraps
+     * this in its own logEvent, which fills in what that kind adds, such as the position.
      */
     final void logNewEvent(EventInfo eventInfo) {
-        eventInfo.eventID = UUID.randomUUID()
-            .toString();
         eventInfo.timestamp = System.currentTimeMillis();
 
         queueEventInfo(eventInfo);
@@ -162,19 +161,29 @@ public abstract class GenericLogger<EventInfo extends GenericEventInfo> {
         // Blocking & thread safe.
         try {
             if (getQueueSize() >= maxEventsInQueueBeforeServerFreeze) {
-                LOG.warn(
-                    "Maximum queue size of {} reached for {}, slowing server down.",
-                    maxEventsInQueueBeforeServerFreeze,
-                    getLoggerName());
-                PlayerUtils.sendMessageToOps(
-                    "tempora.op.warning.queue.too.large",
-                    getLoggerName(),
-                    new ChatComponentNumber(getQueueSize()));
+                warnQueueFull();
             }
             concurrentEventQueue.put(eventInfo);
         } catch (InterruptedException e) {
             LOG.error("Queue worker for {} was interrupted while queueing an event.", getLoggerName());
         }
+    }
+
+    // Once in a while, rather than for every event while the queue is full, which would flood the log and ops' chat
+    // just when the server is struggling.
+    private void warnQueueFull() {
+        long now = System.currentTimeMillis();
+        if (now - lastQueueFullWarning < QUEUE_FULL_WARNING_INTERVAL_MILLISECONDS) return;
+        lastQueueFullWarning = now;
+
+        LOG.warn(
+            "Maximum queue size of {} reached for {}, slowing server down.",
+            maxEventsInQueueBeforeServerFreeze,
+            getLoggerName());
+        PlayerUtils.sendMessageToOps(
+            "tempora.op.warning.queue.too.large",
+            getLoggerName(),
+            new ChatComponentNumber(getQueueSize()));
     }
 
     // Whether this event should be stored at all. Positional loggers check region rules here.
@@ -184,6 +193,7 @@ public abstract class GenericLogger<EventInfo extends GenericEventInfo> {
 
     private void startQueueWorker() {
         shuttingDownDatabaseThread = false;
+        abandonQueue = false;
         isRunning = true;
 
         concurrentEventQueue = new ArrayBlockingQueue<>(maxEventsInQueueBeforeServerFreeze);
@@ -202,39 +212,39 @@ public abstract class GenericLogger<EventInfo extends GenericEventInfo> {
     }
 
     private void queueLoop() {
-        List<EventInfo> buffer = new ArrayList<>(maxEventsInQueueBeforeServerFreeze);
+        List<EventInfo> buffer = new ArrayList<>(MAX_EVENTS_PER_BATCH);
+        // Due straight away, so a server that was down for a while catches up on old data first.
+        long nextPruneTime = 0;
 
         try {
-            while (!shuttingDownDatabaseThread || !concurrentEventQueue.isEmpty()) {
+            while (!abandonQueue) {
+                boolean pruneDue = System.currentTimeMillis() >= nextPruneTime;
+                // No waiting for events while there is old data left to prune, or once shutting down.
+                long pollTimeout = pruneDue || shuttingDownDatabaseThread ? 0 : QUEUE_POLL_TIMEOUT_MILLISECONDS;
 
-                EventInfo event = concurrentEventQueue.poll(QUEUE_POLL_TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS);
-
-                if (event == null) {
-                    continue;
+                EventInfo event;
+                try {
+                    event = concurrentEventQueue.poll(pollTimeout, TimeUnit.MILLISECONDS);
+                } catch (InterruptedException e) {
+                    // How shutdown wakes this thread. Whatever is still queued is written below.
+                    event = null;
                 }
 
-                buffer.add(event);
-                concurrentEventQueue.drainTo(buffer, 5000);
+                if (event != null) buffer.add(event);
+                concurrentEventQueue.drainTo(buffer, MAX_EVENTS_PER_BATCH - buffer.size());
 
-                try {
-                    databaseManager.insertBatch(buffer);
-                } catch (Exception e) {
-                    // A single bad/transient batch (a bad value, disk full, SQLITE_BUSY, ...) must not
-                    // permanently kill this logger's worker thread — log it and keep draining the queue.
-                    LOG.error(
-                        "Failed to insert a batch of {} event(s) for {}. This batch is dropped, logging continues.",
-                        buffer.size(),
-                        getLoggerName(),
-                        e);
-                } finally {
-                    buffer.clear();
+                if (!buffer.isEmpty()) {
+                    writeBatch(buffer);
+                } else if (shuttingDownDatabaseThread) {
+                    break;
+                }
+
+                // One batch of old data at a time, between writes, until there is none left.
+                if (pruneDue && !shuttingDownDatabaseThread) {
+                    boolean morePending = databaseManager.pruneOldData();
+                    nextPruneTime = morePending ? 0 : System.currentTimeMillis() + PRUNE_INTERVAL_MILLISECONDS;
                 }
             }
-
-        } catch (InterruptedException e) {
-            // Expected during shutdown — just exit
-            Thread.currentThread()
-                .interrupt();
 
         } catch (Exception e) {
             LOG.error(
@@ -245,6 +255,22 @@ public abstract class GenericLogger<EventInfo extends GenericEventInfo> {
 
         } finally {
             isRunning = false;
+        }
+    }
+
+    private void writeBatch(List<EventInfo> buffer) {
+        try {
+            databaseManager.insertBatch(buffer);
+        } catch (Exception e) {
+            // A single bad/transient batch (a bad value, disk full, SQLITE_BUSY, ...) must not
+            // permanently kill this logger's worker thread — log it and keep draining the queue.
+            LOG.error(
+                "Failed to insert a batch of {} event(s) for {}. This batch is dropped, logging continues.",
+                buffer.size(),
+                getLoggerName(),
+                e);
+        } finally {
+            buffer.clear();
         }
     }
 
@@ -277,7 +303,8 @@ public abstract class GenericLogger<EventInfo extends GenericEventInfo> {
     // Index name suffix -> indexed columns. Every logger is searched by time, positional loggers by place as well.
     Map<String, String> tableIndexes() {
         Map<String, String> indexes = new LinkedHashMap<>();
-        indexes.put("timestamp", "timestamp DESC");
+        // Ascending: SQLite reads an index backwards just as fast, for newest-first lookups.
+        indexes.put("timestamp", "timestamp");
         return indexes;
     }
 
@@ -425,13 +452,22 @@ public abstract class GenericLogger<EventInfo extends GenericEventInfo> {
     }
 
     public static void onServerClose() {
+        List<GenericLogger<?>> startedLoggers = new ArrayList<>();
+        for (GenericLogger<?> logger : TemporaLoggerManager.getLoggerList()) {
+            if (logger.started) startedLoggers.add(logger);
+        }
+
+        // Every worker is told to stop before waiting on any of them, so they write what they have left at the same
+        // time rather than one after another.
+        for (GenericLogger<?> logger : startedLoggers) {
+            logger.requestWorkerStop();
+        }
+
         // Each logger separately: one that fails to close must not leave the others' (non-daemon) worker threads
         // running, which would stop the server from exiting.
-        for (GenericLogger<?> logger : TemporaLoggerManager.getLoggerList()) {
-            if (!logger.started) continue;
-
+        for (GenericLogger<?> logger : startedLoggers) {
             try {
-                logger.shutdownQueueWorkerThreads();
+                logger.awaitWorkerStop();
                 logger.databaseManager.shutdownDatabase();
             } catch (Exception e) {
                 LOG.error("Error closing {}.", logger.getLoggerName(), e);
@@ -456,10 +492,14 @@ public abstract class GenericLogger<EventInfo extends GenericEventInfo> {
         }
     }
 
-    private void shutdownQueueWorkerThreads() throws InterruptedException {
+    private void requestWorkerStop() {
         shuttingDownDatabaseThread = true;
+        // Wakes the worker if it is waiting for events, rather than leaving it to notice once the wait times out.
+        queueWorkerThread.interrupt();
+    }
 
-        // Wait to shut down, should be near instant if queue is low.
+    private void awaitWorkerStop() throws InterruptedException {
+        // Should be near instant if the queue is low.
         LOG.info(
             "Attempting to shut down queue worker {} for logger {}. There are {} events remaining to be processed within {}ms.",
             queueWorkerThread.getName(),
@@ -469,7 +509,7 @@ public abstract class GenericLogger<EventInfo extends GenericEventInfo> {
         queueWorkerThread.join(maxShutdownTimeoutMilliseconds);
 
         if (queueWorkerThread.isAlive()) {
-            queueWorkerThread.interrupt();
+            abandonQueue = true;
             LOG.error(
                 "Queue worker {} for logger {} did not stop in time. Tempora discarded {} events.",
                 queueWorkerThread.getName(),

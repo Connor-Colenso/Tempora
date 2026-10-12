@@ -18,8 +18,8 @@ logged too.
   query directly against a logger's table (`/tempora sql`).
 - **Regions** — turn individual loggers on or off in specific areas of the world, e.g. log every
   block change around spawn, or stop logging mob deaths in a mob farm. See [Regions](#regions).
-- **Configurable retention and durability** — per-logger data retention window, and a choice
-  between safer (`NORMAL`) or faster-but-riskier (`HIGH_RISK`) write durability.
+- **Configurable retention** — per-logger data retention window. Old events are deleted in the
+  background while the server runs, a few thousand at a time, so it never holds up the server.
 - **Schema evolution support** — the database schema is derived from annotated Java fields and
   updates itself on startup (new columns, and explicit renames via `@Column(renamedFrom = ...)`)
   without handwritten migrations.
@@ -95,10 +95,15 @@ Each logger has its own config section (in the standard Forge config file) with:
 - `isEnabled` — turns the logger off entirely, regardless of regions.
 - `logByDefault` — whether the logger records events where no region has a rule for it.
   Positional loggers only.
-- `logWriteSafety` — `NORMAL` (fsync every batch, safe) or `HIGH_RISK` (faster, but the last few
-  seconds of *logs* — not world data — may be lost on a crash).
 - `oldestDataCutoff` — how long to retain logged events before they're deleted (e.g. `4months`).
+- `databaseCacheSizeMB` — the most memory SQLite may use to cache the logger's database. A bigger
+  cache makes writing to a large database faster.
 - A maximum in-memory queue size per logger, to bound memory use if the database falls behind.
+
+Events are written by a background thread per logger, in SQLite's WAL mode. A server crash loses
+none of the events already written, and a power cut at most the last few seconds of *logs* (not
+world data). Neither can corrupt the database. WAL mode needs the world on a local disk, not a
+network filesystem.
 
 ## API for other mods
 

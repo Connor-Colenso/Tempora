@@ -2,7 +2,6 @@ package com.colen.tempora.loggers.generic;
 
 import com.colen.tempora.loggers.generic.column.Column;
 
-import cpw.mods.fml.common.network.ByteBufUtils;
 import io.netty.buffer.ByteBuf;
 
 /** An event that happened at a place, logged by a {@link GenericPositionalLogger}. */
@@ -27,7 +26,7 @@ public abstract class PositionalEventInfo extends GenericEventInfo {
         z = buf.readDouble();
         dimensionID = buf.readInt();
         timestamp = buf.readLong();
-        eventID = ByteBufUtils.readUTF8String(buf);
+        eventID = buf.readLong();
         // versionID Not applicable for the client.
     }
 
@@ -37,7 +36,7 @@ public abstract class PositionalEventInfo extends GenericEventInfo {
         buf.writeDouble(z);
         buf.writeInt(dimensionID);
         buf.writeLong(timestamp);
-        ByteBufUtils.writeUTF8String(buf, eventID);
+        buf.writeLong(eventID);
         // versionID Not applicable for the client.
     }
 }
