@@ -56,6 +56,12 @@ public final class ModpackVersionData extends WorldSavedData {
         }
 
         CURRENT_VERSION = data.getOrCreateId(getModListHash());
+
+        // Save a new ID now rather than at the next world save. Events stamped with it go straight to the
+        // database, so a crash before that save would let the ID be handed out again for a different mod list.
+        if (data.isDirty()) {
+            storage.saveAllData();
+        }
     }
 
     /* ------------------------------------------------------------ */
