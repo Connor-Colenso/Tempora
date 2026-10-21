@@ -13,6 +13,7 @@ import java.sql.Statement;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import net.minecraftforge.common.config.Configuration;
@@ -102,27 +103,7 @@ public class LoggerDatabase {
         List<ColumnDef> columns = getAllTableColumns(logger);
 
         // Create the table if it doesn't exist.
-        StringBuilder createSQL = new StringBuilder();
-        createSQL.append("CREATE TABLE IF NOT EXISTS ")
-            .append(tableName)
-            .append(" (");
-
-        // Build column definitions
-        String columnsSQL = columns.stream()
-            .map(col -> {
-                String sql = col.name + " " + col.type;
-                if (!col.extraCondition.isEmpty()) {
-                    sql += " " + col.extraCondition;
-                }
-                return sql;
-            })
-            .collect(Collectors.joining(", "));
-
-        createSQL.append(columnsSQL)
-            .append(");");
-
-        // Execute statement
-        try (PreparedStatement stmt = dbConnection.prepareStatement(createSQL.toString())) {
+        try (PreparedStatement stmt = dbConnection.prepareStatement(createTableSQL(tableName, columns))) {
             stmt.execute();
         }
 
@@ -181,19 +162,81 @@ public class LoggerDatabase {
             }
         }
 
-        // Step 5: flag (but do not fail on) columns whose declared type no longer matches the code.
-        // SQLite cannot alter a column's type in place, so a mismatch here needs a manual table rebuild.
-        for (ColumnDef col : columns) {
-            String existingType = existingColumnTypes.get(col.name);
-            if (existingType != null && !existingType.equalsIgnoreCase(col.type)) {
-                LOG.error(
-                    "Schema drift in table '{}': column '{}' is declared as '{}' in code but exists as '{}' in the database. "
-                        + "SQLite cannot alter a column's type in place — this requires a manual table rebuild to fix.",
-                    tableName,
-                    col.name,
-                    col.type,
-                    existingType);
-            }
+        // Step 5: SQLite cannot change a column's type in place, so a table with any column whose type no longer
+        // matches the code is rebuilt. E.g. eventID was TEXT before it became the rowid: left as it was, SQLite never
+        // fills it in, and every new event reads back with the same eventID of 0.
+        List<String> drifted = columns.stream()
+            .filter(col -> !col.type.equalsIgnoreCase(existingColumnTypes.get(col.name)))
+            .map(col -> col.name + " (" + existingColumnTypes.get(col.name) + " -> " + col.type + ")")
+            .collect(Collectors.toList());
+        if (!drifted.isEmpty()) {
+            rebuildTable(columns, existingColumnTypes.keySet(), drifted);
+        }
+    }
+
+    private static String createTableSQL(String tableName, List<ColumnDef> columns) {
+        String columnsSQL = columns.stream()
+            .map(col -> {
+                String sql = col.name + " " + col.type;
+                if (!col.extraCondition.isEmpty()) {
+                    sql += " " + col.extraCondition;
+                }
+                return sql;
+            })
+            .collect(Collectors.joining(", "));
+
+        return "CREATE TABLE IF NOT EXISTS " + tableName + " (" + columnsSQL + ");";
+    }
+
+    /**
+     * Remakes the table with the code's column types, keeping every event. Columns SQLite assigns (the eventID) are
+     * not copied, so each event gets a new one. Indexes go with the old table and are made again by createIndexes.
+     * Runs inside the opening transaction, so a failure leaves the old table as it was.
+     */
+    private void rebuildTable(List<ColumnDef> columns, Set<String> existingColumns, List<String> drifted)
+        throws SQLException {
+        String tableName = logger.getLoggerName();
+        String rebuiltName = tableName + "_rebuild";
+
+        LOG.warn(
+            "Rebuilding table '{}' as these columns changed type: {}. This may take a while for a large database.",
+            tableName,
+            String.join(", ", drifted));
+
+        String copiedColumns = columns.stream()
+            .filter(col -> !col.isAssignedByDatabase())
+            .map(col -> col.name)
+            .collect(Collectors.joining(", "));
+
+        try (Statement st = dbConnection.createStatement()) {
+            st.execute("DROP TABLE IF EXISTS " + rebuiltName + ";");
+            st.execute(createTableSQL(rebuiltName, columns));
+            // Oldest first, so the new eventIDs count up in time order like those of events logged from now on.
+            int copied = st.executeUpdate(
+                "INSERT INTO " + rebuiltName
+                    + " ("
+                    + copiedColumns
+                    + ") SELECT "
+                    + copiedColumns
+                    + " FROM "
+                    + tableName
+                    + " ORDER BY timestamp;");
+            st.execute("DROP TABLE " + tableName + ";");
+            st.execute("ALTER TABLE " + rebuiltName + " RENAME TO " + tableName + ";");
+
+            LOG.info("Rebuilt table '{}', keeping all {} events.", tableName, copied);
+        }
+
+        List<String> dropped = existingColumns.stream()
+            .filter(
+                name -> columns.stream()
+                    .noneMatch(col -> col.name.equals(name)))
+            .collect(Collectors.toList());
+        if (!dropped.isEmpty()) {
+            LOG.warn(
+                "Columns no longer used by '{}' were dropped while rebuilding it: {}.",
+                tableName,
+                String.join(", ", dropped));
         }
     }
 

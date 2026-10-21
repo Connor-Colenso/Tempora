@@ -203,7 +203,7 @@ tempora.HUD.render.and_more=And %s more...
 tempora.warning.server.slowdown=Tempora slowed the server to let %s catch up on a large event queue.
 
 # === Renderer ===
-tempora.render.regions.author=Created by %s
+temporaca.render.regions.author=Created by %s
 tempora.render.regions.created_on=Created %s
 
 # Labels drawn above events in the world.
@@ -217,4 +217,5 @@ tempora.render.event.items_in=+%s %s
 tempora.render.event.items_out=-%s %s
 
 tile.renderingErrorBlock.name=Tempora rendering error
+tile.temporaStressTestBlock.name=Tempora Stress Test Block
 tooltip.temporasRenderingBlockError=If you are seeing this, something has likely gone wrong with Temporas event rendering. Please report it, thanks!

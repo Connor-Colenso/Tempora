@@ -11,6 +11,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.colen.tempora.blocks.RenderingErrorBlock;
+import com.colen.tempora.blocks.stress.StressTestBlock;
 import com.colen.tempora.commands.TemporaCommand;
 import com.colen.tempora.commands.TraceCommand;
 import com.colen.tempora.events.ServerTickHandler;
@@ -47,6 +48,7 @@ public class Tempora {
     public static Configuration config;
 
     public static Block renderingErrorBlock = new RenderingErrorBlock();
+    public static Block stressTestBlock = new StressTestBlock();
     public static Item temporaWand = new TemporaWand();
 
     @Mod.EventHandler
