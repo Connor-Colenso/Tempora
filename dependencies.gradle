@@ -1,15 +1,17 @@
 dependencies {
-    runtimeOnlyNonPublishable("com.github.GTNewHorizons:NotEnoughItems:2.8.158-GTNH:dev")
 
     shadowImplementation('org.xerial:sqlite-jdbc:3.53.4.0')
 
     api("org.jetbrains:annotations:26.1.0")
-
-    api("com.github.GTNewHorizons:Applied-Energistics-2-Unofficial:rv3-beta-999-GTNH:dev")
     api("com.github.GTNewHorizons:GTNHLib:0.11.52:dev")
-    api("com.github.GTNewHorizons:ModularUI:1.3.4:dev")
 
-    api("com.github.GTNewHorizons:GT5-Unofficial:5.09.54.220:dev")
+    // Need for AE specific inventory logging (special edge cases...)
+    devOnlyNonPublishable("com.github.GTNewHorizons:Applied-Energistics-2-Unofficial:rv3-beta-999-GTNH:dev")
+    devOnlyNonPublishable("com.github.GTNewHorizons:NotEnoughItems:2.8.158-GTNH:dev")
+
+    // Just for dev tests
+    runtimeOnlyNonPublishable("com.github.GTNewHorizons:GT5-Unofficial:5.09.54.220:dev")
+    runtimeOnlyNonPublishable("com.github.GTNewHorizons:ModularUI:1.3.4:dev")
 
     // In-game tests (com.colen.tempora.gametests), only present in the dev environment and CI.
     devOnlyNonPublishable("com.github.GTNewHorizons:Horizon-QA:0.15.0:dev")

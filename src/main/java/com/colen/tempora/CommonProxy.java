@@ -17,6 +17,7 @@ import com.colen.tempora.loggers.generic.RenderEventPacket;
 import com.colen.tempora.networking.handlers.PacketRemoveClientRegionByUUID;
 import com.colen.tempora.networking.packets.PacketRemoveRegionFromClient;
 import com.colen.tempora.networking.packets.PacketShowRegionInWorld;
+import com.colen.tempora.utils.GenericUtils;
 
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
@@ -30,8 +31,12 @@ public class CommonProxy {
         Tempora.config = new Configuration(event.getSuggestedConfigurationFile());
         GameRegistry.registerItem(Tempora.temporaWand, "admin_wand");
         GameRegistry.registerBlock(renderingErrorBlock, RenderingErrorItemBlock.class, "renderingErrorBlock");
-        GameRegistry.registerBlock(stressTestBlock, "stressTestBlock");
-        GameRegistry.registerTileEntity(StressTestTileEntity.class, "tempora:stressTestTileEntity");
+        // A debugging aid for load testing the loggers, so only in a development environment, as GT5 does with its
+        // debug blocks.
+        if (GenericUtils.isDevEnvironment()) {
+            GameRegistry.registerBlock(stressTestBlock, "stressTestBlock");
+            GameRegistry.registerTileEntity(StressTestTileEntity.class, "tempora:stressTestTileEntity");
+        }
 
         TemporaChatRegistry.register();
     }

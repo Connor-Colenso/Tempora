@@ -25,6 +25,7 @@ import com.gtnewhorizon.gtnhlib.config.ConfigException;
 import com.gtnewhorizon.gtnhlib.config.ConfigurationManager;
 
 import codechicken.nei.api.API;
+import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
@@ -75,7 +76,10 @@ public class ClientProxy extends CommonProxy {
     @Override
     public void postInit(FMLPostInitializationEvent event) {
         super.postInit(event);
-        API.hideItem(new ItemStack(Tempora.renderingErrorBlock));
+        // NEI is optional: without it, there is no item list to hide the block from.
+        if (Loader.isModLoaded("NotEnoughItems")) {
+            API.hideItem(new ItemStack(Tempora.renderingErrorBlock));
+        }
 
         ClientEventStore.renderDistance = Tempora.config.getInt(
             "Client event render distance",
