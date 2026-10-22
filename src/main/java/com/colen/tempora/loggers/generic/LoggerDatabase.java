@@ -274,7 +274,9 @@ public class LoggerDatabase {
         return dbConnection;
     }
 
-    public @NotNull Connection getReadOnlyConnection() {
+    // Only TemporaQueries opens these, one per logger for its query thread, so lookups never read on the server thread.
+    @NotNull
+    Connection getReadOnlyConnection() {
         try {
             String dbUrl = jdbcUrl(logger.getLoggerName() + ".db");
 
@@ -294,32 +296,6 @@ public class LoggerDatabase {
             LOG.error("Could not establish readonly connection to {} database.", logger.getLoggerName(), e);
             throw new RuntimeException("Failed to open readonly connection");
         }
-    }
-
-    public GenericEventInfo queryEventByEventID(long eventID) {
-
-        String sqlQuery = "SELECT * FROM " + logger.getLoggerName() + " WHERE eventID == ? LIMIT 1";
-
-        try (Connection conn = getReadOnlyConnection(); PreparedStatement ps = conn.prepareStatement(sqlQuery)) {
-
-            ps.setLong(1, eventID);
-
-            ResultSet rs = ps.executeQuery();
-            List<? extends GenericEventInfo> packets = logger.generateQueryResults(rs);
-            if (packets.isEmpty()) return null;
-
-            return packets.get(0);
-
-        } catch (Exception e) {
-            LOG.error(
-                "SQL query failed for table '{}' by eventID={}. Query: {}",
-                logger.getLoggerName(),
-                eventID,
-                sqlQuery,
-                e);
-        }
-
-        return null;
     }
 
     private void createIndexes() {

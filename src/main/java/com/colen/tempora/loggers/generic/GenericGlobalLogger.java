@@ -3,8 +3,6 @@ package com.colen.tempora.loggers.generic;
 import java.sql.SQLException;
 import java.util.List;
 
-import net.minecraft.command.ICommandSender;
-
 import com.colen.tempora.commands.TemporaCommand;
 
 /**
@@ -28,10 +26,11 @@ public abstract class GenericGlobalLogger<EventInfo extends GlobalEventInfo> ext
     }
 
     /**
-     * Shows the latest events, up to {@code limit} of them. Negative seconds means no time limit. Says nothing if there
-     * are no events, so callers checking many loggers can report that once. Returns how many events were shown.
+     * Finds the latest events, up to {@code limit} of them, on the query thread (see {@link TemporaQueries}). Negative
+     * seconds means no time limit. Showing them says nothing if there are none, so callers checking many loggers can
+     * report that once.
      */
-    public final int showLatestEvents(ICommandSender sender, long seconds, int limit) {
+    public final FoundEvents findLatestEvents(long seconds, int limit) {
         String sql = String.format("""
             SELECT * FROM %s
             WHERE timestamp >= ?
@@ -46,11 +45,12 @@ public abstract class GenericGlobalLogger<EventInfo extends GlobalEventInfo> ext
                 ps.setInt(2, limit);
             });
         } catch (SQLException e) {
-            sendQueryFailed(sender, e);
-            return 0;
+            return queryFailed(e);
         }
 
-        sendEventsInChat(sender, events, limit, TemporaCommand.GLOBAL.command("l:" + getShortName()));
-        return events.size();
+        return sender -> {
+            sendEventsInChat(sender, events, limit, TemporaCommand.GLOBAL.command("l:" + getShortName()));
+            return events.size();
+        };
     }
 }

@@ -19,7 +19,9 @@ import com.colen.tempora.commands.command_base.CommandFilters;
 import com.colen.tempora.commands.command_base.TemporaSubcommand;
 import com.colen.tempora.loggers.generic.GenericGlobalLogger;
 import com.colen.tempora.loggers.generic.GenericLogger;
+import com.colen.tempora.loggers.generic.GenericLogger.FoundEvents;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
+import com.colen.tempora.loggers.generic.TemporaQueries;
 import com.colen.tempora.utils.TimeUtils;
 
 /**
@@ -49,20 +51,30 @@ public class GlobalCommand extends TemporaSubcommand {
         List<GenericGlobalLogger<?>> loggers = parseLoggers(sender, filters.get("l"));
         if (loggers == null) return;
 
-        int found = 0;
-        for (GenericGlobalLogger<?> logger : loggers) {
-            // A logger that is disabled, or failed to start, has no database to read.
-            if (logger.notStarted()) continue;
+        TemporaQueries.submit(sender, () -> {
+            List<FoundEvents> found = new ArrayList<>();
+            for (GenericGlobalLogger<?> logger : loggers) {
+                // A logger that is disabled, or failed to start, has no database to read.
+                if (logger.notStarted()) continue;
 
-            found += logger.showLatestEvents(sender, seconds, count);
-        }
+                found.add(logger.findLatestEvents(seconds, count));
+            }
+            return found;
+        }, (target, found) -> {
+            int shown = 0;
+            for (FoundEvents events : found) {
+                shown += events.show(target);
+            }
 
-        if (found == 0) {
-            IChatComponent nothingFound = new ChatComponentTranslation("tempora.command.global.nothing_found", time);
-            nothingFound.getChatStyle()
-                .setColor(EnumChatFormatting.GRAY);
-            sender.addChatMessage(nothingFound);
-        }
+            if (shown == 0) {
+                IChatComponent nothingFound = new ChatComponentTranslation(
+                    "tempora.command.global.nothing_found",
+                    time);
+                nothingFound.getChatStyle()
+                    .setColor(EnumChatFormatting.GRAY);
+                target.addChatMessage(nothingFound);
+            }
+        });
     }
 
     // Comma separated global logger names, or every global logger if null. Null, after telling the sender, if a name

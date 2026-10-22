@@ -4,6 +4,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.World;
 
 import com.colen.tempora.config.DebugConfig;
+import com.colen.tempora.loggers.generic.TemporaQueries;
 import com.colen.tempora.utils.DebugUtils;
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
@@ -14,6 +15,8 @@ public class ServerTickHandler {
     @SubscribeEvent
     public void onServerTick(TickEvent.ServerTickEvent event) {
         if (event.phase != TickEvent.Phase.END) return;
+
+        TemporaQueries.onServerTick();
 
         // // Wait on event queues if one is too large. Works for now.
         // try {

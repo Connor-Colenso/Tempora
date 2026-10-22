@@ -21,7 +21,9 @@ import com.colen.tempora.commands.command_base.CommandFilters;
 import com.colen.tempora.commands.command_base.TemporaSubcommand;
 import com.colen.tempora.loggers.generic.GenericGlobalLogger;
 import com.colen.tempora.loggers.generic.GenericLogger;
+import com.colen.tempora.loggers.generic.GenericLogger.FoundEvents;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
+import com.colen.tempora.loggers.generic.TemporaQueries;
 import com.colen.tempora.utils.TimeUtils;
 
 /**
@@ -98,23 +100,34 @@ public class LookupCommand extends TemporaSubcommand {
         sendError(sender, "tempora.command.unknown_logger", name, String.join(", ", choices));
     }
 
-    // Shows each logger's events near a position, then a single "nothing found" line if none of them had any. A
-    // radius of 0 means exactly that block, negative seconds means no time limit.
+    // Looks up each logger's events near a position in the player's dimension, on the query thread, then shows them
+    // with a single "nothing found" line if none of them had any. A radius of 0 means exactly that block, negative
+    // seconds means no time limit.
     public static void showEvents(EntityPlayerMP player, Collection<GenericPositionalLogger<?>> loggers, int x, int y,
         int z, int radius, long seconds, IChatComponent nothingFound) {
-        int found = 0;
-        for (GenericPositionalLogger<?> logger : loggers) {
-            // A logger that is disabled, or failed to start, has no database to read.
-            if (logger.notStarted()) continue;
+        int dimension = player.dimension;
 
-            found += logger.showEventsNear(player, x, y, z, radius, seconds, player.dimension);
-        }
+        TemporaQueries.submit(player, () -> {
+            List<FoundEvents> found = new ArrayList<>();
+            for (GenericPositionalLogger<?> logger : loggers) {
+                // A logger that is disabled, or failed to start, has no database to read.
+                if (logger.notStarted()) continue;
 
-        if (found == 0) {
-            nothingFound.getChatStyle()
-                .setColor(EnumChatFormatting.GRAY);
-            player.addChatMessage(nothingFound);
-        }
+                found.add(logger.findEventsNear(dimension, x, y, z, radius, seconds));
+            }
+            return found;
+        }, (sender, found) -> {
+            int shown = 0;
+            for (FoundEvents events : found) {
+                shown += events.show(sender);
+            }
+
+            if (shown == 0) {
+                nothingFound.getChatStyle()
+                    .setColor(EnumChatFormatting.GRAY);
+                sender.addChatMessage(nothingFound);
+            }
+        });
     }
 
     @Override

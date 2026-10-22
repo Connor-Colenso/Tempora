@@ -83,12 +83,13 @@ public abstract class GenericPositionalLogger<EventInfo extends PositionalEventI
     }
 
     /**
-     * Shows the player the latest events within a cube of the given radius around a position, and draws them in the
-     * world. A radius of 0 means exactly that block. Negative seconds means no time limit. Says nothing if there are
-     * no events, so callers checking many loggers can report that once. Returns how many events were shown.
+     * Finds the latest events within a cube of the given radius around a position, on the query thread (see
+     * {@link TemporaQueries}). A radius of 0 means exactly that block. Negative seconds means no time limit. Showing
+     * them lists them in chat and draws them in the world, or says nothing if there are none, so callers checking many
+     * loggers can report that once.
      */
-    public final int showEventsNear(EntityPlayerMP player, int centreX, int centreY, int centreZ, int radius,
-        long seconds, int dimensionId) {
+    public final FoundEvents findEventsNear(int dimensionId, int centreX, int centreY, int centreZ, int radius,
+        long seconds) {
 
         String sql = String.format("""
             SELECT * FROM %s
@@ -125,17 +126,21 @@ public abstract class GenericPositionalLogger<EventInfo extends PositionalEventI
                 ps.setInt(9, MAX_RESULTS);
             });
         } catch (SQLException e) {
-            sendQueryFailed(player, e);
-            return 0;
+            return queryFailed(e);
         }
 
-        sendEventsInChat(player, events, MAX_RESULTS, TemporaCommand.LOOKUP.command("l:" + getShortName()));
+        return sender -> {
+            sendEventsInChat(sender, events, MAX_RESULTS, TemporaCommand.LOOKUP.command("l:" + getShortName()));
 
-        // This tells the client what to render in the world, if anything.
-        for (EventInfo eventData : events) {
-            NETWORK.sendTo(new RenderEventPacket(eventData), player);
-        }
+            // This tells the client what to render in the world, if anything. Not if the player has changed dimension
+            // since looking, as the client only draws events in the dimension it is in.
+            if (sender instanceof EntityPlayerMP player && player.dimension == dimensionId) {
+                for (EventInfo eventData : events) {
+                    NETWORK.sendTo(new RenderEventPacket(eventData), player);
+                }
+            }
 
-        return events.size();
+            return events.size();
+        };
     }
 }

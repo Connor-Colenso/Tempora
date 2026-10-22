@@ -1,0 +1,346 @@
+package com.colen.tempora.loggers.generic;
+
+import static com.colen.tempora.Tempora.LOG;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.TimeUnit;
+
+import net.minecraft.command.ICommandSender;
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.IChatComponent;
+import net.minecraftforge.common.config.Configuration;
+
+import org.jetbrains.annotations.Nullable;
+import org.sqlite.ProgressHandler;
+
+/**
+ * Runs lookups (/tempora lookup, global, home, sql and the wand) on one "Tempora-Query" thread, so a slow query never
+ * holds up the server's ticks. Each lookup is two steps:
+ * <ul>
+ * <li>a {@link Query}, run on the query thread. It gets no player or world, only plain values copied out before it was
+ * submitted, and reads the databases through {@link #connection}.</li>
+ * <li>a {@link Show}, run on the server thread at the end of a tick, which sends the chat lines and render packets.
+ * 1.7.10 isn't safe to send those from another thread.</li>
+ * </ul>
+ * Each sender has one lookup at a time, every lookup has a time limit, and the queue is bounded, so neither a slow
+ * query
+ * nor someone spamming the wand can pile up work.
+ */
+public final class TemporaQueries {
+
+    /** Work done on the query thread. Throwing fails the lookup, which the sender is told about. */
+    @FunctionalInterface
+    public interface Query<T> {
+
+        T run() throws Exception;
+    }
+
+    /** Shows a query's result, on the server thread. The sender is still online. */
+    @FunctionalInterface
+    public interface Show<T> {
+
+        void show(ICommandSender sender, T result);
+    }
+
+    /** Thrown on the query thread once the lookup has run longer than its time limit. */
+    public static final class QueryTimedOutException extends RuntimeException {
+
+        QueryTimedOutException() {
+            super("Query took too long", null, false, false);
+        }
+    }
+
+    private static final int MAX_QUEUED_QUERIES = 64;
+    // How long a lookup runs before the sender is told it is still searching, so a slow one doesn't look ignored.
+    private static final long SEARCHING_NOTICE_MILLISECONDS = 300;
+    // SQLite virtual machine steps between time limit checks: cheap, and frequent enough to stop within milliseconds.
+    private static final int PROGRESS_CHECK_INTERVAL = 10_000;
+    private static final long STOP_TIMEOUT_MILLISECONDS = 5_000;
+
+    private static int queryTimeLimitSeconds;
+
+    private static final ArrayBlockingQueue<Job<?>> pending = new ArrayBlockingQueue<>(MAX_QUEUED_QUERIES);
+    private static final ConcurrentLinkedQueue<Job<?>> finished = new ConcurrentLinkedQueue<>();
+    // Sender -> their lookup that hasn't been shown yet. One at a time each.
+    private static final ConcurrentHashMap<String, Job<?>> inFlight = new ConcurrentHashMap<>();
+
+    private static @Nullable Worker worker;
+    // The worker running on the current thread, so connection() can tell it is on the query thread.
+    private static final ThreadLocal<Worker> currentWorker = new ThreadLocal<>();
+
+    private TemporaQueries() {}
+
+    public static void loadConfig(Configuration config) {
+        queryTimeLimitSeconds = config.getInt(
+            "queryTimeLimitSeconds",
+            "Lookups",
+            10,
+            1,
+            600,
+            "Longest a lookup (/tempora lookup, global, home, sql or the wand) may run before it is stopped. Lookups run on their own thread, so a slow one never holds up the server, but it does keep everyone else's lookups waiting.");
+    }
+
+    /**
+     * Runs {@code query} on the query thread, then {@code show} with its result on the server thread. Call from the
+     * server thread. Tells the sender instead if their last lookup hasn't finished yet, or too many are waiting.
+     */
+    public static <T> void submit(ICommandSender sender, Query<T> query, Show<T> show) {
+        Job<T> job = new Job<>(sender, query, show);
+
+        if (inFlight.putIfAbsent(job.senderKey, job) != null) {
+            sendMessage(sender, EnumChatFormatting.GRAY, "tempora.query.already_running");
+            return;
+        }
+
+        // Also replaces a worker that died, which shouldn't happen as each job catches what it throws.
+        if (worker == null || !worker.thread.isAlive()) {
+            worker = new Worker();
+            worker.thread.start();
+        }
+
+        if (!pending.offer(job)) {
+            inFlight.remove(job.senderKey, job);
+            sendMessage(sender, EnumChatFormatting.RED, "tempora.query.server_busy");
+        }
+    }
+
+    /**
+     * The query thread's read-only connection to a logger's database. Only callable from a {@link Query}, so no
+     * lookup can run SQL on the server thread by mistake.
+     */
+    public static Connection connection(GenericLogger<?> logger) throws SQLException {
+        Worker current = currentWorker.get();
+        if (current == null) {
+            throw new IllegalStateException("Tempora databases are only read on the Tempora-Query thread.");
+        }
+        return current.connection(logger);
+    }
+
+    /**
+     * Throws {@link QueryTimedOutException} if the running lookup is past its time limit. Call on the query thread
+     * after a query fails, as SQLite reports the abort as an ordinary error.
+     */
+    public static void throwIfTimedOut() {
+        Worker current = currentWorker.get();
+        if (current != null && current.pastDeadline()) throw new QueryTimedOutException();
+    }
+
+    /** Shows finished lookups, and tells senders whose lookup is slow that it's still going. Every server tick. */
+    public static void onServerTick() {
+        Job<?> job;
+        while ((job = finished.poll()) != null) {
+            inFlight.remove(job.senderKey, job);
+            job.showOnServerThread();
+        }
+
+        long now = System.currentTimeMillis();
+        for (Job<?> waiting : inFlight.values()) {
+            if (!waiting.searchingNoticeSent && now - waiting.submittedAt >= SEARCHING_NOTICE_MILLISECONDS) {
+                waiting.searchingNoticeSent = true;
+                ICommandSender sender = waiting.findSender();
+                if (sender != null) sendMessage(sender, EnumChatFormatting.GRAY, "tempora.query.searching");
+            }
+        }
+    }
+
+    /**
+     * Stops the query thread, cancelling the running query and dropping the rest, and closes its connections. Before
+     * the loggers close their databases.
+     */
+    public static void onServerClose() {
+        if (worker != null) {
+            worker.stop();
+            worker = null;
+        }
+
+        pending.clear();
+        finished.clear();
+        inFlight.clear();
+    }
+
+    private static void sendMessage(ICommandSender sender, EnumChatFormatting colour, String key, Object... args) {
+        IChatComponent message = new ChatComponentTranslation(key, args);
+        message.getChatStyle()
+            .setColor(colour);
+        sender.addChatMessage(message);
+    }
+
+    // The query thread and what only it touches. A new one per server, so one that fails to stop in time can't share
+    // anything with the next.
+    private static final class Worker {
+
+        private final Thread thread = new Thread(this::run, "Tempora-Query");
+        private volatile boolean stopping;
+        // When the running lookup must stop by, in System.nanoTime(). Query thread only.
+        private long deadlineNanos;
+        // One read-only connection per logger, opened on first use. Query thread only.
+        private final Map<GenericLogger<?>, Connection> connections = new HashMap<>();
+
+        Worker() {
+            // Only reads, so there is nothing to finish before the JVM exits.
+            thread.setDaemon(true);
+        }
+
+        private void run() {
+            currentWorker.set(this);
+            try {
+                while (!stopping) {
+                    Job<?> job;
+                    try {
+                        job = pending.take();
+                    } catch (InterruptedException e) {
+                        // How stop() wakes this thread.
+                        continue;
+                    }
+
+                    deadlineNanos = System.nanoTime() + TimeUnit.SECONDS.toNanos(queryTimeLimitSeconds);
+                    job.runOnQueryThread();
+                    if (!stopping) finished.add(job);
+                }
+            } finally {
+                closeConnections();
+            }
+        }
+
+        boolean pastDeadline() {
+            return System.nanoTime() > deadlineNanos;
+        }
+
+        Connection connection(GenericLogger<?> logger) throws SQLException {
+            Connection conn = connections.get(logger);
+            if (conn != null) return conn;
+
+            conn = logger.getDatabaseManager()
+                .getReadOnlyConnection();
+            // SQLite calls this every so often while a query runs, on this thread. Non-zero aborts the query.
+            ProgressHandler.setHandler(conn, PROGRESS_CHECK_INTERVAL, new ProgressHandler() {
+
+                @Override
+                protected int progress() {
+                    return stopping || pastDeadline() ? 1 : 0;
+                }
+            });
+            connections.put(logger, conn);
+            return conn;
+        }
+
+        void stop() {
+            stopping = true;
+            // Wakes the thread if it is waiting for work. A running query notices `stopping` instead.
+            thread.interrupt();
+            try {
+                thread.join(STOP_TIMEOUT_MILLISECONDS);
+            } catch (InterruptedException e) {
+                Thread.currentThread()
+                    .interrupt();
+            }
+            if (thread.isAlive()) LOG.error("Tempora-Query did not stop in time, leaving it to finish on its own.");
+        }
+
+        private void closeConnections() {
+            for (Map.Entry<GenericLogger<?>, Connection> entry : connections.entrySet()) {
+                try {
+                    entry.getValue()
+                        .close();
+                } catch (SQLException e) {
+                    LOG.error(
+                        "Could not close the lookup connection to {}.",
+                        entry.getKey()
+                            .getLoggerName(),
+                        e);
+                }
+            }
+            connections.clear();
+        }
+    }
+
+    private static final class Job<T> {
+
+        // Players are found again by UUID when the result is shown, as they may have logged off or respawned (a new
+        // EntityPlayerMP) in the meantime. Other senders, such as the console, are kept as they are.
+        private final @Nullable UUID playerUUID;
+        private final @Nullable ICommandSender otherSender;
+        private final String senderKey;
+        private final Query<T> query;
+        private final Show<T> show;
+        private final long submittedAt = System.currentTimeMillis();
+        // Server thread only.
+        private boolean searchingNoticeSent;
+
+        // Set on the query thread, read on the server thread after `finished` hands the job over.
+        private T result;
+        private Throwable failure;
+
+        Job(ICommandSender sender, Query<T> query, Show<T> show) {
+            if (sender instanceof EntityPlayerMP player) {
+                playerUUID = player.getUniqueID();
+                otherSender = null;
+                senderKey = playerUUID.toString();
+            } else {
+                playerUUID = null;
+                otherSender = sender;
+                senderKey = "sender:" + sender.getCommandSenderName();
+            }
+            this.query = query;
+            this.show = show;
+        }
+
+        void runOnQueryThread() {
+            try {
+                result = query.run();
+            } catch (Throwable t) {
+                // Errors too: the sender is still waiting on this job, and the thread must live on for everyone else.
+                failure = t;
+            }
+        }
+
+        void showOnServerThread() {
+            ICommandSender sender = findSender();
+            if (sender == null) return;
+
+            if (failure instanceof QueryTimedOutException) {
+                sendMessage(sender, EnumChatFormatting.RED, "tempora.query.timed_out", queryTimeLimitSeconds);
+                return;
+            }
+            if (failure != null) {
+                LOG.error("A Tempora lookup failed.", failure);
+                sendMessage(
+                    sender,
+                    EnumChatFormatting.RED,
+                    "tempora.query.failed",
+                    String.valueOf(failure.getMessage()));
+                return;
+            }
+
+            try {
+                show.show(sender, result);
+            } catch (RuntimeException e) {
+                // Must not escape into the server tick.
+                LOG.error("Could not show a Tempora lookup's results.", e);
+                sendMessage(sender, EnumChatFormatting.RED, "tempora.query.failed", String.valueOf(e.getMessage()));
+            }
+        }
+
+        @Nullable
+        ICommandSender findSender() {
+            if (playerUUID == null) return otherSender;
+
+            for (Object o : MinecraftServer.getServer()
+                .getConfigurationManager().playerEntityList) {
+                EntityPlayerMP player = (EntityPlayerMP) o;
+                if (playerUUID.equals(player.getUniqueID())) return player;
+            }
+            return null;
+        }
+    }
+}

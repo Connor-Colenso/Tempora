@@ -17,6 +17,7 @@ import com.colen.tempora.commands.TraceCommand;
 import com.colen.tempora.events.ServerTickHandler;
 import com.colen.tempora.items.TemporaWand;
 import com.colen.tempora.loggers.generic.GenericLogger;
+import com.colen.tempora.loggers.generic.TemporaQueries;
 import com.colen.tempora.regions.TemporaRegionRegistry;
 import com.colen.tempora.rendering.ClientRegionStore;
 
@@ -93,6 +94,9 @@ public class Tempora {
 
     @Mod.EventHandler
     public void serverStopping(FMLServerStoppingEvent event) {
+        // Before the loggers close their databases, as it reads them.
+        TemporaQueries.onServerClose();
+
         if (isServerSide()) {
             GenericLogger.onServerClose();
         }

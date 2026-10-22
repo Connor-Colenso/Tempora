@@ -3,7 +3,6 @@ package com.colen.tempora.commands;
 import static com.colen.tempora.Tempora.NETWORK;
 import static com.colen.tempora.utils.ReflectionUtils.getAllTableColumns;
 
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -24,6 +23,7 @@ import com.colen.tempora.loggers.generic.GenericEventInfo;
 import com.colen.tempora.loggers.generic.GenericLogger;
 import com.colen.tempora.loggers.generic.PositionalEventInfo;
 import com.colen.tempora.loggers.generic.RenderEventPacket;
+import com.colen.tempora.loggers.generic.TemporaQueries;
 import com.colen.tempora.loggers.generic.column.ColumnDef;
 import com.colen.tempora.utils.CommandUtils;
 
@@ -52,7 +52,6 @@ public class SqlCommand extends TemporaSubcommand {
             return;
         }
 
-        EntityPlayerMP entityPlayerMP = (EntityPlayerMP) sender;
         String rawQuery = String.join(" ", args);
 
         // Find logger by name.
@@ -83,79 +82,98 @@ public class SqlCommand extends TemporaSubcommand {
             return;
         }
 
-        // Execute the query read-only
-        try {
-            // Ensure the user has all the columns needed
-            List<ColumnDef> columns = getAllTableColumns(targetLogger);
+        // Ensure the user has all the columns needed
+        List<ColumnDef> columns = getAllTableColumns(targetLogger);
 
-            List<String> missing = findMissingColumns(rawQuery, columns);
-            if (!missing.isEmpty()) {
-                ChatComponentTranslation missingColsMsg = new ChatComponentTranslation(
-                    "tempora.command.sql.missing_columns",
-                    String.join(", ", missing));
-                missingColsMsg.getChatStyle()
-                    .setColor(EnumChatFormatting.RED);
-                sender.addChatMessage(missingColsMsg);
+        List<String> missing = findMissingColumns(rawQuery, columns);
+        if (!missing.isEmpty()) {
+            ChatComponentTranslation missingColsMsg = new ChatComponentTranslation(
+                "tempora.command.sql.missing_columns",
+                String.join(", ", missing));
+            missingColsMsg.getChatStyle()
+                .setColor(EnumChatFormatting.RED);
+            sender.addChatMessage(missingColsMsg);
 
-                ChatComponentTranslation adviceMsg = new ChatComponentTranslation(
-                    "tempora.command.sql.missing_columns.advice");
-                adviceMsg.getChatStyle()
-                    .setColor(EnumChatFormatting.RED);
-                sender.addChatMessage(adviceMsg);
+            ChatComponentTranslation adviceMsg = new ChatComponentTranslation(
+                "tempora.command.sql.missing_columns.advice");
+            adviceMsg.getChatStyle()
+                .setColor(EnumChatFormatting.RED);
+            sender.addChatMessage(adviceMsg);
 
-                return;
+            return;
+        }
+
+        GenericLogger<?> logger = targetLogger;
+
+        // Execute the query read-only, on the query thread. A mistake in the query is the sender's to fix, so it is
+        // shown to them rather than failing the lookup.
+        TemporaQueries.submit(sender, () -> {
+            try {
+                return new SqlOutcome(executeReadOnlyQuery(logger, rawQuery), null);
+            } catch (SQLException e) {
+                TemporaQueries.throwIfTimedOut();
+                return new SqlOutcome(null, e);
             }
+        }, (target, outcome) -> showOutcome(target, logger, outcome));
+    }
 
-            List<? extends GenericEventInfo> output = executeReadOnlyQuery(targetLogger, rawQuery);
-
-            // We do this first, to not bury the info below, in case of a long response.
-            for (GenericEventInfo eventData : output) {
-                sender.addChatMessage(eventData.localiseText());
-
-                // Render info. Global events have no position to draw.
-                if (eventData instanceof PositionalEventInfo positionalEvent) {
-                    NETWORK.sendTo(new RenderEventPacket(positionalEvent), entityPlayerMP);
-                }
-            }
-
-            if (output.isEmpty()) {
-                ChatComponentTranslation noResultsMsg = new ChatComponentTranslation(
-                    "tempora.command.sql.no_results_in",
-                    targetLogger.getLoggerName());
-                noResultsMsg.getChatStyle()
-                    .setColor(EnumChatFormatting.GRAY);
-                sender.addChatMessage(noResultsMsg);
-            } else if (output.size() == MAX_RESULTS_TO_SHOW) {
-                ChatComponentTranslation queryMsg = new ChatComponentTranslation(
-                    "tempora.command.sql.query_quantity_if_max",
-                    output.size(),
-                    MAX_RESULTS_TO_SHOW);
-                queryMsg.getChatStyle()
-                    .setColor(EnumChatFormatting.GRAY);
-                sender.addChatMessage(queryMsg);
-            } else {
-                ChatComponentTranslation queryMsg = new ChatComponentTranslation(
-                    "tempora.command.sql.query_quantity",
-                    output.size());
-                queryMsg.getChatStyle()
-                    .setColor(EnumChatFormatting.GRAY);
-                sender.addChatMessage(queryMsg);
-            }
-
-        } catch (SQLException e) {
+    private static void showOutcome(ICommandSender sender, GenericLogger<?> logger, SqlOutcome outcome) {
+        if (outcome.error != null) {
             ChatComponentTranslation errorMsg = new ChatComponentTranslation(
                 "tempora.command.sql.error",
-                e.getMessage());
+                outcome.error.getMessage());
             errorMsg.getChatStyle()
                 .setColor(EnumChatFormatting.RED);
             sender.addChatMessage(errorMsg);
-        } catch (Exception e) {
-            ChatComponentTranslation errorMsg = new ChatComponentTranslation(
-                "tempora.command.sql.generic_unknown_error",
-                e.getMessage());
-            errorMsg.getChatStyle()
-                .setColor(EnumChatFormatting.RED);
-            sender.addChatMessage(errorMsg);
+            return;
+        }
+
+        List<? extends GenericEventInfo> output = outcome.events;
+
+        // We do this first, to not bury the info below, in case of a long response.
+        for (GenericEventInfo eventData : output) {
+            sender.addChatMessage(eventData.localiseText());
+
+            // Render info. Global events have no position to draw.
+            if (eventData instanceof PositionalEventInfo positionalEvent && sender instanceof EntityPlayerMP player) {
+                NETWORK.sendTo(new RenderEventPacket(positionalEvent), player);
+            }
+        }
+
+        if (output.isEmpty()) {
+            ChatComponentTranslation noResultsMsg = new ChatComponentTranslation(
+                "tempora.command.sql.no_results_in",
+                logger.getLoggerName());
+            noResultsMsg.getChatStyle()
+                .setColor(EnumChatFormatting.GRAY);
+            sender.addChatMessage(noResultsMsg);
+        } else if (output.size() == MAX_RESULTS_TO_SHOW) {
+            ChatComponentTranslation queryMsg = new ChatComponentTranslation(
+                "tempora.command.sql.query_quantity_if_max",
+                output.size(),
+                MAX_RESULTS_TO_SHOW);
+            queryMsg.getChatStyle()
+                .setColor(EnumChatFormatting.GRAY);
+            sender.addChatMessage(queryMsg);
+        } else {
+            ChatComponentTranslation queryMsg = new ChatComponentTranslation(
+                "tempora.command.sql.query_quantity",
+                output.size());
+            queryMsg.getChatStyle()
+                .setColor(EnumChatFormatting.GRAY);
+            sender.addChatMessage(queryMsg);
+        }
+    }
+
+    // What the query thread found: the events, or the error SQLite gave.
+    private static final class SqlOutcome {
+
+        final List<? extends GenericEventInfo> events;
+        final SQLException error;
+
+        SqlOutcome(List<? extends GenericEventInfo> events, SQLException error) {
+            this.events = events;
+            this.error = error;
         }
     }
 
@@ -184,18 +202,15 @@ public class SqlCommand extends TemporaSubcommand {
             .startsWith("select");
     }
 
-    private List<? extends GenericEventInfo> executeReadOnlyQuery(GenericLogger<?> logger, String sql)
+    // On the query thread. The connection is read-only, and the lookup time limit stops a query that runs too long.
+    private static List<? extends GenericEventInfo> executeReadOnlyQuery(GenericLogger<?> logger, String sql)
         throws SQLException {
 
-        try (Connection roConn = logger.getDatabaseManager()
-            .getReadOnlyConnection(); PreparedStatement stmt = roConn.prepareStatement(sql)) {
-
-            // Enforce read-only again, just in-case.
-            roConn.setReadOnly(true);
+        try (PreparedStatement stmt = TemporaQueries.connection(logger)
+            .prepareStatement(sql)) {
 
             // Limit number of rows returned
             stmt.setMaxRows(MAX_RESULTS_TO_SHOW);
-            // stmt.setQueryTimeout(1); // seconds todo config & find way to make this work as SQLite ignores it.
 
             try (ResultSet rs = stmt.executeQuery()) {
                 return logger.generateQueryResults(rs);

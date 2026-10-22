@@ -3,7 +3,6 @@ package com.colen.tempora.loggers.generic;
 import static com.colen.tempora.Tempora.LOG;
 import static com.colen.tempora.utils.ReflectionUtils.getAllTableColumns;
 
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -332,22 +331,48 @@ public abstract class GenericLogger<EventInfo extends GenericEventInfo> {
     // Lookups
     // --------------------------------------
 
+    /**
+     * One logger's part of a lookup: found on the query thread, then shown on the server thread. See
+     * {@link TemporaQueries}.
+     */
+    @FunctionalInterface
+    public interface FoundEvents {
+
+        // Sends them to the sender, on the server thread. Returns how many were shown.
+        int show(ICommandSender sender);
+    }
+
     @FunctionalInterface
     interface QueryParameters {
 
         void set(PreparedStatement statement) throws SQLException;
     }
 
-    // Runs a read-only query on this logger's database, returning its events in the order the query gives them.
+    /**
+     * Runs a read-only query on this logger's database, returning its events in the order the query gives them. Only
+     * on the query thread, see {@link TemporaQueries}. Throws {@link TemporaQueries.QueryTimedOutException} if the
+     * lookup ran out of time.
+     */
     final List<EventInfo> queryEvents(String sql, QueryParameters parameters) throws SQLException {
-        try (Connection conn = databaseManager.getReadOnlyConnection();
-            PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (PreparedStatement ps = TemporaQueries.connection(this)
+            .prepareStatement(sql)) {
             parameters.set(ps);
 
             try (ResultSet rs = ps.executeQuery()) {
                 return generateQueryResults(rs);
             }
+        } catch (SQLException e) {
+            TemporaQueries.throwIfTimedOut();
+            throw e;
         }
+    }
+
+    // What a lookup shows for this logger when its query failed.
+    final FoundEvents queryFailed(SQLException e) {
+        return sender -> {
+            sendQueryFailed(sender, e);
+            return 0;
+        };
     }
 
     /**

@@ -54,6 +54,11 @@ tempora.command.lookup.header.latest=(latest %s)
 tempora.command.lookup.header.hover=Click to search only %s.
 tempora.command.lookup.too_many_pending=%s events are still waiting to be saved, so the newest may be missing.
 tempora.command.lookup.query_failed=Database query failed on %s: %s
+tempora.query.searching=Searching...
+tempora.query.already_running=Your last lookup is still running, try again once it has finished.
+tempora.query.server_busy=Too many lookups are waiting, try again in a moment.
+tempora.query.timed_out=The lookup hit its time limit (%ss) and was stopped. Try narrowing it down, e.g. with a shorter time.
+tempora.query.failed=The lookup failed: %s
 tempora.command.lookup.nothing_found=Nothing was logged within %s blocks of you in the last %s.
 tempora.command.lookup.global_logger=%s isn't tied to a place, so it can't be looked up around you. Use %s instead.
 
@@ -72,7 +77,6 @@ tempora.command.home.result=Player %s is most active in dim %s, click %s to visi
 tempora.command.home.unknown_player=No player called '%s' has joined this server.
 tempora.command.home.no_db=Movement logging is disabled, so there is no movement history to search.
 tempora.command.home.no_data=No movement data found for that query.
-tempora.command.home.sql_error=Database error while querying movement data, see console for details.
 
 tempora.command.sql.description=Runs a read-only SELECT query against a logger's database and shows the results in chat, for investigations /tempora lookup can't express.
 tempora.command.sql.arg0=A read-only SELECT query. The table name is the full logger name, e.g. PlayerMovementLogger.
@@ -81,7 +85,6 @@ tempora.command.sql.missing_columns=Query missing required columns: %s
 tempora.command.sql.missing_columns.advice=It is highly recommended to use SELECT * instead of specifying columns.
 tempora.command.sql.no_results_in=No results found in %s.
 tempora.command.sql.error=SQL Error: %s.
-tempora.command.sql.generic_unknown_error=Generic unknown error (Please report).
 tempora.command.sql.query_quantity=Found %s matching results.
 tempora.command.sql.query_quantity_if_max=Showing the first %s results (server limit: %s). Additional matches may be hidden.
 tempora.command.sql.invalid_table=The query must name a logger table: %s.

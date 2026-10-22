@@ -2,6 +2,8 @@ package com.colen.tempora.config;
 
 import net.minecraftforge.common.config.Configuration;
 
+import com.colen.tempora.loggers.generic.TemporaQueries;
+
 public class Config {
 
     private static final String DEBUG_CATEGORY = "Debug";
@@ -24,6 +26,10 @@ public class Config {
             DEBUG_CATEGORY,
             false,
             "Prevents the server shutting down if logging has not finished, by default we wait 10 seconds and then shut down.");
+
+        TemporaQueries.loadConfig(configuration);
+
+        if (configuration.hasChanged()) configuration.save();
 
     }
 }

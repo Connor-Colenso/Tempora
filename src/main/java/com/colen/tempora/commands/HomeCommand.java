@@ -1,10 +1,8 @@
 package com.colen.tempora.commands;
 
-import static com.colen.tempora.Tempora.LOG;
 import static com.colen.tempora.TemporaEvents.PLAYER_MOVEMENT;
 import static com.colen.tempora.utils.CommandUtils.teleportChatComponent;
 
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -24,6 +22,7 @@ import com.colen.tempora.TemporaLoggerManager;
 import com.colen.tempora.commands.command_base.CommandFilters;
 import com.colen.tempora.commands.command_base.TemporaSubcommand;
 import com.colen.tempora.loggers.generic.GenericLogger;
+import com.colen.tempora.loggers.generic.TemporaQueries;
 import com.colen.tempora.utils.CommandUtils;
 import com.colen.tempora.utils.PlayerUtils;
 import com.colen.tempora.utils.TimeUtils;
@@ -111,49 +110,69 @@ public class HomeCommand extends TemporaSubcommand {
             .append("WHERE  m.playerUUID = ? ");
         if (lookBackCutoffEpoch != null) sql.append("AND m.timestamp >= ? ");
 
-        try (Connection conn = movementLogger.getDatabaseManager()
-            .getReadOnlyConnection(); PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+        // On the query thread. Null if the player has no movement matching the filters.
+        TemporaQueries.Query<HomeChunk> query = () -> {
+            try (PreparedStatement stmt = TemporaQueries.connection(movementLogger)
+                .prepareStatement(sql.toString())) {
 
-            int i = 1;
+                int i = 1;
 
-            // params for hot CTE
-            stmt.setString(i++, uuid);
-            if (forcedDim != null) stmt.setInt(i++, forcedDim);
-            if (lookBackCutoffEpoch != null) stmt.setLong(i++, lookBackCutoffEpoch);
+                // params for hot CTE
+                stmt.setString(i++, uuid);
+                if (forcedDim != null) stmt.setInt(i++, forcedDim);
+                if (lookBackCutoffEpoch != null) stmt.setLong(i++, lookBackCutoffEpoch);
 
-            // params for outer WHERE
-            stmt.setString(i++, uuid);
-            if (lookBackCutoffEpoch != null) stmt.setLong(i, lookBackCutoffEpoch);
+                // params for outer WHERE
+                stmt.setString(i++, uuid);
+                if (lookBackCutoffEpoch != null) stmt.setLong(i, lookBackCutoffEpoch);
 
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (!rs.next() || rs.getObject("home_x") == null) {
-                    sender.addChatMessage(new ChatComponentTranslation("tempora.command.home.no_data"));
-                    return;
+                try (ResultSet rs = stmt.executeQuery()) {
+                    if (!rs.next() || rs.getObject("home_x") == null) return null;
+
+                    return new HomeChunk(
+                        rs.getDouble("home_x"),
+                        rs.getDouble("home_y"),
+                        rs.getDouble("home_z"),
+                        rs.getInt("dimensionID"));
                 }
+            } catch (SQLException e) {
+                TemporaQueries.throwIfTimedOut();
+                throw e;
+            }
+        };
 
-                double homeX = rs.getDouble("home_x");
-                double homeY = rs.getDouble("home_y");
-                double homeZ = rs.getDouble("home_z");
-                int homeDim = rs.getInt("dimensionID");
-
-                IChatComponent tpLink = teleportChatComponent(
-                    homeX,
-                    homeY,
-                    homeZ,
-                    homeDim,
-                    CommandUtils.TeleportType.EXACT);
-
-                sender.addChatMessage(
-                    new ChatComponentTranslation(
-                        "tempora.command.home.result",
-                        PlayerUtils.playerNameFromUUID(uuid),
-                        homeDim,
-                        tpLink));
+        TemporaQueries.submit(sender, query, (target, home) -> {
+            if (home == null) {
+                target.addChatMessage(new ChatComponentTranslation("tempora.command.home.no_data"));
+                return;
             }
 
-        } catch (SQLException e) {
-            LOG.error("Home chunk query failed.", e);
-            sendError(sender, "tempora.command.home.sql_error");
+            IChatComponent tpLink = teleportChatComponent(
+                home.x,
+                home.y,
+                home.z,
+                home.dimension,
+                CommandUtils.TeleportType.EXACT);
+
+            target.addChatMessage(
+                new ChatComponentTranslation(
+                    "tempora.command.home.result",
+                    PlayerUtils.playerNameFromUUID(uuid),
+                    home.dimension,
+                    tpLink));
+        });
+    }
+
+    private static final class HomeChunk {
+
+        final double x, y, z;
+        final int dimension;
+
+        HomeChunk(double x, double y, double z, int dimension) {
+            this.x = x;
+            this.y = y;
+            this.z = z;
+            this.dimension = dimension;
         }
     }
 
