@@ -199,6 +199,35 @@ command text/arguments, plus server-wide weather and TPS, retained for the confi
 `oldestDataCutoff` window. Any operator can
 query this data via `/tempora sql` or `/tempora lookup`.
 
+## Testing
+
+Tempora's in-game tests use [Horizon-QA](https://github.com/GTNewHorizons/Horizon-QA) and live in
+`com.colen.tempora.gametests`. CI runs them on every push. To run them yourself, on a dedicated dev server that runs
+the tests and stops:
+
+```
+./gradlew runServer "--mcJvmArgs=-Dhorizonqa.mode=ci" "--mcJvmArgs=-Dhorizonqa.tests=tempora"
+```
+
+Point `level-name` in `run/server/server.properties` at a new world first: the tests build in the world, and a new
+one is made empty for them.
+
+### Testing in the full pack
+
+`./gradlew runFullPackClient` downloads the latest [GTNH daily build](https://github.com/GTNewHorizons/GTNH-Daily-Builds),
+swaps your build of Tempora into it and launches the whole pack (Java 8). `./gradlew runFullPackServer` does the same
+for the Java 17+ server. Add `--debug-jvm` or use your IDE's Debug action on the task to attach a debugger. Each run
+checks for a newer daily and moves to it, keeping your worlds and settings, so client and server stay able to connect;
+`-PfullPack.update=false` (or `--offline`) stays on the installed one, and `-PfullPack.tag=<daily>` pins one.
+Instances live in `run/fullpack`. Installing the server sets it up for a dev client to join (`online-mode=false`,
+`white-list=false`) and accepts the [Minecraft EULA](https://aka.ms/MinecraftEULA) (`-PfullPack.acceptEula=false` to
+do that yourself); after that, your changes to `server.properties` and `eula.txt` are kept.
+
+`./gradlew runFullPackServerTests` also injects Horizon-QA and runs every in-game test in the pack, Tempora's and those
+other mods ship (GT5, AE2, ...), on a fresh world, then stops; it fails if a test does. Narrow it with
+`-PfullPack.tests=tempora`. Reports go to `build/horizonqa-fullpack`. See
+[gradle/fullpack.gradle.kts](gradle/fullpack.gradle.kts) for all options.
+
 ## License
 
 MIT — see [LICENSE](src/main/resources/LICENSE).
