@@ -60,6 +60,8 @@ public abstract class GenericLogger<EventInfo extends GenericEventInfo> {
     // Started for the current server: database open, worker running (until it crashes, see isRunning).
     private volatile boolean started;
     private volatile long lastQueueFullWarning;
+    // Set by requestPrune: the worker deletes old data next time round rather than waiting for the next scheduled time.
+    private volatile boolean pruneRequested;
 
     private static volatile boolean loggersStarted;
 
@@ -217,6 +219,10 @@ public abstract class GenericLogger<EventInfo extends GenericEventInfo> {
 
         try {
             while (!abandonQueue) {
+                if (pruneRequested) {
+                    pruneRequested = false;
+                    nextPruneTime = 0;
+                }
                 boolean pruneDue = System.currentTimeMillis() >= nextPruneTime;
                 // No waiting for events while there is old data left to prune, or once shutting down.
                 long pollTimeout = pruneDue || shuttingDownDatabaseThread ? 0 : QUEUE_POLL_TIMEOUT_MILLISECONDS;
@@ -542,6 +548,14 @@ public abstract class GenericLogger<EventInfo extends GenericEventInfo> {
                 concurrentEventQueue.size());
             queueWorkerThread.join();
         }
+    }
+
+    /**
+     * Has the worker delete data older than oldestDataCutoff within about a second, rather than at its next scheduled
+     * time (every 10 minutes). Used by the tests.
+     */
+    public void requestPrune() {
+        pruneRequested = true;
     }
 
     public int getQueueSize() {
