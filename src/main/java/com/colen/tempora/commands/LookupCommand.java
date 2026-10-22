@@ -13,6 +13,7 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
+import net.minecraft.util.MathHelper;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -62,9 +63,10 @@ public class LookupCommand extends TemporaSubcommand {
         showEvents(
             player,
             loggers,
-            (int) Math.round(player.posX),
-            (int) Math.round(player.posY),
-            (int) Math.round(player.posZ),
+            // The block the player stands in. Rounding would pick the next block over once past its middle.
+            MathHelper.floor_double(player.posX),
+            MathHelper.floor_double(player.posY),
+            MathHelper.floor_double(player.posZ),
             radius,
             seconds,
             new ChatComponentTranslation("tempora.command.lookup.nothing_found", radius, time));

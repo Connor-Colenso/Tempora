@@ -83,19 +83,20 @@ public abstract class GenericPositionalLogger<EventInfo extends PositionalEventI
     }
 
     /**
-     * Finds the latest events within a cube of the given radius around a position, on the query thread (see
-     * {@link TemporaQueries}). A radius of 0 means exactly that block. Negative seconds means no time limit. Showing
-     * them lists them in chat and draws them in the world, or says nothing if there are none, so callers checking many
-     * loggers can report that once.
+     * Finds the latest events within a cube of blocks around a block, {@code radius} blocks out in each direction, on
+     * the query thread (see {@link TemporaQueries}). A radius of 0 means exactly that block. Negative seconds means no
+     * time limit. Showing them lists them in chat and draws them in the world, or says nothing if there are none, so
+     * callers checking many loggers can report that once.
      */
     public final FoundEvents findEventsNear(int dimensionId, int centreX, int centreY, int centreZ, int radius,
         long seconds) {
 
+        // Whole blocks: block n covers n <= x < n + 1, so a mob or player standing in it (x = n + 0.5) is found too.
         String sql = String.format("""
             SELECT * FROM %s
-            WHERE x BETWEEN ? AND ?
-              AND y BETWEEN ? AND ?
-              AND z BETWEEN ? AND ?
+            WHERE x >= ? AND x < ?
+              AND y >= ? AND y < ?
+              AND z >= ? AND z < ?
               AND dimensionID = ?
               AND timestamp >= ?
             ORDER BY timestamp DESC
@@ -107,15 +108,15 @@ public abstract class GenericPositionalLogger<EventInfo extends PositionalEventI
             events = queryEvents(sql, ps -> {
                 // X range
                 ps.setInt(1, centreX - radius);
-                ps.setInt(2, centreX + radius);
+                ps.setInt(2, centreX + radius + 1);
 
                 // Y range
                 ps.setInt(3, centreY - radius);
-                ps.setInt(4, centreY + radius);
+                ps.setInt(4, centreY + radius + 1);
 
                 // Z range
                 ps.setInt(5, centreZ - radius);
-                ps.setInt(6, centreZ + radius);
+                ps.setInt(6, centreZ + radius + 1);
 
                 // Dimension ID
                 ps.setInt(7, dimensionId);

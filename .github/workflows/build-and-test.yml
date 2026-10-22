@@ -11,3 +11,9 @@ jobs:
   build-and-test:
     uses: GTNewHorizons/GTNH-Actions-Workflows/.github/workflows/build-and-test.yml@master
     secrets: inherit
+    with:
+      timeout: 150
+      # Runs the in-game tests in com.colen.tempora.gametests. Only Tempora's: the GT5 and AE2 dev jars on the
+      # classpath bring their own tests, which are theirs to run.
+      horizonqa: true
+      horizonqa-tests: tempora

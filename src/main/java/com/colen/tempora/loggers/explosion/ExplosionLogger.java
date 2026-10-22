@@ -66,7 +66,9 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionEventInfo>
             explosion.explosionX,
             explosion.explosionY,
             explosion.explosionZ,
-            explosion.explosionSize,
+            // Explosion.doExplosionA doubles explosionSize while it hurts entities, and fires this event in between,
+            // so a creeper (3) would be logged as 6.
+            explosion.explosionSize / 2f,
             exploder,
             explosion.affectedBlockPositions);
     }
