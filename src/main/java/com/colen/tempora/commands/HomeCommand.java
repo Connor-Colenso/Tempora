@@ -50,7 +50,7 @@ public class HomeCommand extends TemporaSubcommand {
             return;
         }
 
-        CommandFilters filters = CommandFilters.parse(sender, args, 1, "t", "dim");
+        CommandFilters filters = CommandFilters.parse(this, sender, args, 1, "t", "dim");
         if (filters == null) return;
 
         String time = filters.get("t");

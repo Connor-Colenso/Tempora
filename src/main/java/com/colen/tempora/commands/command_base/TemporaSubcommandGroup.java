@@ -51,12 +51,22 @@ public class TemporaSubcommandGroup extends TemporaSubcommand {
 
     @Override
     public void execute(ICommandSender sender, String[] args) {
-        if (args.length == 0) {
+        if (args.length == 0 || isHelpRequest(args)) {
             sendCommandList(sender);
             return;
         }
 
         TemporaSubcommand child = children.get(args[0].toLowerCase(Locale.ROOT));
+        String[] childArgs = Arrays.copyOfRange(args, 1, args.length);
+
+        // "/tempora lookup ?" shows the help page, from the console too.
+        if (child != null && !(child instanceof TemporaSubcommandGroup)
+            && !child.isHidden()
+            && isHelpRequest(childArgs)) {
+            child.sendHelp(sender);
+            return;
+        }
+
         if (child == null) {
             IChatComponent unknown = new ChatComponentTranslation("tempora.command.unknown", args[0]);
             unknown.getChatStyle()
@@ -71,7 +81,11 @@ public class TemporaSubcommandGroup extends TemporaSubcommand {
             return;
         }
 
-        child.execute(sender, Arrays.copyOfRange(args, 1, args.length));
+        child.execute(sender, childArgs);
+    }
+
+    private static boolean isHelpRequest(String[] args) {
+        return args.length == 1 && args[0].equals("?");
     }
 
     @Override

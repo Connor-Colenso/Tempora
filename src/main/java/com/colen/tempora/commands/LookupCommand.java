@@ -56,7 +56,7 @@ public class LookupCommand extends TemporaSubcommand {
     public void execute(ICommandSender sender, String[] args) {
         EntityPlayerMP player = (EntityPlayerMP) sender;
 
-        CommandFilters filters = CommandFilters.parse(sender, args, 0, "r", "t", "l", "p", "n");
+        CommandFilters filters = CommandFilters.parse(this, sender, args, 0, "r", "t", "l", "p", "n");
         if (filters == null) return;
 
         int radius = CommandBase.parseIntWithMin(sender, filters.get("r", DEFAULT_RADIUS), 1);

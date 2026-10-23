@@ -1,16 +1,10 @@
 package com.colen.tempora.commands;
 
-import static com.colen.tempora.utils.ChatUtils.createCenteredLine;
-
 import java.util.Arrays;
 import java.util.List;
 
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
-import net.minecraft.util.ChatComponentText;
-import net.minecraft.util.ChatComponentTranslation;
-import net.minecraft.util.EnumChatFormatting;
-import net.minecraft.util.IChatComponent;
 
 import com.colen.tempora.commands.command_base.TemporaSubcommand;
 import com.colen.tempora.commands.command_base.TemporaSubcommandGroup;
@@ -46,32 +40,7 @@ public class HelpCommand extends TemporaSubcommand {
             return;
         }
 
-        // E.g. ----------- region set -----------
-        sender.addChatMessage(createCenteredLine(command.getPath()));
-
-        sender.addChatMessage(labelled("tempora.command.help.label.description", command.getDescription()));
-        sender.addChatMessage(labelled("tempora.command.help.label.usage", new ChatComponentText(command.getUsage())));
-
-        String exampleArgs = command.getExampleArgs();
-        sender.addChatMessage(
-            labelled(
-                "tempora.command.help.label.example",
-                new ChatComponentText(exampleArgs.isEmpty() ? command.command() : command.command(exampleArgs))));
-
-        for (IChatComponent argument : command.getArgumentDescriptions()) {
-            sender.addChatMessage(argument);
-        }
-    }
-
-    // E.g. "Usage: ..." with the label in yellow and the value in white.
-    private static IChatComponent labelled(String labelKey, IChatComponent value) {
-        value.getChatStyle()
-            .setColor(EnumChatFormatting.WHITE);
-
-        IChatComponent line = new ChatComponentTranslation(labelKey, value);
-        line.getChatStyle()
-            .setColor(EnumChatFormatting.YELLOW);
-        return line;
+        command.sendHelp(sender);
     }
 
     // Completes command names one level at a time, e.g. "region" then "set".

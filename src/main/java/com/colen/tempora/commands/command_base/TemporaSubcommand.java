@@ -1,5 +1,7 @@
 package com.colen.tempora.commands.command_base;
 
+import static com.colen.tempora.utils.ChatUtils.createCenteredLine;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -126,17 +128,56 @@ public abstract class TemporaSubcommand {
         return descriptions;
     }
 
+    // The full help page, shown by /tempora help <path> and by typing ? after the command.
+    public void sendHelp(ICommandSender sender) {
+        // E.g. ----------- region set -----------
+        sender.addChatMessage(createCenteredLine(path));
+
+        sender.addChatMessage(labelled("tempora.command.help.label.description", getDescription()));
+        sender.addChatMessage(labelled("tempora.command.help.label.usage", new ChatComponentText(getUsage())));
+
+        String exampleArgs = getExampleArgs();
+        sender.addChatMessage(
+            labelled(
+                "tempora.command.help.label.example",
+                new ChatComponentText(exampleArgs.isEmpty() ? command() : command(exampleArgs))));
+
+        for (IChatComponent argument : getArgumentDescriptions()) {
+            sender.addChatMessage(argument);
+        }
+    }
+
+    // E.g. "Usage: ..." with the label in yellow and the value in white.
+    private static IChatComponent labelled(String labelKey, IChatComponent value) {
+        value.getChatStyle()
+            .setColor(EnumChatFormatting.WHITE);
+
+        IChatComponent line = new ChatComponentTranslation(labelKey, value);
+        line.getChatStyle()
+            .setColor(EnumChatFormatting.YELLOW);
+        return line;
+    }
+
     protected final void sendUsageError(ICommandSender sender) {
         IChatComponent usage = new ChatComponentTranslation("tempora.command.usage", getUsage());
         usage.getChatStyle()
             .setColor(EnumChatFormatting.RED);
         sender.addChatMessage(usage);
 
-        IChatComponent hint = new ChatComponentTranslation(
-            "tempora.command.usage.hint",
-            "/" + TemporaCommand.NAME + " help " + path);
+        sendHelpHint(sender);
+    }
+
+    // "See /tempora help lookup for details.", clickable to show it.
+    final void sendHelpHint(ICommandSender sender) {
+        String helpCommand = "/" + TemporaCommand.NAME + " help " + path;
+        IChatComponent hint = new ChatComponentTranslation("tempora.command.usage.hint", helpCommand);
         hint.getChatStyle()
-            .setColor(EnumChatFormatting.GRAY);
+            .setColor(EnumChatFormatting.GRAY)
+            .setChatClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, helpCommand))
+            .setChatHoverEvent(
+                new HoverEvent(
+                    HoverEvent.Action.SHOW_TEXT,
+                    new ChatComponentTranslation("tempora.command.usage.hint.hover")));
         sender.addChatMessage(hint);
     }
 

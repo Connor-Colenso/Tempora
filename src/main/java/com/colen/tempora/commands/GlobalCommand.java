@@ -41,7 +41,7 @@ public class GlobalCommand extends TemporaSubcommand {
 
     @Override
     public void execute(ICommandSender sender, String[] args) {
-        CommandFilters filters = CommandFilters.parse(sender, args, 0, "t", "l", "n");
+        CommandFilters filters = CommandFilters.parse(this, sender, args, 0, "t", "l", "n");
         if (filters == null) return;
 
         TimeWindow window = TimeWindow.parse(filters.get("t", DEFAULT_TIME));

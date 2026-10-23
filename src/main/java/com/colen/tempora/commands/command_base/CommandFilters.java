@@ -29,8 +29,11 @@ public final class CommandFilters {
         this.values = values;
     }
 
-    // Parses args from index "from" onwards. Null, after telling the sender why, if one isn't a known key:value.
-    public static @Nullable CommandFilters parse(ICommandSender sender, String[] args, int from, String... keys) {
+    // Parses args from index "from" onwards. Null, after telling the sender why and what each of the command's
+    // arguments
+    // does, if one isn't a known key:value.
+    public static @Nullable CommandFilters parse(TemporaSubcommand command, ICommandSender sender, String[] args,
+        int from, String... keys) {
         Set<String> allowed = new HashSet<>(Arrays.asList(keys));
         Map<String, String> values = new HashMap<>();
 
@@ -51,6 +54,11 @@ public final class CommandFilters {
                 error.getChatStyle()
                     .setColor(EnumChatFormatting.RED);
                 sender.addChatMessage(error);
+
+                for (IChatComponent argument : command.getArgumentDescriptions()) {
+                    sender.addChatMessage(argument);
+                }
+                command.sendHelpHint(sender);
                 return null;
             }
 
