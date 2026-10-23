@@ -1,9 +1,12 @@
 package com.colen.tempora.loggers.inventory;
 
+import java.util.List;
+
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.IChatComponent;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 
@@ -106,6 +109,12 @@ public class InventoryLogger extends GenericPositionalLogger<InventoryEventInfo>
         }
 
         logEvent(eventInfo, dimension, x, y, z);
+    }
+
+    @Override
+    protected void addSettingsInfo(List<IChatComponent> lines) {
+        super.addSettingsInfo(lines);
+        lines.add(settingLine(logNBT ? "tempora.logger.setting.nbt_items.on" : "tempora.logger.setting.nbt_items.off"));
     }
 
     @Override

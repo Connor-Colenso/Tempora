@@ -1,6 +1,9 @@
 package com.colen.tempora.loggers.tps;
 
+import java.util.List;
+
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.IChatComponent;
 import net.minecraftforge.common.config.Configuration;
 
 import org.jetbrains.annotations.NotNull;
@@ -47,6 +50,12 @@ public class TPSLogger extends GenericGlobalLogger<TPSEventInfo> {
     @Override
     public @NotNull LoggerEventType getLoggerEventType() {
         return LoggerEventType.MinecraftEvent;
+    }
+
+    @Override
+    protected void addSettingsInfo(List<IChatComponent> lines) {
+        super.addSettingsInfo(lines);
+        lines.add(settingLine("tempora.logger.setting.interval", duration(loggingIntervalSeconds)));
     }
 
     @Override

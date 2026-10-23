@@ -317,6 +317,11 @@ public class LoggerDatabase {
         }
     }
 
+    // How long events are kept, from oldestDataCutoff. Known once the database has opened.
+    public long getOldestDataMilliseconds() {
+        return oldestDataMilliseconds;
+    }
+
     public void genericConfig(@NotNull Configuration config) {
         oldestDataCutoff = config.getString(
             "oldestDataCutoff",

@@ -1,7 +1,10 @@
 package com.colen.tempora.loggers.player_movement;
 
+import java.util.List;
+
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.util.IChatComponent;
 import net.minecraftforge.common.config.Configuration;
 
 import org.jetbrains.annotations.NotNull;
@@ -40,6 +43,12 @@ public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovement
     }
 
     private int playerMovementLoggingInterval;
+
+    @Override
+    protected void addSettingsInfo(List<IChatComponent> lines) {
+        super.addSettingsInfo(lines);
+        lines.add(settingLine("tempora.logger.setting.interval", ticks(playerMovementLoggingInterval)));
+    }
 
     @Override
     public void handleCustomLoggerConfig(Configuration config) {

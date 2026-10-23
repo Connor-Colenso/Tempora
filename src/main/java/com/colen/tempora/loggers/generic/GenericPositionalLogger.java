@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.util.IChatComponent;
 import net.minecraftforge.common.config.Configuration;
 
 import com.colen.tempora.commands.TemporaCommand;
@@ -36,6 +37,14 @@ public abstract class GenericPositionalLogger<EventInfo extends PositionalEventI
     // Whether this logger records events where no region has a rule for it.
     public boolean logsByDefault() {
         return logByDefault;
+    }
+
+    // Where it records: everywhere unless a region turns it off, or only where a region turns it on.
+    @Override
+    protected void addSettingsInfo(List<IChatComponent> lines) {
+        super.addSettingsInfo(lines);
+        lines.add(
+            settingLine(logByDefault ? "tempora.logger.setting.everywhere" : "tempora.logger.setting.regions_only"));
     }
 
     // The smallest region here with a rule for this logger decides, otherwise logByDefault does.

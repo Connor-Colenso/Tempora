@@ -18,6 +18,7 @@ import net.minecraft.util.IChatComponent;
 import net.minecraft.util.StatCollector;
 import net.minecraftforge.common.util.FakePlayer;
 
+import com.colen.tempora.chat.ChatComponentWrappedTranslation;
 import com.colen.tempora.loggers.generic.GenericEventInfo;
 import com.colen.tempora.loggers.generic.GenericGlobalLogger;
 import com.colen.tempora.loggers.generic.GenericLogger;
@@ -168,13 +169,30 @@ final class TestSupport {
             String format = StatCollector.translateToLocal(key);
             Object[] args = translation.getFormatArgs();
             helper.assertEquals(
-                (long) placeholderCount(format),
+                placeholderCount(format),
                 args.length,
                 context + ": wrong number of arguments for " + key + " (\"" + format + "\")");
 
             for (Object arg : args) {
                 if (arg instanceof IChatComponent argComponent) {
                     assertChatWellFormed(helper, argComponent, context);
+                }
+            }
+        }
+
+        // Translated on the client, so its key and arguments are only checked here.
+        if (component instanceof ChatComponentWrappedTranslation wrapped) {
+            String key = wrapped.getKey();
+            helper.assertTrue(StatCollector.canTranslate(key), context + ": missing translation for " + key);
+            String format = StatCollector.translateToLocal(key);
+            helper.assertEquals(
+                placeholderCount(format),
+                wrapped.getArgs()
+                    .size(),
+                context + ": wrong number of arguments for " + key + " (\"" + format + "\")");
+            for (Object arg : wrapped.getArgs()) {
+                if (arg instanceof ChatComponentWrappedTranslation nested) {
+                    assertChatWellFormed(helper, nested, context);
                 }
             }
         }

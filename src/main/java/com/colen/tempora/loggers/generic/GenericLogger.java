@@ -20,12 +20,14 @@ import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
+import net.minecraft.util.StatCollector;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
 
 import org.jetbrains.annotations.NotNull;
 
 import com.colen.tempora.TemporaLoggerManager;
+import com.colen.tempora.chat.ChatComponentWrappedTranslation;
 import com.colen.tempora.enums.LoggerEventType;
 import com.colen.tempora.loggers.generic.column.ColumnDef;
 import com.colen.tempora.utils.PlayerUtils;
@@ -117,6 +119,84 @@ public abstract class GenericLogger<EventInfo extends GenericEventInfo> {
 
     // What players type and see in commands, e.g. "break". Unlike getLoggerName, this can be changed freely.
     public abstract @NotNull String getShortName();
+
+    /**
+     * This logger's name in chat, e.g. "Player block breaks", from the translation key
+     * {@code tempora.logger.<logger name>.name}, translated on the client. A logger from another mod adds the key to
+     * its own lang file; without it, chat shows the short name.
+     */
+    public final IChatComponent getDisplayName() {
+        String key = translationKey("name");
+        return StatCollector.canTranslate(key) ? new ChatComponentTranslation(key)
+            : new ChatComponentText(getShortName());
+    }
+
+    // What the logger records, from tempora.logger.<logger name>.description, wrapped and translated on the client.
+    public final IChatComponent getDescription() {
+        String key = translationKey("description");
+        return new ChatComponentWrappedTranslation(
+            StatCollector.canTranslate(key) ? key : "tempora.logger.no_description");
+    }
+
+    // The [Info] hover in lookups: what this logger records, then how the server has it set up, one grey line each.
+    public final IChatComponent getInfoHover() {
+        IChatComponent hover = new ChatComponentText("");
+        hover.appendSibling(getDescription());
+
+        List<IChatComponent> settings = new ArrayList<>();
+        addSettingsInfo(settings);
+        settings.add(
+            settingLine(
+                "tempora.logger.setting.retention",
+                duration(databaseManager.getOldestDataMilliseconds() / 1000)));
+        for (IChatComponent setting : settings) {
+            setting.getChatStyle()
+                .setColor(EnumChatFormatting.GRAY);
+            hover.appendSibling(new ChatComponentText("\n"))
+                .appendSibling(setting);
+        }
+        return hover;
+    }
+
+    /**
+     * Adds a line for each of this logger's server settings worth knowing when reading its events, e.g. whether it
+     * saves NBT, to the [Info] hover in lookups. How long events are kept is always added last. Override to add your
+     * own after calling super, with {@link #settingLine}: each line is translated on the client, with the values this
+     * server uses.
+     */
+    protected void addSettingsInfo(List<IChatComponent> lines) {}
+
+    /** A settings line: a translation key and its arguments, each a string or another settingLine or duration. */
+    protected static ChatComponentWrappedTranslation settingLine(String key, Object... args) {
+        return new ChatComponentWrappedTranslation(key, args);
+    }
+
+    // Seconds as the largest unit that divides them exactly, e.g. "4 months" or "10 seconds", translated on the client.
+    protected static ChatComponentWrappedTranslation duration(long seconds) {
+        long[] unitSeconds = { 31_557_600L, 2_592_000L, 604_800L, 86_400L, 3_600L, 60L, 1L };
+        String[] units = { "year", "month", "week", "day", "hour", "minute", "second" };
+        for (int i = 0; i < units.length; i++) {
+            if (seconds > 0 && seconds % unitSeconds[i] == 0) {
+                long count = seconds / unitSeconds[i];
+                return new ChatComponentWrappedTranslation(
+                    "tempora.duration." + units[i] + (count == 1 ? ".one" : ".many"),
+                    String.valueOf(count));
+            }
+        }
+        return new ChatComponentWrappedTranslation("tempora.duration.second.many", String.valueOf(seconds));
+    }
+
+    // Server ticks as a duration, or as ticks when they aren't a whole number of seconds.
+    protected static ChatComponentWrappedTranslation ticks(int ticks) {
+        if (ticks % 20 == 0) return duration(ticks / 20);
+        return new ChatComponentWrappedTranslation(
+            ticks == 1 ? "tempora.duration.tick.one" : "tempora.duration.tick.many",
+            String.valueOf(ticks));
+    }
+
+    private String translationKey(String part) {
+        return "tempora.logger." + getLoggerName() + "." + part;
+    }
 
     public void handleCustomLoggerConfig(Configuration config) {}
 
@@ -392,10 +472,17 @@ public abstract class GenericLogger<EventInfo extends GenericEventInfo> {
 
         int eventsFound = newestFirst.size();
 
-        IChatComponent name = new ChatComponentText(getShortName());
+        // E.g. "Player block breaks (3) [Info]". The name searches this logger alone when clicked.
+        IChatComponent nameHover = new ChatComponentTranslation(
+            "tempora.command.lookup.header.hover",
+            getDisplayName());
+        nameHover.getChatStyle()
+            .setColor(EnumChatFormatting.GRAY);
+        IChatComponent name = getDisplayName();
         name.getChatStyle()
-            .setColor(EnumChatFormatting.WHITE)
-            .setBold(true);
+            .setColor(EnumChatFormatting.GOLD)
+            .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, nameHover))
+            .setChatClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, narrowCommand));
 
         IChatComponent count = new ChatComponentTranslation(
             eventsFound >= limit ? "tempora.command.lookup.header.latest" : "tempora.command.lookup.header.count",
@@ -403,15 +490,14 @@ public abstract class GenericLogger<EventInfo extends GenericEventInfo> {
         count.getChatStyle()
             .setColor(EnumChatFormatting.GRAY);
 
-        IChatComponent hover = new ChatComponentTranslation("tempora.command.lookup.header.hover", getShortName());
-        hover.getChatStyle()
-            .setColor(EnumChatFormatting.GRAY);
+        IChatComponent info = new ChatComponentTranslation("tempora.chat.info");
+        info.getChatStyle()
+            .setColor(EnumChatFormatting.DARK_AQUA)
+            .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, getInfoHover()));
 
-        IChatComponent header = new ChatComponentTranslation("tempora.command.lookup.header", name, count);
+        IChatComponent header = new ChatComponentTranslation("tempora.command.lookup.header", name, count, info);
         header.getChatStyle()
-            .setColor(EnumChatFormatting.GOLD)
-            .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hover))
-            .setChatClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, narrowCommand));
+            .setColor(EnumChatFormatting.GRAY);
         sender.addChatMessage(header);
 
         // If events waiting to process is large, then warn the user.

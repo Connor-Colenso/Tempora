@@ -11,11 +11,17 @@ import java.util.concurrent.TimeUnit;
 import net.minecraft.block.Block;
 import net.minecraft.entity.passive.EntityPig;
 import net.minecraft.init.Blocks;
+import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.IChatComponent;
+import net.minecraft.util.StatCollector;
 import net.minecraftforge.common.util.FakePlayer;
 
 import com.colen.tempora.Tempora;
 import com.colen.tempora.TemporaEvents;
+import com.colen.tempora.TemporaLoggerManager;
+import com.colen.tempora.chat.ChatComponentWrappedTranslation;
 import com.colen.tempora.commands.LookupCommand;
+import com.colen.tempora.loggers.generic.GenericLogger;
 import com.colen.tempora.loggers.generic.GenericLogger.FoundEvents;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.PositionalEventInfo;
@@ -129,13 +135,57 @@ public class LookupTests {
                         .show(chat),
                     "events shown");
             })
-            .thenExecute(
-                "the header says these are the latest",
-                () -> helper.assertTrue(
-                    chat.text()
-                        .contains("(latest 5)"),
-                    "expected a \"(latest 5)\" header, got:\n" + chat.text()))
+            .thenExecute("the header names the logger and says these are the latest", () -> {
+                IChatComponent header = chat.getMessages()
+                    .get(0);
+                helper.assertEquals("Player block breaks (latest 5) [Info]", header.getUnformattedText(), "header");
+                TestSupport.assertChatWellFormed(helper, header, "header");
+
+                // Chat reaches the client as JSON. The [Info] hover's description must arrive as the component that
+                // translates and wraps it there, not as text already translated by the server.
+                IChatComponent received = IChatComponent.Serializer
+                    .func_150699_a(IChatComponent.Serializer.func_150696_a(header));
+                helper.assertEquals(header.getUnformattedText(), received.getUnformattedText(), "header after JSON");
+                IChatComponent info = (IChatComponent) ((ChatComponentTranslation) received).getFormatArgs()[2];
+                IChatComponent hover = info.getChatStyle()
+                    .getChatHoverEvent()
+                    .getValue();
+                helper.assertInstanceOf(
+                    ChatComponentWrappedTranslation.class,
+                    hover.getSiblings()
+                        .get(0),
+                    "[Info] hover description after JSON");
+
+                // The last line, how long events are kept, holds its duration as a translation of its own.
+                List<?> lines = hover.getSiblings();
+                ChatComponentWrappedTranslation retention = helper.assertInstanceOf(
+                    ChatComponentWrappedTranslation.class,
+                    lines.get(lines.size() - 1),
+                    "[Info] retention line after JSON");
+                helper.assertEquals("tempora.logger.setting.retention", retention.getKey(), "retention key");
+                helper.assertInstanceOf(
+                    ChatComponentWrappedTranslation.class,
+                    retention.getArgs()
+                        .get(0),
+                    "retention duration after JSON");
+            })
             .thenSucceed();
+    }
+
+    // Lookups name each logger and describe it on hover, so every logger needs both in the lang file.
+    @GameTest
+    public static void everyLoggerHasNameAndDescription(GameTestHelper helper) {
+        for (GenericLogger<?> logger : TemporaLoggerManager.getLoggerList()) {
+            String prefix = "tempora.logger." + logger.getLoggerName();
+            helper.assertTrue(StatCollector.canTranslate(prefix + ".name"), "missing " + prefix + ".name");
+            helper
+                .assertTrue(StatCollector.canTranslate(prefix + ".description"), "missing " + prefix + ".description");
+            TestSupport.assertChatWellFormed(helper, logger.getDisplayName(), logger.getLoggerName() + " name");
+            TestSupport.assertChatWellFormed(helper, logger.getDescription(), logger.getLoggerName() + " description");
+            // The description and a line for each of the server's settings, e.g. how long events are kept.
+            TestSupport.assertChatWellFormed(helper, logger.getInfoHover(), logger.getLoggerName() + " [Info]");
+        }
+        helper.succeed();
     }
 
     // l: takes short or full names, ignores repeats, and refuses unknown and global loggers with a message.

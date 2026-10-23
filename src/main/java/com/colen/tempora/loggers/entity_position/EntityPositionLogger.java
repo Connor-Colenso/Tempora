@@ -3,10 +3,13 @@ package com.colen.tempora.loggers.entity_position;
 import static com.colen.tempora.utils.GenericUtils.entityRegistryName;
 import static com.colen.tempora.utils.GenericUtils.isClientSide;
 
+import java.util.List;
+
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.item.EntityXPOrb;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.util.IChatComponent;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
 
@@ -37,6 +40,12 @@ public class EntityPositionLogger extends GenericPositionalLogger<EntityPosition
     }
 
     private static int entityMovementLoggingInterval;
+
+    @Override
+    protected void addSettingsInfo(List<IChatComponent> lines) {
+        super.addSettingsInfo(lines);
+        lines.add(settingLine("tempora.logger.setting.interval", ticks(entityMovementLoggingInterval)));
+    }
 
     @Override
     public void handleCustomLoggerConfig(Configuration config) {
