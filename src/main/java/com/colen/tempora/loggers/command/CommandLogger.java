@@ -17,6 +17,12 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
 public class CommandLogger extends GenericPositionalLogger<CommandEventInfo> {
 
+    // The player who ran the command.
+    @Override
+    protected String playerColumn() {
+        return "playerUUID";
+    }
+
     @Override
     public @NotNull String getLoggerName() {
         return TemporaEvents.COMMAND;

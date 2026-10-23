@@ -27,6 +27,12 @@ import cpw.mods.fml.common.gameevent.TickEvent.PlayerTickEvent;
 // would cause the dimension to load, which we want to keep track of.
 public class PlayerPositionLogger extends GenericPositionalLogger<PlayerPositionEventInfo> {
 
+    // The player who was there.
+    @Override
+    protected String playerColumn() {
+        return "playerUUID";
+    }
+
     @Override
     public @NotNull String getLoggerName() {
         return TemporaEvents.PLAYER_POSITION;

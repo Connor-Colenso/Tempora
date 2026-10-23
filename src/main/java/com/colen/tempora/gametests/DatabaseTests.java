@@ -25,6 +25,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.colen.tempora.Tempora;
 import com.colen.tempora.TemporaEvents;
+import com.colen.tempora.commands.LookupCommand;
 import com.colen.tempora.enums.LoggerEventType;
 import com.colen.tempora.loggers.generic.GenericLogger;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
@@ -34,8 +35,10 @@ import com.colen.tempora.loggers.generic.column.Column;
 import com.colen.tempora.loggers.generic.column.ColumnDef;
 import com.colen.tempora.loggers.player_block_break.PlayerBlockBreakEventInfo;
 import com.colen.tempora.utils.DatabaseUtils;
+import com.colen.tempora.utils.PlayerFilter;
 import com.colen.tempora.utils.PlayerUtils;
 import com.colen.tempora.utils.ReflectionUtils;
+import com.colen.tempora.utils.TimeWindow;
 import com.gtnewhorizons.horizonqa.api.GameTestHelper;
 import com.gtnewhorizons.horizonqa.api.TestPos;
 import com.gtnewhorizons.horizonqa.api.annotation.GameTest;
@@ -280,7 +283,17 @@ public class DatabaseTests {
                     .clear();
                 helper.assertEquals(
                     2L,
-                    lookup.poll(() -> logger.findEventsNear(dim, pos.x(), pos.y(), pos.z(), 0, -1))
+                    lookup
+                        .poll(
+                            () -> logger.findEventsNear(
+                                dim,
+                                pos.x(),
+                                pos.y(),
+                                pos.z(),
+                                0,
+                                TimeWindow.allTime(),
+                                PlayerFilter.anyone(),
+                                LookupCommand.DEFAULT_COUNT))
                         .show(chat),
                     "events shown");
             })

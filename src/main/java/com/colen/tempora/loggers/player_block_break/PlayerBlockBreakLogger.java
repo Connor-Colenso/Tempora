@@ -30,6 +30,12 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
 public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockBreakEventInfo> {
 
+    // The player who broke the block.
+    @Override
+    protected String playerColumn() {
+        return "playerUUID";
+    }
+
     @Override
     public @NotNull String getLoggerName() {
         return TemporaEvents.PLAYER_BLOCK_BREAK;

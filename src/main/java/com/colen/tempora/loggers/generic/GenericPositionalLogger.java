@@ -8,10 +8,14 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.IChatComponent;
 import net.minecraftforge.common.config.Configuration;
 
+import org.jetbrains.annotations.Nullable;
+
 import com.colen.tempora.commands.TemporaCommand;
 import com.colen.tempora.regions.LogRule;
 import com.colen.tempora.regions.TemporaRegionRegistry;
 import com.colen.tempora.regions.TemporaWorldRegion;
+import com.colen.tempora.utils.PlayerFilter;
+import com.colen.tempora.utils.TimeWindow;
 
 /**
  * A logger for events that happen at a place, such as a block breaking or a mob dying. Each event is stored with its
@@ -22,14 +26,20 @@ import com.colen.tempora.regions.TemporaWorldRegion;
 @SuppressWarnings("SqlDialectInspection")
 public abstract class GenericPositionalLogger<EventInfo extends PositionalEventInfo> extends GenericLogger<EventInfo> {
 
-    private static final int MAX_RESULTS = 5;
-
     private boolean logByDefault;
 
     // Default value of the logByDefault config option. Override to return false for loggers that would produce too
     // much data to run everywhere, so they only log inside regions that turn them on.
     protected boolean defaultForLogByDefault() {
         return true;
+    }
+
+    /**
+     * The column holding the UUID of the player behind each event, which the p: filter of /tempora lookup matches.
+     * Null if its events have no player, in which case a lookup filtered by player finds none of them.
+     */
+    protected @Nullable String playerColumn() {
+        return null;
     }
 
     // Whether this logger records events where no region has a rule for it.
@@ -90,13 +100,17 @@ public abstract class GenericPositionalLogger<EventInfo extends PositionalEventI
     }
 
     /**
-     * Finds the latest events within a cube of blocks around a block, {@code radius} blocks out in each direction, on
-     * the query thread (see {@link TemporaQueries}). A radius of 0 means exactly that block. Negative seconds means no
-     * time limit. Showing them lists them in chat and draws them in the world, or says nothing if there are none, so
-     * callers checking many loggers can report that once.
+     * Finds the latest events, up to {@code limit} of them, within a cube of blocks around a block, {@code radius}
+     * blocks out in each direction, on the query thread (see {@link TemporaQueries}). A radius of 0 means exactly that
+     * block. Showing them lists them in chat and draws them in the world, or says nothing if there are none, so callers
+     * checking many loggers can report that once.
      */
     public final FoundEvents findEventsNear(int dimensionId, int centreX, int centreY, int centreZ, int radius,
-        long seconds) {
+        TimeWindow window, PlayerFilter players, int limit) {
+
+        // Without a player column, no event here can match a player filter.
+        String playerColumn = playerColumn();
+        if (!players.isAnyone() && playerColumn == null) return sender -> 0;
 
         // Whole blocks: block n covers n <= x < n + 1, so a mob or player standing in it (x = n + 0.5) is found too.
         String sql = String.format("""
@@ -105,14 +119,16 @@ public abstract class GenericPositionalLogger<EventInfo extends PositionalEventI
               AND y >= ? AND y < ?
               AND z >= ? AND z < ?
               AND dimensionID = ?
-              AND timestamp >= ?
+              AND timestamp >= ? AND timestamp <= ?%s
             ORDER BY timestamp DESC
             LIMIT ?;
-            """, getLoggerName());
+            """, getLoggerName(), players.isAnyone() ? "" : players.sqlCondition(playerColumn));
 
         List<EventInfo> events;
         try {
             events = queryEvents(sql, ps -> {
+                long now = System.currentTimeMillis();
+
                 // X range
                 ps.setInt(1, centreX - radius);
                 ps.setInt(2, centreX + radius + 1);
@@ -128,17 +144,18 @@ public abstract class GenericPositionalLogger<EventInfo extends PositionalEventI
                 // Dimension ID
                 ps.setInt(7, dimensionId);
 
-                // Don't apply any timestamp filter for negative seconds, fetch everything.
-                ps.setLong(8, seconds < 0 ? 0 : System.currentTimeMillis() - seconds * 1000L);
+                ps.setLong(8, window.oldestMillis(now));
+                ps.setLong(9, window.newestMillis(now));
 
-                ps.setInt(9, MAX_RESULTS);
+                int next = players.bind(ps, 10);
+                ps.setInt(next, limit);
             });
         } catch (SQLException e) {
             return queryFailed(e);
         }
 
         return guarded(sender -> {
-            sendEventsInChat(sender, events, MAX_RESULTS, TemporaCommand.LOOKUP.command("l:" + getShortName()));
+            sendEventsInChat(sender, events, limit, TemporaCommand.LOOKUP.command("l:" + getShortName()));
 
             // This tells the client what to render in the world, if anything. Not if the player has changed dimension
             // since looking, as the client only draws events in the dimension it is in.

@@ -25,7 +25,9 @@ import com.colen.tempora.regions.TemporaWorldRegion;
 import com.colen.tempora.rendering.ClientRegionStore;
 import com.colen.tempora.rendering.regions.RegionRenderMode;
 import com.colen.tempora.utils.CommandUtils;
+import com.colen.tempora.utils.PlayerFilter;
 import com.colen.tempora.utils.PlayerUtils;
+import com.colen.tempora.utils.TimeWindow;
 
 public class TemporaWand extends Item {
 
@@ -108,7 +110,9 @@ public class TemporaWand extends Item {
                 y,
                 z,
                 0,
-                -1,
+                TimeWindow.allTime(),
+                PlayerFilter.anyone(),
+                LookupCommand.DEFAULT_COUNT,
                 new ChatComponentTranslation("tempora.wand.nothing_found"));
         }
     }

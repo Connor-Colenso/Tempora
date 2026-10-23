@@ -22,7 +22,7 @@ import com.colen.tempora.loggers.generic.GenericLogger;
 import com.colen.tempora.loggers.generic.GenericLogger.FoundEvents;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.TemporaQueries;
-import com.colen.tempora.utils.TimeUtils;
+import com.colen.tempora.utils.TimeWindow;
 
 /**
  * /tempora global [t:<time>] [l:<logger,...>] [n:<count>]
@@ -44,8 +44,7 @@ public class GlobalCommand extends TemporaSubcommand {
         CommandFilters filters = CommandFilters.parse(sender, args, 0, "t", "l", "n");
         if (filters == null) return;
 
-        String time = filters.get("t", DEFAULT_TIME);
-        long seconds = TimeUtils.convertToSeconds(time);
+        TimeWindow window = TimeWindow.parse(filters.get("t", DEFAULT_TIME));
         int count = CommandBase.parseIntBounded(sender, filters.get("n", DEFAULT_COUNT), 1, MAX_COUNT);
 
         List<GenericGlobalLogger<?>> loggers = parseLoggers(sender, filters.get("l"));
@@ -57,7 +56,7 @@ public class GlobalCommand extends TemporaSubcommand {
                 // A logger that is disabled, or failed to start, has no database to read.
                 if (logger.notStarted()) continue;
 
-                found.add(logger.findLatestEvents(seconds, count));
+                found.add(logger.findLatestEvents(window, count));
             }
             return found;
         }, (target, found) -> {
@@ -69,7 +68,7 @@ public class GlobalCommand extends TemporaSubcommand {
             if (shown == 0) {
                 IChatComponent nothingFound = new ChatComponentTranslation(
                     "tempora.command.global.nothing_found",
-                    time);
+                    window.describe());
                 nothingFound.getChatStyle()
                     .setColor(EnumChatFormatting.GRAY);
                 target.addChatMessage(nothingFound);
@@ -105,7 +104,7 @@ public class GlobalCommand extends TemporaSubcommand {
     @Override
     public List<String> tabComplete(ICommandSender sender, String[] args) {
         Map<String, List<String>> suggestions = new LinkedHashMap<>();
-        suggestions.put("t", Arrays.asList("1h", "1d", "3d", "1w", "1mo"));
+        suggestions.put("t", Arrays.asList("1h", "1d", "3d", "1w", "1mo", "3d-1d"));
         suggestions.put("l", TemporaLoggerManager.getGlobalShortNames());
         suggestions.put("n", Arrays.asList("10", "25", "50", "100"));
         return CommandFilters.complete(args, suggestions);

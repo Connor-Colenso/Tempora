@@ -21,6 +21,12 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
 public class ItemUseLogger extends GenericPositionalLogger<ItemUseEventInfo> {
 
+    // The player who used the item.
+    @Override
+    protected String playerColumn() {
+        return "playerUUID";
+    }
+
     @Override
     public @NotNull String getLoggerName() {
         return TemporaEvents.ITEM_USE;

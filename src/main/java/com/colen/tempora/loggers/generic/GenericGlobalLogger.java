@@ -4,6 +4,7 @@ import java.sql.SQLException;
 import java.util.List;
 
 import com.colen.tempora.commands.TemporaCommand;
+import com.colen.tempora.utils.TimeWindow;
 
 /**
  * A logger for events that belong to the whole server rather than a place, such as the weather changing or the
@@ -26,14 +27,13 @@ public abstract class GenericGlobalLogger<EventInfo extends GlobalEventInfo> ext
     }
 
     /**
-     * Finds the latest events, up to {@code limit} of them, on the query thread (see {@link TemporaQueries}). Negative
-     * seconds means no time limit. Showing them says nothing if there are none, so callers checking many loggers can
-     * report that once.
+     * Finds the latest events, up to {@code limit} of them, on the query thread (see {@link TemporaQueries}). Showing
+     * them says nothing if there are none, so callers checking many loggers can report that once.
      */
-    public final FoundEvents findLatestEvents(long seconds, int limit) {
+    public final FoundEvents findLatestEvents(TimeWindow window, int limit) {
         String sql = String.format("""
             SELECT * FROM %s
-            WHERE timestamp >= ?
+            WHERE timestamp >= ? AND timestamp <= ?
             ORDER BY timestamp DESC
             LIMIT ?;
             """, getLoggerName());
@@ -41,8 +41,10 @@ public abstract class GenericGlobalLogger<EventInfo extends GlobalEventInfo> ext
         List<EventInfo> events;
         try {
             events = queryEvents(sql, ps -> {
-                ps.setLong(1, seconds < 0 ? 0 : System.currentTimeMillis() - seconds * 1000L);
-                ps.setInt(2, limit);
+                long now = System.currentTimeMillis();
+                ps.setLong(1, window.oldestMillis(now));
+                ps.setLong(2, window.newestMillis(now));
+                ps.setInt(3, limit);
             });
         } catch (SQLException e) {
             return queryFailed(e);

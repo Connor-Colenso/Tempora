@@ -46,7 +46,7 @@ public class HomeCommand extends TemporaSubcommand {
 
         final String uuid = PlayerUtils.uuidFromName(args[0]);
         if (uuid == null) {
-            sendError(sender, "tempora.command.home.unknown_player", args[0]);
+            sendError(sender, "tempora.command.unknown_player", args[0]);
             return;
         }
 

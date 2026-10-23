@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import net.minecraft.block.Block;
+import net.minecraft.command.CommandException;
 import net.minecraft.entity.passive.EntityPig;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.ChatComponentTranslation;
@@ -26,6 +27,8 @@ import com.colen.tempora.loggers.generic.GenericLogger.FoundEvents;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.PositionalEventInfo;
 import com.colen.tempora.loggers.player_block_break.PlayerBlockBreakEventInfo;
+import com.colen.tempora.utils.PlayerFilter;
+import com.colen.tempora.utils.TimeWindow;
 import com.gtnewhorizons.horizonqa.api.GameTestHelper;
 import com.gtnewhorizons.horizonqa.api.TestPos;
 import com.gtnewhorizons.horizonqa.api.annotation.GameTest;
@@ -62,11 +65,35 @@ public class LookupTests {
             .thenWaitUntil(
                 "a radius of 3 finds both",
                 WRITE_TICKS,
-                () -> assertShown(helper, wide.poll(() -> logger.findEventsNear(dim, c.x(), c.y(), c.z(), 3, -1)), 2))
+                () -> assertShown(
+                    helper,
+                    wide.poll(
+                        () -> logger.findEventsNear(
+                            dim,
+                            c.x(),
+                            c.y(),
+                            c.z(),
+                            3,
+                            TimeWindow.allTime(),
+                            PlayerFilter.anyone(),
+                            LookupCommand.DEFAULT_COUNT)),
+                    2))
             .thenWaitUntil(
                 "a radius of 2 finds one",
                 WRITE_TICKS,
-                () -> assertShown(helper, narrow.poll(() -> logger.findEventsNear(dim, c.x(), c.y(), c.z(), 2, -1)), 1))
+                () -> assertShown(
+                    helper,
+                    narrow.poll(
+                        () -> logger.findEventsNear(
+                            dim,
+                            c.x(),
+                            c.y(),
+                            c.z(),
+                            2,
+                            TimeWindow.allTime(),
+                            PlayerFilter.anyone(),
+                            LookupCommand.DEFAULT_COUNT)),
+                    1))
             .thenSucceed();
     }
 
@@ -90,16 +117,302 @@ public class LookupTests {
                 WRITE_TICKS,
                 () -> assertShown(
                     helper,
-                    anyTime.poll(() -> logger.findEventsNear(dim, pos.x(), pos.y(), pos.z(), 0, -1)),
+                    anyTime.poll(
+                        () -> logger.findEventsNear(
+                            dim,
+                            pos.x(),
+                            pos.y(),
+                            pos.z(),
+                            0,
+                            TimeWindow.allTime(),
+                            PlayerFilter.anyone(),
+                            LookupCommand.DEFAULT_COUNT)),
                     2))
             .thenWaitUntil(
                 "the last day finds one",
                 WRITE_TICKS,
                 () -> assertShown(
                     helper,
-                    lastDay.poll(() -> logger.findEventsNear(dim, pos.x(), pos.y(), pos.z(), 0, DAY_SECONDS)),
+                    lastDay.poll(
+                        () -> logger.findEventsNear(
+                            dim,
+                            pos.x(),
+                            pos.y(),
+                            pos.z(),
+                            0,
+                            TimeWindow.last(DAY_SECONDS),
+                            PlayerFilter.anyone(),
+                            LookupCommand.DEFAULT_COUNT)),
                     1))
             .thenSucceed();
+    }
+
+    // t:3d-1d finds only what happened between 3 days and 1 day ago, whichever way round the range is written.
+    @GameTest(timeoutTicks = TIMEOUT_TICKS)
+    public static void timeRangeLimitsWhatIsFound(GameTestHelper helper) {
+        GenericPositionalLogger<PlayerBlockBreakEventInfo> logger = TemporaEvents.playerBlockBreakLogger;
+        FakePlayer player = fakePlayer(helper, "lookup_range");
+        TestPos block = at(2, 1, 2);
+        TestPos pos = helper.absolute(block);
+        int dim = helper.getWorld().provider.dimensionId;
+        int n = LookupCommand.DEFAULT_COUNT;
+        Probe<FoundEvents> lastThreeDays = new Probe<>(helper, "timeRangeLimitsWhatIsFound.lastThreeDays");
+        Probe<FoundEvents> range = new Probe<>(helper, "timeRangeLimitsWhatIsFound.range");
+        Probe<FoundEvents> reversed = new Probe<>(helper, "timeRangeLimitsWhatIsFound.reversed");
+
+        helper.startSequence()
+            .thenExecute("breaks five days ago, two days ago, and now", () -> {
+                logger.queueEventInfo(oldBreak(helper, player, pos, 5 * DAY_SECONDS));
+                logger.queueEventInfo(oldBreak(helper, player, pos, 2 * DAY_SECONDS));
+                breakNew(helper, player, block);
+            })
+            .thenWaitUntil(
+                "the last 3 days finds two",
+                WRITE_TICKS,
+                () -> assertShown(
+                    helper,
+                    lastThreeDays.poll(
+                        () -> logger.findEventsNear(
+                            dim,
+                            pos.x(),
+                            pos.y(),
+                            pos.z(),
+                            0,
+                            TimeWindow.parse("3d"),
+                            PlayerFilter.anyone(),
+                            n)),
+                    2))
+            .thenWaitUntil(
+                "3d-1d finds the one from two days ago",
+                WRITE_TICKS,
+                () -> assertShown(
+                    helper,
+                    range.poll(
+                        () -> logger.findEventsNear(
+                            dim,
+                            pos.x(),
+                            pos.y(),
+                            pos.z(),
+                            0,
+                            TimeWindow.parse("3d-1d"),
+                            PlayerFilter.anyone(),
+                            n)),
+                    1))
+            .thenWaitUntil(
+                "1d-3d finds the same",
+                WRITE_TICKS,
+                () -> assertShown(
+                    helper,
+                    reversed.poll(
+                        () -> logger.findEventsNear(
+                            dim,
+                            pos.x(),
+                            pos.y(),
+                            pos.z(),
+                            0,
+                            TimeWindow.parse("1d-3d"),
+                            PlayerFilter.anyone(),
+                            n)),
+                    1))
+            .thenSucceed();
+    }
+
+    // n: sets how many of the latest events are shown, and the header says "latest" only when there may be more.
+    @GameTest(timeoutTicks = TIMEOUT_TICKS)
+    public static void countLimitsWhatIsShown(GameTestHelper helper) {
+        GenericPositionalLogger<?> logger = TemporaEvents.playerBlockBreakLogger;
+        FakePlayer player = fakePlayer(helper, "lookup_count");
+        TestPos centre = helper.absolute(at(2, 1, 2));
+        int dim = helper.getWorld().provider.dimensionId;
+        Probe<FoundEvents> three = new Probe<>(helper, "countLimitsWhatIsShown.three");
+        Probe<FoundEvents> ten = new Probe<>(helper, "countLimitsWhatIsShown.ten");
+        CapturingSender chat = new CapturingSender("countLimitsWhatIsShown.chat", helper.getWorld());
+
+        helper.startSequence()
+            .thenExecute("break seven blocks", () -> {
+                for (int x = 0; x < 5; x++) breakNew(helper, player, at(x, 1, 2));
+                breakNew(helper, player, at(2, 1, 3));
+                breakNew(helper, player, at(2, 1, 1));
+            })
+            .thenWaitUntil(
+                "n:10 shows all seven",
+                WRITE_TICKS,
+                () -> assertShown(
+                    helper,
+                    ten.poll(
+                        () -> logger.findEventsNear(
+                            dim,
+                            centre.x(),
+                            centre.y(),
+                            centre.z(),
+                            2,
+                            TimeWindow.allTime(),
+                            PlayerFilter.anyone(),
+                            10)),
+                    7))
+            .thenWaitUntil("n:3 shows the latest three", WRITE_TICKS, () -> {
+                chat.getMessages()
+                    .clear();
+                helper.assertEquals(
+                    3L,
+                    three
+                        .poll(
+                            () -> logger.findEventsNear(
+                                dim,
+                                centre.x(),
+                                centre.y(),
+                                centre.z(),
+                                2,
+                                TimeWindow.allTime(),
+                                PlayerFilter.anyone(),
+                                3))
+                        .show(chat),
+                    "events shown");
+                helper.assertEquals(
+                    "Player block breaks (latest 3) [Info]",
+                    chat.getMessages()
+                        .get(0)
+                        .getUnformattedText(),
+                    "header");
+            })
+            .thenSucceed();
+    }
+
+    // p: shows only the named players' events, or with a ! everyone's but theirs, and can list several of either.
+    @GameTest(timeoutTicks = TIMEOUT_TICKS)
+    public static void playerFilterLimitsWhatIsFound(GameTestHelper helper) {
+        GenericPositionalLogger<?> logger = TemporaEvents.playerBlockBreakLogger;
+        FakePlayer alice = fakePlayer(helper, "lookup_alice");
+        FakePlayer bob = fakePlayer(helper, "lookup_bob");
+        String a = PositionalLoggerTests.uuid(alice);
+        String b = PositionalLoggerTests.uuid(bob);
+        TestPos centre = helper.absolute(at(2, 1, 2));
+        int dim = helper.getWorld().provider.dimensionId;
+        int n = LookupCommand.DEFAULT_COUNT;
+        Probe<FoundEvents> onlyAlice = new Probe<>(helper, "playerFilterLimitsWhatIsFound.onlyAlice");
+        Probe<FoundEvents> notAlice = new Probe<>(helper, "playerFilterLimitsWhatIsFound.notAlice");
+        Probe<FoundEvents> both = new Probe<>(helper, "playerFilterLimitsWhatIsFound.both");
+        Probe<FoundEvents> neither = new Probe<>(helper, "playerFilterLimitsWhatIsFound.neither");
+
+        helper.startSequence()
+            .thenExecute("alice breaks two blocks and bob one", () -> {
+                breakNew(helper, alice, at(1, 1, 2));
+                breakNew(helper, alice, at(2, 1, 2));
+                breakNew(helper, bob, at(3, 1, 2));
+            })
+            .thenWaitUntil(
+                "p:alice finds her two",
+                WRITE_TICKS,
+                () -> assertShown(
+                    helper,
+                    onlyAlice.poll(
+                        () -> logger.findEventsNear(
+                            dim,
+                            centre.x(),
+                            centre.y(),
+                            centre.z(),
+                            2,
+                            TimeWindow.allTime(),
+                            PlayerFilter.parse(a),
+                            n)),
+                    2))
+            .thenWaitUntil(
+                "p:!alice finds bob's one",
+                WRITE_TICKS,
+                () -> assertShown(
+                    helper,
+                    notAlice.poll(
+                        () -> logger.findEventsNear(
+                            dim,
+                            centre.x(),
+                            centre.y(),
+                            centre.z(),
+                            2,
+                            TimeWindow.allTime(),
+                            PlayerFilter.parse("!" + a),
+                            n)),
+                    1))
+            .thenWaitUntil(
+                "p:alice,bob finds all three",
+                WRITE_TICKS,
+                () -> assertShown(
+                    helper,
+                    both.poll(
+                        () -> logger.findEventsNear(
+                            dim,
+                            centre.x(),
+                            centre.y(),
+                            centre.z(),
+                            2,
+                            TimeWindow.allTime(),
+                            PlayerFilter.parse(a + "," + b),
+                            n)),
+                    3))
+            .thenWaitUntil(
+                "p:!alice,!bob finds none",
+                WRITE_TICKS,
+                () -> assertShown(
+                    helper,
+                    neither.poll(
+                        () -> logger.findEventsNear(
+                            dim,
+                            centre.x(),
+                            centre.y(),
+                            centre.z(),
+                            2,
+                            TimeWindow.allTime(),
+                            PlayerFilter.parse("!" + a + ",!" + b),
+                            n)),
+                    0))
+            .thenExecute("a logger with no player finds nothing when filtering by player", () -> {
+                CapturingSender chat = new CapturingSender("playerFilterLimitsWhatIsFound.spawn", helper.getWorld());
+                helper.assertEquals(
+                    0L,
+                    TemporaEvents.entitySpawnLogger
+                        .findEventsNear(
+                            dim,
+                            centre.x(),
+                            centre.y(),
+                            centre.z(),
+                            2,
+                            TimeWindow.allTime(),
+                            PlayerFilter.parse("!" + a),
+                            n)
+                        .show(chat),
+                    "spawns shown");
+            })
+            .thenExecute(
+                "an unknown player is refused",
+                () -> helper.assertThrows(
+                    CommandException.class,
+                    () -> PlayerFilter.parse("!no_such_player_ever"),
+                    "an unknown player was accepted"))
+            .thenSucceed();
+    }
+
+    // The t: filter's forms, and how "nothing found" messages describe them.
+    @GameTest
+    public static void timeWindowParsesAndDescribes(GameTestHelper helper) {
+        helper.assertEquals("in the last 6h", describe(helper, TimeWindow.parse("6h")), "t:6h");
+        helper.assertEquals("between 3d and 1d ago", describe(helper, TimeWindow.parse("3d-1d")), "t:3d-1d");
+        helper.assertEquals("between 3d and 1d ago", describe(helper, TimeWindow.parse("1d-3d")), "t:1d-3d");
+        helper.assertEquals("at any time", describe(helper, TimeWindow.allTime()), "all time");
+
+        long now = System.currentTimeMillis();
+        TimeWindow range = TimeWindow.parse("1d-3d");
+        helper.assertEquals(now - 3 * DAY_SECONDS * 1000, range.oldestMillis(now), "oldest of 1d-3d");
+        helper.assertEquals(now - DAY_SECONDS * 1000, range.newestMillis(now), "newest of 1d-3d");
+        helper.assertEquals(
+            Long.MAX_VALUE,
+            TimeWindow.parse("6h")
+                .newestMillis(now),
+            "6h runs up to now");
+
+        // The command system shows the exception's message to the sender.
+        for (String bad : new String[] { "3d-", "-1d", "3d-1d-1h", "soon" }) {
+            helper.assertThrows(CommandException.class, () -> TimeWindow.parse(bad), "t:" + bad + " was accepted");
+        }
+        helper.succeed();
     }
 
     // A lookup shows the newest few events, and its header says there may be more.
@@ -131,7 +444,17 @@ public class LookupTests {
                     .clear();
                 helper.assertEquals(
                     5L,
-                    lookup.poll(() -> logger.findEventsNear(dim, centre.x(), centre.y(), centre.z(), 2, -1))
+                    lookup
+                        .poll(
+                            () -> logger.findEventsNear(
+                                dim,
+                                centre.x(),
+                                centre.y(),
+                                centre.z(),
+                                2,
+                                TimeWindow.allTime(),
+                                PlayerFilter.anyone(),
+                                LookupCommand.DEFAULT_COUNT))
                         .show(chat),
                     "events shown");
             })
@@ -249,7 +572,16 @@ public class LookupTests {
                 WRITE_TICKS,
                 () -> assertShown(
                     helper,
-                    lookup.poll(() -> logger.findEventsNear(dim, pos.x(), pos.y(), pos.z(), 0, -1)),
+                    lookup.poll(
+                        () -> logger.findEventsNear(
+                            dim,
+                            pos.x(),
+                            pos.y(),
+                            pos.z(),
+                            0,
+                            TimeWindow.allTime(),
+                            PlayerFilter.anyone(),
+                            LookupCommand.DEFAULT_COUNT)),
                     1))
             .thenSucceed();
     }
@@ -276,6 +608,12 @@ public class LookupTests {
         event.playerUUID = PositionalLoggerTests.uuid(player);
         event.encodedNBT = "";
         return event;
+    }
+
+    private static String describe(GameTestHelper helper, TimeWindow window) {
+        IChatComponent description = window.describe();
+        TestSupport.assertChatWellFormed(helper, description, "time window");
+        return description.getUnformattedText();
     }
 
     // Shows a lookup's result to a throwaway sender, and checks how many events it showed.

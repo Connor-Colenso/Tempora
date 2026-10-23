@@ -25,20 +25,26 @@ import com.colen.tempora.loggers.generic.GenericLogger;
 import com.colen.tempora.loggers.generic.GenericLogger.FoundEvents;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.TemporaQueries;
-import com.colen.tempora.utils.TimeUtils;
+import com.colen.tempora.utils.PlayerFilter;
+import com.colen.tempora.utils.PlayerUtils;
+import com.colen.tempora.utils.TimeWindow;
 
 /**
- * /tempora lookup [r:<radius>] [t:<time>] [l:<logger,...>]
- * Shows the latest events around the player, from every positional logger unless narrowed down with l:. Global
+ * /tempora lookup [r:<radius>] [t:<time>] [l:<logger,...>] [p:<player,...>] [n:<count>]
+ * Shows the latest events around the player, from every positional logger unless narrowed down with l:, and by anyone
+ * unless narrowed down with p:. Global
  * loggers, which have no position, are looked up with /tempora global instead.
  */
 public class LookupCommand extends TemporaSubcommand {
 
     private static final String DEFAULT_RADIUS = "10";
     private static final String DEFAULT_TIME = "3d";
+    // Per logger. Each event is also drawn in the world, so this stays well below /tempora global's.
+    public static final int DEFAULT_COUNT = 5;
+    private static final int MAX_COUNT = 50;
 
     public LookupCommand() {
-        super("lookup", "[r:<radius>]", "[t:<time>]", "[l:<logger,...>]");
+        super("lookup", "[r:<radius>]", "[t:<time>]", "[l:<logger,...>]", "[p:<player,...>]", "[n:<count>]");
     }
 
     @Override
@@ -50,12 +56,14 @@ public class LookupCommand extends TemporaSubcommand {
     public void execute(ICommandSender sender, String[] args) {
         EntityPlayerMP player = (EntityPlayerMP) sender;
 
-        CommandFilters filters = CommandFilters.parse(sender, args, 0, "r", "t", "l");
+        CommandFilters filters = CommandFilters.parse(sender, args, 0, "r", "t", "l", "p", "n");
         if (filters == null) return;
 
         int radius = CommandBase.parseIntWithMin(sender, filters.get("r", DEFAULT_RADIUS), 1);
-        String time = filters.get("t", DEFAULT_TIME);
-        long seconds = TimeUtils.convertToSeconds(time);
+        TimeWindow window = TimeWindow.parse(filters.get("t", DEFAULT_TIME));
+        String playerNames = filters.get("p");
+        PlayerFilter players = playerNames == null ? PlayerFilter.anyone() : PlayerFilter.parse(playerNames);
+        int count = CommandBase.parseIntBounded(sender, filters.get("n", String.valueOf(DEFAULT_COUNT)), 1, MAX_COUNT);
 
         List<GenericPositionalLogger<?>> loggers = parseLoggers(sender, filters.get("l"));
         if (loggers == null) return;
@@ -68,8 +76,10 @@ public class LookupCommand extends TemporaSubcommand {
             MathHelper.floor_double(player.posY),
             MathHelper.floor_double(player.posZ),
             radius,
-            seconds,
-            new ChatComponentTranslation("tempora.command.lookup.nothing_found", radius, time));
+            window,
+            players,
+            count,
+            new ChatComponentTranslation("tempora.command.lookup.nothing_found", radius, window.describe()));
     }
 
     // Comma separated positional logger names, or every positional logger if null. Null, after telling the sender,
@@ -102,11 +112,11 @@ public class LookupCommand extends TemporaSubcommand {
         sendError(sender, "tempora.command.unknown_logger", name, String.join(", ", choices));
     }
 
-    // Looks up each logger's events near a position in the player's dimension, on the query thread, then shows them
-    // with a single "nothing found" line if none of them had any. A radius of 0 means exactly that block, negative
-    // seconds means no time limit.
+    // Looks up each logger's latest events near a position in the player's dimension, up to count of each, on the query
+    // thread, then shows them with a single "nothing found" line if none of them had any. A radius of 0 means exactly
+    // that block. Loggers whose events have no player are left out when filtering by player.
     public static void showEvents(EntityPlayerMP player, Collection<GenericPositionalLogger<?>> loggers, int x, int y,
-        int z, int radius, long seconds, IChatComponent nothingFound) {
+        int z, int radius, TimeWindow window, PlayerFilter players, int count, IChatComponent nothingFound) {
         int dimension = player.dimension;
 
         TemporaQueries.submit(player, () -> {
@@ -115,7 +125,7 @@ public class LookupCommand extends TemporaSubcommand {
                 // A logger that is disabled, or failed to start, has no database to read.
                 if (logger.notStarted()) continue;
 
-                found.add(logger.findEventsNear(dimension, x, y, z, radius, seconds));
+                found.add(logger.findEventsNear(dimension, x, y, z, radius, window, players, count));
             }
             return found;
         }, (sender, found) -> {
@@ -136,13 +146,18 @@ public class LookupCommand extends TemporaSubcommand {
     public List<String> tabComplete(ICommandSender sender, String[] args) {
         Map<String, List<String>> suggestions = new LinkedHashMap<>();
         suggestions.put("r", Arrays.asList("5", "10", "25", "50"));
-        suggestions.put("t", Arrays.asList("1h", "1d", "3d", "1w", "1mo"));
+        suggestions.put("t", Arrays.asList("1h", "1d", "3d", "1w", "1mo", "3d-1d"));
         suggestions.put("l", TemporaLoggerManager.getPositionalShortNames());
+        List<String> names = PlayerUtils.getTabCompletionForPlayerNames("");
+        List<String> playerSuggestions = new ArrayList<>(names);
+        for (String name : names) playerSuggestions.add("!" + name);
+        suggestions.put("p", playerSuggestions);
+        suggestions.put("n", Arrays.asList("5", "10", "25", "50"));
         return CommandFilters.complete(args, suggestions);
     }
 
     @Override
     public String getExampleArgs() {
-        return "r:25 t:1d l:break,place";
+        return "r:25 t:3d-1d l:break,place n:10";
     }
 }

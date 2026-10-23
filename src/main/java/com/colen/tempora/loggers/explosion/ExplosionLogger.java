@@ -29,6 +29,12 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
 public class ExplosionLogger extends GenericPositionalLogger<ExplosionEventInfo> {
 
+    // The closest player, as the exploder is often not a player.
+    @Override
+    protected String playerColumn() {
+        return "closestPlayerUUID";
+    }
+
     @Override
     public @NotNull ExplosionEventInfo newEventInfo() {
         return new ExplosionEventInfo();

@@ -31,6 +31,12 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
 public class PlayerBlockPlaceLogger extends GenericPositionalLogger<PlayerBlockPlaceEventInfo> {
 
+    // The player who placed the block.
+    @Override
+    protected String playerColumn() {
+        return "playerUUID";
+    }
+
     @Override
     public @NotNull String getLoggerName() {
         return TemporaEvents.PLAYER_BLOCK_PLACE;

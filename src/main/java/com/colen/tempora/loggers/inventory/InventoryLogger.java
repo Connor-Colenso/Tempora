@@ -27,6 +27,12 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
  */
 public class InventoryLogger extends GenericPositionalLogger<InventoryEventInfo> {
 
+    // The player who moved the items.
+    @Override
+    protected String playerColumn() {
+        return "playerUUID";
+    }
+
     private static boolean logNBT;
 
     @Override

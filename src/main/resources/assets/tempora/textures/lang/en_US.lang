@@ -20,6 +20,11 @@ tempora.time.ago.weeks=%sw ago
 tempora.time.ago.months=%smo ago
 tempora.time.ago.years=%sy ago
 
+# The time a lookup searched, from its t: filter, e.g. "in the last 3d" or "between 3d and 1d ago".
+tempora.time.window.all=at any time
+tempora.time.window.last=in the last %s
+tempora.time.window.between=between %s and %s ago
+
 # A length of time, e.g. "4 months".
 tempora.duration.year.one=%s year
 tempora.duration.year.many=%s years
@@ -161,6 +166,7 @@ tempora.command.usage.hint=See %s for details.
 tempora.command.unknown=There is no Tempora command called '%s'.
 tempora.command.list.header=Tempora commands. Click one to fill it in, hover over it to see what it does:
 tempora.command.bad_filter='%s' isn't a valid filter. Use any of: %s
+tempora.command.unknown_player=No player called '%s' has joined this server.
 tempora.command.unknown_logger=There is no logger called '%s'. Choices are: %s.
 
 # /tempora help
@@ -171,19 +177,21 @@ tempora.command.help.label.usage=Usage: %s
 tempora.command.help.label.example=Example: %s
 
 # /tempora lookup
-tempora.command.lookup.description=Shows the latest events around you and draws them in the world. Every filter is optional and they can go in any order. By default it searches 10 blocks around you, over the last 3 days, in every logger. Loggers that aren't tied to a place, such as weather, are shown by /tempora global instead.
+tempora.command.lookup.description=Shows the latest events around you and draws them in the world. Every filter is optional and they can go in any order. By default it searches 10 blocks around you, over the last 3 days, in every logger, by anyone, and shows the latest 5 events of each. Loggers that aren't tied to a place, such as weather, are shown by /tempora global instead.
 tempora.command.lookup.arg0=How many blocks around you to search, default 10.
-tempora.command.lookup.arg1=How far back to look, e.g. 30m, 6h, 1d, 2w, default 3d.
+tempora.command.lookup.arg1=How far back to look, e.g. 30m, 6h, 1d, 2w, default 3d. A range such as 3d-1d looks between 3 days and 1 day ago.
 tempora.command.lookup.arg2=Which loggers to search, comma separated, e.g. break,place. Default is every logger.
-tempora.command.lookup.nothing_found=Nothing was logged within %s blocks of you in the last %s.
+tempora.command.lookup.arg3=Whose events to show, comma separated, e.g. Colen,Kyium. A ! leaves a player out instead, e.g. !Colen for everyone but Colen. Block changes and explosions go by the closest player. Loggers with no player, such as mob spawns, are skipped. Default is anyone.
+tempora.command.lookup.arg4=How many events to show from each logger, up to 50, default 5.
+tempora.command.lookup.nothing_found=Nothing was logged within %s blocks of you %s.
 tempora.command.lookup.global_logger=%s isn't tied to a place, so it can't be looked up around you. Use %s instead.
 
 # /tempora global
 tempora.command.global.description=Shows the latest events from loggers that aren't tied to a place, such as weather and TPS. Works from anywhere, including the server console. Every filter is optional and they can go in any order. By default it shows the last 10 events of each, over the last 3 days.
-tempora.command.global.arg0=How far back to look, e.g. 30m, 6h, 1d, 2w, default 3d.
+tempora.command.global.arg0=How far back to look, e.g. 30m, 6h, 1d, 2w, default 3d. A range such as 3d-1d looks between 3 days and 1 day ago.
 tempora.command.global.arg1=Which loggers to show, comma separated, e.g. weather,tps. Default is every one.
 tempora.command.global.arg2=How many events to show from each logger, up to 100, default 10.
-tempora.command.global.nothing_found=Nothing was logged in the last %s.
+tempora.command.global.nothing_found=Nothing was logged %s.
 tempora.command.global.positional_logger=%s records events at a place, use %s to look them up around you.
 
 # /tempora home
@@ -192,7 +200,6 @@ tempora.command.home.arg0=Name of the player to look up.
 tempora.command.home.arg1=Optional. Only use positions from this far back, e.g. 1mo, 2w.
 tempora.command.home.arg2=Optional. Only look in this dimension.
 tempora.command.home.result=Player %s is most active in dimension %s, click %s to visit the location.
-tempora.command.home.unknown_player=No player called '%s' has joined this server.
 tempora.command.home.no_db=Player position logging is disabled, so there is no position history to search.
 tempora.command.home.no_data=No position data found for that query.
 

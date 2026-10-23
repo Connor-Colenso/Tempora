@@ -46,6 +46,12 @@ import com.colen.tempora.utils.WorldGenPhaseTracker;
 
 public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventInfo> {
 
+    // Block changes don't know who caused them, so the closest player stands in.
+    @Override
+    protected String playerColumn() {
+        return "closestPlayerUUID";
+    }
+
     @Override
     public @NotNull String getLoggerName() {
         return TemporaEvents.BLOCK_CHANGE;
