@@ -14,6 +14,8 @@ import com.colen.tempora.loggers.explosion.ExplosionEventInfo;
 import com.colen.tempora.loggers.explosion.ExplosionLogger;
 import com.colen.tempora.loggers.inventory.InventoryEventInfo;
 import com.colen.tempora.loggers.inventory.InventoryLogger;
+import com.colen.tempora.loggers.item_pickup_drop.ItemPickupDropEventInfo;
+import com.colen.tempora.loggers.item_pickup_drop.ItemPickupDropLogger;
 import com.colen.tempora.loggers.item_use.ItemUseEventInfo;
 import com.colen.tempora.loggers.item_use.ItemUseLogger;
 import com.colen.tempora.loggers.player_block_break.PlayerBlockBreakEventInfo;
@@ -37,6 +39,7 @@ public class TemporaEvents {
     public static EntitySpawnLogger entitySpawnLogger = new EntitySpawnLogger();
     public static ExplosionLogger explosionLogger = new ExplosionLogger();
     public static InventoryLogger inventoryLogger = new InventoryLogger();
+    public static ItemPickupDropLogger itemPickupDropLogger = new ItemPickupDropLogger();
     public static ItemUseLogger itemUseLogger = new ItemUseLogger();
     public static PlayerBlockBreakLogger playerBlockBreakLogger = new PlayerBlockBreakLogger();
     public static PlayerBlockPlaceLogger playerBlockPlaceLogger = new PlayerBlockPlaceLogger();
@@ -54,6 +57,7 @@ public class TemporaEvents {
     public static final String ENTITY_SPAWN = "EntitySpawnLogger";
     public static final String EXPLOSION = "ExplosionLogger";
     public static final String INVENTORY = "InventoryLogger";
+    public static final String ITEM_PICKUP_DROP = "ItemPickupDropLogger";
     public static final String ITEM_USE = "ItemUseLogger";
     public static final String PLAYER_BLOCK_BREAK = "PlayerBlockBreakLogger";
     public static final String PLAYER_BLOCK_PLACE = "PlayerBlockPlaceLogger";
@@ -70,6 +74,7 @@ public class TemporaEvents {
         TemporaLoggerManager.register(entitySpawnLogger, EntitySpawnEventInfo::new);
         TemporaLoggerManager.register(explosionLogger, ExplosionEventInfo::new);
         TemporaLoggerManager.register(inventoryLogger, InventoryEventInfo::new);
+        TemporaLoggerManager.register(itemPickupDropLogger, ItemPickupDropEventInfo::new);
         TemporaLoggerManager.register(itemUseLogger, ItemUseEventInfo::new);
         TemporaLoggerManager.register(playerBlockBreakLogger, PlayerBlockBreakEventInfo::new);
         TemporaLoggerManager.register(playerBlockPlaceLogger, PlayerBlockPlaceEventInfo::new);

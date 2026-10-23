@@ -4,6 +4,9 @@ import javax.annotation.Nullable;
 
 import net.minecraft.event.ClickEvent;
 import net.minecraft.event.HoverEvent;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
@@ -14,6 +17,7 @@ import com.colen.tempora.loggers.generic.PositionalEventInfo;
 import com.colen.tempora.utils.CommandUtils;
 import com.colen.tempora.utils.PlayerUtils;
 import com.colen.tempora.utils.TimeUtils;
+import com.colen.tempora.utils.nbt.NBTUtils;
 
 /**
  * The parts every event's chat line is built from, so all loggers' lines read alike: when (dark grey, the date on
@@ -21,6 +25,9 @@ import com.colen.tempora.utils.TimeUtils;
  * that would make a line wrap, such as IDs and UUIDs, go in hovers.
  */
 public final class EventChat {
+
+    // Chat packets cannot carry arbitrarily large hover text, so huge NBT (full backpacks, AE2 cells) is not shown.
+    private static final int MAX_HOVER_NBT_LENGTH = 8192;
 
     private EventChat() {}
 
@@ -66,6 +73,32 @@ public final class EventChat {
         name.getChatStyle()
             .setColor(EnumChatFormatting.WHITE)
             .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, grey(hover)));
+        return name;
+    }
+
+    /**
+     * An item someone held or moved, already named on the server like vanilla's own item mentions, with its tooltip on
+     * hover. NBT stored by {@link NBTUtils#getEncodedItemNBT} goes in the tooltip, unless it is too big to send.
+     */
+    public static IChatComponent item(int itemID, int metadata, String encodedNBT) {
+        Item item = Item.getItemById(itemID);
+        if (item == null) {
+            return text("[unknown item " + itemID + ":" + metadata + "]", EnumChatFormatting.WHITE);
+        }
+
+        ItemStack itemStack = new ItemStack(item, 1, metadata);
+        NBTTagCompound tag = NBTUtils.decodeItemNBT(encodedNBT);
+        if (tag != null) itemStack.setTagCompound(tag);
+
+        IChatComponent name = text(itemStack.getDisplayName(), EnumChatFormatting.WHITE);
+
+        String hoverNBT = itemStack.writeToNBT(new NBTTagCompound())
+            .toString();
+        if (hoverNBT.length() <= MAX_HOVER_NBT_LENGTH) {
+            name.getChatStyle()
+                .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_ITEM, new ChatComponentText(hoverNBT)));
+        }
+
         return name;
     }
 

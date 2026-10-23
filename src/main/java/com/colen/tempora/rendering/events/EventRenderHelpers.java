@@ -95,6 +95,55 @@ public final class EventRenderHelpers {
      * Joins events, oldest first, with a line that brightens towards the newest, so the direction of travel shows. In
      * world coordinates, the camera offset already applied.
      */
+    /**
+     * Draws an arrow from a point, {@code length} blocks long, pointing the way a player with this yaw and pitch (in
+     * degrees, as Minecraft stores them) was looking.
+     */
+    public static void renderLookArrow(double x, double y, double z, float yaw, float pitch, double length,
+        Color colour) {
+        double yawRad = Math.toRadians(yaw);
+        double pitchRad = Math.toRadians(pitch);
+        // The same direction vanilla throws an item in, before its small upward nudge and random spread.
+        double dirX = -Math.sin(yawRad) * Math.cos(pitchRad);
+        double dirY = -Math.sin(pitchRad);
+        double dirZ = Math.cos(yawRad) * Math.cos(pitchRad);
+
+        double tipX = x + dirX * length;
+        double tipY = y + dirY * length;
+        double tipZ = z + dirZ * length;
+
+        // The head's two barbs go back from the tip and out to each side, level with the ground.
+        double back = 0.25;
+        double side = 0.15;
+        double sideX = Math.cos(yawRad);
+        double sideZ = Math.sin(yawRad);
+
+        GL11.glPushAttrib(GL11.GL_ENABLE_BIT | GL11.GL_LINE_BIT | GL11.GL_COLOR_BUFFER_BIT | GL11.GL_CURRENT_BIT);
+        try {
+            GL11.glDisable(GL11.GL_TEXTURE_2D);
+            GL11.glDisable(GL11.GL_LIGHTING);
+            GL11.glEnable(GL11.GL_BLEND);
+            GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+            GL11.glLineWidth(3F);
+
+            Tessellator tes = Tessellator.instance;
+            tes.startDrawing(GL11.GL_LINES);
+            tes.setColorRGBA_I(colour.getRGB() & 0xFFFFFF, 255);
+            tes.addVertex(x, y, z);
+            tes.addVertex(tipX, tipY, tipZ);
+            for (int sign = -1; sign <= 1; sign += 2) {
+                tes.addVertex(tipX, tipY, tipZ);
+                tes.addVertex(
+                    tipX - dirX * back + sideX * side * sign,
+                    tipY - dirY * back,
+                    tipZ - dirZ * back + sideZ * side * sign);
+            }
+            tes.draw();
+        } finally {
+            GL11.glPopAttrib();
+        }
+    }
+
     public static void renderPath(List<? extends PositionalEventInfo> oldestFirst, Color colour) {
         if (oldestFirst.size() < 2) return;
 

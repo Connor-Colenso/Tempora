@@ -9,6 +9,7 @@
     "MixinChunk",
     "MixinChunkProviderGenerate",
     "MixinEntity",
+    "MixinEntityItem",
     "MixinEntityPlayerMP",
     "MixinFMLNetworkHandler",
     "MixinGameRegistry",

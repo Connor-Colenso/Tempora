@@ -617,7 +617,7 @@ public class LookupTests {
     }
 
     // Shows a lookup's result to a throwaway sender, and checks how many events it showed.
-    private static void assertShown(GameTestHelper helper, FoundEvents found, int expected) {
+    static void assertShown(GameTestHelper helper, FoundEvents found, int expected) {
         CapturingSender chat = new CapturingSender("assertShown", helper.getWorld());
         helper.assertEquals((long) expected, found.show(chat), "events shown, chat was:\n" + chat.text());
     }

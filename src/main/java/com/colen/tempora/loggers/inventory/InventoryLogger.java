@@ -106,13 +106,7 @@ public class InventoryLogger extends GenericPositionalLogger<InventoryEventInfo>
         eventInfo.itemMetadata = item.meta;
         eventInfo.amount = (int) Math.min(Integer.MAX_VALUE, Math.abs(change));
 
-        if (item.tag == null) {
-            eventInfo.encodedNBT = NBTUtils.NO_NBT;
-        } else if (logNBT) {
-            eventInfo.encodedNBT = NBTUtils.encodeToString(item.tag);
-        } else {
-            eventInfo.encodedNBT = NBTUtils.NBT_DISABLED;
-        }
+        eventInfo.encodedNBT = NBTUtils.getEncodedItemNBT(item.tag, logNBT);
 
         logEvent(eventInfo, dimension, x, y, z);
     }

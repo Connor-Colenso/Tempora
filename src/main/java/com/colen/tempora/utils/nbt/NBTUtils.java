@@ -54,4 +54,22 @@ public class NBTUtils {
         }
     }
 
+    // An item's NBT as the item loggers store it: NO_NBT when it has none, NBT_DISABLED when it has some but logging
+    // NBT is off.
+    public static String getEncodedItemNBT(NBTTagCompound tag, boolean nbtLoggingEnabled) {
+        if (tag == null) return NO_NBT;
+        return nbtLoggingEnabled ? encodeToString(tag) : NBT_DISABLED;
+    }
+
+    // Undoes getEncodedItemNBT. Null when there was no NBT, it was not logged, or it cannot be read.
+    public static NBTTagCompound decodeItemNBT(String encodedNBT) {
+        if (encodedNBT == null || NO_NBT.equals(encodedNBT) || NBT_DISABLED.equals(encodedNBT)) return null;
+
+        try {
+            return decodeFromString(encodedNBT);
+        } catch (RuntimeException e) {
+            return null;
+        }
+    }
+
 }

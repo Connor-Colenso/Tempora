@@ -8,6 +8,7 @@ public enum LoggerEnum {
     EntitySpawnLogger,
     ExplosionLogger,
     InventoryLogger,
+    ItemPickupDropLogger,
     ItemUseLogger,
     PlayerBlockBreakLogger,
     PlayerBlockPlaceLogger,

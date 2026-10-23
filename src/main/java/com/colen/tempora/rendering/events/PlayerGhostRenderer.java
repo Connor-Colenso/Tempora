@@ -59,6 +59,11 @@ public abstract class PlayerGhostRenderer<E extends PositionalEventInfo> impleme
         return context.yawTowardsCamera(event.x, event.z);
     }
 
+    /** How far the player's head is tilted, in degrees, down being positive. Level unless a renderer knows better. */
+    protected float pitch(E event) {
+        return 0;
+    }
+
     @Override
     public void renderWorld(List<E> events, EventRenderContext context) {
         for (List<E> here : groupsBySpot(events)) {
@@ -73,7 +78,7 @@ public abstract class PlayerGhostRenderer<E extends PositionalEventInfo> impleme
                         newest.y,
                         newest.z,
                         yaw(newest, context),
-                        0,
+                        pitch(newest),
                         context.partialTicks);
                     RenderUtils.renderEntityAABBInWorld(ghost, colour);
                     continue;

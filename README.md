@@ -2,15 +2,16 @@
 
 A Forge (Minecraft 1.7.10, GTNH ecosystem) server-side mod for tracking griefing and other
 player activity. It's a slimmed-down alternative to Prism/CoreProtect/LogBlock: block changes
-(inside the regions you choose), player positions, inventory transfers, entity deaths/spawns,
-explosions, item use, and commands are logged to a local SQLite database and can be queried
-in-game by operators. Server-wide events with no position, such as weather changes and TPS, are
+(inside the regions you choose), player positions, inventory transfers, items picked up and
+dropped, entity deaths/spawns, explosions, item use, and commands are logged to a local SQLite
+database and can be queried in-game by operators. Server-wide events with no position, such as weather changes and TPS, are
 logged too.
 
 ## Features
 
 - **Per-event-type logging** — block changes, player positions, entity spawns/deaths,
-  explosions, inventory transfers, item use, and command history, each in its own SQLite database file.
+  explosions, inventory transfers, item pickups and drops, item use, and command history, each in
+  its own SQLite database file.
 - **Server-wide logging** — weather changes and TPS, which happen everywhere rather than at a
   place. See [Logger kinds](#logger-kinds).
 - **In-game querying** — look up what happened around you (`/tempora lookup`), click blocks with
@@ -44,8 +45,9 @@ run on its own. All of them require operator permission (permission level 2), an
 | `/tempora help [command]` | List every command, or explain one, e.g. `/tempora help region set`. |
 
 Loggers have short names for commands: `change`, `break`, `place`, `explosion`, `command`, `death`,
-`spawn`, `mobpos`, `inventory`, `use` and `playerpos`, plus the global `weather` and `tps`. The full
-names (e.g. `PlayerBlockBreakLogger`) also work, and are the table names for `/tempora sql`.
+`spawn`, `mobpos`, `inventory`, `pickup` (items picked up, thrown out, or dropped on death), `use`
+and `playerpos`, plus the global `weather` and `tps`. The full names (e.g. `PlayerBlockBreakLogger`)
+also work, and are the table names for `/tempora sql`.
 
 ## Logger kinds
 

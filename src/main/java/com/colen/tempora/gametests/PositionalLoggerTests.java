@@ -300,7 +300,7 @@ public class PositionalLoggerTests {
     }
 
     // Events logged where a fake player stands, for loggers that log at the player.
-    private static List<PositionalEventInfo> eventsAtPlayer(GameTestHelper helper, GenericPositionalLogger<?> logger,
+    static List<PositionalEventInfo> eventsAtPlayer(GameTestHelper helper, GenericPositionalLogger<?> logger,
         FakePlayer player) throws Exception {
         return eventsNear(logger, helper.getWorld().provider.dimensionId, player.posX, player.posY, player.posZ, 0.01);
     }

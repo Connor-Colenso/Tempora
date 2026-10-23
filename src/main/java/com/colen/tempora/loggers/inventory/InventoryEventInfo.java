@@ -2,11 +2,6 @@ package com.colen.tempora.loggers.inventory;
 
 import static com.gtnewhorizon.gtnhlib.util.numberformatting.NumberFormatUtil.formatNumber;
 
-import net.minecraft.event.HoverEvent;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
@@ -23,9 +18,6 @@ import cpw.mods.fml.common.network.ByteBufUtils;
 import io.netty.buffer.ByteBuf;
 
 public class InventoryEventInfo extends PositionalEventInfo {
-
-    // Chat packets cannot carry arbitrarily large hover text, so huge NBT (full backpacks, AE2 cells) is not shown.
-    private static final int MAX_HOVER_NBT_LENGTH = 8192;
 
     @Column(constraints = "NOT NULL")
     public String containerName = "";
@@ -98,46 +90,9 @@ public class InventoryEventInfo extends PositionalEventInfo {
             EventChat.time(timestamp),
             EventChat.player(playerUUID),
             count,
-            itemChatComponent(),
+            EventChat.item(itemID, itemMetadata, encodedNBT),
             container,
             EventChat.where(this, CommandUtils.TeleportType.BLOCK));
-    }
-
-    // The item's name, with its tooltip on hover when the NBT was logged.
-    private IChatComponent itemChatComponent() {
-        Item item = Item.getItemById(itemID);
-        if (item == null) {
-            return EventChat.text("[unknown item " + itemID + ":" + itemMetadata + "]", EnumChatFormatting.WHITE);
-        }
-
-        ItemStack itemStack = new ItemStack(item, 1, itemMetadata);
-        NBTTagCompound tag = decodeItemNBT();
-        if (tag != null) itemStack.setTagCompound(tag);
-
-        // Already localised here, like vanilla's own item mentions.
-        IChatComponent itemDetails = EventChat.text(itemStack.getDisplayName(), EnumChatFormatting.WHITE);
-
-        // The item's own tooltip on hover, NBT and all, unless the NBT is too big to send.
-        String hoverNBT = itemStack.writeToNBT(new NBTTagCompound())
-            .toString();
-        if (hoverNBT.length() <= MAX_HOVER_NBT_LENGTH) {
-            itemDetails.getChatStyle()
-                .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_ITEM, new ChatComponentText(hoverNBT)));
-        }
-
-        return itemDetails;
-    }
-
-    private NBTTagCompound decodeItemNBT() {
-        if (encodedNBT == null || NBTUtils.NO_NBT.equals(encodedNBT) || NBTUtils.NBT_DISABLED.equals(encodedNBT)) {
-            return null;
-        }
-
-        try {
-            return NBTUtils.decodeFromString(encodedNBT);
-        } catch (RuntimeException e) {
-            return null;
-        }
     }
 
     @Override
