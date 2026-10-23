@@ -1,6 +1,5 @@
 package com.colen.tempora.gametests;
 
-import java.io.File;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -10,11 +9,10 @@ import java.util.concurrent.TimeUnit;
 
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
-import net.minecraftforge.common.DimensionManager;
-import net.minecraftforge.common.config.Configuration;
 
 import com.colen.tempora.Tempora;
 import com.colen.tempora.TemporaEvents;
+import com.colen.tempora.config.CommandsConfig;
 import com.colen.tempora.loggers.generic.TemporaQueries;
 import com.gtnewhorizons.horizonqa.api.GameTestHelper;
 import com.gtnewhorizons.horizonqa.api.annotation.AfterBatch;
@@ -36,23 +34,18 @@ public class QueryThreadTests {
     private static final String ENDLESS_SQL = "WITH RECURSIVE n(x) AS (SELECT 1 UNION ALL SELECT x + 1 FROM n)"
         + " SELECT max(x) FROM n";
 
+    // The configured limit, put back after the batch. Only changed in memory, never saved.
+    private static int configuredTimeLimitSeconds;
+
     @BeforeBatch(BATCH)
     public static void shortenTimeLimit() {
-        // Never saved, only read for this one setting. Forge creates the file empty, so it is deleted again.
-        File file = configFile();
-        Configuration config = new Configuration(file);
-        config.get("Lookups", "queryTimeLimitSeconds", TIME_LIMIT_SECONDS);
-        TemporaQueries.loadConfig(config);
-        file.delete();
+        configuredTimeLimitSeconds = CommandsConfig.queryTimeLimitSeconds;
+        CommandsConfig.queryTimeLimitSeconds = TIME_LIMIT_SECONDS;
     }
 
     @AfterBatch(BATCH)
     public static void restoreTimeLimit() {
-        TemporaQueries.loadConfig(Tempora.config);
-    }
-
-    private static File configFile() {
-        return new File(DimensionManager.getCurrentSaveRootDirectory(), "tempora_query_tests.cfg");
+        CommandsConfig.queryTimeLimitSeconds = configuredTimeLimitSeconds;
     }
 
     /**

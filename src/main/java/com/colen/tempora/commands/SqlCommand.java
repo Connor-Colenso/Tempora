@@ -18,6 +18,7 @@ import net.minecraft.util.EnumChatFormatting;
 
 import com.colen.tempora.TemporaLoggerManager;
 import com.colen.tempora.commands.command_base.TemporaSubcommand;
+import com.colen.tempora.config.CommandsConfig;
 import com.colen.tempora.loggers.generic.GenericEventInfo;
 import com.colen.tempora.loggers.generic.GenericLogger;
 import com.colen.tempora.loggers.generic.PositionalEventInfo;
@@ -35,9 +36,6 @@ public class SqlCommand extends TemporaSubcommand {
     public SqlCommand() {
         super("sql", "<SELECT ...>");
     }
-
-    // todo config.
-    private final static int MAX_RESULTS_TO_SHOW = 100;
 
     @Override
     public boolean isPlayerOnly() {
@@ -146,11 +144,11 @@ public class SqlCommand extends TemporaSubcommand {
             noResultsMsg.getChatStyle()
                 .setColor(EnumChatFormatting.GRAY);
             sender.addChatMessage(noResultsMsg);
-        } else if (output.size() == MAX_RESULTS_TO_SHOW) {
+        } else if (output.size() == CommandsConfig.sqlMaxResults) {
             ChatComponentTranslation queryMsg = new ChatComponentTranslation(
                 "tempora.command.sql.query_quantity_if_max",
                 output.size(),
-                MAX_RESULTS_TO_SHOW);
+                CommandsConfig.sqlMaxResults);
             queryMsg.getChatStyle()
                 .setColor(EnumChatFormatting.GRAY);
             sender.addChatMessage(queryMsg);
@@ -209,7 +207,7 @@ public class SqlCommand extends TemporaSubcommand {
             .prepareStatement(sql)) {
 
             // Limit number of rows returned
-            stmt.setMaxRows(MAX_RESULTS_TO_SHOW);
+            stmt.setMaxRows(CommandsConfig.sqlMaxResults);
 
             List<? extends GenericEventInfo> events;
             try (ResultSet rs = stmt.executeQuery()) {

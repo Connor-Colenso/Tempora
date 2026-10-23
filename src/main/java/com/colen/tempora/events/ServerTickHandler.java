@@ -3,7 +3,7 @@ package com.colen.tempora.events;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.World;
 
-import com.colen.tempora.config.DebugConfig;
+import com.colen.tempora.config.Config;
 import com.colen.tempora.loggers.generic.TemporaQueries;
 import com.colen.tempora.utils.DebugUtils;
 
@@ -53,7 +53,7 @@ public class ServerTickHandler {
         // }
 
         // Debug generate random cube.
-        if (!DebugConfig.randomisedRegionGeneratorBlockChangeDebugger) return;
+        if (!Config.randomisedRegionGeneratorBlockChangeDebugger) return;
 
         MinecraftServer server = MinecraftServer.getServer();
         World world = server.worldServerForDimension(0);

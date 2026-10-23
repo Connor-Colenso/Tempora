@@ -90,7 +90,15 @@ position and which region (or config option) decided it.
 
 ## Configuration
 
-Each logger has its own config section (in the standard Forge config file) with:
+Tempora's config is split across three files in `config/tempora/`:
+
+- `loggers.cfg` — a section per logger (below), plus `shouldTemporaRun` to log in singleplayer.
+  Loggers added by other mods get their sections here too.
+- `commands.cfg` — the lookup time limit (`queryTimeLimitSeconds`) and how many events
+  `/tempora sql` shows (`sqlMaxResults`).
+- `client.cfg` — how far away looked up events are drawn, and client debug rendering.
+
+Each logger's section in `loggers.cfg` has:
 
 - `isEnabled` — turns the logger off entirely, regardless of regions.
 - `logByDefault` — whether the logger records events where no region has a rule for it.

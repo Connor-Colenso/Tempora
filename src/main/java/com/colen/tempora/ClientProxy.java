@@ -3,6 +3,7 @@ package com.colen.tempora;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.common.MinecraftForge;
 
+import com.colen.tempora.config.ClientConfig;
 import com.colen.tempora.config.DebugConfig;
 import com.colen.tempora.loggers.block_change.BlockChangeRenderer;
 import com.colen.tempora.loggers.command.CommandRenderer;
@@ -16,12 +17,10 @@ import com.colen.tempora.loggers.player_block_break.PlayerBlockBreakRenderer;
 import com.colen.tempora.loggers.player_block_place.PlayerBlockPlaceRenderer;
 import com.colen.tempora.loggers.player_position.PlayerPositionRenderer;
 import com.colen.tempora.rendering.RenderIDsInWorld;
-import com.colen.tempora.rendering.events.ClientEventStore;
 import com.colen.tempora.rendering.events.EventRenderers;
 import com.colen.tempora.rendering.events.RenderEventsInWorld;
 import com.colen.tempora.rendering.regions.HudRenderRegionsInWorld;
 import com.colen.tempora.rendering.regions.RenderRegionsInWorld;
-import com.gtnewhorizon.gtnhlib.config.ConfigException;
 import com.gtnewhorizon.gtnhlib.config.ConfigurationManager;
 
 import codechicken.nei.api.API;
@@ -37,11 +36,8 @@ public class ClientProxy extends CommonProxy {
     public void preInit(FMLPreInitializationEvent event) {
         super.preInit(event);
 
-        try {
-            ConfigurationManager.registerConfig(DebugConfig.class);
-        } catch (ConfigException e) {
-            throw new RuntimeException(e);
-        }
+        ConfigurationManager.registerConfig(ClientConfig.class);
+        ConfigurationManager.registerConfig(DebugConfig.class);
     }
 
     @Override
@@ -80,14 +76,5 @@ public class ClientProxy extends CommonProxy {
         if (Loader.isModLoaded("NotEnoughItems")) {
             API.hideItem(new ItemStack(Tempora.renderingErrorBlock));
         }
-
-        ClientEventStore.renderDistance = Tempora.config.getInt(
-            "Client event render distance",
-            "Client Rendering",
-            32,
-            4,
-            256,
-            "This is the maximum range at which events will render for you, be warned, setting this to a high number may cause performance issues when a large number of events are rendered at once.");
-        if (Tempora.config.hasChanged()) Tempora.config.save();
     }
 }

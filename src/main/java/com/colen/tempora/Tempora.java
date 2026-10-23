@@ -45,7 +45,8 @@ public class Tempora {
     @SidedProxy(clientSide = "com.colen.tempora.ClientProxy", serverSide = "com.colen.tempora.CommonProxy")
     public static CommonProxy proxy;
 
-    public static Configuration config;
+    // config/tempora/loggers.cfg, see Config.
+    public static Configuration loggerConfig;
 
     public static Block renderingErrorBlock = new RenderingErrorBlock();
     public static Block stressTestBlock = new StressTestBlock();

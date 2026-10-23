@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.colen.tempora.config.ClientConfig;
 import com.colen.tempora.loggers.generic.PositionalEventInfo;
 
 import cpw.mods.fml.relauncher.Side;
@@ -22,9 +23,6 @@ import cpw.mods.fml.relauncher.SideOnly;
 public final class ClientEventStore {
 
     public static final long RENDER_DURATION_MILLISECONDS = 10_000;
-
-    // Events further than this from the camera are not drawn. Set from the client config.
-    public static int renderDistance = 32;
 
     // Logger name -> event id -> the event. Keyed by id, so an event sent again (two lookups in a row) is drawn
     // once, and stays for the full time again.
@@ -68,7 +66,7 @@ public final class ClientEventStore {
         Map<Long, ReceivedEvent> events = EVENTS.get(loggerName);
         if (events == null) return Collections.emptyList();
 
-        double maxDistanceSq = (double) renderDistance * renderDistance;
+        double maxDistanceSq = (double) ClientConfig.eventRenderDistance * ClientConfig.eventRenderDistance;
 
         List<E> visible = new ArrayList<>();
         for (ReceivedEvent received : events.values()) {

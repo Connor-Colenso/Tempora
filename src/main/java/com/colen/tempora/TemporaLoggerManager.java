@@ -116,8 +116,8 @@ public final class TemporaLoggerManager {
 
         // Registered after Tempora read its config, e.g. by another mod in its own init.
         if (configLoaded) {
-            configure(logger, Tempora.config);
-            if (Tempora.config.hasChanged()) Tempora.config.save();
+            configure(logger, Tempora.loggerConfig);
+            if (Tempora.loggerConfig.hasChanged()) Tempora.loggerConfig.save();
         }
     }
 

@@ -6,11 +6,12 @@ import static com.colen.tempora.Tempora.stressTestBlock;
 import static com.colen.tempora.config.Config.synchronizeConfiguration;
 
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.common.config.Configuration;
 
 import com.colen.tempora.blocks.RenderingErrorItemBlock;
 import com.colen.tempora.blocks.stress.StressTestTileEntity;
 import com.colen.tempora.chat.TemporaChatRegistry;
+import com.colen.tempora.config.CommandsConfig;
+import com.colen.tempora.config.Config;
 import com.colen.tempora.events.OnWorldLoad;
 import com.colen.tempora.loggers.generic.GenericRenderEventPacketHandler;
 import com.colen.tempora.loggers.generic.RenderEventPacket;
@@ -18,6 +19,7 @@ import com.colen.tempora.networking.handlers.PacketRemoveClientRegionByUUID;
 import com.colen.tempora.networking.packets.PacketRemoveRegionFromClient;
 import com.colen.tempora.networking.packets.PacketShowRegionInWorld;
 import com.colen.tempora.utils.GenericUtils;
+import com.gtnewhorizon.gtnhlib.config.ConfigurationManager;
 
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
@@ -28,7 +30,8 @@ import cpw.mods.fml.relauncher.Side;
 public class CommonProxy {
 
     public void preInit(FMLPreInitializationEvent event) {
-        Tempora.config = new Configuration(event.getSuggestedConfigurationFile());
+        Tempora.loggerConfig = Config.createLoggersConfig(event.getModConfigurationDirectory());
+        ConfigurationManager.registerConfig(CommandsConfig.class);
         GameRegistry.registerItem(Tempora.temporaWand, "admin_wand");
         GameRegistry.registerBlock(renderingErrorBlock, RenderingErrorItemBlock.class, "renderingErrorBlock");
         // A debugging aid for load testing the loggers, so only in a development environment, as GT5 does with its
@@ -57,11 +60,11 @@ public class CommonProxy {
         TemporaEvents.registerAll();
 
         // Each logger handles their own config settings. Loggers other mods register later read theirs as they do.
-        TemporaLoggerManager.loadConfig(Tempora.config);
+        TemporaLoggerManager.loadConfig(Tempora.loggerConfig);
 
         MinecraftForge.EVENT_BUS.register(new OnWorldLoad());
 
-        synchronizeConfiguration(Tempora.config);
+        synchronizeConfiguration(Tempora.loggerConfig);
     }
 
     public void postInit(FMLPostInitializationEvent event) {

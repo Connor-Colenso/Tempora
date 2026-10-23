@@ -3,7 +3,12 @@ package com.colen.tempora.config;
 import com.colen.tempora.Tempora;
 import com.gtnewhorizon.gtnhlib.config.Config;
 
-@Config(modid = Tempora.MODID, category = "debug_options", filename = "tempora_debug")
+// config/tempora/client.cfg, shared with ClientConfig.
+@Config(
+    modid = Tempora.MODID,
+    category = "debug",
+    configSubDirectory = com.colen.tempora.config.Config.DIRECTORY,
+    filename = "client")
 public class DebugConfig {
 
     @Config.Comment({
@@ -15,9 +20,4 @@ public class DebugConfig {
     @Config.DefaultInt(6)
     @Config.RangeInt(min = 2, max = 100)
     public static int IDMetaRenderingRadius;
-
-    @Config.Comment({
-        "WARNING: Every tick creates a randomised block blob at 10,10,10 -> 20,20,20. Never use this in a world you care about.", })
-    @Config.DefaultBoolean(false)
-    public static boolean randomisedRegionGeneratorBlockChangeDebugger;
 }

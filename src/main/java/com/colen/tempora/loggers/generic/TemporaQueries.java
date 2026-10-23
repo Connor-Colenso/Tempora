@@ -18,10 +18,11 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
-import net.minecraftforge.common.config.Configuration;
 
 import org.jetbrains.annotations.Nullable;
 import org.sqlite.ProgressHandler;
+
+import com.colen.tempora.config.CommandsConfig;
 
 /**
  * Runs lookups (/tempora lookup, global, home, sql and the wand) on one "Tempora-Query" thread, so a slow query never
@@ -67,8 +68,6 @@ public final class TemporaQueries {
     private static final int PROGRESS_CHECK_INTERVAL = 10_000;
     private static final long STOP_TIMEOUT_MILLISECONDS = 5_000;
 
-    private static int queryTimeLimitSeconds;
-
     private static final ArrayBlockingQueue<Job<?>> pending = new ArrayBlockingQueue<>(MAX_QUEUED_QUERIES);
     private static final ConcurrentLinkedQueue<Job<?>> finished = new ConcurrentLinkedQueue<>();
     // Sender -> their lookup that hasn't been shown yet. One at a time each.
@@ -79,16 +78,6 @@ public final class TemporaQueries {
     private static final ThreadLocal<Worker> currentWorker = new ThreadLocal<>();
 
     private TemporaQueries() {}
-
-    public static void loadConfig(Configuration config) {
-        queryTimeLimitSeconds = config.getInt(
-            "queryTimeLimitSeconds",
-            "Lookups",
-            10,
-            1,
-            600,
-            "Longest a lookup (/tempora lookup, global, home, sql or the wand) may run before it is stopped. Lookups run on their own thread, so a slow one never holds up the server, but it does keep everyone else's lookups waiting.");
-    }
 
     /**
      * Runs {@code query} on the query thread, then {@code show} with its result on the server thread. Call from the
@@ -203,7 +192,7 @@ public final class TemporaQueries {
                         continue;
                     }
 
-                    deadlineNanos = System.nanoTime() + TimeUnit.SECONDS.toNanos(queryTimeLimitSeconds);
+                    deadlineNanos = System.nanoTime() + TimeUnit.SECONDS.toNanos(CommandsConfig.queryTimeLimitSeconds);
                     job.runOnQueryThread();
                     if (!stopping) finished.add(job);
                 }
@@ -309,7 +298,11 @@ public final class TemporaQueries {
             if (sender == null) return;
 
             if (failure instanceof QueryTimedOutException) {
-                sendMessage(sender, EnumChatFormatting.RED, "tempora.query.timed_out", queryTimeLimitSeconds);
+                sendMessage(
+                    sender,
+                    EnumChatFormatting.RED,
+                    "tempora.query.timed_out",
+                    CommandsConfig.queryTimeLimitSeconds);
                 return;
             }
             if (failure != null) {
