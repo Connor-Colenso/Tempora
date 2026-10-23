@@ -294,7 +294,7 @@ public abstract class GenericLogger<EventInfo extends GenericEventInfo> {
             maxEventsInQueueBeforeServerFreeze,
             getLoggerName());
         PlayerUtils.sendMessageToOps(
-            "tempora.op.warning.queue.too.large",
+            "tempora.warning.queue_too_large",
             getLoggerName(),
             new ChatComponentNumber(getQueueSize()));
     }

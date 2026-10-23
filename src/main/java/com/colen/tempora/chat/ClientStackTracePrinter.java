@@ -21,7 +21,7 @@ final class ClientStackTracePrinter {
 
         IChatComponent header = new ChatComponentTranslation(
             "====== %s ======",
-            new ChatComponentTranslation("tempora.command.full.stacktrace"));
+            new ChatComponentTranslation("tempora.trace.full"));
         header.getChatStyle()
             .setColor(EnumChatFormatting.YELLOW);
         chat.printChatMessage(header);

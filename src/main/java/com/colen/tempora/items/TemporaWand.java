@@ -16,6 +16,7 @@ import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.ChatStyle;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.Facing;
+import net.minecraft.util.IChatComponent;
 import net.minecraft.world.World;
 
 import com.colen.tempora.TemporaLoggerManager;
@@ -81,7 +82,10 @@ public class TemporaWand extends Item {
 
     private static void checkSpot(EntityPlayer player, int x, int y, int z) {
         if (!PlayerUtils.isPlayerOp(player)) {
-            PlayerUtils.sendMessageToOps("player.tempora_wand.unauthorised", player.getDisplayName());
+            IChatComponent alert = new ChatComponentTranslation("tempora.wand.alert");
+            alert.getChatStyle()
+                .setColor(EnumChatFormatting.RED);
+            PlayerUtils.sendMessageToOps("tempora.wand.unauthorised", alert, player.getDisplayName());
             LOG.warn(
                 "[TemporaWand] Unauthorised use attempt by player '{}' at ({}, {}, {}) in dimension {}.",
                 player.getDisplayName(),
@@ -92,7 +96,7 @@ public class TemporaWand extends Item {
         } else {
             player.addChatMessage(
                 new ChatComponentTranslation(
-                    "message.tempora_wand.checking_pos",
+                    "tempora.wand.checking_pos",
                     teleportChatComponent(x, y, z, player.dimension, CommandUtils.TeleportType.BLOCK),
                     getDimensionName(player.dimension))
                         .setChatStyle(new ChatStyle().setColor(EnumChatFormatting.GRAY)));
@@ -105,7 +109,7 @@ public class TemporaWand extends Item {
                 z,
                 0,
                 -1,
-                new ChatComponentTranslation("message.tempora_wand.nothing_found"));
+                new ChatComponentTranslation("tempora.wand.nothing_found"));
         }
     }
 }

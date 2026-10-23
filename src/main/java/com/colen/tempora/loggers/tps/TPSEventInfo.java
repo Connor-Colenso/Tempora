@@ -34,7 +34,7 @@ public class TPSEventInfo extends GlobalEventInfo {
                 tps >= 18 ? EnumChatFormatting.GREEN : tps >= 15 ? EnumChatFormatting.YELLOW : EnumChatFormatting.RED);
 
         return EventChat.line(
-            "message.tps",
+            "tempora.event.tps",
             EventChat.time(timestamp),
             tpsText,
             EventChat.text(formatNumber(meanTickMs, ONE_DP), EnumChatFormatting.WHITE),

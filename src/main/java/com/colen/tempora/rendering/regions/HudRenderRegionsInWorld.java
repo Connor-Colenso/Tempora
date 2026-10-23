@@ -60,13 +60,11 @@ public class HudRenderRegionsInWorld {
         // Draw descriptor line
         String descriptorText;
         if (intersectingRegions.size() == 1) {
-            descriptorText = StatCollector.translateToLocalFormatted(
-                "tempora.HUD.region.descriptor.singular",
-                formatNumber(intersectingRegions.size()));
+            descriptorText = StatCollector
+                .translateToLocalFormatted("tempora.hud.region.inside.one", formatNumber(intersectingRegions.size()));
         } else {
-            descriptorText = StatCollector.translateToLocalFormatted(
-                "tempora.HUD.region.descriptor.plural",
-                formatNumber(intersectingRegions.size()));
+            descriptorText = StatCollector
+                .translateToLocalFormatted("tempora.hud.region.inside.many", formatNumber(intersectingRegions.size()));
         }
 
         font.drawString(descriptorText, (screenWidth - font.getStringWidth(descriptorText)) / 2, y, 0xFFFFFF);
@@ -78,7 +76,7 @@ public class HudRenderRegionsInWorld {
 
         for (TemporaWorldRegion region : intersectingRegions.subList(0, indexEnd)) {
             String regionText = StatCollector.translateToLocalFormatted(
-                "tempora.HUD.region.list",
+                "tempora.hud.region.entry",
                 region.getLabel(),
                 formatNumberCompact(region.getVolume()));
 
@@ -94,7 +92,7 @@ public class HudRenderRegionsInWorld {
         // Show "..." if there are more regions beyond those displayed
         int remaining = intersectingRegions.size() - MAX_REGIONS_TO_SHOW_ON_HUD;
         if (remaining > 0) {
-            String moreText = StatCollector.translateToLocalFormatted("tempora.HUD.render.and_more", remaining);
+            String moreText = StatCollector.translateToLocalFormatted("tempora.hud.region.and_more", remaining);
 
             font.drawString(moreText, (screenWidth - font.getStringWidth(moreText)) / 2, y, 0xFFFFFF);
         }

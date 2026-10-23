@@ -28,7 +28,7 @@ public class ServerTickHandler {
         // logger.getQueueSize()
         // );
         //
-        // PlayerUtils.sendMessageToOps("tempora.op.warning.queue.too.large", logger.getLoggerName(), new
+        // PlayerUtils.sendMessageToOps("tempora.warning.queue_too_large", logger.getLoggerName(), new
         // ChatComponentNumber(logger.getQueueSize()));
         //
         // // Time how long until queue is empty.

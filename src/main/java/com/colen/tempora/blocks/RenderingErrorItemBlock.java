@@ -20,6 +20,6 @@ public class RenderingErrorItemBlock extends ItemBlock {
     @Override
     @SideOnly(Side.CLIENT)
     public void addInformation(ItemStack stack, EntityPlayer player, List<String> list, boolean advanced) {
-        list.add(StatCollector.translateToLocal("tooltip.temporasRenderingBlockError"));
+        list.add(StatCollector.translateToLocal("tempora.tooltip.rendering_error"));
     }
 }

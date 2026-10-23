@@ -28,7 +28,7 @@ public class ChatComponentStackTrace extends AbstractClickableChatComponent<Chat
 
     @Override
     public String getUnformattedTextForChat() {
-        return StatCollector.translateToLocal("tempora.command.stacktrace.brackets");
+        return StatCollector.translateToLocal("tempora.trace.button");
     }
 
     // Client side.

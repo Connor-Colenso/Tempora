@@ -61,23 +61,23 @@ public class CommandUtils {
 
         // Shown as the block it is in, like the F3 screen, as that is all a lookup needs and it keeps lines short.
         IChatComponent display = new ChatComponentTranslation(
-            "tempora.command.teleport.display",
+            "tempora.teleport.display",
             MathHelper.floor_double(x),
             MathHelper.floor_double(y),
             MathHelper.floor_double(z));
 
-        IChatComponent hoverText = new ChatComponentTranslation("tempora.command.teleport.hover");
+        IChatComponent hoverText = new ChatComponentTranslation("tempora.teleport.hover");
         hoverText.appendText("\n")
             .appendSibling(
                 new ChatComponentTranslation(
-                    "tempora.command.teleport.dimension",
+                    "tempora.teleport.dimension",
                     GenericUtils.getDimensionName(dimID),
                     dimID));
         if (teleportType == TeleportType.EXACT) {
             hoverText.appendText("\n")
                 .appendSibling(
                     new ChatComponentTranslation(
-                        "tempora.command.teleport.exact",
+                        "tempora.teleport.exact",
                         String.format(Locale.ROOT, "%.2f, %.2f, %.2f", x, y, z)));
         }
         hoverText.getChatStyle()

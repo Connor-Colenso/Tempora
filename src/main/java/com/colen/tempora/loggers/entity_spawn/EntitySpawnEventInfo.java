@@ -46,7 +46,7 @@ public class EntitySpawnEventInfo extends PositionalEventInfo {
     @Override
     public IChatComponent localiseText() {
         return EventChat.line(
-            "message.entity_spawn",
+            "tempora.event.entity_spawn",
             EventChat.time(timestamp),
             EventChat.entity(entityName, entityUUID),
             EventChat.where(this, CommandUtils.TeleportType.EXACT));

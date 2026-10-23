@@ -35,7 +35,7 @@ public class WeatherEventInfo extends GlobalEventInfo {
                     EventChat.grey(new ChatComponentTranslation("tempora.chat.dimension_id", dimensionID))));
 
         return EventChat.line(
-            "message.weather",
+            "tempora.event.weather",
             EventChat.time(timestamp),
             dimension,
             Weather.chatComponent(previousWeather),

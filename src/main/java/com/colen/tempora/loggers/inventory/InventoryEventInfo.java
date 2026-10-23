@@ -77,7 +77,7 @@ public class InventoryEventInfo extends PositionalEventInfo {
     public IChatComponent localiseText() {
         InventoryLogger.Direction dir = InventoryLogger.Direction.fromDbId(interactionType);
         if (dir == null) {
-            IChatComponent invalid = new ChatComponentTranslation("message.inventory.invalid", interactionType);
+            IChatComponent invalid = new ChatComponentTranslation("tempora.event.inventory.invalid", interactionType);
             invalid.getChatStyle()
                 .setColor(EnumChatFormatting.RED);
             return invalid;
@@ -94,7 +94,7 @@ public class InventoryEventInfo extends PositionalEventInfo {
         // Containers carried by a player (backpacks, wireless terminals) are logged at the player, which is still the
         // block worth teleporting to.
         return EventChat.line(
-            added ? "message.inventory.added" : "message.inventory.removed",
+            added ? "tempora.event.inventory.added" : "tempora.event.inventory.removed",
             EventChat.time(timestamp),
             EventChat.player(playerUUID),
             count,

@@ -30,7 +30,7 @@ public class ChatComponentBlockName extends AbstractChatComponentBuffer<ChatComp
     @Override
     public String getUnformattedTextForChat() {
         // 0 is hard‑wired vanilla Air
-        if (id == 0) return StatCollector.translateToLocal("tile.air.name");
+        if (id == 0) return StatCollector.translateToLocal("tempora.block.air");
 
         Item item = Item.getItemById(id);
         if (item == null) {

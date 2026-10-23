@@ -62,27 +62,28 @@ public class EntityDeathEventInfo extends PositionalEventInfo {
         // Players are stored by UUID. Anything else is in brackets: a mob by its EntityList name, e.g. [Zombie] (older
         // rows have its class, e.g. [EntityZombie]), or a damage type such as [fall] or [inFire].
         if (PlayerUtils.isUUID(killedBy)) {
-            return EventChat.line("message.entity_death.killed", when, EventChat.player(killedBy), victim, where);
+            return EventChat.line("tempora.event.entity_death.killed", when, EventChat.player(killedBy), victim, where);
         }
 
         if (killedBy != null && killedBy.length() > 2 && killedBy.startsWith("[") && killedBy.endsWith("]")) {
             String cause = killedBy.substring(1, killedBy.length() - 1);
             if (isEntity(cause)) {
-                return EventChat.line("message.entity_death.killed", when, EventChat.entityName(cause), victim, where);
+                return EventChat
+                    .line("tempora.event.entity_death.killed", when, EventChat.entityName(cause), victim, where);
             }
 
             // inFire -> in fire.
             String damage = cause.replaceAll("([a-z])([A-Z])", "$1 $2")
                 .toLowerCase(Locale.ROOT);
             return EventChat.line(
-                "message.entity_death.died",
+                "tempora.event.entity_death.died",
                 when,
                 victim,
                 EventChat.text(damage, EnumChatFormatting.WHITE),
                 where);
         }
 
-        return EventChat.line("message.entity_death.unknown", when, victim, where);
+        return EventChat.line("tempora.event.entity_death.unknown", when, victim, where);
     }
 
     // Vanilla's damage types start lower case and have no translated entity name, mobs do one or the other.

@@ -37,7 +37,7 @@ public class PlayerMovementEventInfo extends PositionalEventInfo {
     @Override
     public IChatComponent localiseText() {
         return EventChat.line(
-            "message.player_movement",
+            "tempora.event.player_movement",
             EventChat.time(timestamp),
             EventChat.player(playerUUID),
             EventChat.where(this, CommandUtils.TeleportType.EXACT));

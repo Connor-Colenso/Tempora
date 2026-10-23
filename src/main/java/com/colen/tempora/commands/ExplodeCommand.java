@@ -39,7 +39,7 @@ public class ExplodeCommand extends TemporaSubcommand {
         try {
             strength = Float.parseFloat(args[0]);
         } catch (NumberFormatException e) {
-            sender.addChatMessage(new ChatComponentTranslation("tempora.command.explode.force.must.be.numeric"));
+            sender.addChatMessage(new ChatComponentTranslation("tempora.command.explode.not_a_number"));
             return;
         }
 

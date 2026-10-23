@@ -84,7 +84,7 @@ public class BlockChangeEventInfo extends PositionalEventInfo {
 
         // A negative distance means no player was in the world.
         if (closestPlayerDistance < 0) {
-            return EventChat.line("message.block_change.no_player", when, before, after, where, trace);
+            return EventChat.line("tempora.event.block_change.no_player", when, before, after, where, trace);
         }
 
         // Only the nearest player, not necessarily who did it, so how near they were is on hover.
@@ -95,10 +95,10 @@ public class BlockChangeEventInfo extends PositionalEventInfo {
                     HoverEvent.Action.SHOW_TEXT,
                     EventChat.grey(
                         new ChatComponentTranslation(
-                            "message.block_change.closest_player",
+                            "tempora.event.block_change.closest_player",
                             formatNumber(closestPlayerDistance, ONE_DP)))));
 
-        return EventChat.line("message.block_change", when, before, after, where, closestPlayer, trace);
+        return EventChat.line("tempora.event.block_change", when, before, after, where, closestPlayer, trace);
     }
 
     // [Trace]: the end of the stack trace that changed the block on hover, and all of it printed in chat on click. The
@@ -106,7 +106,7 @@ public class BlockChangeEventInfo extends PositionalEventInfo {
     private IChatComponent traceComponent() {
         if (stackTrace == null) {
             // Its trace was never stored or has been pruned.
-            IChatComponent missing = new ChatComponentTranslation("tempora.command.stacktrace.missing");
+            IChatComponent missing = new ChatComponentTranslation("tempora.trace.missing");
             missing.getChatStyle()
                 .setColor(EnumChatFormatting.DARK_GRAY);
             return missing;
@@ -131,9 +131,7 @@ public class BlockChangeEventInfo extends PositionalEventInfo {
             number.getChatStyle()
                 .setColor(EnumChatFormatting.RED);
 
-            IChatComponent stackTraceTooLongMsg = new ChatComponentTranslation(
-                "tempora.command.click.reveal.stacktrace",
-                number);
+            IChatComponent stackTraceTooLongMsg = new ChatComponentTranslation("tempora.trace.hover.more", number);
             stackTraceTooLongMsg.getChatStyle()
                 .setColor(EnumChatFormatting.GRAY);
             hoverText.appendText("\n");

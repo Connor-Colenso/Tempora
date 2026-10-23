@@ -57,13 +57,13 @@ public class CommandEventInfo extends PositionalEventInfo {
             .text(cut ? command.substring(0, MAX_SHOWN_LENGTH - 3) + "..." : command, EnumChatFormatting.WHITE);
 
         IChatComponent hover = new ChatComponentText(cut ? command + "\n" : "");
-        hover.appendSibling(new ChatComponentTranslation("message.command_issued.hover"));
+        hover.appendSibling(new ChatComponentTranslation("tempora.event.command.hover"));
         shown.getChatStyle()
             .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, EventChat.grey(hover)))
             .setChatClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, command));
 
         return EventChat.line(
-            "message.command_issued",
+            "tempora.event.command",
             EventChat.time(timestamp),
             EventChat.player(playerUUID),
             shown,

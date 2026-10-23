@@ -95,17 +95,17 @@ public class TimeUtils {
     }
 
     // Smallest first. Same unit lengths as convertToSeconds, so "1mo" typed into a command reads back as 1mo ago.
-    private static final TimeUnit[] TIME_UNITS = new TimeUnit[] { new TimeUnit(1, "time.ago.seconds"),
-        new TimeUnit(60, "time.ago.minutes"), new TimeUnit(3_600, "time.ago.hours"),
-        new TimeUnit(86_400, "time.ago.days"), new TimeUnit(604_800, "time.ago.weeks"),
-        new TimeUnit(2_592_000, "time.ago.months"), new TimeUnit(31_557_600, "time.ago.years") };
+    private static final TimeUnit[] TIME_UNITS = new TimeUnit[] { new TimeUnit(1, "tempora.time.ago.seconds"),
+        new TimeUnit(60, "tempora.time.ago.minutes"), new TimeUnit(3_600, "tempora.time.ago.hours"),
+        new TimeUnit(86_400, "tempora.time.ago.days"), new TimeUnit(604_800, "tempora.time.ago.weeks"),
+        new TimeUnit(2_592_000, "tempora.time.ago.months"), new TimeUnit(31_557_600, "tempora.time.ago.years") };
 
     /** How long ago a time was, in the largest unit it has reached at least one of, e.g. 6.4 and "6.4m ago". */
     public static DurationParts relativeTimeAgoFormatter(long pastUnixEpochMillis) {
         double elapsedSeconds = (Instant.now()
             .toEpochMilli() - pastUnixEpochMillis) / 1000.0;
 
-        if (elapsedSeconds < 1) return new DurationParts(0, "time.ago.now");
+        if (elapsedSeconds < 1) return new DurationParts(0, "tempora.time.ago.now");
 
         TimeUnit unit = TIME_UNITS[0];
         for (TimeUnit candidate : TIME_UNITS) {

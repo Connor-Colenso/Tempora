@@ -58,7 +58,7 @@ public class PlayerBlockBreakEventInfo extends PositionalEventInfo {
     @Override
     public IChatComponent localiseText() {
         return EventChat.line(
-            "message.block_break",
+            "tempora.event.block_break",
             EventChat.time(timestamp),
             EventChat.player(playerUUID),
             EventChat.block(pickBlockID, pickBlockMeta, blockID, metadata),

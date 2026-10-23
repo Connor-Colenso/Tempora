@@ -45,12 +45,15 @@ public class ItemUseEventInfo extends PositionalEventInfo {
 
         // Item 0 is an empty hand, e.g. right clicking a block to open it.
         if (itemID == 0) {
-            return EventChat
-                .line("message.item_use.empty_hand", EventChat.time(timestamp), EventChat.player(playerUUID), where);
+            return EventChat.line(
+                "tempora.event.item_use.empty_hand",
+                EventChat.time(timestamp),
+                EventChat.player(playerUUID),
+                where);
         }
 
         return EventChat.line(
-            "message.item_use",
+            "tempora.event.item_use",
             EventChat.time(timestamp),
             EventChat.player(playerUUID),
             EventChat.block(itemID, itemMetadata),

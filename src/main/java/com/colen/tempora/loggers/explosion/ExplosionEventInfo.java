@@ -85,23 +85,23 @@ public class ExplosionEventInfo extends PositionalEventInfo {
         // name).
         IChatComponent line;
         if (exploderUUID == null || UNKNOWN_CAUSE.equals(exploderUUID)) {
-            line = EventChat.line("message.explosion.unknown", when, where, power);
+            line = EventChat.line("tempora.event.explosion.unknown", when, where, power);
         } else {
             IChatComponent exploder = PlayerUtils.isUUID(exploderUUID) ? EventChat.player(exploderUUID)
                 : EventChat.entityName(exploderUUID);
-            line = EventChat.line("message.explosion", when, exploder, where, power);
+            line = EventChat.line("tempora.event.explosion", when, exploder, where, power);
         }
 
         // The rest is on hover, so the line fits.
         IChatComponent details = new ChatComponentTranslation(
-            "message.explosion.destroyed",
+            "tempora.event.explosion.destroyed",
             ChunkPositionUtils.decodePositions(affectedBlockCoordinates)
                 .size());
         if (closestPlayerDistance >= 0) {
             details.appendText("\n")
                 .appendSibling(
                     new ChatComponentTranslation(
-                        "message.explosion.closest_player",
+                        "tempora.event.explosion.closest_player",
                         PlayerUtils.playerNameFromUUID(closestPlayerUUID),
                         formatNumber(closestPlayerDistance, ONE_DP)));
         }

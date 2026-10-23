@@ -46,7 +46,7 @@ public class EntityPositionEventInfo extends PositionalEventInfo {
     @Override
     public IChatComponent localiseText() {
         return EventChat.line(
-            "message.entity_position",
+            "tempora.event.entity_position",
             EventChat.time(timestamp),
             EventChat.entity(entityName, entityUUID),
             EventChat.where(this, CommandUtils.TeleportType.EXACT));
