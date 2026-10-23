@@ -211,9 +211,12 @@ public class SqlCommand extends TemporaSubcommand {
             // Limit number of rows returned
             stmt.setMaxRows(MAX_RESULTS_TO_SHOW);
 
+            List<? extends GenericEventInfo> events;
             try (ResultSet rs = stmt.executeQuery()) {
-                return logger.generateQueryResults(rs);
+                events = logger.generateQueryResults(rs);
             }
+            logger.loadExtras(events, TemporaQueries.connection(logger));
+            return events;
         }
     }
 

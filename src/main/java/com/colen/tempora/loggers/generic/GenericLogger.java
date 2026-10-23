@@ -3,6 +3,7 @@ package com.colen.tempora.loggers.generic;
 import static com.colen.tempora.Tempora.LOG;
 import static com.colen.tempora.utils.ReflectionUtils.getAllTableColumns;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -25,6 +26,7 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.colen.tempora.TemporaLoggerManager;
 import com.colen.tempora.chat.ChatComponentWrappedTranslation;
@@ -199,6 +201,36 @@ public abstract class GenericLogger<EventInfo extends GenericEventInfo> {
     }
 
     public void handleCustomLoggerConfig(Configuration config) {}
+
+    // --------------------------------------
+    // Extra tables
+    // --------------------------------------
+    // For what a logger keeps beside its events, in the same database file, e.g. the block change logger's stack
+    // traces, stored once each however many events share them.
+
+    /** Creates this logger's extra tables and their indexes, as its database opens. Inside the opening transaction. */
+    protected void createExtraTables(Connection conn) throws SQLException {}
+
+    /**
+     * Writes what the events in a batch refer to, before them and in the same transaction, so an event is never stored
+     * without it. On the worker thread. Returns what to do once the batch has committed, e.g. mark the rows written,
+     * or null. If the batch fails it is not run, so the rows are written with a later batch instead.
+     */
+    protected @Nullable Runnable writeExtras(Connection conn) throws SQLException {
+        return null;
+    }
+
+    /**
+     * Fills in what events read back refer to, e.g. their stack traces. On the query thread, with its read-only
+     * connection, after every read of this logger's events.
+     */
+    public void loadExtras(List<? extends GenericEventInfo> events, Connection conn) throws SQLException {}
+
+    /**
+     * Deletes extra rows nothing refers to any more, after pruning has deleted old events. On the worker thread,
+     * inside the pruning transaction.
+     */
+    protected void pruneExtras(Connection conn) throws SQLException {}
 
     public final void registerEvent() {
         if (!getLoggerEventType().shouldRegister()) return;
@@ -444,9 +476,12 @@ public abstract class GenericLogger<EventInfo extends GenericEventInfo> {
             .prepareStatement(sql)) {
             parameters.set(ps);
 
+            List<EventInfo> events;
             try (ResultSet rs = ps.executeQuery()) {
-                return generateQueryResults(rs);
+                events = generateQueryResults(rs);
             }
+            loadExtras(events, TemporaQueries.connection(this));
+            return events;
         } catch (SQLException e) {
             TemporaQueries.throwIfTimedOut();
             throw e;

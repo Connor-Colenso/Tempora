@@ -3,7 +3,6 @@ package com.colen.tempora.loggers.block_change;
 import static com.colen.tempora.utils.ChatUtils.ONE_DP;
 import static com.gtnewhorizon.gtnhlib.util.numberformatting.NumberFormatUtil.formatNumber;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import net.minecraft.event.HoverEvent;
@@ -12,10 +11,11 @@ import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
+import org.jetbrains.annotations.Nullable;
+
 import com.colen.tempora.TemporaEvents;
+import com.colen.tempora.chat.ChatComponentStackTrace;
 import com.colen.tempora.chat.EventChat;
-import com.colen.tempora.commands.TemporaCommand;
-import com.colen.tempora.commands.TraceCommand;
 import com.colen.tempora.loggers.generic.PositionalEventInfo;
 import com.colen.tempora.loggers.generic.column.Column;
 import com.colen.tempora.utils.CommandUtils;
@@ -101,24 +101,18 @@ public class BlockChangeEventInfo extends PositionalEventInfo {
         return EventChat.line("message.block_change", when, before, after, where, closestPlayer, trace);
     }
 
-    // [Trace], showing the end of the stack trace that changed the block on hover, and all of it on click.
+    // [Trace]: the end of the stack trace that changed the block on hover, and all of it printed in chat on click. The
+    // whole trace travels with the line, so the click works however long ago it arrived.
     private IChatComponent traceComponent() {
-        String stackTrace = StackTraceUtils.findStackTrace(stackTraceID);
         if (stackTrace == null) {
-            // Trace IDs are only kept until the server stops, so changes logged before a restart have none.
+            // Its trace was never stored or has been pruned.
             IChatComponent missing = new ChatComponentTranslation("tempora.command.stacktrace.missing");
             missing.getChatStyle()
                 .setColor(EnumChatFormatting.DARK_GRAY);
             return missing;
         }
 
-        // Generate full stack trace as a list of IChatComponents
-        List<IChatComponent> stackTraceComponents = generateStackTraceComponents(stackTrace);
-
-        // Stored under the trace's own ID, so showing the same trace again replaces it rather than storing another
-        // copy.
-        String traceKey = String.valueOf(stackTraceID);
-        TraceCommand.storeStackTrace(traceKey, stackTraceComponents);
+        List<IChatComponent> stackTraceComponents = StackTraceUtils.toChatLines(stackTrace);
 
         // Build hover text with truncation
         int maxLines = 7;
@@ -146,80 +140,21 @@ public class BlockChangeEventInfo extends PositionalEventInfo {
             hoverText.appendSibling(stackTraceTooLongMsg);
         }
 
-        // Stack trace hover component with click event
-        ChatComponentTranslation stackTraceComponent = new ChatComponentTranslation(
-            "tempora.command.stacktrace.brackets");
+        IChatComponent stackTraceComponent = new ChatComponentStackTrace(stackTrace);
         stackTraceComponent.getChatStyle()
-            .setColor(EnumChatFormatting.AQUA);
-        stackTraceComponent.getChatStyle()
+            .setColor(EnumChatFormatting.AQUA)
             .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hoverText));
-
-        // Add click event to run the command
-        stackTraceComponent.getChatStyle()
-            .setChatClickEvent(
-                new net.minecraft.event.ClickEvent(
-                    net.minecraft.event.ClickEvent.Action.RUN_COMMAND,
-                    TemporaCommand.TRACE.command(traceKey)));
-
         return stackTraceComponent;
     }
 
-    // Generates a full stack trace as a list of IChatComponents
-    private List<IChatComponent> generateStackTraceComponents(String stackTrace) {
-        String[] lines = stackTrace.split("->");
-        List<IChatComponent> components = new ArrayList<>();
+    // The stack trace that changed the block, read from the logger's trace table along with the event.
+    void setStackTrace(String stackTrace) {
+        this.stackTrace = stackTrace;
+    }
 
-        int index = 0;
-
-        // Iterate in reverse (most recent first)
-        for (int i = lines.length - 1; i >= 0; i--) {
-            String trimmed = lines[i].trim();
-
-            // Extract class, method, line
-            // Format: fully.qualified.Class#method:line
-            String className = trimmed;
-            String methodName = "";
-            String lineNumber = "?";
-
-            int hashIndex = trimmed.lastIndexOf('#');
-            int colonIndex = trimmed.lastIndexOf(':');
-
-            if (hashIndex != -1) {
-                className = trimmed.substring(0, hashIndex);
-                methodName = trimmed.substring(hashIndex + 1, colonIndex != -1 ? colonIndex : trimmed.length());
-            }
-
-            if (colonIndex != -1 && colonIndex + 1 < trimmed.length()) {
-                String rawLine = trimmed.substring(colonIndex + 1);
-                lineNumber = rawLine.equals("-1") ? "?" : rawLine;
-            }
-
-            // Strip package → keep simple class name
-            int lastDot = className.lastIndexOf('.');
-            if (lastDot != -1 && lastDot + 1 < className.length()) {
-                className = className.substring(lastDot + 1);
-            }
-
-            // Build simple display with 1 space
-            String finalText = className + "#" + methodName + ":" + lineNumber;
-
-            // Index component
-            IChatComponent lineNumberComp = new ChatComponentTranslation("%s. ", new ChatComponentNumber(index));
-            lineNumberComp.getChatStyle()
-                .setColor(EnumChatFormatting.YELLOW);
-
-            // Text component
-            IChatComponent lineText = new ChatComponentText(finalText);
-            lineText.getChatStyle()
-                .setColor(EnumChatFormatting.GRAY);
-
-            IChatComponent fullLine = new ChatComponentTranslation("%s%s", lineNumberComp, lineText);
-            components.add(fullLine);
-
-            index++;
-        }
-
-        return components;
+    /** The stack trace that changed the block, once read back with the event, or null if it isn't stored. */
+    public @Nullable String getStackTrace() {
+        return stackTrace;
     }
 
     @Override

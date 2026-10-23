@@ -18,7 +18,8 @@
     "accessors.InventoryLargeChestAccessor"
   ],
   "client": [
-    "accessors.ForgeHooksClientAccessor"
+    "accessors.ForgeHooksClientAccessor",
+    "client.MixinGuiChat"
   ],
   "server": [
   ]

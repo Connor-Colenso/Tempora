@@ -157,9 +157,6 @@ tempora.command.teleport.hover=Click to teleport.
 tempora.command.teleport.dimension=%s (ID %s)
 tempora.command.teleport.exact=Exactly %s
 
-tempora.command.trace.description=Prints a stored stack trace. It runs when you click [Trace] on a block change, it isn't meant to be typed.
-tempora.command.trace.arg0=The key of the stored stack trace.
-tempora.command.trace.not_found=No stack trace was found for key: %s.
 tempora.command.stacktrace.brackets=[Trace]
 tempora.command.stacktrace.missing=[No trace]
 tempora.command.full.stacktrace=Full stack trace

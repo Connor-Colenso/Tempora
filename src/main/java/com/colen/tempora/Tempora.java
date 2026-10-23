@@ -13,7 +13,6 @@ import org.apache.logging.log4j.Logger;
 import com.colen.tempora.blocks.RenderingErrorBlock;
 import com.colen.tempora.blocks.stress.StressTestBlock;
 import com.colen.tempora.commands.TemporaCommand;
-import com.colen.tempora.commands.TraceCommand;
 import com.colen.tempora.events.ServerTickHandler;
 import com.colen.tempora.items.TemporaWand;
 import com.colen.tempora.loggers.generic.GenericLogger;
@@ -104,6 +103,5 @@ public class Tempora {
         TemporaRegionRegistry.unload();
 
         ClientRegionStore.onServerClose();
-        TraceCommand.clearAll();
     }
 }

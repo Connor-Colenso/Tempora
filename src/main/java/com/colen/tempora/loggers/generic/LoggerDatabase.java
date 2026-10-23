@@ -59,6 +59,7 @@ public class LoggerDatabase {
 
         // Cheap when they already exist, and adds any index a newer version of the logger needs.
         createIndexes();
+        logger.createExtraTables(dbConnection);
 
         dbConnection.commit();
     }
@@ -257,6 +258,8 @@ public class LoggerDatabase {
             ps.setInt(2, PRUNE_BATCH_SIZE);
 
             int deleted = ps.executeUpdate();
+            // Whatever only the deleted events referred to. Only when something was deleted, as it checks every row.
+            if (deleted > 0) logger.pruneExtras(dbConnection);
             dbConnection.commit();
             return deleted == PRUNE_BATCH_SIZE;
         } catch (SQLException e) {
@@ -388,7 +391,10 @@ public class LoggerDatabase {
             addDataInjectionStatement.addBatch();
         }
 
+        Runnable afterCommit;
         try {
+            // First, so nothing the events refer to is missing once they are stored.
+            afterCommit = logger.writeExtras(dbConnection);
             addDataInjectionStatement.executeBatch();
             dbConnection.commit();
         } catch (SQLException e) {
@@ -405,6 +411,7 @@ public class LoggerDatabase {
             }
             throw e;
         }
+        if (afterCommit != null) afterCommit.run();
     }
 
     public void shutdownDatabase() throws SQLException {

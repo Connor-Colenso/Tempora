@@ -109,6 +109,8 @@ final class TestSupport {
                     events.add((PositionalEventInfo) event);
                 }
             }
+            // As a lookup does, e.g. the block change logger's stack traces.
+            logger.loadExtras(events, TemporaQueries.connection(logger));
             return events;
         }
     }
@@ -164,9 +166,13 @@ final class TestSupport {
     static void assertChatWellFormed(GameTestHelper helper, IChatComponent component, String context) {
         if (component instanceof ChatComponentTranslation translation) {
             String key = translation.getKey();
-            helper.assertTrue(StatCollector.canTranslate(key), context + ": missing translation for " + key);
+            // A key holding a placeholder is a literal format, e.g. "%s. ", which vanilla uses as it is.
+            boolean literalFormat = key.contains("%");
+            helper.assertTrue(
+                literalFormat || StatCollector.canTranslate(key),
+                context + ": missing translation for " + key);
 
-            String format = StatCollector.translateToLocal(key);
+            String format = literalFormat ? key : StatCollector.translateToLocal(key);
             Object[] args = translation.getFormatArgs();
             helper.assertEquals(
                 placeholderCount(format),
