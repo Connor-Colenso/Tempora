@@ -59,7 +59,7 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathEventI
         if (entity instanceof EntityPlayerMP) return;
 
         EntityDeathEventInfo eventInfo = new EntityDeathEventInfo();
-        eventInfo.nameOfDeadEntity = entityRegistryName(entity);
+        eventInfo.entityName = entityRegistryName(entity);
         eventInfo.entityUUID = entity.getUniqueID()
             .toString();
 

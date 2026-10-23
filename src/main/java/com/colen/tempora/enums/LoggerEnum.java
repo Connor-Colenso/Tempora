@@ -11,5 +11,5 @@ public enum LoggerEnum {
     ItemUseLogger,
     PlayerBlockBreakLogger,
     PlayerBlockPlaceLogger,
-    PlayerMovementLogger
+    PlayerPositionLogger
 }

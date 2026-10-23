@@ -28,7 +28,7 @@ public class ItemUseLogger extends GenericPositionalLogger<ItemUseEventInfo> {
 
     @Override
     public @NotNull String getShortName() {
-        return "item";
+        return "use";
     }
 
     @Override

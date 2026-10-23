@@ -31,7 +31,7 @@ public class EntityPositionLogger extends GenericPositionalLogger<EntityPosition
 
     @Override
     public @NotNull String getShortName() {
-        return "entity";
+        return "mobpos";
     }
 
     @Override
@@ -76,7 +76,7 @@ public class EntityPositionLogger extends GenericPositionalLogger<EntityPosition
     }
 
     /**
-     * Logs where an entity is right now. Players are not logged here (see PlayerMovementLogger), nor are dropped items
+     * Logs where an entity is right now. Players are not logged here (see PlayerPositionLogger), nor are dropped items
      * and XP orbs.
      */
     public void logEntityPosition(Entity entity) {

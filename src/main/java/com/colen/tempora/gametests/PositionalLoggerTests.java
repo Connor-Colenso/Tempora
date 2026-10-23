@@ -144,8 +144,8 @@ public class PositionalLoggerTests {
             .thenExecute("event reads back intact", () -> {
                 ExplosionEventInfo event = (ExplosionEventInfo) probe.latest()
                     .get(0);
-                helper.assertEquals(1.5, event.strength, 0.001, "strength");
-                helper.assertEquals(PlayerUtils.UNKNOWN_CAUSE, event.exploderUUID, "exploderUUID");
+                helper.assertEquals(1.5, event.power, 0.001, "power");
+                helper.assertEquals(PlayerUtils.UNKNOWN_CAUSE, event.exploder, "exploder");
                 assertWellFormed(helper, logger, probe.latest());
             })
             .thenSucceed();
@@ -201,7 +201,7 @@ public class PositionalLoggerTests {
             .thenExecute("event reads back intact", () -> {
                 EntityDeathEventInfo event = (EntityDeathEventInfo) probe.latest()
                     .get(0);
-                helper.assertEquals("Pig", event.nameOfDeadEntity, "nameOfDeadEntity");
+                helper.assertEquals("Pig", event.entityName, "entityName");
                 helper.assertEquals(uuid(player), event.killedBy, "killedBy");
                 assertWellFormed(helper, logger, probe.latest());
             })

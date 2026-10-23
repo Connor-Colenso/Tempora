@@ -94,11 +94,11 @@ public class InventoryLogger extends GenericPositionalLogger<InventoryEventInfo>
         eventInfo.containerName = containerName;
         eventInfo.playerUUID = player.getUniqueID()
             .toString();
-        eventInfo.interactionType = (change > 0 ? Direction.IN_TO_CONTAINER : Direction.OUT_OF_CONTAINER).getDbId();
+        eventInfo.direction = (change > 0 ? Direction.IN_TO_CONTAINER : Direction.OUT_OF_CONTAINER).getDbId();
 
-        eventInfo.itemId = Item.getIdFromItem(item.item);
+        eventInfo.itemID = Item.getIdFromItem(item.item);
         eventInfo.itemMetadata = item.meta;
-        eventInfo.stackSize = (int) Math.min(Integer.MAX_VALUE, Math.abs(change));
+        eventInfo.amount = (int) Math.min(Integer.MAX_VALUE, Math.abs(change));
 
         if (item.tag == null) {
             eventInfo.encodedNBT = NBTUtils.NO_NBT;

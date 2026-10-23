@@ -1,6 +1,6 @@
 package com.colen.tempora.commands;
 
-import static com.colen.tempora.TemporaEvents.PLAYER_MOVEMENT;
+import static com.colen.tempora.TemporaEvents.PLAYER_POSITION;
 import static com.colen.tempora.utils.CommandUtils.teleportChatComponent;
 
 import java.sql.PreparedStatement;
@@ -29,7 +29,7 @@ import com.colen.tempora.utils.TimeUtils;
 
 /**
  * /tempora home <player> [t:<time>] [dim:<id>]
- * Finds the chunk a player has spent the most time in, from their movement history. Useful for finding their base.
+ * Finds the chunk a player has spent the most time in, from their position history. Useful for finding their base.
  */
 public class HomeCommand extends TemporaSubcommand {
 
@@ -60,18 +60,18 @@ public class HomeCommand extends TemporaSubcommand {
         String dim = filters.get("dim");
         Integer forcedDim = dim == null ? null : CommandBase.parseInt(sender, dim);
 
-        GenericLogger<?> movementLogger = TemporaLoggerManager.getLogger(PLAYER_MOVEMENT);
-        if (movementLogger == null || movementLogger.notStarted()) {
+        GenericLogger<?> positionLogger = TemporaLoggerManager.getLogger(PLAYER_POSITION);
+        if (positionLogger == null || positionLogger.notStarted()) {
             sendError(sender, "tempora.command.home.no_db");
             return;
         }
 
         // This query finds the player's most visited chunk (home chunk)
-        // First, we group all movement logs by chunk (x >> 4, z >> 4) and dimension
+        // First, we group all position logs by chunk (x >> 4, z >> 4) and dimension
         // We count how many times the player was in each chunk
         // Then we sort by the number of visits and pick the top one (LIMIT 1)
         //
-        // After that, we join this "hot chunk" back with the movement table
+        // After that, we join this "hot chunk" back with the position table
         // This gives us all the rows that were inside the most visited chunk
         //
         // From those rows, we calculate:
@@ -85,7 +85,7 @@ public class HomeCommand extends TemporaSubcommand {
         // - only include recent data (lookBackCutoffEpoch)
         //
         // The player's UUID is passed in twice, once for each part of the query
-        final String tbl = movementLogger.getLoggerName();
+        final String tbl = positionLogger.getLoggerName();
         StringBuilder sql = new StringBuilder().append("WITH hot AS (")
             .append("  SELECT (x>>4) AS cx, (z>>4) AS cz, dimensionID, COUNT(*) AS hits ")
             .append("  FROM ")
@@ -110,9 +110,9 @@ public class HomeCommand extends TemporaSubcommand {
             .append("WHERE  m.playerUUID = ? ");
         if (lookBackCutoffEpoch != null) sql.append("AND m.timestamp >= ? ");
 
-        // On the query thread. Null if the player has no movement matching the filters.
+        // On the query thread. Null if the player has no positions matching the filters.
         TemporaQueries.Query<HomeChunk> query = () -> {
-            try (PreparedStatement stmt = TemporaQueries.connection(movementLogger)
+            try (PreparedStatement stmt = TemporaQueries.connection(positionLogger)
                 .prepareStatement(sql.toString())) {
 
                 int i = 1;

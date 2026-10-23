@@ -83,13 +83,13 @@ public class InventoryRenderer implements EventRenderer<InventoryEventInfo> {
             lines.add(EnumChatFormatting.LIGHT_PURPLE + here.get(0).containerName);
 
             for (InventoryEventInfo event : here) {
-                InventoryLogger.Direction direction = InventoryLogger.Direction.fromDbId(event.interactionType);
+                InventoryLogger.Direction direction = InventoryLogger.Direction.fromDbId(event.direction);
                 boolean added = direction != null && direction.isAddition();
 
                 String moved = StatCollector.translateToLocalFormatted(
                     added ? "tempora.render.event.items_in" : "tempora.render.event.items_out",
-                    event.stackSize,
-                    EventRenderHelpers.itemName(event.itemId, event.itemMetadata));
+                    event.amount,
+                    EventRenderHelpers.itemName(event.itemID, event.itemMetadata));
 
                 lines.add(
                     (added ? EnumChatFormatting.GREEN : EnumChatFormatting.RED) + moved
@@ -112,7 +112,7 @@ public class InventoryRenderer implements EventRenderer<InventoryEventInfo> {
     private @Nullable EntityItem itemFor(InventoryEventInfo event, EventRenderContext context) {
         if (items.containsKey(event)) return items.get(event);
 
-        ItemStack stack = EventRenderHelpers.itemStack(event.itemId, event.itemMetadata);
+        ItemStack stack = EventRenderHelpers.itemStack(event.itemID, event.itemMetadata);
         EntityItem item = stack == null ? null : new EntityItem(context.world, event.x, event.y, event.z, stack);
         items.put(event, item);
         return item;

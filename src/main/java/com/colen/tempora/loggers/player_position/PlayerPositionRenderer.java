@@ -1,4 +1,4 @@
-package com.colen.tempora.loggers.player_movement;
+package com.colen.tempora.loggers.player_position;
 
 import java.awt.Color;
 import java.util.ArrayList;
@@ -20,19 +20,19 @@ import cpw.mods.fml.relauncher.SideOnly;
  * at them. Each player faces the next place they went to.
  */
 @SideOnly(Side.CLIENT)
-public class PlayerMovementRenderer extends PlayerGhostRenderer<PlayerMovementEventInfo> {
+public class PlayerPositionRenderer extends PlayerGhostRenderer<PlayerPositionEventInfo> {
 
     // Where each event's player went next, for this frame.
-    private final Map<PlayerMovementEventInfo, PlayerMovementEventInfo> nextPlace = new IdentityHashMap<>();
+    private final Map<PlayerPositionEventInfo, PlayerPositionEventInfo> nextPlace = new IdentityHashMap<>();
 
-    public PlayerMovementRenderer() {
+    public PlayerPositionRenderer() {
         super(new Color(0, 220, 220));
     }
 
     @Override
-    public void renderWorld(List<PlayerMovementEventInfo> events, EventRenderContext context) {
+    public void renderWorld(List<PlayerPositionEventInfo> events, EventRenderContext context) {
         nextPlace.clear();
-        for (List<PlayerMovementEventInfo> path : EventRenderHelpers.groupBy(events, event -> event.playerUUID)) {
+        for (List<PlayerPositionEventInfo> path : EventRenderHelpers.groupBy(events, event -> event.playerUUID)) {
             for (int i = 0; i + 1 < path.size(); i++) {
                 nextPlace.put(path.get(i), path.get(i + 1));
             }
@@ -43,8 +43,8 @@ public class PlayerMovementRenderer extends PlayerGhostRenderer<PlayerMovementEv
     }
 
     @Override
-    protected float yaw(PlayerMovementEventInfo event, EventRenderContext context) {
-        PlayerMovementEventInfo next = nextPlace.get(event);
+    protected float yaw(PlayerPositionEventInfo event, EventRenderContext context) {
+        PlayerPositionEventInfo next = nextPlace.get(event);
         // Facing straight up or down a ladder has no direction, so face the camera then too.
         if (next == null || (next.x == event.x && next.z == event.z)) return super.yaw(event, context);
 
@@ -52,14 +52,14 @@ public class PlayerMovementRenderer extends PlayerGhostRenderer<PlayerMovementEv
     }
 
     @Override
-    protected String playerUUID(PlayerMovementEventInfo event) {
+    protected String playerUUID(PlayerPositionEventInfo event) {
         return event.playerUUID;
     }
 
     @Override
-    protected List<String> label(List<PlayerMovementEventInfo> eventsHere) {
+    protected List<String> label(List<PlayerPositionEventInfo> eventsHere) {
         List<String> lines = new ArrayList<>();
-        for (PlayerMovementEventInfo event : eventsHere) {
+        for (PlayerPositionEventInfo event : eventsHere) {
             lines.add(EnumChatFormatting.GRAY + EventRenderHelpers.timeAgo(event.timestamp));
         }
         return lines;

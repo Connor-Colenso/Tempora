@@ -53,7 +53,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
 
     @Override
     public @NotNull String getShortName() {
-        return "block";
+        return "change";
     }
 
     // Every setBlock call in the world is far too much data to log everywhere, so by default this only logs inside

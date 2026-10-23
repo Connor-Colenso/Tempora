@@ -91,7 +91,7 @@ public class ExplosionRenderer implements EventRenderer<ExplosionEventInfo> {
             List<String> lines = Arrays.asList(
                 EnumChatFormatting.LIGHT_PURPLE + StatCollector.translateToLocalFormatted(
                     "tempora.render.event.explosion",
-                    NumberFormatUtil.formatNumber(event.strength, ONE_DP)),
+                    NumberFormatUtil.formatNumber(event.power, ONE_DP)),
                 EnumChatFormatting.GRAY + EventRenderHelpers.timeAgo(event.timestamp));
 
             EventRenderHelpers.renderLabelAbove(lines, event.x, event.y + 0.7, event.z);

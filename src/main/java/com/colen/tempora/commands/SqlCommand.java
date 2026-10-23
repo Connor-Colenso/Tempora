@@ -228,7 +228,7 @@ public class SqlCommand extends TemporaSubcommand {
 
     @Override
     public String getExampleArgs() {
-        return "SELECT * FROM PlayerMovementLogger WHERE playerUUID = 'player_uuid_goes_here' AND Y > 80";
+        return "SELECT * FROM PlayerPositionLogger WHERE playerUUID = 'player_uuid_goes_here' AND Y > 80";
     }
 
 }

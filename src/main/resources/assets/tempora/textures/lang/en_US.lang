@@ -80,7 +80,7 @@ tempora.event.inventory.removed=%s %s took %s %s from %s at %s
 tempora.event.inventory.invalid=Unknown inventory interaction %s in the inventory database. Please report this.
 tempora.event.item_use=%s %s used %s at %s
 tempora.event.item_use.empty_hand=%s %s clicked with an empty hand at %s
-tempora.event.player_movement=%s %s was at %s
+tempora.event.player_position=%s %s was at %s
 tempora.event.tps=%s TPS %s, mean tick %sms, worst %sms
 tempora.event.weather=%s %s went from %s to %s
 
@@ -122,14 +122,14 @@ tempora.logger.setting.nbt_items.off=Doesn't save item NBT (NBT is off).
 tempora.logger.setting.interval=Records every %s.
 tempora.logger.setting.retention=Keeps events for %s.
 
-tempora.logger.BlockChangeLogger.name=Block changes
+tempora.logger.BlockChangeLogger.name=All block changes
 tempora.logger.BlockChangeLogger.description=Every block that changes, whatever changed it: players, machines, other mods or the world itself.
 tempora.logger.CommandLogger.name=Commands
 tempora.logger.CommandLogger.description=Commands players run, with their arguments, logged where the player stood.
 tempora.logger.EntityDeathLogger.name=Mob deaths
 tempora.logger.EntityDeathLogger.description=Mobs dying, and what killed them. Player deaths aren't logged.
 tempora.logger.EntityPositionLogger.name=Mob positions
-tempora.logger.EntityPositionLogger.description=Where mobs are, recorded at regular intervals. Players are recorded by Player movement instead.
+tempora.logger.EntityPositionLogger.description=Where mobs are, recorded at regular intervals. Players are recorded by Player positions instead.
 tempora.logger.EntitySpawnLogger.name=Mob spawns
 tempora.logger.EntitySpawnLogger.description=Mobs and other entities appearing in the world, each one once. Players, dropped items and XP orbs are left out.
 tempora.logger.ExplosionLogger.name=Explosions
@@ -142,8 +142,8 @@ tempora.logger.PlayerBlockBreakLogger.name=Player block breaks
 tempora.logger.PlayerBlockBreakLogger.description=Blocks players break.
 tempora.logger.PlayerBlockPlaceLogger.name=Player block places
 tempora.logger.PlayerBlockPlaceLogger.description=Blocks players place.
-tempora.logger.PlayerMovementLogger.name=Player movement
-tempora.logger.PlayerMovementLogger.description=Where each player is, recorded at regular intervals.
+tempora.logger.PlayerPositionLogger.name=Player positions
+tempora.logger.PlayerPositionLogger.description=Where each player is, recorded at regular intervals.
 tempora.logger.TPSLogger.name=Server TPS
 tempora.logger.TPSLogger.description=The server's ticks per second and how long its ticks took, recorded at regular intervals.
 tempora.logger.WeatherLogger.name=Weather
@@ -187,18 +187,18 @@ tempora.command.global.nothing_found=Nothing was logged in the last %s.
 tempora.command.global.positional_logger=%s records events at a place, use %s to look them up around you.
 
 # /tempora home
-tempora.command.home.description=Finds the chunk a player has spent the most time in, from their movement history. Useful for finding their base.
+tempora.command.home.description=Finds the chunk a player has spent the most time in, from their position history. Useful for finding their base.
 tempora.command.home.arg0=Name of the player to look up.
-tempora.command.home.arg1=Optional. Only use movement from this far back, e.g. 1mo, 2w.
+tempora.command.home.arg1=Optional. Only use positions from this far back, e.g. 1mo, 2w.
 tempora.command.home.arg2=Optional. Only look in this dimension.
 tempora.command.home.result=Player %s is most active in dimension %s, click %s to visit the location.
 tempora.command.home.unknown_player=No player called '%s' has joined this server.
-tempora.command.home.no_db=Movement logging is disabled, so there is no movement history to search.
-tempora.command.home.no_data=No movement data found for that query.
+tempora.command.home.no_db=Player position logging is disabled, so there is no position history to search.
+tempora.command.home.no_data=No position data found for that query.
 
 # /tempora sql
 tempora.command.sql.description=Runs a read-only SELECT query against a logger's database and shows the results in chat, for investigations /tempora lookup can't express.
-tempora.command.sql.arg0=A read-only SELECT query. The table name is the full logger name, e.g. PlayerMovementLogger.
+tempora.command.sql.arg0=A read-only SELECT query. The table name is the full logger name, e.g. PlayerPositionLogger.
 tempora.command.sql.select_only=Only SELECT queries are allowed.
 tempora.command.sql.invalid_table=The query must name a logger table: %s.
 tempora.command.sql.missing_columns=Query missing required columns: %s
@@ -219,9 +219,9 @@ tempora.command.tp.arg1=Optional. Dimension to teleport to, defaults to your cur
 
 # /tempora explode, only in a development environment
 tempora.command.explode.description=Creates an explosion at the block you are looking at, for testing that explosions are logged. Only exists in a development environment.
-tempora.command.explode.arg0=Strength of the explosion, TNT is 4.
+tempora.command.explode.arg0=Power of the explosion, TNT is 4.
 tempora.command.explode.no_block_in_sight=No block in sight.
-tempora.command.explode.not_a_number=Force must be a number.
+tempora.command.explode.not_a_number=Power must be a number.
 
 # /tempora region create
 tempora.command.region.create.description=Creates a named region between two corner blocks, both included. Coordinates can be relative to you, e.g. ~-50. On its own a region changes nothing, use /tempora region set to turn loggers on or off inside it.
@@ -301,7 +301,7 @@ tempora.wand.unauthorised=%s %s attempted to use a Tempora wand without authoris
 tempora.render.event.died=%s died
 tempora.render.event.killed_by=Killed by %s
 tempora.render.event.spawned=%s spawned
-tempora.render.event.explosion=Explosion, strength %s
+tempora.render.event.explosion=Explosion, power %s
 tempora.render.event.item_used=Used %s
 tempora.render.event.empty_hand=an empty hand
 tempora.render.event.items_in=+%s %s

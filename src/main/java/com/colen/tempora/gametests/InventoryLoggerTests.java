@@ -223,13 +223,13 @@ public class InventoryLoggerTests {
 
     private static void assertChange(GameTestHelper helper, InventoryEventInfo event, EntityPlayerMP player, Item item,
         int amount, boolean intoContainer) {
-        helper.assertEquals((long) Item.getIdFromItem(item), event.itemId, "itemId");
-        helper.assertEquals((long) amount, event.stackSize, "stackSize");
+        helper.assertEquals((long) Item.getIdFromItem(item), event.itemID, "itemID");
+        helper.assertEquals((long) amount, event.amount, "amount");
         helper.assertEquals(
             (intoContainer ? InventoryLogger.Direction.IN_TO_CONTAINER : InventoryLogger.Direction.OUT_OF_CONTAINER)
                 .getDbId(),
-            event.interactionType,
-            "interactionType");
+            event.direction,
+            "direction");
         helper.assertEquals(
             player.getUniqueID()
                 .toString(),

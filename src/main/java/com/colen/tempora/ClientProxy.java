@@ -14,7 +14,7 @@ import com.colen.tempora.loggers.inventory.InventoryRenderer;
 import com.colen.tempora.loggers.item_use.ItemUseRenderer;
 import com.colen.tempora.loggers.player_block_break.PlayerBlockBreakRenderer;
 import com.colen.tempora.loggers.player_block_place.PlayerBlockPlaceRenderer;
-import com.colen.tempora.loggers.player_movement.PlayerMovementRenderer;
+import com.colen.tempora.loggers.player_position.PlayerPositionRenderer;
 import com.colen.tempora.rendering.RenderIDsInWorld;
 import com.colen.tempora.rendering.events.ClientEventStore;
 import com.colen.tempora.rendering.events.EventRenderers;
@@ -70,7 +70,7 @@ public class ClientProxy extends CommonProxy {
         EventRenderers.register(TemporaEvents.itemUseLogger, new ItemUseRenderer());
         EventRenderers.register(TemporaEvents.playerBlockBreakLogger, new PlayerBlockBreakRenderer());
         EventRenderers.register(TemporaEvents.playerBlockPlaceLogger, new PlayerBlockPlaceRenderer());
-        EventRenderers.register(TemporaEvents.playerMovementLogger, new PlayerMovementRenderer());
+        EventRenderers.register(TemporaEvents.playerPositionLogger, new PlayerPositionRenderer());
     }
 
     @Override

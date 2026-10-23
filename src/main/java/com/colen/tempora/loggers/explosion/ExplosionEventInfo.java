@@ -29,9 +29,9 @@ import io.netty.buffer.ByteBuf;
 public class ExplosionEventInfo extends PositionalEventInfo {
 
     @Column(constraints = "NOT NULL DEFAULT -1")
-    public float strength;
+    public float power;
     @Column(constraints = "NOT NULL")
-    public String exploderUUID = PlayerUtils.UNKNOWN_CAUSE;
+    public String exploder = PlayerUtils.UNKNOWN_CAUSE;
     @Column(constraints = "NOT NULL")
     public String closestPlayerUUID = PlayerUtils.UNKNOWN_PLAYER_NAME;
     @Column(constraints = "NOT NULL DEFAULT -1")
@@ -42,8 +42,8 @@ public class ExplosionEventInfo extends PositionalEventInfo {
     @Override
     public void fromBytes(ByteBuf buf) {
         super.fromBytes(buf);
-        strength = buf.readFloat();
-        exploderUUID = ByteBufUtils.readUTF8String(buf);
+        power = buf.readFloat();
+        exploder = ByteBufUtils.readUTF8String(buf);
         closestPlayerUUID = ByteBufUtils.readUTF8String(buf);
         closestPlayerDistance = buf.readDouble();
         affectedBlockCoordinates = readUTF8String(buf);
@@ -52,8 +52,8 @@ public class ExplosionEventInfo extends PositionalEventInfo {
     @Override
     public void toBytes(ByteBuf buf) {
         super.toBytes(buf);
-        buf.writeFloat(strength);
-        ByteBufUtils.writeUTF8String(buf, exploderUUID);
+        buf.writeFloat(power);
+        ByteBufUtils.writeUTF8String(buf, exploder);
         ByteBufUtils.writeUTF8String(buf, closestPlayerUUID);
         buf.writeDouble(closestPlayerDistance);
         writeUTF8String(buf, affectedBlockCoordinates);
@@ -79,17 +79,17 @@ public class ExplosionEventInfo extends PositionalEventInfo {
     public IChatComponent localiseText() {
         IChatComponent when = EventChat.time(timestamp);
         IChatComponent where = EventChat.where(this, CommandUtils.TeleportType.EXACT);
-        IChatComponent power = EventChat.text(formatNumber(strength, ONE_DP), EnumChatFormatting.WHITE);
+        IChatComponent powerText = EventChat.text(formatNumber(power, ONE_DP), EnumChatFormatting.WHITE);
 
         // A player by UUID, anything else by its EntityList name (older rows have a living entity's UUID, or a class
         // name).
         IChatComponent line;
-        if (exploderUUID == null || UNKNOWN_CAUSE.equals(exploderUUID)) {
-            line = EventChat.line("tempora.event.explosion.unknown", when, where, power);
+        if (exploder == null || UNKNOWN_CAUSE.equals(exploder)) {
+            line = EventChat.line("tempora.event.explosion.unknown", when, where, powerText);
         } else {
-            IChatComponent exploder = PlayerUtils.isUUID(exploderUUID) ? EventChat.player(exploderUUID)
-                : EventChat.entityName(exploderUUID);
-            line = EventChat.line("tempora.event.explosion", when, exploder, where, power);
+            IChatComponent exploderText = PlayerUtils.isUUID(exploder) ? EventChat.player(exploder)
+                : EventChat.entityName(exploder);
+            line = EventChat.line("tempora.event.explosion", when, exploderText, where, powerText);
         }
 
         // The rest is on hover, so the line fits.

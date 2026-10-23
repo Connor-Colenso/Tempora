@@ -1,4 +1,4 @@
-package com.colen.tempora.loggers.player_movement;
+package com.colen.tempora.loggers.player_position;
 
 import java.util.List;
 
@@ -20,40 +20,40 @@ import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.common.gameevent.TickEvent.PlayerTickEvent;
 
 // This class logs three items to the same database.
-// 1. Player movement every n ticks. By default, n = 200 ticks.
+// 1. Player positions every n ticks. By default, n = 200 ticks.
 // 2. Player teleportation between dimensions. Prevents users from evading the above detector by switching dimensions
 // very quickly.
 // 3. Player login: This prevents the user from being logged into a dimension and quickly switching dimensions, this
 // would cause the dimension to load, which we want to keep track of.
-public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovementEventInfo> {
+public class PlayerPositionLogger extends GenericPositionalLogger<PlayerPositionEventInfo> {
 
     @Override
     public @NotNull String getLoggerName() {
-        return TemporaEvents.PLAYER_MOVEMENT;
+        return TemporaEvents.PLAYER_POSITION;
     }
 
     @Override
     public @NotNull String getShortName() {
-        return "movement";
+        return "playerpos";
     }
 
     @Override
-    public @NotNull PlayerMovementEventInfo newEventInfo() {
-        return new PlayerMovementEventInfo();
+    public @NotNull PlayerPositionEventInfo newEventInfo() {
+        return new PlayerPositionEventInfo();
     }
 
-    private int playerMovementLoggingInterval;
+    private int playerPositionLoggingInterval;
 
     @Override
     protected void addSettingsInfo(List<IChatComponent> lines) {
         super.addSettingsInfo(lines);
-        lines.add(settingLine("tempora.logger.setting.interval", ticks(playerMovementLoggingInterval)));
+        lines.add(settingLine("tempora.logger.setting.interval", ticks(playerPositionLoggingInterval)));
     }
 
     @Override
     public void handleCustomLoggerConfig(Configuration config) {
-        playerMovementLoggingInterval = config.getInt(
-            "playerMovementLoggingInterval",
+        playerPositionLoggingInterval = config.getInt(
+            "playerPositionLoggingInterval",
             getLoggerName(),
             200,
             1,
@@ -90,7 +90,7 @@ public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovement
         if (!(event.player instanceof EntityPlayerMP player)) return;
         if (FMLCommonHandler.instance()
             .getMinecraftServerInstance()
-            .getTickCounter() % playerMovementLoggingInterval != 0) return;
+            .getTickCounter() % playerPositionLoggingInterval != 0) return;
 
         logPlayerPosition(player);
     }
@@ -99,7 +99,7 @@ public class PlayerMovementLogger extends GenericPositionalLogger<PlayerMovement
     public void logPlayerPosition(EntityPlayer player) {
         if (!isEnabledByConfig) return;
 
-        PlayerMovementEventInfo eventInfo = new PlayerMovementEventInfo();
+        PlayerPositionEventInfo eventInfo = new PlayerPositionEventInfo();
         eventInfo.playerUUID = player.getUniqueID()
             .toString();
 

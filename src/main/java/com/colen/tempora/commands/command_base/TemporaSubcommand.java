@@ -33,7 +33,7 @@ public abstract class TemporaSubcommand {
 
     public abstract void execute(ICommandSender sender, String[] args);
 
-    // Example arguments for the help page, e.g. "spawn block on".
+    // Example arguments for the help page, e.g. "spawn change on".
     public abstract String getExampleArgs();
 
     public List<String> tabComplete(ICommandSender sender, String[] args) {

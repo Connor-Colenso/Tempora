@@ -25,7 +25,7 @@ public class EntityDeathRenderer extends EntityEventRenderer<EntityDeathEventInf
 
     @Override
     protected String entityName(EntityDeathEventInfo event) {
-        return event.nameOfDeadEntity;
+        return event.entityName;
     }
 
     @Override
@@ -49,7 +49,7 @@ public class EntityDeathRenderer extends EntityEventRenderer<EntityDeathEventInf
         return Arrays.asList(
             EnumChatFormatting.RED + StatCollector.translateToLocalFormatted(
                 "tempora.render.event.died",
-                EventRenderHelpers.entityName(event.nameOfDeadEntity)),
+                EventRenderHelpers.entityName(event.entityName)),
             EnumChatFormatting.GRAY + StatCollector.translateToLocalFormatted(
                 "tempora.render.event.killed_by",
                 EventRenderHelpers.playerName(event.killedBy)),

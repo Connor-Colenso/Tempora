@@ -1,4 +1,4 @@
-package com.colen.tempora.loggers.player_movement;
+package com.colen.tempora.loggers.player_position;
 
 import net.minecraft.util.IChatComponent;
 
@@ -12,7 +12,7 @@ import com.colen.tempora.utils.PlayerUtils;
 import cpw.mods.fml.common.network.ByteBufUtils;
 import io.netty.buffer.ByteBuf;
 
-public class PlayerMovementEventInfo extends PositionalEventInfo {
+public class PlayerPositionEventInfo extends PositionalEventInfo {
 
     @Column(constraints = "NOT NULL")
     public String playerUUID = PlayerUtils.UNKNOWN_PLAYER_NAME;
@@ -31,13 +31,13 @@ public class PlayerMovementEventInfo extends PositionalEventInfo {
 
     @Override
     public String getLoggerName() {
-        return TemporaEvents.PLAYER_MOVEMENT;
+        return TemporaEvents.PLAYER_POSITION;
     }
 
     @Override
     public IChatComponent localiseText() {
         return EventChat.line(
-            "tempora.event.player_movement",
+            "tempora.event.player_position",
             EventChat.time(timestamp),
             EventChat.player(playerUUID),
             EventChat.where(this, CommandUtils.TeleportType.EXACT));

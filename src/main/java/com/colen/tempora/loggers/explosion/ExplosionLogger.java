@@ -78,20 +78,20 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionEventInfo>
      * else by its EntityList name, e.g. Creeper, so chat can name it. {@code affectedBlocks} are the positions it
      * destroyed, if known.
      */
-    public void logExplosion(World world, double x, double y, double z, float strength, @Nullable Entity exploder,
+    public void logExplosion(World world, double x, double y, double z, float power, @Nullable Entity exploder,
         @Nullable List<ChunkPosition> affectedBlocks) {
         if (!isEnabledByConfig) return;
 
         ExplosionEventInfo eventInfo = new ExplosionEventInfo();
-        eventInfo.strength = strength;
+        eventInfo.power = power;
 
         if (exploder instanceof EntityPlayer) {
-            eventInfo.exploderUUID = exploder.getUniqueID()
+            eventInfo.exploder = exploder.getUniqueID()
                 .toString();
         } else if (exploder != null) {
-            eventInfo.exploderUUID = entityRegistryName(exploder);
+            eventInfo.exploder = entityRegistryName(exploder);
         } else {
-            eventInfo.exploderUUID = UNKNOWN_CAUSE;
+            eventInfo.exploder = UNKNOWN_CAUSE;
         }
 
         EntityPlayer closestPlayer = world.getClosestPlayer(x, y, z, -1);

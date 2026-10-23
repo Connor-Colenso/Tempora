@@ -19,7 +19,7 @@ import io.netty.buffer.ByteBuf;
 public class EntityDeathEventInfo extends PositionalEventInfo {
 
     @Column(constraints = "NOT NULL")
-    public String nameOfDeadEntity = "";
+    public String entityName = "";
 
     @Column(constraints = "NOT NULL")
     public String killedBy = PlayerUtils.UNKNOWN_CAUSE;
@@ -36,7 +36,7 @@ public class EntityDeathEventInfo extends PositionalEventInfo {
     @Override
     public void fromBytes(ByteBuf buf) {
         super.fromBytes(buf);
-        nameOfDeadEntity = ByteBufUtils.readUTF8String(buf);
+        entityName = ByteBufUtils.readUTF8String(buf);
         killedBy = ByteBufUtils.readUTF8String(buf);
         entityUUID = ByteBufUtils.readUTF8String(buf);
         rotationYaw = buf.readFloat();
@@ -46,7 +46,7 @@ public class EntityDeathEventInfo extends PositionalEventInfo {
     @Override
     public void toBytes(ByteBuf buf) {
         super.toBytes(buf);
-        ByteBufUtils.writeUTF8String(buf, nameOfDeadEntity);
+        ByteBufUtils.writeUTF8String(buf, entityName);
         ByteBufUtils.writeUTF8String(buf, killedBy);
         ByteBufUtils.writeUTF8String(buf, entityUUID);
         buf.writeFloat(rotationYaw);
@@ -56,7 +56,7 @@ public class EntityDeathEventInfo extends PositionalEventInfo {
     @Override
     public IChatComponent localiseText() {
         IChatComponent when = EventChat.time(timestamp);
-        IChatComponent victim = EventChat.entity(nameOfDeadEntity, entityUUID);
+        IChatComponent victim = EventChat.entity(entityName, entityUUID);
         IChatComponent where = EventChat.where(this, CommandUtils.TeleportType.EXACT);
 
         // Players are stored by UUID. Anything else is in brackets: a mob by its EntityList name, e.g. [Zombie] (older

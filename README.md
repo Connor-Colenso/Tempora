@@ -2,14 +2,14 @@
 
 A Forge (Minecraft 1.7.10, GTNH ecosystem) server-side mod for tracking griefing and other
 player activity. It's a slimmed-down alternative to Prism/CoreProtect/LogBlock: block changes
-(inside the regions you choose), player movement, inventory transfers, entity deaths/spawns,
+(inside the regions you choose), player positions, inventory transfers, entity deaths/spawns,
 explosions, item use, and commands are logged to a local SQLite database and can be queried
 in-game by operators. Server-wide events with no position, such as weather changes and TPS, are
 logged too.
 
 ## Features
 
-- **Per-event-type logging** — block changes, player movement, entity spawns/deaths,
+- **Per-event-type logging** — block changes, player positions, entity spawns/deaths,
   explosions, inventory transfers, item use, and command history, each in its own SQLite database file.
 - **Server-wide logging** — weather changes and TPS, which happen everywhere rather than at a
   place. See [Logger kinds](#logger-kinds).
@@ -34,7 +34,7 @@ run on its own. All of them require operator permission (permission level 2), an
 |---|---|
 | `/tempora lookup [r:<radius>] [t:<time>] [l:<logger,...>]` | Show the latest events around you. Every filter is optional and they go in any order, e.g. `/tempora lookup t:1d l:break,place`. Defaults to 10 blocks, the last 3 days, every positional logger. |
 | `/tempora global [t:<time>] [l:<logger,...>] [n:<count>]` | Show the latest events from the global loggers (weather, TPS), from anywhere, including the server console. Defaults to the last 10 events of each over the last 3 days. |
-| `/tempora home <player> [t:<time>] [dim:<id>]` | Find a player's most-visited chunk, based on movement history. |
+| `/tempora home <player> [t:<time>] [dim:<id>]` | Find a player's most-visited chunk, based on their position history. |
 | `/tempora sql <SELECT ...>` | Run a read-only `SELECT` against a logger's table for ad-hoc investigation. |
 | `/tempora wand` | Get the Tempora wand. Left click a block to see its history, right click a face for the space in front of it. |
 | `/tempora region create <name> <x1 y1 z1> <x2 y2 z2> [dim]` | Create a region. Coordinates can be relative to you, e.g. `~-50`. |
@@ -43,8 +43,8 @@ run on its own. All of them require operator permission (permission level 2), an
 | `/tempora region check [logger]` | Show which loggers record events where you stand, and why. |
 | `/tempora help [command]` | List every command, or explain one, e.g. `/tempora help region set`. |
 
-Loggers have short names for commands: `block`, `break`, `place`, `explosion`, `command`, `death`,
-`spawn`, `entity`, `inventory`, `item` and `movement`, plus the global `weather` and `tps`. The full
+Loggers have short names for commands: `change`, `break`, `place`, `explosion`, `command`, `death`,
+`spawn`, `mobpos`, `inventory`, `use` and `playerpos`, plus the global `weather` and `tps`. The full
 names (e.g. `PlayerBlockBreakLogger`) also work, and are the table names for `/tempora sql`.
 
 ## Logger kinds
@@ -64,7 +64,7 @@ Every logger is one of two kinds:
     does.
 
 `/tempora tp` and `/tempora trace` also exist, but are run by clicking Tempora's chat output rather
-than typed. `/tempora explode <strength>`, for testing explosion logging, only exists in a development
+than typed. `/tempora explode <power>`, for testing explosion logging, only exists in a development
 environment.
 
 ## Regions
@@ -83,7 +83,7 @@ To decide whether a logger records an event at a position:
 Regions only affect positional loggers. Global loggers, such as `weather`, have no position, so
 they log everywhere whenever they are enabled.
 
-`BlockChangeLogger` (`block`) logs every `setBlock` call, which is far too much data to record
+`BlockChangeLogger` (`change`) logs every `setBlock` call, which is far too much data to record
 everywhere, so it defaults to `logByDefault=false` and only logs inside regions that turn it on.
 Every other logger defaults to logging everywhere. `/tempora region check` shows the result at your
 position and which region (or config option) decided it.
@@ -126,14 +126,14 @@ if (Loader.isModLoaded(TemporaApi.MODID)) {
 | `logItemsAdded`, `logItemsRemoved` | `inventory` |
 | `logBlockBreak` (call before removing the block) | `break` |
 | `logBlockPlace` | `place` |
-| `logBlockChange` (only for changes that bypass `Chunk.func_150807_a`) | `block` |
+| `logBlockChange` (only for changes that bypass `Chunk.func_150807_a`) | `change` |
 | `logExplosion` | `explosion` |
-| `logItemUse` | `item` |
+| `logItemUse` | `use` |
 | `logCommand` | `command` |
-| `logPlayerPosition` | `movement` |
+| `logPlayerPosition` | `playerpos` |
 | `logEntitySpawn` | `spawn` |
 | `logEntityDeath` | `death` |
-| `logEntityPosition` | `entity` |
+| `logEntityPosition` | `mobpos` |
 
 Calls only do anything on the server thread, and only while that logger is turned on. Each method's
 Javadoc says what it records and when to call it.
@@ -198,7 +198,7 @@ needs. A logger without a renderer still shows each event as an outlined block w
 
 ## Data collected
 
-For server operators: Tempora records player UUIDs, movement history, block changes (with
+For server operators: Tempora records player UUIDs, position history, block changes (with
 container contents at the time of breaking, for some loggers), inventory transfers, and full
 command text/arguments, plus server-wide weather and TPS, retained for the configured
 `oldestDataCutoff` window. Any operator can

@@ -136,11 +136,11 @@ public final class TemporaApi {
      * {@code exploder} is whatever is responsible, if known: a living entity is stored by UUID, anything else by its
      * class name. {@code destroyedBlocks} are the positions it destroyed, if known.
      */
-    public static void logExplosion(World world, double x, double y, double z, float strength,
-        @Nullable Entity exploder, @Nullable List<ChunkPosition> destroyedBlocks) {
+    public static void logExplosion(World world, double x, double y, double z, float power, @Nullable Entity exploder,
+        @Nullable List<ChunkPosition> destroyedBlocks) {
         if (!onServer(world)) return;
 
-        TemporaEvents.explosionLogger.logExplosion(world, x, y, z, strength, exploder, destroyedBlocks);
+        TemporaEvents.explosionLogger.logExplosion(world, x, y, z, power, exploder, destroyedBlocks);
     }
 
     // ---------------------------------------------------------------------------------------------------------------
@@ -165,7 +165,7 @@ public final class TemporaApi {
     public static void logPlayerPosition(EntityPlayer player) {
         if (player == null || !onServer(player.worldObj)) return;
 
-        TemporaEvents.playerMovementLogger.logPlayerPosition(player);
+        TemporaEvents.playerPositionLogger.logPlayerPosition(player);
     }
 
     // ---------------------------------------------------------------------------------------------------------------

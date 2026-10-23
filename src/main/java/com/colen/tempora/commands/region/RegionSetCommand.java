@@ -192,6 +192,6 @@ public class RegionSetCommand extends TemporaSubcommand {
 
     @Override
     public String getExampleArgs() {
-        return "spawn block on";
+        return "spawn change on";
     }
 }

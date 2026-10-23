@@ -31,19 +31,19 @@ public class InventoryEventInfo extends PositionalEventInfo {
     public String containerName = "";
 
     @Column(constraints = "NOT NULL")
-    public int interactionType;
+    public int direction;
 
     @Column(constraints = "NOT NULL")
     public String playerUUID = PlayerUtils.UNKNOWN_PLAYER_NAME;
 
     @Column(constraints = "NOT NULL")
-    public int itemId;
+    public int itemID;
 
     @Column(constraints = "NOT NULL")
     public int itemMetadata;
 
     @Column(constraints = "NOT NULL")
-    public int stackSize;
+    public int amount;
 
     // NBTUtils.NO_NBT when the item had none, NBTUtils.NBT_DISABLED when it had some but logNBT was off.
     @Column(constraints = "NOT NULL")
@@ -55,29 +55,29 @@ public class InventoryEventInfo extends PositionalEventInfo {
     public void fromBytes(ByteBuf buf) {
         super.fromBytes(buf);
         containerName = ByteBufUtils.readUTF8String(buf);
-        interactionType = buf.readInt();
-        itemId = buf.readInt();
+        direction = buf.readInt();
+        itemID = buf.readInt();
         itemMetadata = buf.readInt();
         playerUUID = ByteBufUtils.readUTF8String(buf);
-        stackSize = buf.readInt();
+        amount = buf.readInt();
     }
 
     @Override
     public void toBytes(ByteBuf buf) {
         super.toBytes(buf);
         ByteBufUtils.writeUTF8String(buf, containerName);
-        buf.writeInt(interactionType);
-        buf.writeInt(itemId);
+        buf.writeInt(direction);
+        buf.writeInt(itemID);
         buf.writeInt(itemMetadata);
         ByteBufUtils.writeUTF8String(buf, playerUUID);
-        buf.writeInt(stackSize);
+        buf.writeInt(amount);
     }
 
     @Override
     public IChatComponent localiseText() {
-        InventoryLogger.Direction dir = InventoryLogger.Direction.fromDbId(interactionType);
+        InventoryLogger.Direction dir = InventoryLogger.Direction.fromDbId(direction);
         if (dir == null) {
-            IChatComponent invalid = new ChatComponentTranslation("tempora.event.inventory.invalid", interactionType);
+            IChatComponent invalid = new ChatComponentTranslation("tempora.event.inventory.invalid", direction);
             invalid.getChatStyle()
                 .setColor(EnumChatFormatting.RED);
             return invalid;
@@ -86,7 +86,7 @@ public class InventoryEventInfo extends PositionalEventInfo {
         // Green for items put in, red for items taken out.
         boolean added = dir.isAddition();
         IChatComponent count = EventChat
-            .text(formatNumber(stackSize), added ? EnumChatFormatting.GREEN : EnumChatFormatting.RED);
+            .text(formatNumber(amount), added ? EnumChatFormatting.GREEN : EnumChatFormatting.RED);
 
         // Text, as the container's name was already worked out on the server, and a renamed chest can hold a %.
         IChatComponent container = EventChat.text(containerName, EnumChatFormatting.WHITE);
@@ -105,9 +105,9 @@ public class InventoryEventInfo extends PositionalEventInfo {
 
     // The item's name, with its tooltip on hover when the NBT was logged.
     private IChatComponent itemChatComponent() {
-        Item item = Item.getItemById(itemId);
+        Item item = Item.getItemById(itemID);
         if (item == null) {
-            return EventChat.text("[unknown item " + itemId + ":" + itemMetadata + "]", EnumChatFormatting.WHITE);
+            return EventChat.text("[unknown item " + itemID + ":" + itemMetadata + "]", EnumChatFormatting.WHITE);
         }
 
         ItemStack itemStack = new ItemStack(item, 1, itemMetadata);

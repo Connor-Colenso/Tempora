@@ -149,6 +149,6 @@ public class RegionCheckCommand extends TemporaSubcommand {
 
     @Override
     public String getExampleArgs() {
-        return "block";
+        return "change";
     }
 }

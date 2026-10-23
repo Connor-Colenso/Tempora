@@ -10,14 +10,14 @@ import net.minecraft.world.World;
 import com.colen.tempora.commands.command_base.TemporaSubcommand;
 
 /**
- * /tempora explode <strength>
+ * /tempora explode <power>
  * Blows up the block the player is looking at, for testing explosion logging. Only registered in a development
  * environment, see TemporaCommand.
  */
 public class ExplodeCommand extends TemporaSubcommand {
 
     public ExplodeCommand() {
-        super("explode", "<strength>");
+        super("explode", "<power>");
     }
 
     @Override
@@ -34,10 +34,10 @@ public class ExplodeCommand extends TemporaSubcommand {
             return;
         }
 
-        float strength;
+        float power;
 
         try {
-            strength = Float.parseFloat(args[0]);
+            power = Float.parseFloat(args[0]);
         } catch (NumberFormatException e) {
             sender.addChatMessage(new ChatComponentTranslation("tempora.command.explode.not_a_number"));
             return;
@@ -70,7 +70,7 @@ public class ExplodeCommand extends TemporaSubcommand {
             x,
             y,
             z,
-            strength,
+            power,
             false, // Causes fire
             true // Damages blocks
         );
