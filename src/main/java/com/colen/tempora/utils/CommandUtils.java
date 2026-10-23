@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Locale;
 
 import net.minecraft.command.CommandBase;
-import net.minecraft.command.ICommandSender;
 import net.minecraft.event.ClickEvent;
 import net.minecraft.event.HoverEvent;
 import net.minecraft.util.ChatComponentText;
@@ -28,10 +27,6 @@ public class CommandUtils {
             args,
             TemporaLoggerManager.getAllLoggerNames()
                 .toArray(new String[0]));
-    }
-
-    public static void sendNewLine(ICommandSender sender) {
-        sender.addChatMessage(new ChatComponentText(""));
     }
 
     // Note this is not localised, because it may be called from terminal, which has no localisation functionality.

@@ -69,9 +69,6 @@ public class BlockChangeEventInfo extends PositionalEventInfo {
     @Column(constraints = "NOT NULL")
     public double closestPlayerDistance;
 
-    @Column(constraints = "NOT NULL")
-    public boolean isWorldGen;
-
     private String stackTrace;
 
     @Override

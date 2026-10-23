@@ -92,10 +92,6 @@ public final class EventRenderHelpers {
     }
 
     /**
-     * Joins events, oldest first, with a line that brightens towards the newest, so the direction of travel shows. In
-     * world coordinates, the camera offset already applied.
-     */
-    /**
      * Draws an arrow from a point, {@code length} blocks long, pointing the way a player with this yaw and pitch (in
      * degrees, as Minecraft stores them) was looking.
      */

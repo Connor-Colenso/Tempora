@@ -15,7 +15,7 @@ public class MixinChunkProviderGenerate {
 
     @Inject(method = "populate", at = @At("HEAD"))
     private void tempora$startPopulate(IChunkProvider provider, int chunkX, int chunkZ, CallbackInfo ci) {
-        WorldGenPhaseTracker.enter(WorldGenPhaseTracker.Phase.BASE_TERRAIN);
+        WorldGenPhaseTracker.enter();
     }
 
     @Inject(method = "populate", at = @At("TAIL"))

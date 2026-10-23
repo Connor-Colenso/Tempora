@@ -9,7 +9,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.UUID;
 
-import net.minecraft.block.BlockChest;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
@@ -131,7 +130,7 @@ public class InventoryLoggerTests {
                 halves[1] = placeChest(helper, at(2, 1, 2));
                 TestPos clicked = helper.absolute(at(1, 1, 2));
                 // The double chest's inventory, as opening it in game would give.
-                IInventory doubleChest = ((BlockChest) Blocks.chest)
+                IInventory doubleChest = Blocks.chest
                     .func_149951_m(helper.getWorld(), clicked.x(), clicked.y(), clicked.z());
                 helper.assertEquals(54L, doubleChest.getSizeInventory(), "double chest size");
 

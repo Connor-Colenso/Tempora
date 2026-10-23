@@ -15,15 +15,15 @@ import com.colen.tempora.utils.WorldGenPhaseTracker;
 public abstract class MixinStructureStart {
 
     /**
-     * Wrap the entire generateStructure call in a WorldGenPhaseTracker phase.
+     * Wrap the entire generateStructure call in WorldGenPhaseTracker, so its block changes count as world gen.
      */
     @Inject(
         method = "generateStructure(Lnet/minecraft/world/World;Ljava/util/Random;Lnet/minecraft/world/gen/structure/StructureBoundingBox;)V",
         at = @At("HEAD"))
     private void onGenerateStructureEnter(World world, java.util.Random random, StructureBoundingBox bounds,
         CallbackInfo ci) {
-        // Enter the phase before generation
-        WorldGenPhaseTracker.enter(WorldGenPhaseTracker.Phase.MOD_FEATURES);
+        // Enter world gen before generation
+        WorldGenPhaseTracker.enter();
     }
 
     @Inject(
@@ -31,7 +31,7 @@ public abstract class MixinStructureStart {
         at = @At("RETURN"))
     private void onGenerateStructureExit(World world, java.util.Random random, StructureBoundingBox bounds,
         CallbackInfo ci) {
-        // Exit the phase after generation
+        // Exit world gen after generation
         WorldGenPhaseTracker.exit();
     }
 }

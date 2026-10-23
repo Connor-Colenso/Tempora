@@ -133,9 +133,7 @@ public class InventoryLogger extends GenericPositionalLogger<InventoryEventInfo>
     public enum Direction {
 
         IN_TO_CONTAINER(0, true),
-        IN_TO_PLAYER(1, true),
-        OUT_OF_CONTAINER(2, false),
-        OUT_OF_PLAYER(3, false);
+        OUT_OF_CONTAINER(2, false);
 
         private final int dbId;
         private final boolean addition;

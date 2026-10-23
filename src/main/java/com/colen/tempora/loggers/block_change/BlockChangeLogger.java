@@ -108,8 +108,6 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
     private static final ThreadLocal<Deque<BlockChangeEventInfo>> BLOCK_STACK = ThreadLocal
         .withInitial(ArrayDeque::new);
 
-    // Pushed in place of a real event for block changes that won't be logged, so HEAD and RETURN stay paired
-    // without paying for a stack trace and NBT capture that would be thrown away.
     // --------------------------------------
     // Stack traces
     // --------------------------------------
@@ -224,6 +222,8 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
         }
     }
 
+    // Pushed in place of a real event for block changes that won't be logged, so HEAD and RETURN stay paired
+    // without paying for a stack trace and NBT capture that would be thrown away.
     private static final BlockChangeEventInfo SKIPPED = new BlockChangeEventInfo();
 
     public void onSetBlockHead(int x, int y, int z, World world) {

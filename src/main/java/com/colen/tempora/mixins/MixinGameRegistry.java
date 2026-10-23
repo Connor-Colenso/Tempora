@@ -18,7 +18,7 @@ public class MixinGameRegistry {
     @Inject(method = "generateWorld", at = @At("HEAD"), remap = false)
     private static void tempora$startModGen(int chunkX, int chunkZ, World world, IChunkProvider chunkGenerator,
         IChunkProvider chunkProvider, CallbackInfo ci) {
-        WorldGenPhaseTracker.enter(WorldGenPhaseTracker.Phase.MOD_FEATURES);
+        WorldGenPhaseTracker.enter();
     }
 
     @Inject(method = "generateWorld", at = @At("TAIL"), remap = false)

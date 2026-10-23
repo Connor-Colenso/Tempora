@@ -251,7 +251,7 @@ public class PositionalLoggerTests {
             .thenExecute("a player runs /time query daytime", () -> {
                 // The event the command handler fires before running a command. Fake players may not run commands
                 // themselves, as they have no permissions.
-                ICommand time = (ICommand) MinecraftServer.getServer()
+                ICommand time = MinecraftServer.getServer()
                     .getCommandManager()
                     .getCommands()
                     .get("time");

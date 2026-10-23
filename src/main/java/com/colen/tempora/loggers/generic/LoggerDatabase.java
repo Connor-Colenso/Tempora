@@ -421,8 +421,4 @@ public class LoggerDatabase {
             throw new IllegalStateException("Could not shutdown database connection");
         }
     }
-
-    public void rollback() throws SQLException {
-        dbConnection.rollback();
-    }
 }
