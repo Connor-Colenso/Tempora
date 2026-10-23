@@ -37,7 +37,7 @@ public abstract class MixinChunk {
             int globalX = (this.xPosition << 4) + localX;
             int globalZ = (this.zPosition << 4) + localZ;
 
-            TemporaEvents.blockChangeLogger.onSetBlockHead(globalX, y, globalZ, this.worldObj);
+            TemporaEvents.blockChangeLogger.onSetBlockHead(globalX, y, globalZ, this.worldObj, newBlock);
         } catch (Exception e) {
             LOG.error("Tempora block-change logging failed on block write start; block write continues.", e);
         }
@@ -71,7 +71,7 @@ public abstract class MixinChunk {
             int globalX = (this.xPosition << 4) + localX;
             int globalZ = (this.zPosition << 4) + localZ;
 
-            TemporaEvents.blockChangeLogger.onSetBlockHead(globalX, y, globalZ, this.worldObj);
+            TemporaEvents.blockChangeLogger.onSetBlockHead(globalX, y, globalZ, this.worldObj, null);
         } catch (Exception e) {
             LOG.error("Tempora block-change logging failed on metadata write start; write continues.", e);
         }

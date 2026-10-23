@@ -60,14 +60,27 @@ final class TestSupport {
         LogRule rule) {
         TestPos min = helper.absolute(from);
         TestPos max = helper.absolute(to);
-        TemporaWorldRegion region = new TemporaWorldRegion(
+        return region(
+            helper,
+            label,
             helper.getWorld().provider.dimensionId,
             Math.min(min.x(), max.x()),
             Math.min(min.y(), max.y()),
             Math.min(min.z(), max.z()),
             Math.max(min.x(), max.x()) + 1,
             Math.max(min.y(), max.y()) + 1,
-            Math.max(min.z(), max.z()) + 1);
+            Math.max(min.z(), max.z()) + 1,
+            loggerName,
+            rule);
+    }
+
+    /**
+     * Adds a region in any dimension, in absolute block coordinates with the max corner exclusive, with one logger
+     * rule, and removes it once the test ends.
+     */
+    static TemporaWorldRegion region(GameTestHelper helper, String label, int dimension, int minX, int minY, int minZ,
+        int maxX, int maxY, int maxZ, String loggerName, LogRule rule) {
+        TemporaWorldRegion region = new TemporaWorldRegion(dimension, minX, minY, minZ, maxX, maxY, maxZ);
         region.setLabel(label);
         region.setRegionUUID(
             UUID.randomUUID()

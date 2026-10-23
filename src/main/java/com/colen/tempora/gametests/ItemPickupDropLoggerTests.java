@@ -18,7 +18,6 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.DamageSource;
-import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.event.entity.player.PlayerDropsEvent;
 
@@ -36,6 +35,8 @@ import com.gtnewhorizons.horizonqa.api.GameTestHelper;
 import com.gtnewhorizons.horizonqa.api.annotation.GameTest;
 import com.gtnewhorizons.horizonqa.api.annotation.GameTestHolder;
 
+import cpw.mods.fml.common.eventhandler.EventBus;
+
 /**
  * The item pickup and drop logger, through the vanilla code a player picking up or throwing out an item runs, and the
  * event Forge fires for a player's death drops.
@@ -47,8 +48,7 @@ public class ItemPickupDropLoggerTests {
     private static final int TIMEOUT_TICKS = 200;
 
     // A whole stack, then only what fits of another: 3 of the 5 on the ground, the rest stays there. Vanilla skips
-    // FML's
-    // pickup event for the second, though the items still move.
+    // FML's pickup event for the second, though the items still move.
     @GameTest(timeoutTicks = TIMEOUT_TICKS)
     public static void pickedUpItemsAreLogged(GameTestHelper helper) {
         ItemPickupDropLogger logger = TemporaEvents.itemPickupDropLogger;
@@ -57,10 +57,12 @@ public class ItemPickupDropLoggerTests {
 
         helper.startSequence()
             .thenExecute("pick up 2 sticks, then 5 cobblestone with room for 3", () -> {
+                // Slot 1 is the only empty one. Not the last slot: Backhand adds an offhand slot to the end of the
+                // main inventory, which pickups skip.
                 ItemStack[] slots = player.inventory.mainInventory;
                 slots[0] = new ItemStack(Blocks.cobblestone, 61);
-                for (int i = 1; i < slots.length - 1; i++) slots[i] = new ItemStack(Blocks.dirt, 64);
-                slots[slots.length - 1] = null;
+                slots[1] = null;
+                for (int i = 2; i < slots.length; i++) slots[i] = new ItemStack(Blocks.dirt, 64);
 
                 EntityItem sticks = itemOnGround(helper, player, new ItemStack(Items.stick, 2));
                 EntityItem cobblestone = itemOnGround(helper, player, new ItemStack(Blocks.cobblestone, 5));
@@ -152,13 +154,16 @@ public class ItemPickupDropLoggerTests {
 
         helper.startSequence()
             .thenExecute("die holding two stacks of cobblestone and a diamond", () -> {
-                // The event a dying player fires, as fake players cannot die.
+                // The event a dying player fires, as fake players cannot die. Posted on a bus of the logger's own, as
+                // other mods' handlers expect a logged-in player (Galacticraft's NPEs) or act on the death (graves).
                 ArrayList<EntityItem> drops = new ArrayList<>();
                 drops.add(dropAtPlayer(helper, player, new ItemStack(Blocks.cobblestone, 64)));
                 drops.add(dropAtPlayer(helper, player, new ItemStack(Items.diamond, 1)));
                 drops.add(dropAtPlayer(helper, player, new ItemStack(Blocks.cobblestone, 10)));
+                EventBus bus = new EventBus();
+                bus.register(logger);
                 helper.assertFalse(
-                    MinecraftForge.EVENT_BUS.post(new PlayerDropsEvent(player, DamageSource.outOfWorld, drops, false)),
+                    bus.post(new PlayerDropsEvent(player, DamageSource.outOfWorld, drops, false)),
                     "the drops were cancelled");
             })
             .thenWaitUntil(

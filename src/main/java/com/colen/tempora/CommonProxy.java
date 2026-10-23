@@ -19,6 +19,7 @@ import com.colen.tempora.networking.handlers.PacketRemoveClientRegionByUUID;
 import com.colen.tempora.networking.packets.PacketRemoveRegionFromClient;
 import com.colen.tempora.networking.packets.PacketShowRegionInWorld;
 import com.colen.tempora.utils.GenericUtils;
+import com.colen.tempora.utils.WorldGenTicks;
 import com.gtnewhorizon.gtnhlib.config.ConfigurationManager;
 
 import cpw.mods.fml.common.event.FMLInitializationEvent;
@@ -63,6 +64,7 @@ public class CommonProxy {
         TemporaLoggerManager.loadConfig(Tempora.loggerConfig);
 
         MinecraftForge.EVENT_BUS.register(new OnWorldLoad());
+        MinecraftForge.EVENT_BUS.register(new WorldGenTicks.ChunkSaves());
 
         synchronizeConfiguration(Tempora.loggerConfig);
     }

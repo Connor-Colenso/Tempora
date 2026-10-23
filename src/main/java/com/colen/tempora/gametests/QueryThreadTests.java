@@ -72,9 +72,11 @@ public class QueryThreadTests {
                     keys(sender),
                     "the second lookup should be refused");
             })
+            // The notice goes by wall time, and after a slow tick (a batch before this one generating chunks) the
+            // server runs up to 40 ticks back to back to catch up, so wait past those.
             .thenWaitUntil(
                 "the sender is told it is still searching",
-                40,
+                100,
                 () -> assertSent(helper, sender, "tempora.query.searching"))
             .thenWaitUntil("the query is stopped", 200, () -> {
                 assertSent(helper, sender, "tempora.query.timed_out");

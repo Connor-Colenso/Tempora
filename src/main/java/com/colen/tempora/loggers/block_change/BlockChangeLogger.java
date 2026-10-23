@@ -43,6 +43,7 @@ import com.colen.tempora.loggers.generic.GenericEventInfo;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.utils.StackTraceUtils;
 import com.colen.tempora.utils.WorldGenPhaseTracker;
+import com.colen.tempora.utils.WorldGenTicks;
 
 public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventInfo> {
 
@@ -226,7 +227,8 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
     // without paying for a stack trace and NBT capture that would be thrown away.
     private static final BlockChangeEventInfo SKIPPED = new BlockChangeEventInfo();
 
-    public void onSetBlockHead(int x, int y, int z, World world) {
+    // newBlock is the block being set, or null for a metadata change.
+    public void onSetBlockHead(int x, int y, int z, World world, @Nullable Block newBlock) {
         if (!isEnabledByConfig) return;
 
         Deque<BlockChangeEventInfo> stack = BLOCK_STACK.get();
@@ -234,6 +236,12 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
 
         // todo log world gen separately?
         if (WorldGenPhaseTracker.isWorldGen() || !canLogHere(x, y, z, dimensionID)) {
+            stack.push(SKIPPED);
+            return;
+        }
+
+        Block before = world.getBlock(x, y, z);
+        if (WorldGenTicks.isWorldGenChange(world, x, y, z, before, newBlock == null ? before : newBlock)) {
             stack.push(SKIPPED);
             return;
         }
@@ -250,7 +258,6 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
         e.dimensionID = dimensionID;
 
         // BEFORE state
-        Block before = world.getBlock(x, y, z);
         e.beforeBlockID = Block.getIdFromBlock(before);
         e.beforeMetadata = world.getBlockMetadata(x, y, z);
 
@@ -298,6 +305,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
 
         int dimensionID = world.provider.dimensionId;
         if (WorldGenPhaseTracker.isWorldGen() || !canLogHere(x, y, z, dimensionID)) return;
+        if (WorldGenTicks.isWorldGenChange(world, x, y, z, before, world.getBlock(x, y, z))) return;
 
         BlockChangeEventInfo e = new BlockChangeEventInfo();
         e.timestamp = System.currentTimeMillis();

@@ -15,6 +15,7 @@ import com.colen.tempora.TemporaEvents;
 import com.colen.tempora.enums.LoggerEventType;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.mixin_interfaces.IEntityMixin;
+import com.colen.tempora.utils.WorldGenPhaseTracker;
 
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
@@ -66,6 +67,10 @@ public class EntitySpawnLogger extends GenericPositionalLogger<EntitySpawnEventI
 
         // Mark as logged, this is persistent with nbt.
         entityMixin.setTempora$HasBeenLogged(true);
+
+        // Placed by world generation, e.g. a new chunk's animals. Marked all the same, so it isn't logged when its
+        // chunk loads again either.
+        if (WorldGenPhaseTracker.isWorldGen()) return;
 
         EntitySpawnEventInfo eventInfo = new EntitySpawnEventInfo();
         eventInfo.entityName = entityRegistryName(entity);

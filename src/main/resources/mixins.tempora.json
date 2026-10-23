@@ -7,15 +7,15 @@
   "compatibilityLevel": "JAVA_8",
   "mixins": [
     "MixinChunk",
-    "MixinChunkProviderGenerate",
+    "MixinChunkProviderServer",
     "MixinEntity",
     "MixinEntityItem",
     "MixinEntityPlayerMP",
     "MixinFMLNetworkHandler",
-    "MixinGameRegistry",
     "MixinItemInWorldManager",
     "MixinNetworkManager",
-    "MixinStructureStart",
+    "MixinNextTickListEntry",
+    "MixinWorldServer",
     "accessors.InventoryLargeChestAccessor"
   ],
   "client": [
