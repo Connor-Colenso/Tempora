@@ -1,8 +1,5 @@
 package com.colen.tempora.loggers.block_change;
 
-import static com.colen.tempora.utils.ChatUtils.ONE_DP;
-import static com.gtnewhorizon.gtnhlib.util.numberformatting.NumberFormatUtil.formatNumber;
-
 import java.util.List;
 
 import net.minecraft.event.HoverEvent;
@@ -85,15 +82,7 @@ public class BlockChangeEventInfo extends PositionalEventInfo {
         }
 
         // Only the nearest player, not necessarily who did it, so how near they were is on hover.
-        IChatComponent closestPlayer = EventChat.player(closestPlayerUUID);
-        closestPlayer.getChatStyle()
-            .setChatHoverEvent(
-                new HoverEvent(
-                    HoverEvent.Action.SHOW_TEXT,
-                    EventChat.grey(
-                        new ChatComponentTranslation(
-                            "tempora.event.block_change.closest_player",
-                            formatNumber(closestPlayerDistance, ONE_DP)))));
+        IChatComponent closestPlayer = EventChat.closestPlayer(closestPlayerUUID, closestPlayerDistance);
 
         return EventChat.line("tempora.event.block_change", when, before, after, where, closestPlayer, trace);
     }

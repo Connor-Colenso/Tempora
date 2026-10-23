@@ -44,6 +44,7 @@ tempora.duration.tick.one=%s tick
 tempora.duration.tick.many=%s ticks
 
 # Hovers on things in a line.
+tempora.chat.closest_player=Closest player, %s blocks away. Not necessarily who did it.
 tempora.chat.id=ID %s:%s
 tempora.chat.dimension_id=Dimension ID %s
 tempora.uuid.display=UUID: %s
@@ -68,7 +69,6 @@ tempora.event.block_break=%s %s broke %s at %s
 tempora.event.block_place=%s %s placed %s at %s
 tempora.event.block_change=%s %s became %s at %s near %s %s
 tempora.event.block_change.no_player=%s %s became %s at %s %s
-tempora.event.block_change.closest_player=Closest player was %s blocks away.
 tempora.event.command=%s %s ran %s at %s
 tempora.event.command.hover=Click to put this command in your chat box.
 tempora.event.entity_death.killed=%s %s killed %s at %s
@@ -76,10 +76,8 @@ tempora.event.entity_death.died=%s %s died (%s) at %s
 tempora.event.entity_death.unknown=%s %s died at %s
 tempora.event.entity_position=%s %s was at %s
 tempora.event.entity_spawn=%s %s spawned at %s
-tempora.event.explosion=%s Explosion by %s at %s, power %s
-tempora.event.explosion.unknown=%s Explosion at %s, power %s
-tempora.event.explosion.destroyed=Destroyed %s blocks.
-tempora.event.explosion.closest_player=Closest player was %s, %s blocks away.
+tempora.event.explosion=%s Explosion by %s at %s, power %s, broke %s blocks near %s
+tempora.event.explosion.no_player=%s Explosion by %s at %s, power %s, broke %s blocks
 tempora.event.inventory.added=%s %s put %s %s in %s at %s
 tempora.event.inventory.removed=%s %s took %s %s from %s at %s
 tempora.event.inventory.invalid=Unknown inventory interaction %s in the inventory database. Please report this.
@@ -90,6 +88,10 @@ tempora.event.item_pickup_drop.invalid=Unknown item pickup or drop %s in the dat
 tempora.event.item_use=%s %s used %s at %s
 tempora.event.item_use.empty_hand=%s %s clicked with an empty hand at %s
 tempora.event.player_position=%s %s was at %s
+tempora.event.player_connection.join=%s %s joined at %s
+tempora.event.player_connection.leave=%s %s left at %s (%s)
+tempora.event.player_connection.server_stopped=Server stopped
+tempora.event.player_connection.invalid=Unknown join or leave %s in the database. Please report this.
 tempora.event.tps=%s TPS %s, mean tick %sms, worst %sms
 tempora.event.weather=%s %s went from %s to %s
 
@@ -155,6 +157,8 @@ tempora.logger.PlayerBlockPlaceLogger.name=Player block places
 tempora.logger.PlayerBlockPlaceLogger.description=Blocks players place.
 tempora.logger.PlayerPositionLogger.name=Player positions
 tempora.logger.PlayerPositionLogger.description=Where each player is, recorded at regular intervals.
+tempora.logger.PlayerConnectionLogger.name=Player joins and leaves
+tempora.logger.PlayerConnectionLogger.description=Players joining and leaving the server, where they were, and why they left. Players turned away before joining, e.g. for missing mods, aren't logged leaving.
 tempora.logger.TPSLogger.name=Server TPS
 tempora.logger.TPSLogger.description=The server's ticks per second and how long its ticks took, recorded at regular intervals.
 tempora.logger.WeatherLogger.name=Weather
@@ -194,7 +198,7 @@ tempora.command.lookup.nothing_found=Nothing was logged within %s blocks of you 
 tempora.command.lookup.global_logger=%s isn't tied to a place, so it can't be looked up around you. Use %s instead.
 
 # /tempora global
-tempora.command.global.description=Shows the latest events from loggers that aren't tied to a place, such as weather and TPS. Works from anywhere, including the server console. Every filter is optional and they can go in any order. By default it shows the last 10 events of each, over the last 3 days.
+tempora.command.global.description=Shows the latest events from loggers that aren't tied to a place, such as players joining and leaving, weather and TPS. Works from anywhere, including the server console. Every filter is optional and they can go in any order. By default it shows the last 10 events of each, over the last 3 days.
 tempora.command.global.arg0=How far back to look, e.g. 30m, 6h, 1d, 2w, default 3d. A range such as 3d-1d looks between 3 days and 1 day ago.
 tempora.command.global.arg1=Which loggers to show, comma separated, e.g. weather,tps. Default is every one.
 tempora.command.global.arg2=How many events to show from each logger, up to 100, default 10.
@@ -309,7 +313,7 @@ tempora.hud.region.and_more=And %s more...
 tempora.wand.checking_pos=Checking %s in %s
 tempora.wand.nothing_found=Nothing has been logged at this block.
 tempora.wand.alert=[ALERT]
-tempora.wand.unauthorised=%s %s attempted to use a Tempora wand without authorisation.
+tempora.wand.unauthorised=%s %s tried to use a Tempora wand at %s without being an operator.
 
 # === Labels drawn above events in the world ===
 tempora.render.event.died=%s died

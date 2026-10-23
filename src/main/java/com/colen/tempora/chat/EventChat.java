@@ -1,5 +1,8 @@
 package com.colen.tempora.chat;
 
+import static com.colen.tempora.utils.ChatUtils.ONE_DP;
+import static com.gtnewhorizon.gtnhlib.util.numberformatting.NumberFormatUtil.formatNumber;
+
 import javax.annotation.Nullable;
 
 import net.minecraft.event.ClickEvent;
@@ -52,6 +55,20 @@ public final class EventChat {
         IChatComponent name = PlayerUtils.playerNameFromUUID(uuid);
         name.getChatStyle()
             .setColor(EnumChatFormatting.YELLOW);
+        return name;
+    }
+
+    /**
+     * The player nearest an event that has no known player, such as a block change, with how near they were on hover.
+     * They may not have had anything to do with it.
+     */
+    public static IChatComponent closestPlayer(@Nullable String uuid, double distance) {
+        IChatComponent name = player(uuid);
+        name.getChatStyle()
+            .setChatHoverEvent(
+                new HoverEvent(
+                    HoverEvent.Action.SHOW_TEXT,
+                    grey(new ChatComponentTranslation("tempora.chat.closest_player", formatNumber(distance, ONE_DP)))));
         return name;
     }
 

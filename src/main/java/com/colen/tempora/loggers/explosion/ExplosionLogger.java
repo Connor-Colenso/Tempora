@@ -5,6 +5,7 @@ import static com.colen.tempora.utils.GenericUtils.isClientSide;
 import static com.colen.tempora.utils.PlayerUtils.UNKNOWN_CAUSE;
 import static com.colen.tempora.utils.PlayerUtils.UNKNOWN_PLAYER_NAME;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -76,7 +77,7 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionEventInfo>
             // so a creeper (3) would be logged as 6.
             explosion.explosionSize / 2f,
             exploder,
-            explosion.affectedBlockPositions);
+            destroyedBlocks(event.world, explosion.affectedBlockPositions));
     }
 
     /**
@@ -109,6 +110,17 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionEventInfo>
             .encodePositions(affectedBlocks == null ? Collections.emptyList() : affectedBlocks);
 
         logEvent(eventInfo, world.provider.dimensionId, x, y, z);
+    }
+
+    // Vanilla's affected positions are every position the blast reached, air included, so a creeper in the open would
+    // count dozens of blocks it never touched. Detonate fires before the explosion removes anything, so what is there
+    // now is what it destroys.
+    private static List<ChunkPosition> destroyedBlocks(World world, List<ChunkPosition> affectedBlocks) {
+        List<ChunkPosition> destroyed = new ArrayList<>();
+        for (ChunkPosition pos : affectedBlocks) {
+            if (!world.isAirBlock(pos.chunkPosX, pos.chunkPosY, pos.chunkPosZ)) destroyed.add(pos);
+        }
+        return destroyed;
     }
 
 }

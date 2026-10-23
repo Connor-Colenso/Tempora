@@ -5,7 +5,9 @@ import static com.colen.tempora.gametests.TestSupport.eventsNear;
 import static com.colen.tempora.gametests.TestSupport.fakePlayer;
 import static com.gtnewhorizons.horizonqa.api.TestPos.at;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import net.minecraft.block.Block;
 import net.minecraft.command.ICommand;
@@ -16,6 +18,8 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.DamageSource;
+import net.minecraft.world.ChunkPosition;
+import net.minecraft.world.World;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.event.CommandEvent;
@@ -33,6 +37,7 @@ import com.colen.tempora.loggers.generic.PositionalEventInfo;
 import com.colen.tempora.loggers.item_use.ItemUseEventInfo;
 import com.colen.tempora.loggers.player_block_break.PlayerBlockBreakEventInfo;
 import com.colen.tempora.loggers.player_block_place.PlayerBlockPlaceEventInfo;
+import com.colen.tempora.utils.ChunkPositionUtils;
 import com.colen.tempora.utils.PlayerUtils;
 import com.gtnewhorizons.horizonqa.api.GameTestHelper;
 import com.gtnewhorizons.horizonqa.api.TestPos;
@@ -127,12 +132,18 @@ public class PositionalLoggerTests {
         TestPos pos = helper.absolute(BLOCK);
         double x = pos.x() + 0.5, y = pos.y() + 0.5, z = pos.z() + 0.5;
         Probe<List<PositionalEventInfo>> probe = new Probe<>(helper, "explosionIsLogged");
+        Set<ChunkPosition> airBefore = new HashSet<>();
 
         helper.startSequence()
             .thenExecute("set off an explosion", () -> {
                 helper.setBlock(at(BLOCK.x(), BLOCK.y() - 1, BLOCK.z()), Blocks.dirt);
-                helper.getWorld()
-                    .newExplosion(null, x, y, z, 1.5f, false, true);
+                World world = helper.getWorld();
+                for (int dx = -4; dx <= 4; dx++) for (int dy = -4; dy <= 4; dy++) for (int dz = -4; dz <= 4; dz++) {
+                    if (world.isAirBlock(pos.x() + dx, pos.y() + dy, pos.z() + dz)) {
+                        airBefore.add(new ChunkPosition(pos.x() + dx, pos.y() + dy, pos.z() + dz));
+                    }
+                }
+                world.newExplosion(null, x, y, z, 1.5f, false, true);
             })
             .thenWaitUntil(
                 "explosion is logged",
@@ -146,6 +157,15 @@ public class PositionalLoggerTests {
                     .get(0);
                 helper.assertEquals(1.5, event.power, 0.001, "power");
                 helper.assertEquals(PlayerUtils.UNKNOWN_CAUSE, event.exploder, "exploder");
+
+                // Vanilla also reports the air the blast passed through, which was not destroyed.
+                Set<ChunkPosition> destroyed = ChunkPositionUtils.decodePositions(event.affectedBlockCoordinates);
+                helper.assertTrue(
+                    destroyed.contains(new ChunkPosition(pos.x(), pos.y() - 1, pos.z())),
+                    "the dirt is among the destroyed blocks");
+                for (ChunkPosition block : destroyed) {
+                    helper.assertFalse(airBefore.contains(block), "air counted as destroyed at " + block);
+                }
                 assertWellFormed(helper, logger, probe.latest());
             })
             .thenSucceed();

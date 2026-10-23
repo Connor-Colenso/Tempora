@@ -24,9 +24,11 @@ public class FakeWorld implements IBlockAccess {
         }
     }
 
+    // Only at the block itself. Answering everywhere made renderers that join up with matching neighbours, such as AE2
+    // crafting CPUs, think they were surrounded by copies of themselves.
     @Override
     public TileEntity getTileEntity(int x, int y, int z) {
-        return tileEntity;
+        return x == this.x && y == this.y && z == this.z ? tileEntity : null;
     }
 
     @Override

@@ -13,6 +13,7 @@
     "MixinEntityPlayerMP",
     "MixinFMLNetworkHandler",
     "MixinItemInWorldManager",
+    "MixinNetHandlerPlayServer",
     "MixinNetworkManager",
     "MixinNextTickListEntry",
     "MixinWorldServer",

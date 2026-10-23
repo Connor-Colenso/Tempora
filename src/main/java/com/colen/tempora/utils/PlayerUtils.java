@@ -83,17 +83,20 @@ public class PlayerUtils {
      * @param params         optional arguments that will be substituted into the translation
      */
     public static void sendMessageToOps(String translationKey, Object... params) {
+        sendMessageToOps(new ChatComponentTranslation(translationKey, params));
+    }
+
+    /** Sends a chat message to every online operator. */
+    public static void sendMessageToOps(IChatComponent message) {
         MinecraftServer server = MinecraftServer.getServer();
         if (server == null) return;
 
         ServerConfigurationManager scm = server.getConfigurationManager();
         if (scm == null) return;
 
-        // Iterate over every connected player.
-        for (EntityPlayerMP obj : scm.playerEntityList) {
-            if (isPlayerOp(obj)) {
-                IChatComponent chat = new ChatComponentTranslation(translationKey, params);
-                obj.addChatMessage(chat);
+        for (EntityPlayerMP player : scm.playerEntityList) {
+            if (isPlayerOp(player)) {
+                player.addChatMessage(message);
             }
         }
     }

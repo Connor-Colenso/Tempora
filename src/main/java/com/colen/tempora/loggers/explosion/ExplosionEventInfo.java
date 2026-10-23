@@ -7,7 +7,6 @@ import static cpw.mods.fml.common.network.ByteBufUtils.readVarInt;
 import static cpw.mods.fml.common.network.ByteBufUtils.varIntByteCount;
 import static cpw.mods.fml.common.network.ByteBufUtils.writeVarInt;
 
-import net.minecraft.event.HoverEvent;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
@@ -80,34 +79,35 @@ public class ExplosionEventInfo extends PositionalEventInfo {
         IChatComponent when = EventChat.time(timestamp);
         IChatComponent where = EventChat.where(this, CommandUtils.TeleportType.EXACT);
         IChatComponent powerText = EventChat.text(formatNumber(power, ONE_DP), EnumChatFormatting.WHITE);
+        IChatComponent destroyed = EventChat.text(
+            formatNumber(
+                ChunkPositionUtils.decodePositions(affectedBlockCoordinates)
+                    .size()),
+            EnumChatFormatting.WHITE);
 
-        // A player by UUID, anything else by its EntityList name (older rows have a living entity's UUID, or a class
-        // name).
-        IChatComponent line;
+        // A player by UUID, anything else by its EntityList name.
+        IChatComponent exploderText;
         if (exploder == null || UNKNOWN_CAUSE.equals(exploder)) {
-            line = EventChat.line("tempora.event.explosion.unknown", when, where, powerText);
+            exploderText = new ChatComponentTranslation(UNKNOWN_CAUSE);
+            exploderText.getChatStyle()
+                .setColor(EnumChatFormatting.WHITE);
         } else {
-            IChatComponent exploderText = PlayerUtils.isUUID(exploder) ? EventChat.player(exploder)
-                : EventChat.entityName(exploder);
-            line = EventChat.line("tempora.event.explosion", when, exploderText, where, powerText);
+            exploderText = PlayerUtils.isUUID(exploder) ? EventChat.player(exploder) : EventChat.entityName(exploder);
         }
 
-        // The rest is on hover, so the line fits.
-        IChatComponent details = new ChatComponentTranslation(
-            "tempora.event.explosion.destroyed",
-            ChunkPositionUtils.decodePositions(affectedBlockCoordinates)
-                .size());
-        if (closestPlayerDistance >= 0) {
-            details.appendText("\n")
-                .appendSibling(
-                    new ChatComponentTranslation(
-                        "tempora.event.explosion.closest_player",
-                        PlayerUtils.playerNameFromUUID(closestPlayerUUID),
-                        formatNumber(closestPlayerDistance, ONE_DP)));
+        // A negative distance means no player was in the world.
+        if (closestPlayerDistance < 0) {
+            return EventChat.line("tempora.event.explosion.no_player", when, exploderText, where, powerText, destroyed);
         }
-        line.getChatStyle()
-            .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, EventChat.grey(details)));
-        return line;
+
+        return EventChat.line(
+            "tempora.event.explosion",
+            when,
+            exploderText,
+            where,
+            powerText,
+            destroyed,
+            EventChat.closestPlayer(closestPlayerUUID, closestPlayerDistance));
     }
 
     @Override

@@ -22,6 +22,8 @@ import com.colen.tempora.loggers.player_block_break.PlayerBlockBreakEventInfo;
 import com.colen.tempora.loggers.player_block_break.PlayerBlockBreakLogger;
 import com.colen.tempora.loggers.player_block_place.PlayerBlockPlaceEventInfo;
 import com.colen.tempora.loggers.player_block_place.PlayerBlockPlaceLogger;
+import com.colen.tempora.loggers.player_connection.PlayerConnectionEventInfo;
+import com.colen.tempora.loggers.player_connection.PlayerConnectionLogger;
 import com.colen.tempora.loggers.player_position.PlayerPositionEventInfo;
 import com.colen.tempora.loggers.player_position.PlayerPositionLogger;
 import com.colen.tempora.loggers.tps.TPSEventInfo;
@@ -46,6 +48,7 @@ public class TemporaEvents {
     public static PlayerPositionLogger playerPositionLogger = new PlayerPositionLogger();
 
     // Global loggers, for events with no position.
+    public static PlayerConnectionLogger playerConnectionLogger = new PlayerConnectionLogger();
     public static TPSLogger tpsLogger = new TPSLogger();
     public static WeatherLogger weatherLogger = new WeatherLogger();
 
@@ -61,6 +64,7 @@ public class TemporaEvents {
     public static final String ITEM_USE = "ItemUseLogger";
     public static final String PLAYER_BLOCK_BREAK = "PlayerBlockBreakLogger";
     public static final String PLAYER_BLOCK_PLACE = "PlayerBlockPlaceLogger";
+    public static final String PLAYER_CONNECTION = "PlayerConnectionLogger";
     public static final String PLAYER_POSITION = "PlayerPositionLogger";
     public static final String TPS = "TPSLogger";
     public static final String WEATHER = "WeatherLogger";
@@ -80,6 +84,7 @@ public class TemporaEvents {
         TemporaLoggerManager.register(playerBlockPlaceLogger, PlayerBlockPlaceEventInfo::new);
         TemporaLoggerManager.register(playerPositionLogger, PlayerPositionEventInfo::new);
 
+        TemporaLoggerManager.register(playerConnectionLogger, PlayerConnectionEventInfo::new);
         TemporaLoggerManager.register(tpsLogger, TPSEventInfo::new);
         TemporaLoggerManager.register(weatherLogger, WeatherEventInfo::new);
     }

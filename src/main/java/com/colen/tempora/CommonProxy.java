@@ -64,6 +64,7 @@ public class CommonProxy {
         TemporaLoggerManager.loadConfig(Tempora.loggerConfig);
 
         MinecraftForge.EVENT_BUS.register(new OnWorldLoad());
+        MinecraftForge.EVENT_BUS.register(Tempora.temporaWand);
         MinecraftForge.EVENT_BUS.register(new WorldGenTicks.ChunkSaves());
 
         synchronizeConfiguration(Tempora.loggerConfig);

@@ -202,6 +202,9 @@ public abstract class GenericLogger<EventInfo extends GenericEventInfo> {
 
     public void handleCustomLoggerConfig(Configuration config) {}
 
+    /** As the server stops, while events can still be logged, e.g. for what is still going on then. */
+    protected void beforeServerClose() {}
+
     // --------------------------------------
     // Extra tables
     // --------------------------------------
@@ -647,6 +650,14 @@ public abstract class GenericLogger<EventInfo extends GenericEventInfo> {
         List<GenericLogger<?>> startedLoggers = new ArrayList<>();
         for (GenericLogger<?> logger : TemporaLoggerManager.getLoggerList()) {
             if (logger.started) startedLoggers.add(logger);
+        }
+
+        for (GenericLogger<?> logger : startedLoggers) {
+            try {
+                logger.beforeServerClose();
+            } catch (Exception e) {
+                LOG.error("Error in {} as the server closed.", logger.getLoggerName(), e);
+            }
         }
 
         // Every worker is told to stop before waiting on any of them, so they write what they have left at the same

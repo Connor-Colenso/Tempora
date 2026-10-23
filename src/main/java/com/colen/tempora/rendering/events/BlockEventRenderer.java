@@ -13,7 +13,6 @@ import javax.annotation.Nullable;
 
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
-import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 
 import com.colen.tempora.Tempora;
@@ -79,11 +78,13 @@ public abstract class BlockEventRenderer<E extends PositionalEventInfo> implemen
     }
 
     private static @Nullable TileEntity tileEntityFor(Block block, int metadata, @Nullable String encodedNBT) {
-        if (encodedNBT == null || NO_NBT.equals(encodedNBT) || NBT_DISABLED.equals(encodedNBT)) return null;
-
-        NBTTagCompound nbt = NBTUtils.decodeFromString(encodedNBT);
-        // Null for tile entities this client does not have.
-        TileEntity tileEntity = TileEntity.createAndLoadEntity(nbt);
+        TileEntity tileEntity;
+        if (encodedNBT == null || NO_NBT.equals(encodedNBT) || NBT_DISABLED.equals(encodedNBT)) {
+            tileEntity = defaultTileEntity(block, metadata);
+        } else {
+            // Null for tile entities this client does not have.
+            tileEntity = TileEntity.createAndLoadEntity(NBTUtils.decodeFromString(encodedNBT));
+        }
         if (tileEntity == null) return null;
 
         tileEntity.blockMetadata = metadata;
@@ -95,6 +96,17 @@ public abstract class BlockEventRenderer<E extends PositionalEventInfo> implemen
         tileEntity.zCoord = 0;
         tileEntity.validate();
         return tileEntity;
+    }
+
+    // Without its NBT, a block with a tile entity still gets a fresh one, as some renderers (AE2 crafting units) draw
+    // nothing without it. One that cannot be made without a real world is left out, as before.
+    private static @Nullable TileEntity defaultTileEntity(Block block, int metadata) {
+        if (!block.hasTileEntity(metadata)) return null;
+        try {
+            return block.createTileEntity(Minecraft.getMinecraft().theWorld, metadata);
+        } catch (RuntimeException e) {
+            return null;
+        }
     }
 
     // Once per event, as the event then shows as the error block rather than failing every frame.

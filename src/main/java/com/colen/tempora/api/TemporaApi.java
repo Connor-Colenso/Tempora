@@ -133,8 +133,9 @@ public final class TemporaApi {
 
     /**
      * An explosion that did not fire Forge's {@code ExplosionEvent}, e.g. one that is not a vanilla {@code Explosion}.
-     * {@code exploder} is whatever is responsible, if known: a living entity is stored by UUID, anything else by its
-     * class name. {@code destroyedBlocks} are the positions it destroyed, if known.
+     * {@code exploder} is whatever is responsible, if known: a player is stored by UUID, anything else by its
+     * EntityList name. {@code destroyedBlocks} are the positions it destroyed, if known, leaving out any that were
+     * already air.
      */
     public static void logExplosion(World world, double x, double y, double z, float power, @Nullable Entity exploder,
         @Nullable List<ChunkPosition> destroyedBlocks) {
