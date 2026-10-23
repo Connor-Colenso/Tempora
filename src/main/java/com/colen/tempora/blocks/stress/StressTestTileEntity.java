@@ -27,7 +27,7 @@ public class StressTestTileEntity extends TileEntity {
         if (worldObj == null || worldObj.isRemote) return;
 
         Random rand = worldObj.rand;
-        int maxY = Math.min(yCoord + SIZE, worldObj.getHeight() - 1);
+        int maxY = Math.min(yCoord + SIZE + 5, worldObj.getHeight() - 1);
 
         for (int y = yCoord + 1; y <= maxY; y++) {
             for (int dx = 0; dx < SIZE; dx++) {
