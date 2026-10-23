@@ -61,8 +61,9 @@ public abstract class MixinChunk {
     /**
      * Metadata-only write entry point:
      * boolean setBlockMetadata(int localX, int y, int localZ, int newMeta)
+     * Unlike func_150807_a this has an MCP name, so it must be remapped: it is func_76589_b in production.
      */
-    @Inject(method = "setBlockMetadata", at = @At("HEAD"), remap = false)
+    @Inject(method = "setBlockMetadata", at = @At("HEAD"))
     private void tempora$metaWriteStart(int localX, int y, int localZ, int newMeta,
         CallbackInfoReturnable<Boolean> cir) {
         if (worldObj.isRemote) return;
@@ -77,7 +78,7 @@ public abstract class MixinChunk {
         }
     }
 
-    @Inject(method = "setBlockMetadata", at = @At("RETURN"), remap = false)
+    @Inject(method = "setBlockMetadata", at = @At("RETURN"))
     private void tempora$metaWriteEnd(int localX, int y, int localZ, int newMeta, CallbackInfoReturnable<Boolean> cir) {
         if (worldObj.isRemote) return;
 

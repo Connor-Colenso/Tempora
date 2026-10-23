@@ -5,6 +5,9 @@
   "refmap": "mixins.tempora.refmap.json",
   "target": "@env(DEFAULT)",
   "compatibilityLevel": "JAVA_8",
+  "injectors": {
+    "defaultRequire": 1
+  },
   "mixins": [
     "MixinChunk",
     "MixinChunkProviderServer",

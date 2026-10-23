@@ -493,13 +493,28 @@ val prepareFullPackServerTests = tasks.register<PrepareFullPackModsTask>("prepar
     instanceDir.set(fullPackDir.dir("Server"))
 }
 
+val fullPackTestReports = layout.buildDirectory.dir("horizonqa-fullpack").get().asFile
+
 registerFullPackServerRun(
     "runFullPackServerTests",
     "Runs every Horizon-QA test in the GTNH daily server (Java 17+) with this mod",
     prepareFullPackServerTests,
     extraJvmArgs = listOfNotNull(
         "-Dhorizonqa.mode=ci",
-        "-Dhorizonqa.reportDir=" + layout.buildDirectory.dir("horizonqa-fullpack").get().asFile.absolutePath,
+        "-Dhorizonqa.reportDir=" + fullPackTestReports.absolutePath,
         fullPackProperty("tests").orNull?.let { "-Dhorizonqa.tests=$it" }),
     freshWorld = "horizonqa_world",
-)
+).configure {
+    // A server that crashes while starting, e.g. on a mixin that fails to apply, still exits 0, having run no test.
+    // Horizon-QA writes its status report once the tests are done, so a run without one failed.
+    val result = File(fullPackTestReports, "horizonqa-result.json")
+    val crashReports = File(fullPackDir.dir("Server").asFile, "crash-reports")
+    doFirst { result.delete() }
+    doLast {
+        if (!result.isFile) {
+            throw GradleException(
+                "The server stopped before Horizon-QA finished its tests ($result was not written). " +
+                    "See the server log above, or the latest crash report in $crashReports")
+        }
+    }
+}
