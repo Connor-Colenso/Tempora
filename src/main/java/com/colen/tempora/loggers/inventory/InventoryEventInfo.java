@@ -16,6 +16,7 @@ import com.colen.tempora.chat.EventChat;
 import com.colen.tempora.loggers.generic.PositionalEventInfo;
 import com.colen.tempora.loggers.generic.column.Column;
 import com.colen.tempora.utils.CommandUtils;
+import com.colen.tempora.utils.PlayerUtils;
 import com.colen.tempora.utils.nbt.NBTUtils;
 
 import cpw.mods.fml.common.network.ByteBufUtils;
@@ -27,13 +28,13 @@ public class InventoryEventInfo extends PositionalEventInfo {
     private static final int MAX_HOVER_NBT_LENGTH = 8192;
 
     @Column(constraints = "NOT NULL")
-    public String containerName;
+    public String containerName = "";
 
     @Column(constraints = "NOT NULL")
     public int interactionType;
 
     @Column(constraints = "NOT NULL")
-    public String playerUUID;
+    public String playerUUID = PlayerUtils.UNKNOWN_PLAYER_NAME;
 
     @Column(constraints = "NOT NULL")
     public int itemId;
@@ -45,7 +46,7 @@ public class InventoryEventInfo extends PositionalEventInfo {
     public int stackSize;
 
     // NBTUtils.NO_NBT when the item had none, NBTUtils.NBT_DISABLED when it had some but logNBT was off.
-    @Column(constraints = "NOT NULL DEFAULT '" + NBTUtils.NO_NBT + "'")
+    @Column(constraints = "NOT NULL")
     public String encodedNBT = NBTUtils.NO_NBT;
 
     // encodedNBT is deliberately not sent: the client only uses these events to draw boxes, and item NBT can be far

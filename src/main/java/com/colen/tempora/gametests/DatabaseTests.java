@@ -10,11 +10,14 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 import net.minecraftforge.common.config.Configuration;
 
@@ -23,13 +26,16 @@ import org.jetbrains.annotations.NotNull;
 import com.colen.tempora.Tempora;
 import com.colen.tempora.TemporaEvents;
 import com.colen.tempora.enums.LoggerEventType;
+import com.colen.tempora.loggers.generic.GenericLogger;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.LoggerDatabase;
 import com.colen.tempora.loggers.generic.PositionalEventInfo;
 import com.colen.tempora.loggers.generic.column.Column;
+import com.colen.tempora.loggers.generic.column.ColumnDef;
 import com.colen.tempora.loggers.player_block_break.PlayerBlockBreakEventInfo;
 import com.colen.tempora.utils.DatabaseUtils;
 import com.colen.tempora.utils.PlayerUtils;
+import com.colen.tempora.utils.ReflectionUtils;
 import com.gtnewhorizons.horizonqa.api.GameTestHelper;
 import com.gtnewhorizons.horizonqa.api.TestPos;
 import com.gtnewhorizons.horizonqa.api.annotation.GameTest;
@@ -143,12 +149,12 @@ public class DatabaseTests {
     public static class MigrationTestEvent extends PositionalEventInfo {
 
         @Column(constraints = "NOT NULL")
-        public String note;
+        public String note = "";
 
         @Column(constraints = "NOT NULL", renamedFrom = "oldCount")
         public int count;
 
-        @Column(constraints = "NOT NULL DEFAULT 7")
+        @Column(constraints = "NOT NULL")
         public int addedLater = 7;
 
         @Override
@@ -159,6 +165,171 @@ public class DatabaseTests {
         @Override
         public String getLoggerName() {
             return "TemporaTestMigrationLogger";
+        }
+    }
+
+    // ---------- Defaults ----------
+
+    // Every column is NOT NULL with its field's value in a new event as its default; the annotation adds nothing more.
+    @GameTest
+    public static void columnDefaultsComeFromJavaValues(GameTestHelper helper) {
+        Map<String, String> conditions = new HashMap<>();
+        for (ColumnDef col : ReflectionUtils.getAllTableColumns(new MigrationTestLogger())) {
+            conditions.put(col.name, col.extraCondition);
+        }
+        helper.assertEquals("NOT NULL DEFAULT ''", conditions.get("note"), "note");
+        helper.assertEquals("NOT NULL DEFAULT 7", conditions.get("addedLater"), "addedLater");
+        helper.assertEquals("PRIMARY KEY", conditions.get("eventID"), "eventID, which SQLite fills in itself");
+        helper.succeed();
+    }
+
+    // A logger with a column that starts as null is refused, naming the field, so its author finds out straight away.
+    @GameTest
+    public static void columnWithNullDefaultIsRefused(GameTestHelper helper) {
+        IllegalStateException refused = helper.assertThrows(
+            IllegalStateException.class,
+            () -> ReflectionUtils.getAllTableColumns(new NullDefaultTestLogger()),
+            "a column starting as null was accepted");
+        helper.assertTrue(
+            String.valueOf(refused.getMessage())
+                .contains("NullDefaultTestEvent.owner"),
+            "the refusal should name the field, got: " + refused.getMessage());
+        helper.succeed();
+    }
+
+    public static class NullDefaultTestLogger extends GenericPositionalLogger<NullDefaultTestEvent> {
+
+        @Override
+        public @NotNull String getLoggerName() {
+            return "TemporaTestNullDefaultLogger";
+        }
+
+        @Override
+        public @NotNull String getShortName() {
+            return "test_null_default";
+        }
+
+        @Override
+        public @NotNull NullDefaultTestEvent newEventInfo() {
+            return new NullDefaultTestEvent();
+        }
+
+        @Override
+        public @NotNull LoggerEventType getLoggerEventType() {
+            return LoggerEventType.None;
+        }
+    }
+
+    public static class NullDefaultTestEvent extends PositionalEventInfo {
+
+        @Column(constraints = "NOT NULL")
+        public String owner;
+
+        @Override
+        public IChatComponent localiseText() {
+            return new ChatComponentText(owner);
+        }
+
+        @Override
+        public String getLoggerName() {
+            return "TemporaTestNullDefaultLogger";
+        }
+    }
+
+    // ---------- One broken event ----------
+
+    /**
+     * An event whose chat line throws, e.g. from a bug in another mod's logger, shows as a placeholder, and the rest
+     * of the lookup is shown as normal.
+     */
+    @GameTest(timeoutTicks = 200)
+    public static void brokenEventShowsPlaceholder(GameTestHelper helper) throws Exception {
+        BrokenEventTestLogger logger = new BrokenEventTestLogger();
+        deleteDatabaseFiles(logger.getLoggerName());
+        LoggerDatabase database = logger.getDatabaseManager();
+        database.genericConfig(throwawayConfig(helper));
+        database.initialiseDatabase();
+        // Its files stay: the query thread keeps a connection to it open until the server stops.
+        helper.afterTest(() -> {
+            try {
+                database.shutdownDatabase();
+            } catch (Exception ignored) {}
+        });
+
+        TestPos pos = helper.absolute(TestPos.at(2, 1, 2));
+        int dim = helper.getWorld().provider.dimensionId;
+        List<MigrationTestEvent> events = new ArrayList<>();
+        for (String note : new String[] { "fine", "boom" }) {
+            MigrationTestEvent event = new MigrationTestEvent();
+            event.timestamp = System.currentTimeMillis();
+            event.dimensionID = dim;
+            event.x = pos.x() + 0.5;
+            event.y = pos.y();
+            event.z = pos.z() + 0.5;
+            event.note = note;
+            events.add(event);
+        }
+        database.insertBatch(events);
+
+        Probe<GenericLogger.FoundEvents> lookup = new Probe<>(helper, "brokenEventShowsPlaceholder");
+        CapturingSender chat = new CapturingSender("brokenEventShowsPlaceholder.chat", helper.getWorld());
+
+        helper.startSequence()
+            .thenWaitUntil("the lookup shows both events", 100, () -> {
+                chat.getMessages()
+                    .clear();
+                helper.assertEquals(
+                    2L,
+                    lookup.poll(() -> logger.findEventsNear(dim, pos.x(), pos.y(), pos.z(), 0, -1))
+                        .show(chat),
+                    "events shown");
+            })
+            .thenExecute("the broken one is a placeholder, the other is shown", () -> {
+                List<String> lines = new ArrayList<>();
+                for (IChatComponent message : chat.getMessages()) {
+                    lines.add(
+                        message instanceof ChatComponentTranslation translation ? translation.getKey()
+                            : message.getUnformattedText());
+                }
+                helper.assertEquals(3L, lines.size(), "header and two lines, got " + lines);
+                helper.assertTrue(lines.contains("fine"), "the working event is shown, got " + lines);
+                helper.assertTrue(
+                    lines.contains("tempora.command.lookup.event_failed"),
+                    "the broken event is a placeholder, got " + lines);
+            })
+            .thenSucceed();
+    }
+
+    // The migration test's events, from a logger whose chat line throws for a note of "boom".
+    public static class BrokenEventTestLogger extends MigrationTestLogger {
+
+        @Override
+        public @NotNull String getLoggerName() {
+            return "TemporaTestBrokenEventLogger";
+        }
+
+        @Override
+        public @NotNull String getShortName() {
+            return "test_broken_event";
+        }
+
+        @Override
+        public @NotNull MigrationTestEvent newEventInfo() {
+            return new BrokenTestEvent();
+        }
+    }
+
+    public static class BrokenTestEvent extends MigrationTestEvent {
+
+        @Override
+        public IChatComponent localiseText() {
+            if ("boom".equals(note)) throw new IllegalStateException("A deliberately broken event");
+            return new ChatComponentText(note);
+        }
+
+        @Override
+        public String getLoggerName() {
+            return "TemporaTestBrokenEventLogger";
         }
     }
 

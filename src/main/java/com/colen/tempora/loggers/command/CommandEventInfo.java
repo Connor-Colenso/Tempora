@@ -12,6 +12,7 @@ import com.colen.tempora.chat.EventChat;
 import com.colen.tempora.loggers.generic.PositionalEventInfo;
 import com.colen.tempora.loggers.generic.column.Column;
 import com.colen.tempora.utils.CommandUtils;
+import com.colen.tempora.utils.PlayerUtils;
 
 import cpw.mods.fml.common.network.ByteBufUtils;
 import io.netty.buffer.ByteBuf;
@@ -22,13 +23,13 @@ public class CommandEventInfo extends PositionalEventInfo {
     private static final int MAX_SHOWN_LENGTH = 40;
 
     @Column(constraints = "NOT NULL")
-    public String playerUUID;
+    public String playerUUID = PlayerUtils.UNKNOWN_PLAYER_NAME;
 
     @Column(constraints = "NOT NULL")
-    public String commandName;
+    public String commandName = "";
 
     @Column(constraints = "NOT NULL")
-    public String arguments;
+    public String arguments = "";
 
     @Override
     public void fromBytes(ByteBuf buf) {

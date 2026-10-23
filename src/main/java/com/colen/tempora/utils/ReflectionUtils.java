@@ -10,7 +10,9 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Pattern;
 
+import com.colen.tempora.loggers.generic.GenericEventInfo;
 import com.colen.tempora.loggers.generic.GenericLogger;
 import com.colen.tempora.loggers.generic.column.Column;
 import com.colen.tempora.loggers.generic.column.ColumnDef;
@@ -29,6 +31,8 @@ public class ReflectionUtils {
         }
 
         List<ColumnDef> defs = new ArrayList<>();
+        // A new event: each field's value in it is that column's default.
+        GenericEventInfo fresh = logger.newEventInfo();
 
         for (Field field : getColumnFieldsAlphabetically(logger)) {
 
@@ -41,8 +45,14 @@ public class ReflectionUtils {
 
             ColumnDef.ColumnAccessor accessor = buildColumnAccessor(field);
 
-            defs.add(
-                new ColumnDef(name, type.getSqlType(), col.constraints(), Arrays.asList(col.renamedFrom()), accessor));
+            String constraints = col.constraints()
+                .trim();
+            // The rowid (eventID) is filled in by SQLite, so it has no default.
+            if (!("INTEGER".equals(type.getSqlType()) && "PRIMARY KEY".equalsIgnoreCase(constraints))) {
+                constraints = withDefault(constraints, sqlLiteral(field, accessor.get(fresh)));
+            }
+
+            defs.add(new ColumnDef(name, type.getSqlType(), constraints, Arrays.asList(col.renamedFrom()), accessor));
         }
 
         // Freeze before caching
@@ -97,6 +107,47 @@ public class ReflectionUtils {
     }
 
     // Helpers.
+
+    private static final Pattern DEFAULT_CLAUSE = Pattern.compile("(?i)\\s*\\bDEFAULT\\s+('(?:[^']|'')*'|[^\\s]+)");
+    private static final Pattern NOT_NULL = Pattern.compile("(?i)\\bNOT\\s+NULL\\b");
+
+    /**
+     * Every column is NOT NULL, with its field's value in a new event as its DEFAULT. When a later version adds a
+     * column, the events already stored get that default rather than NULL, which the event's code would then have to
+     * cope with. A DEFAULT written in the annotation is replaced, so the Java value is the one source of truth.
+     */
+    private static String withDefault(String constraints, String defaultValue) {
+        String withoutDefault = DEFAULT_CLAUSE.matcher(constraints)
+            .replaceAll("")
+            .trim();
+        String notNull = NOT_NULL.matcher(withoutDefault)
+            .find() ? withoutDefault : (withoutDefault + " NOT NULL").trim();
+        return notNull + " DEFAULT " + defaultValue;
+    }
+
+    // A field's value as an SQL literal. Null is refused: every column needs a real default.
+    private static String sqlLiteral(Field field, Object value) {
+        if (value == null) {
+            throw new IllegalStateException(
+                field.getDeclaringClass()
+                    .getSimpleName() + "."
+                    + field.getName()
+                    + " is null in a new event. Give every @Column field a non-null initial value, e.g. = \"\" for a"
+                    + " String: it is the value events logged before the column existed read back as.");
+        }
+        if (value instanceof String s) return "'" + s.replace("'", "''") + "'";
+        if (value instanceof Boolean b) return b ? "1" : "0";
+        if ((value instanceof Double d && !Double.isFinite(d)) || (value instanceof Float f && !Float.isFinite(f))) {
+            throw new IllegalStateException(
+                field.getDeclaringClass()
+                    .getSimpleName() + "."
+                    + field.getName()
+                    + " starts as "
+                    + value
+                    + ", which SQLite can't store.");
+        }
+        return value.toString();
+    }
 
     private static List<Field> getColumnFieldsAlphabetically(GenericLogger<?> logger) {
 

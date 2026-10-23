@@ -14,10 +14,10 @@ import io.netty.buffer.ByteBuf;
 public class EntityPositionEventInfo extends PositionalEventInfo {
 
     @Column(constraints = "NOT NULL")
-    public String entityName;
+    public String entityName = "";
 
     @Column(constraints = "NOT NULL")
-    public String entityUUID;
+    public String entityUUID = "";
 
     @Column(constraints = "NOT NULL")
     public float rotationYaw;

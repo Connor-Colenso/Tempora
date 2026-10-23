@@ -31,13 +31,13 @@ public class ExplosionEventInfo extends PositionalEventInfo {
     @Column(constraints = "NOT NULL DEFAULT -1")
     public float strength;
     @Column(constraints = "NOT NULL")
-    public String exploderUUID;
+    public String exploderUUID = PlayerUtils.UNKNOWN_CAUSE;
     @Column(constraints = "NOT NULL")
-    public String closestPlayerUUID;
+    public String closestPlayerUUID = PlayerUtils.UNKNOWN_PLAYER_NAME;
     @Column(constraints = "NOT NULL DEFAULT -1")
     public double closestPlayerDistance;
     @Column(constraints = "NOT NULL")
-    public String affectedBlockCoordinates;
+    public String affectedBlockCoordinates = "";
 
     @Override
     public void fromBytes(ByteBuf buf) {

@@ -7,6 +7,7 @@ import com.colen.tempora.chat.EventChat;
 import com.colen.tempora.loggers.generic.PositionalEventInfo;
 import com.colen.tempora.loggers.generic.column.Column;
 import com.colen.tempora.utils.CommandUtils;
+import com.colen.tempora.utils.PlayerUtils;
 
 import cpw.mods.fml.common.network.ByteBufUtils;
 import io.netty.buffer.ByteBuf;
@@ -14,7 +15,7 @@ import io.netty.buffer.ByteBuf;
 public class ItemUseEventInfo extends PositionalEventInfo {
 
     @Column(constraints = "NOT NULL")
-    public String playerUUID;
+    public String playerUUID = PlayerUtils.UNKNOWN_PLAYER_NAME;
 
     @Column(constraints = "NOT NULL")
     public int itemID;

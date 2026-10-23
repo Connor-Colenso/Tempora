@@ -48,9 +48,9 @@ public abstract class GenericGlobalLogger<EventInfo extends GlobalEventInfo> ext
             return queryFailed(e);
         }
 
-        return sender -> {
+        return guarded(sender -> {
             sendEventsInChat(sender, events, limit, TemporaCommand.GLOBAL.command("l:" + getShortName()));
             return events.size();
-        };
+        });
     }
 }

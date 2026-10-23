@@ -19,13 +19,13 @@ import io.netty.buffer.ByteBuf;
 public class EntityDeathEventInfo extends PositionalEventInfo {
 
     @Column(constraints = "NOT NULL")
-    public String nameOfDeadEntity;
+    public String nameOfDeadEntity = "";
 
     @Column(constraints = "NOT NULL")
-    public String killedBy;
+    public String killedBy = PlayerUtils.UNKNOWN_CAUSE;
 
     @Column(constraints = "NOT NULL")
-    public String entityUUID;
+    public String entityUUID = "";
 
     @Column(constraints = "NOT NULL")
     public float rotationYaw;

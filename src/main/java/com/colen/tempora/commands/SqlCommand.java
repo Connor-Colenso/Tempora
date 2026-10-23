@@ -1,6 +1,5 @@
 package com.colen.tempora.commands;
 
-import static com.colen.tempora.Tempora.NETWORK;
 import static com.colen.tempora.utils.ReflectionUtils.getAllTableColumns;
 
 import java.sql.PreparedStatement;
@@ -132,11 +131,11 @@ public class SqlCommand extends TemporaSubcommand {
 
         // We do this first, to not bury the info below, in case of a long response.
         for (GenericEventInfo eventData : output) {
-            sender.addChatMessage(eventData.localiseText());
+            sender.addChatMessage(GenericLogger.chatLineOrPlaceholder(eventData));
 
             // Render info. Global events have no position to draw.
             if (eventData instanceof PositionalEventInfo positionalEvent && sender instanceof EntityPlayerMP player) {
-                NETWORK.sendTo(new RenderEventPacket(positionalEvent), player);
+                RenderEventPacket.sendSafely(positionalEvent, player);
             }
         }
 

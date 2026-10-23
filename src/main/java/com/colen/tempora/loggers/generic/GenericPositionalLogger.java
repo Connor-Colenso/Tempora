@@ -1,7 +1,5 @@
 package com.colen.tempora.loggers.generic;
 
-import static com.colen.tempora.Tempora.NETWORK;
-
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
@@ -139,18 +137,18 @@ public abstract class GenericPositionalLogger<EventInfo extends PositionalEventI
             return queryFailed(e);
         }
 
-        return sender -> {
+        return guarded(sender -> {
             sendEventsInChat(sender, events, MAX_RESULTS, TemporaCommand.LOOKUP.command("l:" + getShortName()));
 
             // This tells the client what to render in the world, if anything. Not if the player has changed dimension
             // since looking, as the client only draws events in the dimension it is in.
             if (sender instanceof EntityPlayerMP player && player.dimension == dimensionId) {
                 for (EventInfo eventData : events) {
-                    NETWORK.sendTo(new RenderEventPacket(eventData), player);
+                    RenderEventPacket.sendSafely(eventData, player);
                 }
             }
 
             return events.size();
-        };
+        });
     }
 }

@@ -19,7 +19,9 @@ import com.colen.tempora.commands.TraceCommand;
 import com.colen.tempora.loggers.generic.PositionalEventInfo;
 import com.colen.tempora.loggers.generic.column.Column;
 import com.colen.tempora.utils.CommandUtils;
+import com.colen.tempora.utils.PlayerUtils;
 import com.colen.tempora.utils.StackTraceUtils;
+import com.colen.tempora.utils.nbt.NBTUtils;
 import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 
 import cpw.mods.fml.common.network.ByteBufUtils;
@@ -40,7 +42,7 @@ public class BlockChangeEventInfo extends PositionalEventInfo {
     public int beforePickBlockMeta;
 
     @Column(constraints = "NOT NULL")
-    public String beforeEncodedNBT;
+    public String beforeEncodedNBT = NBTUtils.NO_NBT;
 
     @Column(constraints = "NOT NULL")
     public int afterBlockID;
@@ -55,14 +57,14 @@ public class BlockChangeEventInfo extends PositionalEventInfo {
     public int afterPickBlockMeta;
 
     @Column(constraints = "NOT NULL")
-    public String afterEncodedNBT;
+    public String afterEncodedNBT = NBTUtils.NO_NBT;
 
     // Not bothering to send to client.
     @Column(constraints = "NOT NULL")
     public long stackTraceID;
 
     @Column(constraints = "NOT NULL")
-    public String closestPlayerUUID;
+    public String closestPlayerUUID = PlayerUtils.UNKNOWN_PLAYER_NAME;
 
     @Column(constraints = "NOT NULL")
     public double closestPlayerDistance;

@@ -513,10 +513,50 @@ public abstract class GenericLogger<EventInfo extends GenericEventInfo> {
 
         // Newest at the bottom, where chat is read from.
         for (int i = eventsFound - 1; i >= 0; i--) {
-            sender.addChatMessage(
-                newestFirst.get(i)
-                    .localiseText());
+            sender.addChatMessage(chatLineOrPlaceholder(newestFirst.get(i)));
         }
+    }
+
+    /**
+     * An event's chat line, or a grey placeholder if making it throws, e.g. a bug in another mod's logger. One broken
+     * event costs only its own line, not the rest of the lookup. The server log says which logger and event.
+     */
+    public static IChatComponent chatLineOrPlaceholder(GenericEventInfo event) {
+        try {
+            return event.localiseText();
+        } catch (RuntimeException e) {
+            LOG.error(
+                "Could not make the chat line for {} event {}, so it is shown as a placeholder.",
+                event.getLoggerName(),
+                event.eventID,
+                e);
+            IChatComponent placeholder = new ChatComponentTranslation("tempora.command.lookup.event_failed");
+            placeholder.getChatStyle()
+                .setColor(EnumChatFormatting.GRAY)
+                .setItalic(true);
+            return placeholder;
+        }
+    }
+
+    /**
+     * Shows a lookup's results for this logger, or says they couldn't be shown if that throws, so one broken logger
+     * doesn't stop the others' results being shown.
+     */
+    final FoundEvents guarded(FoundEvents show) {
+        return sender -> {
+            try {
+                return show.show(sender);
+            } catch (RuntimeException e) {
+                LOG.error("Could not show {}'s lookup results.", getLoggerName(), e);
+                IChatComponent failed = new ChatComponentTranslation(
+                    "tempora.command.lookup.logger_failed",
+                    getDisplayName());
+                failed.getChatStyle()
+                    .setColor(EnumChatFormatting.RED);
+                sender.addChatMessage(failed);
+                return 0;
+            }
+        };
     }
 
     final void sendQueryFailed(ICommandSender sender, SQLException e) {

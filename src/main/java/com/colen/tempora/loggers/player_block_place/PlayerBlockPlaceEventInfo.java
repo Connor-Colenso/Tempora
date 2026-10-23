@@ -7,6 +7,8 @@ import com.colen.tempora.chat.EventChat;
 import com.colen.tempora.loggers.generic.PositionalEventInfo;
 import com.colen.tempora.loggers.generic.column.Column;
 import com.colen.tempora.utils.CommandUtils;
+import com.colen.tempora.utils.PlayerUtils;
+import com.colen.tempora.utils.nbt.NBTUtils;
 
 import cpw.mods.fml.common.network.ByteBufUtils;
 import io.netty.buffer.ByteBuf;
@@ -26,10 +28,10 @@ public class PlayerBlockPlaceEventInfo extends PositionalEventInfo {
     public int pickBlockMeta;
 
     @Column(constraints = "NOT NULL")
-    public String playerUUID;
+    public String playerUUID = PlayerUtils.UNKNOWN_PLAYER_NAME;
 
     @Column(constraints = "NOT NULL")
-    public String encodedNBT;
+    public String encodedNBT = NBTUtils.NO_NBT;
 
     @Override
     public void fromBytes(ByteBuf buf) {

@@ -168,8 +168,13 @@ public class ReactorLogger extends GenericGlobalLogger<ReactorEventInfo> {
 }
 ```
 
-- Mistakes such as mismatched names or a column type Tempora can't store are reported when the logger
-  registers, not when the server starts.
+- Every `@Column` field needs a non-null initial value, e.g. `public String reactorName = "";`. That value
+  becomes the column's default, so events logged before you added a column read back with it rather than
+  `null`. Your chat line still sees it for those old events, so pick a value it can show, e.g. "unknown".
+- Mistakes such as mismatched names, a column type Tempora can't store, or a column with no initial value
+  are reported when the logger registers, not when the server starts.
+- If one of your events can't be shown (its chat line or render packet throws), a lookup shows a
+  placeholder for it and logs the error naming your logger. The rest of the lookup is unaffected.
 - A logger that fails later (its database won't open, its in-world rendering throws) is switched off
   on its own, and the rest of Tempora carries on.
 - Register it on the client too if its events should be drawn in the world. Clients that don't have

@@ -20,10 +20,10 @@ public class WeatherEventInfo extends GlobalEventInfo {
 
     // Weather names: CLEAR, RAIN or THUNDER.
     @Column(constraints = "NOT NULL")
-    public String weather;
+    public String weather = "";
 
     @Column(constraints = "NOT NULL")
-    public String previousWeather;
+    public String previousWeather = "";
 
     @Override
     public IChatComponent localiseText() {

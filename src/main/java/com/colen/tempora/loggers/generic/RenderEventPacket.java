@@ -1,12 +1,16 @@
 package com.colen.tempora.loggers.generic;
 
 import static com.colen.tempora.Tempora.LOG;
+import static com.colen.tempora.Tempora.NETWORK;
+
+import net.minecraft.entity.player.EntityPlayerMP;
 
 import com.colen.tempora.TemporaLoggerManager;
 
 import cpw.mods.fml.common.network.ByteBufUtils;
 import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 
 public class RenderEventPacket implements IMessage {
 
@@ -17,6 +21,21 @@ public class RenderEventPacket implements IMessage {
 
     public RenderEventPacket(PositionalEventInfo eventInfo) {
         this.eventInfo = eventInfo;
+    }
+
+    /**
+     * Sends a player an event to draw, unless writing it throws, e.g. a bug in another mod's event, which is logged
+     * instead. It is written once first, so a broken event is caught here rather than part way through sending.
+     */
+    public static void sendSafely(PositionalEventInfo event, EntityPlayerMP player) {
+        RenderEventPacket packet = new RenderEventPacket(event);
+        try {
+            packet.toBytes(Unpooled.buffer());
+        } catch (RuntimeException e) {
+            LOG.error("Could not send {} event {} to draw, so it is skipped.", event.getLoggerName(), event.eventID, e);
+            return;
+        }
+        NETWORK.sendTo(packet, player);
     }
 
     // Events are sent with their logger's name rather than a numeric id, so the two sides agree even when the server
