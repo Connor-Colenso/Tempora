@@ -1,6 +1,5 @@
 package com.colen.tempora;
 
-import static com.colen.tempora.utils.GenericUtils.isServerSide;
 import static com.colen.tempora.utils.GenericUtils.shouldTemporaRun;
 
 import net.minecraft.block.Block;
@@ -72,20 +71,22 @@ public class Tempora {
 
     @Mod.EventHandler
     public void serverStarting(FMLServerStartingEvent event) {
+        // Even while Tempora is off, so /tempora can say how to turn it on.
         registerNewCommands(event);
+
+        if (!shouldTemporaRun()) {
+            LOG.info("Tempora is disabled in config/tempora/loggers.cfg, so nothing will be logged.");
+            return;
+        }
 
         // Before any logger starts, as loggers check regions for every event.
         TemporaRegionRegistry.load();
 
-        if (shouldTemporaRun()) {
-            for (GenericLogger<?> logger : TemporaLoggerManager.getLoggerList()) {
-                logger.registerEvent();
-            }
+        for (GenericLogger<?> logger : TemporaLoggerManager.getLoggerList()) {
+            logger.registerEvent();
         }
 
-        if (shouldTemporaRun() && isServerSide()) {
-            GenericLogger.onServerStart();
-        }
+        GenericLogger.onServerStart();
     }
 
     private void registerNewCommands(FMLServerStartingEvent event) {
@@ -97,9 +98,7 @@ public class Tempora {
         // Before the loggers close their databases, as it reads them.
         TemporaQueries.onServerClose();
 
-        if (isServerSide()) {
-            GenericLogger.onServerClose();
-        }
+        GenericLogger.onServerClose();
 
         TemporaRegionRegistry.unload();
 

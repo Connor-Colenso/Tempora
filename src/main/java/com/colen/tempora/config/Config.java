@@ -4,11 +4,13 @@ import java.io.File;
 
 import net.minecraftforge.common.config.Configuration;
 
+import com.colen.tempora.utils.GenericUtils;
+
 /**
  * Tempora's config files all live in config/tempora/:
  * <ul>
- * <li>loggers.cfg: one section per logger, plus whether Tempora runs at all. Read here and by each logger, with
- * Forge's Configuration, as loggers from other mods add their own sections at runtime.</li>
+ * <li>loggers.cfg: one section per logger, plus whether Tempora runs at all ({@link #enabled}). Read here and by each
+ * logger, with Forge's Configuration, as loggers from other mods add their own sections at runtime.</li>
  * <li>commands.cfg: {@link CommandsConfig}.</li>
  * <li>client.cfg: {@link ClientConfig} and {@link DebugConfig}, client only.</li>
  * </ul>
@@ -21,8 +23,9 @@ public class Config {
     private static final String GENERAL_CATEGORY = "general";
     private static final String DEBUG_CATEGORY = "debug";
 
-    // This is more of a debug option but can be used in a singleplayer world if you really want.
-    public static boolean shouldTemporaRun;
+    // Off by default so Tempora can ship in a pack and do nothing until a server or player turns it on. On by default
+    // in the development workspace, where a config written by an earlier run can still turn it off.
+    public static boolean enabled;
     public static boolean randomisedRegionGeneratorBlockChangeDebugger;
 
     public static Configuration createLoggersConfig(File forgeConfigDirectory) {
@@ -31,11 +34,14 @@ public class Config {
 
     public static void synchronizeConfiguration(Configuration configuration) {
 
-        shouldTemporaRun = configuration.getBoolean(
-            "shouldTemporaRun",
+        enabled = configuration.getBoolean(
+            "enabled",
             GENERAL_CATEGORY,
-            false,
-            "Runs all logging in singleplayer too. Dedicated servers always log. Not recommended unless you run a public server.");
+            GenericUtils.isDevEnvironment(),
+            "Turns Tempora on, in singleplayer and on servers alike. While off, nothing is logged, no databases are created and /tempora only says how to turn it on. Needs a restart.");
+        // -Dtempora.enabled=true/false wins over the file, for test runs in a real pack (see addon.gradle).
+        String enabledOverride = System.getProperty("tempora.enabled");
+        if (enabledOverride != null) enabled = Boolean.parseBoolean(enabledOverride);
 
         randomisedRegionGeneratorBlockChangeDebugger = configuration.getBoolean(
             "randomisedRegionGeneratorBlockChangeDebugger",

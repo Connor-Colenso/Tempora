@@ -26,6 +26,7 @@ import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import com.colen.tempora.TemporaLoggerManager;
 import com.colen.tempora.chat.EventChat;
 import com.colen.tempora.commands.LookupCommand;
+import com.colen.tempora.commands.TemporaCommand;
 import com.colen.tempora.networking.packets.PacketShowRegionInWorld;
 import com.colen.tempora.regions.TemporaWorldRegion;
 import com.colen.tempora.rendering.ClientRegionStore;
@@ -137,6 +138,8 @@ public class TemporaWand extends Item {
     }
 
     private static void checkSpot(EntityPlayerMP player, int x, int y, int z) {
+        if (TemporaCommand.isDisabled(player)) return;
+
         if (!PlayerUtils.isPlayerOp(player)) {
             IChatComponent alert = new ChatComponentTranslation("tempora.wand.alert");
             alert.getChatStyle()

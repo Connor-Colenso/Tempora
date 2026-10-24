@@ -45,7 +45,7 @@ public class GenericUtils {
     }
 
     public static boolean shouldTemporaRun() {
-        return isServerSide() || Config.shouldTemporaRun;
+        return Config.enabled;
     }
 
 }

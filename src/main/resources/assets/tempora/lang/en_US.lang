@@ -175,6 +175,7 @@ tempora.command.usage=Usage: %s
 tempora.command.usage.hint=See %s for details.
 tempora.command.usage.hint.hover=Click to show it.
 tempora.command.unknown=There is no Tempora command called '%s'.
+tempora.command.disabled=Tempora is turned off. Set enabled=true in config/tempora/loggers.cfg and restart to start logging.
 tempora.command.list.header=Tempora commands. Click one to fill it in, hover over it to see what it does:
 tempora.command.bad_filter='%s' isn't a valid filter. Use any of: %s
 tempora.command.unknown_player=No player called '%s' has joined this server.

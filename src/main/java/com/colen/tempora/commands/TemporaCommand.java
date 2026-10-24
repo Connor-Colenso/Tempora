@@ -7,6 +7,9 @@ import java.util.List;
 
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
+import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.IChatComponent;
 
 import com.colen.tempora.commands.command_base.TemporaSubcommandGroup;
 import com.colen.tempora.commands.region.RegionCheckCommand;
@@ -78,11 +81,24 @@ public class TemporaCommand extends CommandBase {
 
     @Override
     public void processCommand(ICommandSender sender, String[] args) {
+        if (isDisabled(sender)) return;
         ROOT.execute(sender, args);
+    }
+
+    /** Whether Tempora is off in config, telling the sender how to turn it on if so. */
+    public static boolean isDisabled(ICommandSender sender) {
+        if (GenericUtils.shouldTemporaRun()) return false;
+
+        IChatComponent disabled = new ChatComponentTranslation("tempora.command.disabled");
+        disabled.getChatStyle()
+            .setColor(EnumChatFormatting.RED);
+        sender.addChatMessage(disabled);
+        return true;
     }
 
     @Override
     public List<String> addTabCompletionOptions(ICommandSender sender, String[] args) {
+        if (!GenericUtils.shouldTemporaRun()) return Collections.emptyList();
         return ROOT.tabComplete(sender, args);
     }
 }

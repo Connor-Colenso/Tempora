@@ -1,2 +1,7 @@
 // runFullPackClient / runFullPackServer / runFullPackServerTests: test against a GTNH daily build
 apply from: 'gradle/fullpack.gradle.kts'
+
+// Tempora is off by default outside the dev workspace, so the pack's server turns it on for its tests.
+tasks.named('runFullPackServerTests') {
+    jvmArgs '-Dtempora.enabled=true'
+}

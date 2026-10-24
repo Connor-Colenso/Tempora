@@ -56,6 +56,8 @@ public final class WorldGenTicks {
     // The mark for an update scheduled now: generation starts a new one, an update it left passes its own on to
     // updates for its own block.
     public static long markForNewTick(World world, NextTickListEntry entry) {
+        // Nothing to keep out of the log, and unmarked updates leave nothing of Tempora's in the saved chunk.
+        if (!GenericUtils.shouldTemporaRun()) return 0;
         if (WorldGenPhaseTracker.isWorldGen()) return world.getTotalWorldTime() + LIFETIME_TICKS;
         return running != null && world == runningWorld && isOwnBlock(entry.func_151351_a()) ? until(running) : 0;
     }
