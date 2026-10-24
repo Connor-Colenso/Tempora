@@ -32,7 +32,8 @@ public class HudRenderRegionsInWorld {
 
         if (!mc.theWorld.isRemote) return;
         if (mc.gameSettings.showDebugInfo) return;
-        if (!mc.isSingleplayer() && mc.currentScreen == null) return;
+        // Keep out of the way of the player list in multiplayer.
+        if (!mc.isSingleplayer() && mc.gameSettings.keyBindPlayerList.getIsKeyPressed()) return;
 
         FontRenderer font = mc.fontRenderer;
         ScaledResolution sr = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);

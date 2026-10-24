@@ -39,8 +39,7 @@ public final class PacketShowRegionInWorld {
             buf.writeDouble(region.getMaxY());
             buf.writeDouble(region.getMaxZ());
 
-            // Timing
-            buf.writeLong(System.currentTimeMillis()); // render start
+            // Timing. Render start is stamped on arrival, as the server and client clocks can differ.
             buf.writeLong(region.getRegionOriginTimeMs());
 
             // Metadata
@@ -73,7 +72,6 @@ public final class PacketShowRegionInWorld {
             double maxZ = buf.readDouble();
 
             // Timing
-            long renderStartTime = buf.readLong();
             long regionOriginTime = buf.readLong();
 
             // Metadata
@@ -84,7 +82,6 @@ public final class PacketShowRegionInWorld {
 
             // Build region
             region = new TemporaWorldRegion(dim, minX, minY, minZ, maxX, maxY, maxZ);
-            region.setRenderStartTimeMs(renderStartTime);
             region.setRegionOriginTimeMs(regionOriginTime);
             region.setRegionUUID(regionUUID);
             region.setPlayerAuthorUUID(playerUUID);
@@ -103,6 +100,7 @@ public final class PacketShowRegionInWorld {
             @Override
             @SideOnly(Side.CLIENT)
             public IMessage onMessage(RegionMsg msg, MessageContext ctx) {
+                msg.region.setRenderStartTimeMs(System.currentTimeMillis());
                 ClientRegionStore.add(msg.region);
                 return null;
             }
