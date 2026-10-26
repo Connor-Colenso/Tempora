@@ -381,25 +381,29 @@ public class LoggerDatabase {
             addDataInjectionStatement = dbConnection.prepareStatement(sql);
         }
 
-        for (EventInfo eventInfo : eventInfoQueue) {
-            int index = 1;
-
-            for (ColumnDef columnDef : insertedColumns) {
-                Object value = columnDef.columnAccessor.get(eventInfo);
-
-                columnDef.columnAccessor.binder.bind(addDataInjectionStatement, index++, value);
-            }
-
-            addDataInjectionStatement.addBatch();
-        }
-
         Runnable afterCommit;
         try {
-            // First, so nothing the events refer to is missing once they are stored.
-            afterCommit = logger.writeExtras(dbConnection);
+            // First, so nothing the events refer to is missing once they are stored, and so references it fills in
+            // (e.g. a mob's number) are in the events before their columns are read.
+            afterCommit = logger.writeExtras(eventInfoQueue, dbConnection);
+
+            for (EventInfo eventInfo : eventInfoQueue) {
+                int index = 1;
+
+                for (ColumnDef columnDef : insertedColumns) {
+                    Object value = columnDef.columnAccessor.get(eventInfo);
+
+                    columnDef.columnAccessor.binder.bind(addDataInjectionStatement, index++, value);
+                }
+
+                addDataInjectionStatement.addBatch();
+            }
+
             addDataInjectionStatement.executeBatch();
             dbConnection.commit();
-        } catch (SQLException e) {
+        } catch (SQLException | RuntimeException e) {
+            // Includes a value that couldn't be bound, so the events bound before it don't stay in the statement and
+            // go out with the next batch.
             // Leave the connection/statement usable for the next batch instead of abandoning them
             // half-committed.
             try {

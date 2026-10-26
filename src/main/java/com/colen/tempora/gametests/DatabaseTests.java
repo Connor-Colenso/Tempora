@@ -13,6 +13,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -32,6 +33,8 @@ import com.colen.tempora.Tempora;
 import com.colen.tempora.TemporaEvents;
 import com.colen.tempora.commands.LookupCommand;
 import com.colen.tempora.enums.LoggerEventType;
+import com.colen.tempora.loggers.entity_position.EntityPositionEventInfo;
+import com.colen.tempora.loggers.entity_position.EntityPositionLogger;
 import com.colen.tempora.loggers.generic.GenericLogger;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.LoggerDatabase;
@@ -53,7 +56,7 @@ import com.gtnewhorizons.horizonqa.api.annotation.GameTestHolder;
 
 /**
  * What happens to the data already in a database: schema migration when a logger opens it, and pruning. Also how
- * players are stored, as numbers from Players.db.
+ * players and mobs are stored, as numbers from Players.db and the Mobs table.
  */
 @GameTestHolder(Tempora.MODID)
 public class DatabaseTests {
@@ -559,6 +562,131 @@ public class DatabaseTests {
         @Override
         protected String playerColumn() {
             return "note";
+        }
+    }
+
+    // ---------- Mobs ----------
+
+    /**
+     * Mob positions store each mob's UUID and name once, in the Mobs table, and events read back with them. A mob
+     * whose events have all aged out is pruned from Mobs, and stored again under a new number if it turns up later.
+     */
+    @GameTest
+    public static void mobPositionsStoreEachMobOnce(GameTestHelper helper) throws Exception {
+        MobTestLogger logger = new MobTestLogger();
+        deleteDatabaseFiles(MobTestLogger.NAME);
+        helper.afterTest(() -> deleteDatabaseFiles(MobTestLogger.NAME));
+        String zombie = UUID.randomUUID()
+            .toString();
+        String cow = UUID.randomUUID()
+            .toString();
+        long now = System.currentTimeMillis();
+
+        LoggerDatabase database = logger.getDatabaseManager();
+        database.genericConfig(throwawayConfig(helper));
+        database.initialiseDatabase();
+        try {
+            Connection conn = database.getDBConn();
+
+            // The cow is last seen long before the oldest events kept, so pruning will delete it.
+            database.insertBatch(
+                Arrays.asList(
+                    mobEvent(zombie, "Zombie", now),
+                    mobEvent(zombie, "Zombie", now + 1),
+                    mobEvent(cow, "Cow", 1)));
+            helper.assertIterableEquals(
+                Arrays.asList(zombie + " Zombie", cow + " Cow"),
+                mobsStored(conn),
+                "mobs stored once each (uuid name)");
+
+            List<EntityPositionEventInfo> events = readMobEvents(logger, conn);
+            List<String> readBack = new ArrayList<>();
+            for (EntityPositionEventInfo event : events) readBack.add(event.entityUUID + " " + event.entityName);
+            helper.assertIterableEquals(
+                Arrays.asList(cow + " Cow", zombie + " Zombie", zombie + " Zombie"),
+                readBack,
+                "events read back (uuid name), oldest first");
+            helper.assertEquals(events.get(1).mobID, events.get(2).mobID, "the zombie's two events share a number");
+            long cowNumber = events.get(0).mobID;
+
+            // An hour later lastSeen is brought up to date.
+            database.insertBatch(Collections.singletonList(mobEvent(zombie, "Zombie", now + 3_600_001)));
+            try (Statement st = conn.createStatement();
+                ResultSet rs = st.executeQuery("SELECT lastSeen FROM Mobs WHERE uuid = '" + zombie + "'")) {
+                helper.assertTrue(rs.next(), "the zombie is missing from Mobs");
+                helper.assertEquals(now + 3_600_001, rs.getLong(1), "the zombie's lastSeen");
+            }
+
+            logger.pruneMobs(conn);
+            conn.commit();
+            helper.assertIterableEquals(
+                Collections.singletonList(zombie + " Zombie"),
+                mobsStored(conn),
+                "mobs left after pruning");
+
+            // The cow turns up again: it is stored again, although the logger still has it cached.
+            database.insertBatch(Collections.singletonList(mobEvent(cow, "Cow", now)));
+            helper.assertIterableEquals(
+                Arrays.asList(zombie + " Zombie", cow + " Cow"),
+                mobsStored(conn),
+                "mobs once the cow is back");
+            List<EntityPositionEventInfo> after = readMobEvents(logger, conn);
+            // The last stored. Not the newest by time: the zombie's event an hour on is later.
+            EntityPositionEventInfo newest = Collections.max(after, Comparator.comparingLong(event -> event.eventID));
+            helper.assertEquals(cow, newest.entityUUID, "the cow's new event reads back as the cow");
+            helper.assertTrue(newest.mobID != cowNumber, "the cow should have a new number, got " + newest.mobID);
+        } finally {
+            database.shutdownDatabase();
+        }
+        helper.succeed();
+    }
+
+    private static EntityPositionEventInfo mobEvent(String uuid, String name, long timestamp) {
+        EntityPositionEventInfo event = new EntityPositionEventInfo();
+        event.timestamp = timestamp;
+        event.entityUUID = uuid;
+        event.entityName = name;
+        return event;
+    }
+
+    private static List<String> mobsStored(Connection conn) throws SQLException {
+        List<String> mobs = new ArrayList<>();
+        try (Statement st = conn.createStatement();
+            ResultSet rs = st.executeQuery("SELECT uuid, name FROM Mobs ORDER BY id")) {
+            while (rs.next()) mobs.add(rs.getString(1) + " " + rs.getString(2));
+        }
+        return mobs;
+    }
+
+    // Oldest first, with their UUIDs and names filled in from Mobs, as a lookup does.
+    private static List<EntityPositionEventInfo> readMobEvents(MobTestLogger logger, Connection conn)
+        throws SQLException {
+        List<EntityPositionEventInfo> events;
+        try (Statement st = conn.createStatement();
+            ResultSet rs = st.executeQuery("SELECT * FROM " + MobTestLogger.NAME + " ORDER BY timestamp, eventID")) {
+            events = logger.generateQueryResults(rs);
+        }
+        logger.loadExtras(events, conn);
+        return events;
+    }
+
+    // A mob position logger of its own, with its own database. Never registered.
+    public static class MobTestLogger extends EntityPositionLogger {
+
+        static final String NAME = "TemporaTestMobLogger";
+
+        @Override
+        public @NotNull String getLoggerName() {
+            return NAME;
+        }
+
+        @Override
+        public @NotNull String getShortName() {
+            return "test_mob";
+        }
+
+        void pruneMobs(Connection conn) throws SQLException {
+            pruneExtras(conn);
         }
     }
 

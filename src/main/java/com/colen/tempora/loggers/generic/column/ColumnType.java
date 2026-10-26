@@ -17,7 +17,7 @@ public enum ColumnType {
      * A player's UUID, on a String field, stored as the player's number from
      * {@link com.colen.tempora.loggers.generic.PlayerIDs} rather than as text. The field starts as
      * {@link com.colen.tempora.utils.PlayerUtils#UNKNOWN_PLAYER_NAME}, and reads back as the UUID. Never inferred, so
-     * player columns say so. Mobs' UUIDs stay TEXT.
+     * player columns say so. Not for mobs' UUIDs, see PlayerIDs.
      */
     PLAYER("INTEGER");
 

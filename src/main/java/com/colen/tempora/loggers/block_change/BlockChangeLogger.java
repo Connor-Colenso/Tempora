@@ -147,7 +147,8 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
     }
 
     @Override
-    protected @Nullable Runnable writeExtras(Connection conn) throws SQLException {
+    protected @Nullable Runnable writeExtras(List<? extends GenericEventInfo> events, Connection conn)
+        throws SQLException {
         if (unsavedTraces.isEmpty()) return null;
 
         Map<Long, String> writing = new HashMap<>(unsavedTraces);

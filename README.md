@@ -126,8 +126,14 @@ explosions) hold a number for each player rather than their UUID, which keeps bu
 player positions much smaller. `Players.db` lists each player's number (`Players`: `id`, `uuid`), the
 same in every logger's table, so keep it with the other files. Number 0 is the unknown player. In
 `/tempora sql`, `player('<name or UUID>')` gives a player's number. Reading the files outside the
-game, attach `Players.db` and join on `id`. Mobs' UUIDs are stored as text, as most mobs only
-appear in a few events.
+game, attach `Players.db` and join on `id`.
+
+Mob positions (`mobpos`) log each mob every few seconds for as long as it lives, so each mob's UUID
+and name are stored once, in a `Mobs` table (`id`, `uuid`, `name`, `lastSeen`) in the same file, and
+each event holds the mob's number in `mobID`. To find one mob's positions with `/tempora sql`:
+`WHERE mobID = (SELECT id FROM Mobs WHERE uuid = '<uuid>')`. A mob is deleted from `Mobs` once its
+events are older than `oldestDataCutoff`. Other loggers store mobs' UUIDs and names as text, as
+they see most mobs only once or twice.
 
 ## API for other mods
 

@@ -216,10 +216,12 @@ public abstract class GenericLogger<EventInfo extends GenericEventInfo> {
 
     /**
      * Writes what the events in a batch refer to, before them and in the same transaction, so an event is never stored
-     * without it. On the worker thread. Returns what to do once the batch has committed, e.g. mark the rows written,
-     * or null. If the batch fails it is not run, so the rows are written with a later batch instead.
+     * without it. May also fill in the events' references to it, e.g. a mob's number, as it runs before their columns
+     * are read. On the worker thread. Returns what to do once the batch has committed, e.g. mark the rows written, or
+     * null. If the batch fails it is not run, and the rows written here are rolled back with the events.
      */
-    protected @Nullable Runnable writeExtras(Connection conn) throws SQLException {
+    protected @Nullable Runnable writeExtras(List<? extends GenericEventInfo> events, Connection conn)
+        throws SQLException {
         return null;
     }
 
