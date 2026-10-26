@@ -6,13 +6,18 @@ import static com.colen.tempora.gametests.TestSupport.eventsNear;
 import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.UUID;
 
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
@@ -30,9 +35,11 @@ import com.colen.tempora.enums.LoggerEventType;
 import com.colen.tempora.loggers.generic.GenericLogger;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.LoggerDatabase;
+import com.colen.tempora.loggers.generic.PlayerIDs;
 import com.colen.tempora.loggers.generic.PositionalEventInfo;
 import com.colen.tempora.loggers.generic.column.Column;
 import com.colen.tempora.loggers.generic.column.ColumnDef;
+import com.colen.tempora.loggers.generic.column.ColumnType;
 import com.colen.tempora.loggers.player_block_break.PlayerBlockBreakEventInfo;
 import com.colen.tempora.utils.DatabaseUtils;
 import com.colen.tempora.utils.PlayerFilter;
@@ -44,7 +51,10 @@ import com.gtnewhorizons.horizonqa.api.TestPos;
 import com.gtnewhorizons.horizonqa.api.annotation.GameTest;
 import com.gtnewhorizons.horizonqa.api.annotation.GameTestHolder;
 
-/** What happens to the data already in a database: schema migration when a logger opens it, and pruning. */
+/**
+ * What happens to the data already in a database: schema migration when a logger opens it, and pruning. Also how
+ * players are stored, as numbers from Players.db.
+ */
 @GameTestHolder(Tempora.MODID)
 public class DatabaseTests {
 
@@ -372,6 +382,184 @@ public class DatabaseTests {
                 helper.assertTrue(left.get(0).timestamp > 1, "the old event was kept and the new one deleted");
             })
             .thenSucceed();
+    }
+
+    // ---------- Players ----------
+
+    /**
+     * A player column stores the player's number from Players.db rather than their UUID, the same number however the
+     * UUID is written, and reads back as the UUID. An event with no player stores the unknown player's 0.
+     */
+    @GameTest
+    public static void playerColumnsStoreNumbers(GameTestHelper helper) throws Exception {
+        PlayerTestLogger logger = new PlayerTestLogger();
+        String table = logger.getLoggerName();
+        deleteDatabaseFiles(table);
+        helper.afterTest(() -> deleteDatabaseFiles(table));
+        String uuid = UUID.randomUUID()
+            .toString();
+
+        LoggerDatabase database = logger.getDatabaseManager();
+        database.genericConfig(throwawayConfig(helper));
+        database.initialiseDatabase();
+        try {
+            List<PlayerTestEvent> events = new ArrayList<>();
+            for (String player : new String[] { uuid, uuid.toUpperCase(Locale.ROOT),
+                PlayerUtils.UNKNOWN_PLAYER_NAME }) {
+                PlayerTestEvent event = new PlayerTestEvent();
+                event.timestamp = events.size() + 1;
+                event.playerUUID = player;
+                events.add(event);
+            }
+            database.insertBatch(events);
+        } finally {
+            database.shutdownDatabase();
+        }
+
+        int id = PlayerIDs.lookupID(uuid);
+        helper.assertTrue(id > PlayerIDs.UNKNOWN_ID, "the player should have a number of their own, got " + id);
+        helper.assertEquals(id, PlayerIDs.idFor(uuid), "the number other loggers store for them");
+
+        try (Connection conn = DriverManager.getConnection(DatabaseUtils.jdbcUrl(table + ".db"));
+            Statement st = conn.createStatement()) {
+            try (ResultSet rs = st
+                .executeQuery("SELECT type FROM pragma_table_info('" + table + "') WHERE name = 'playerUUID'")) {
+                helper.assertTrue(rs.next(), "playerUUID column is missing");
+                helper.assertEquals("INTEGER", rs.getString(1), "playerUUID column type");
+            }
+
+            List<String> stored = new ArrayList<>();
+            try (ResultSet rs = st
+                .executeQuery("SELECT typeof(playerUUID), playerUUID FROM " + table + " ORDER BY timestamp")) {
+                while (rs.next()) stored.add(rs.getString(1) + " " + rs.getLong(2));
+            }
+            helper.assertIterableEquals(
+                Arrays.asList("integer " + id, "integer " + id, "integer " + PlayerIDs.UNKNOWN_ID),
+                stored,
+                "stored players (type number)");
+
+            List<String> readBack = new ArrayList<>();
+            try (ResultSet rs = st.executeQuery("SELECT * FROM " + table + " ORDER BY timestamp")) {
+                for (PlayerTestEvent event : logger.generateQueryResults(rs)) readBack.add(event.playerUUID);
+            }
+            helper.assertIterableEquals(
+                Arrays.asList(uuid, uuid, PlayerUtils.UNKNOWN_PLAYER_NAME),
+                readBack,
+                "players read back as events");
+        }
+
+        // Players.db explains the number, for anyone reading the databases outside the game.
+        try (Connection conn = DriverManager.getConnection(DatabaseUtils.jdbcUrl(PlayerIDs.TABLE + ".db"));
+            PreparedStatement ps = conn.prepareStatement("SELECT uuid FROM " + PlayerIDs.TABLE + " WHERE id = ?")) {
+            ps.setInt(1, id);
+            try (ResultSet rs = ps.executeQuery()) {
+                helper.assertTrue(rs.next(), "Players.db has no row for number " + id);
+                helper.assertEquals(uuid, rs.getString(1), "UUID stored in Players.db");
+            }
+        }
+
+        Map<String, String> conditions = new HashMap<>();
+        for (ColumnDef col : ReflectionUtils.getAllTableColumns(logger)) {
+            conditions.put(col.name, col.extraCondition);
+        }
+        helper.assertEquals("NOT NULL DEFAULT 0", conditions.get("playerUUID"), "playerUUID, the unknown player");
+        helper.succeed();
+    }
+
+    // /tempora sql matches players with player('<name or UUID>'), the number they are stored as.
+    @GameTest
+    public static void sqlPlayerFunctionGivesNumber(GameTestHelper helper) throws Exception {
+        String uuid = UUID.randomUUID()
+            .toString();
+        int id = PlayerIDs.idFor(uuid);
+
+        try (Connection conn = DriverManager.getConnection("jdbc:sqlite::memory:");
+            Statement st = conn.createStatement()) {
+            PlayerIDs.addSqlFunction(conn);
+
+            try (ResultSet rs = st.executeQuery("SELECT player('" + uuid.toUpperCase(Locale.ROOT) + "')")) {
+                helper.assertTrue(rs.next(), "player() returned no row");
+                helper.assertEquals(id, rs.getInt(1), "player() of a stored player");
+            }
+
+            String error = null;
+            try (ResultSet rs = st.executeQuery("SELECT player('no_such_player_ever')")) {
+                rs.next();
+            } catch (SQLException e) {
+                error = e.getMessage();
+            }
+            helper.assertTrue(
+                error != null && error.contains("no_such_player_ever"),
+                "player() of someone who never joined should be an error naming them, got " + error);
+        }
+        helper.succeed();
+    }
+
+    // A logger whose p: filter column isn't a PLAYER column could never match a player, so it is refused.
+    @GameTest
+    public static void textPlayerColumnIsRefused(GameTestHelper helper) {
+        IllegalStateException refused = helper.assertThrows(
+            IllegalStateException.class,
+            () -> new TextPlayerColumnTestLogger().checkColumns(),
+            "a TEXT player column was accepted");
+        helper.assertTrue(
+            String.valueOf(refused.getMessage())
+                .contains("note"),
+            "the refusal should name the column, got: " + refused.getMessage());
+        helper.succeed();
+    }
+
+    public static class PlayerTestLogger extends GenericPositionalLogger<PlayerTestEvent> {
+
+        @Override
+        protected String playerColumn() {
+            return "playerUUID";
+        }
+
+        @Override
+        public @NotNull String getLoggerName() {
+            return "TemporaTestPlayerLogger";
+        }
+
+        @Override
+        public @NotNull String getShortName() {
+            return "test_player";
+        }
+
+        @Override
+        public @NotNull PlayerTestEvent newEventInfo() {
+            return new PlayerTestEvent();
+        }
+
+        @Override
+        public @NotNull LoggerEventType getLoggerEventType() {
+            return LoggerEventType.None;
+        }
+    }
+
+    public static class PlayerTestEvent extends PositionalEventInfo {
+
+        @Column(type = ColumnType.PLAYER, constraints = "NOT NULL")
+        public String playerUUID = PlayerUtils.UNKNOWN_PLAYER_NAME;
+
+        @Override
+        public IChatComponent localiseText() {
+            return new ChatComponentText(playerUUID);
+        }
+
+        @Override
+        public String getLoggerName() {
+            return "TemporaTestPlayerLogger";
+        }
+    }
+
+    // The migration test's logger, with its TEXT note column as the player column.
+    public static class TextPlayerColumnTestLogger extends MigrationTestLogger {
+
+        @Override
+        protected String playerColumn() {
+            return "note";
+        }
     }
 
     // ---------- Helpers ----------

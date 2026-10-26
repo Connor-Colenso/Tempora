@@ -22,6 +22,7 @@ import com.colen.tempora.TemporaLoggerManager;
 import com.colen.tempora.commands.command_base.CommandFilters;
 import com.colen.tempora.commands.command_base.TemporaSubcommand;
 import com.colen.tempora.loggers.generic.GenericLogger;
+import com.colen.tempora.loggers.generic.PlayerIDs;
 import com.colen.tempora.loggers.generic.TemporaQueries;
 import com.colen.tempora.utils.CommandUtils;
 import com.colen.tempora.utils.PlayerUtils;
@@ -116,14 +117,16 @@ public class HomeCommand extends TemporaSubcommand {
                 .prepareStatement(sql.toString())) {
 
                 int i = 1;
+                // The position table holds the player's number rather than their UUID.
+                int playerID = PlayerIDs.lookupID(uuid);
 
                 // params for hot CTE
-                stmt.setString(i++, uuid);
+                stmt.setInt(i++, playerID);
                 if (forcedDim != null) stmt.setInt(i++, forcedDim);
                 if (lookBackCutoffEpoch != null) stmt.setLong(i++, lookBackCutoffEpoch);
 
                 // params for outer WHERE
-                stmt.setString(i++, uuid);
+                stmt.setInt(i++, playerID);
                 if (lookBackCutoffEpoch != null) stmt.setLong(i, lookBackCutoffEpoch);
 
                 try (ResultSet rs = stmt.executeQuery()) {

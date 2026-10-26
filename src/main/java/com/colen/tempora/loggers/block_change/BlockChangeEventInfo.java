@@ -15,6 +15,7 @@ import com.colen.tempora.chat.ChatComponentStackTrace;
 import com.colen.tempora.chat.EventChat;
 import com.colen.tempora.loggers.generic.PositionalEventInfo;
 import com.colen.tempora.loggers.generic.column.Column;
+import com.colen.tempora.loggers.generic.column.ColumnType;
 import com.colen.tempora.utils.CommandUtils;
 import com.colen.tempora.utils.PlayerUtils;
 import com.colen.tempora.utils.StackTraceUtils;
@@ -60,7 +61,7 @@ public class BlockChangeEventInfo extends PositionalEventInfo {
     @Column(constraints = "NOT NULL")
     public long stackTraceID;
 
-    @Column(constraints = "NOT NULL")
+    @Column(type = ColumnType.PLAYER, constraints = "NOT NULL")
     public String closestPlayerUUID = PlayerUtils.UNKNOWN_PLAYER_NAME;
 
     @Column(constraints = "NOT NULL")

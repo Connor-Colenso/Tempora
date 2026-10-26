@@ -36,7 +36,7 @@ run on its own. All of them require operator permission (permission level 2), an
 | `/tempora lookup [r:<radius>] [t:<time>] [l:<logger,...>]` | Show the latest events around you. Every filter is optional and they go in any order, e.g. `/tempora lookup t:1d l:break,place`. Defaults to 10 blocks, the last 3 days, every positional logger. |
 | `/tempora global [t:<time>] [l:<logger,...>] [n:<count>]` | Show the latest events from the global loggers (weather, TPS), from anywhere, including the server console. Defaults to the last 10 events of each over the last 3 days. |
 | `/tempora home <player> [t:<time>] [dim:<id>]` | Find a player's most-visited chunk, based on their position history. |
-| `/tempora sql <SELECT ...>` | Run a read-only `SELECT` against a logger's table for ad-hoc investigation. |
+| `/tempora sql <SELECT ...>` | Run a read-only `SELECT` against a logger's table for ad-hoc investigation. Match a player with `player('<name or UUID>')`, e.g. `WHERE playerUUID = player('Notch')`, as player columns hold a number for each player (see [Storage](#storage)). |
 | `/tempora wand` | Get the Tempora wand. Left click a block to see its history, right click a face for the space in front of it. |
 | `/tempora region create <name> <x1 y1 z1> <x2 y2 z2> [dim]` | Create a region. Coordinates can be relative to you, e.g. `~-50`. |
 | `/tempora region list [dim]` / `/tempora region remove [name]` | List or delete regions. |
@@ -118,6 +118,17 @@ none of the events already written, and a power cut at most the last few seconds
 world data). Neither can corrupt the database. WAL mode needs the world on a local disk, not a
 network filesystem.
 
+### Storage
+
+Each logger has its own database file in the world's `tempora_databases/` folder, named after the
+logger. Columns that record a player (`playerUUID`, and `closestPlayerUUID` for block changes and
+explosions) hold a number for each player rather than their UUID, which keeps busy tables such as
+player positions much smaller. `Players.db` lists each player's number (`Players`: `id`, `uuid`), the
+same in every logger's table, so keep it with the other files. Number 0 is the unknown player. In
+`/tempora sql`, `player('<name or UUID>')` gives a player's number. Reading the files outside the
+game, attach `Players.db` and join on `id`. Mobs' UUIDs are stored as text, as most mobs only
+appear in a few events.
+
 ## API for other mods
 
 Some actions never reach Tempora by themselves: items put into a drawer or barrel by clicking it,
@@ -181,6 +192,10 @@ public class ReactorLogger extends GenericGlobalLogger<ReactorEventInfo> {
 }
 ```
 
+- A column holding a player's UUID should be `@Column(type = ColumnType.PLAYER) public String
+  playerUUID = PlayerUtils.UNKNOWN_PLAYER_NAME;`. It stores the player's number (see
+  [Storage](#storage)) and reads back as the UUID. A positional logger's `playerColumn()`, which the
+  `p:` lookup filter matches, must be one.
 - Every `@Column` field needs a non-null initial value, e.g. `public String reactorName = "";`. That value
   becomes the column's default, so events logged before you added a column read back with it rather than
   `null`. Your chat line still sees it for those old events, so pick a value it can show, e.g. "unknown".

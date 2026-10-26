@@ -217,7 +217,7 @@ tempora.command.home.no_data=No position data found for that query.
 
 # /tempora sql
 tempora.command.sql.description=Runs a read-only SELECT query against a logger's database and shows the results in chat, for investigations /tempora lookup can't express.
-tempora.command.sql.arg0=A read-only SELECT query. The table name is the full logger name, e.g. PlayerPositionLogger.
+tempora.command.sql.arg0=A read-only SELECT query. The table name is the full logger name, e.g. PlayerPositionLogger. Player columns hold a number for each player: match one with player('<name or UUID>'), e.g. playerUUID = player('Notch').
 tempora.command.sql.select_only=Only SELECT queries are allowed.
 tempora.command.sql.invalid_table=The query must name a logger table: %s.
 tempora.command.sql.missing_columns=Query missing required columns: %s

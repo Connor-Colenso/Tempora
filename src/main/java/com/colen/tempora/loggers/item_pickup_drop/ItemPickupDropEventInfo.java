@@ -10,6 +10,7 @@ import com.colen.tempora.TemporaEvents;
 import com.colen.tempora.chat.EventChat;
 import com.colen.tempora.loggers.generic.PositionalEventInfo;
 import com.colen.tempora.loggers.generic.column.Column;
+import com.colen.tempora.loggers.generic.column.ColumnType;
 import com.colen.tempora.utils.CommandUtils;
 import com.colen.tempora.utils.PlayerUtils;
 import com.colen.tempora.utils.nbt.NBTUtils;
@@ -23,7 +24,7 @@ public class ItemPickupDropEventInfo extends PositionalEventInfo {
     @Column(constraints = "NOT NULL")
     public int action;
 
-    @Column(constraints = "NOT NULL")
+    @Column(type = ColumnType.PLAYER, constraints = "NOT NULL")
     public String playerUUID = PlayerUtils.UNKNOWN_PLAYER_NAME;
 
     @Column(constraints = "NOT NULL")

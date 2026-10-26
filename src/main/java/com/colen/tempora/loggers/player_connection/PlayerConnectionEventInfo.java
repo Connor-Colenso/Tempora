@@ -9,6 +9,7 @@ import com.colen.tempora.TemporaEvents;
 import com.colen.tempora.chat.EventChat;
 import com.colen.tempora.loggers.generic.GlobalEventInfo;
 import com.colen.tempora.loggers.generic.column.Column;
+import com.colen.tempora.loggers.generic.column.ColumnType;
 import com.colen.tempora.utils.CommandUtils;
 import com.colen.tempora.utils.PlayerUtils;
 
@@ -19,7 +20,7 @@ public class PlayerConnectionEventInfo extends GlobalEventInfo {
     @Column(constraints = "NOT NULL")
     public int action;
 
-    @Column(constraints = "NOT NULL")
+    @Column(type = ColumnType.PLAYER, constraints = "NOT NULL")
     public String playerUUID = PlayerUtils.UNKNOWN_PLAYER_NAME;
 
     // Why a player left: a translation key such as disconnect.timeout, or the text of a kick message. Empty for joins.

@@ -420,6 +420,17 @@ public abstract class GenericLogger<EventInfo extends GenericEventInfo> {
     // Settings only one kind of logger has, e.g. logByDefault for positional loggers.
     void kindConfig(Configuration config) {}
 
+    /**
+     * Throws if Tempora can't store this logger's columns, e.g. a field of a type it doesn't know. Run as the logger
+     * registers, so its author finds out then rather than when a server starts.
+     */
+    public final void checkColumns() {
+        checkKindColumns(getAllTableColumns(this));
+    }
+
+    // What one kind of logger needs of its columns.
+    void checkKindColumns(List<ColumnDef> columns) {}
+
     // Index name suffix -> indexed columns. Every logger is searched by time, positional loggers by place as well.
     Map<String, String> tableIndexes() {
         Map<String, String> indexes = new LinkedHashMap<>();
@@ -619,6 +630,16 @@ public abstract class GenericLogger<EventInfo extends GenericEventInfo> {
     public static void onServerStart() {
         loggersStarted = true;
 
+        // Before the loggers, as their player columns store each player's number from it.
+        try {
+            PlayerIDs.open();
+        } catch (SQLException e) {
+            LOG.error(
+                "Could not open {}.db, so events with a player can't be stored until the server restarts.",
+                PlayerIDs.TABLE,
+                e);
+        }
+
         if (!TemporaLoggerManager.getLoggerList()
             .isEmpty()) {
             LOG.info("Opening Tempora loggers.");
@@ -680,6 +701,9 @@ public abstract class GenericLogger<EventInfo extends GenericEventInfo> {
                 logger.started = false;
             }
         }
+
+        // Last, once nothing can store another player.
+        PlayerIDs.close();
 
         loggersStarted = false;
     }

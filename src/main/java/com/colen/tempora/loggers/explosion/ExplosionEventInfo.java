@@ -17,6 +17,7 @@ import com.colen.tempora.TemporaEvents;
 import com.colen.tempora.chat.EventChat;
 import com.colen.tempora.loggers.generic.PositionalEventInfo;
 import com.colen.tempora.loggers.generic.column.Column;
+import com.colen.tempora.loggers.generic.column.ColumnType;
 import com.colen.tempora.utils.ChunkPositionUtils;
 import com.colen.tempora.utils.CommandUtils;
 import com.colen.tempora.utils.PlayerUtils;
@@ -31,7 +32,7 @@ public class ExplosionEventInfo extends PositionalEventInfo {
     public float power;
     @Column(constraints = "NOT NULL")
     public String exploder = PlayerUtils.UNKNOWN_CAUSE;
-    @Column(constraints = "NOT NULL")
+    @Column(type = ColumnType.PLAYER, constraints = "NOT NULL")
     public String closestPlayerUUID = PlayerUtils.UNKNOWN_PLAYER_NAME;
     @Column(constraints = "NOT NULL DEFAULT -1")
     public double closestPlayerDistance;

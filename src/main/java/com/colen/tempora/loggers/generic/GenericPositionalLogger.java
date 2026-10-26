@@ -11,6 +11,8 @@ import net.minecraftforge.common.config.Configuration;
 import org.jetbrains.annotations.Nullable;
 
 import com.colen.tempora.commands.TemporaCommand;
+import com.colen.tempora.loggers.generic.column.ColumnDef;
+import com.colen.tempora.loggers.generic.column.ColumnType;
 import com.colen.tempora.regions.LogRule;
 import com.colen.tempora.regions.TemporaRegionRegistry;
 import com.colen.tempora.regions.TemporaWorldRegion;
@@ -35,8 +37,9 @@ public abstract class GenericPositionalLogger<EventInfo extends PositionalEventI
     }
 
     /**
-     * The column holding the UUID of the player behind each event, which the p: filter of /tempora lookup matches.
-     * Null if its events have no player, in which case a lookup filtered by player finds none of them.
+     * The column holding the player behind each event, which the p: filter of /tempora lookup matches. It must be a
+     * {@link ColumnType#PLAYER} column. Null if its events have no player, in which case a lookup filtered by player
+     * finds none of them.
      */
     protected @Nullable String playerColumn() {
         return null;
@@ -90,6 +93,22 @@ public abstract class GenericPositionalLogger<EventInfo extends PositionalEventI
             getLoggerName(),
             defaultForLogByDefault(),
             "Whether this logger records events in places where no region has a rule for it. Use /tempora region set to turn it ON or OFF inside specific regions.");
+    }
+
+    // The p: filter matches players by their number, so the player column must store them as one.
+    @Override
+    final void checkKindColumns(List<ColumnDef> columns) {
+        String playerColumn = playerColumn();
+        if (playerColumn == null) return;
+
+        boolean storesPlayers = columns.stream()
+            .anyMatch(col -> col.name.equals(playerColumn) && col.columnType == ColumnType.PLAYER);
+        if (!storesPlayers) {
+            throw new IllegalStateException(
+                getLoggerName() + "'s playerColumn() is "
+                    + playerColumn
+                    + ", which is not a ColumnType.PLAYER column.");
+        }
     }
 
     @Override

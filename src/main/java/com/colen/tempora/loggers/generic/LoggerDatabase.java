@@ -293,6 +293,8 @@ public class LoggerDatabase {
             try (Statement st = conn.createStatement()) {
                 st.execute("PRAGMA busy_timeout = 5000;");
             }
+            // For /tempora sql, which matches players by their number.
+            PlayerIDs.addSqlFunction(conn);
 
             return conn;
         } catch (Exception e) {

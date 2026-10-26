@@ -9,15 +9,17 @@ import java.util.List;
 public class ColumnDef {
 
     public final String name;
-    public final String type;
+    public final ColumnType columnType;
+    public final String type; // columnType's SQL type
     public final String extraCondition;
     public final List<String> renamedFrom;
     public final ColumnAccessor columnAccessor;
 
-    public ColumnDef(String name, String type, String extraCondition, List<String> renamedFrom,
+    public ColumnDef(String name, ColumnType columnType, String extraCondition, List<String> renamedFrom,
         ColumnAccessor columnAccessor) {
         this.name = name;
-        this.type = type;
+        this.columnType = columnType;
+        this.type = columnType.getSqlType();
         this.extraCondition = extraCondition;
         this.renamedFrom = renamedFrom;
         this.columnAccessor = columnAccessor;

@@ -1,7 +1,5 @@
 package com.colen.tempora;
 
-import static com.colen.tempora.utils.ReflectionUtils.getAllTableColumns;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -104,7 +102,7 @@ public final class TemporaLoggerManager {
 
         // 4. Check the columns now, so a field Tempora cannot store fails here rather than when the server starts.
         try {
-            getAllTableColumns(logger);
+            logger.checkColumns();
         } catch (RuntimeException e) {
             throw new IllegalStateException("Logger " + loggerName + " has a column Tempora cannot store.", e);
         }

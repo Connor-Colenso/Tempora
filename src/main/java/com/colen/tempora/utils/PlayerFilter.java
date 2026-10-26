@@ -8,6 +8,8 @@ import java.util.List;
 
 import net.minecraft.command.CommandException;
 
+import com.colen.tempora.loggers.generic.PlayerIDs;
+
 /**
  * Whose events a lookup shows, as a p: filter gives it: comma separated names, each with a leading ! to leave that
  * player out instead. "p:Colen,Kyium" is only their events, "p:!Colen,!Kyium" everyone's but theirs.
@@ -63,10 +65,11 @@ public final class PlayerFilter {
         return sql.toString();
     }
 
-    // Fills in sqlCondition's placeholders from index onwards, and returns the index after them.
+    // Fills in sqlCondition's placeholders from index onwards, and returns the index after them. Player columns hold
+    // each player's number, see PlayerIDs.
     public int bind(PreparedStatement ps, int index) throws SQLException {
-        for (String uuid : includedUUIDs) ps.setString(index++, uuid);
-        for (String uuid : excludedUUIDs) ps.setString(index++, uuid);
+        for (String uuid : includedUUIDs) ps.setInt(index++, PlayerIDs.lookupID(uuid));
+        for (String uuid : excludedUUIDs) ps.setInt(index++, PlayerIDs.lookupID(uuid));
         return index;
     }
 

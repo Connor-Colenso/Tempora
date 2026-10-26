@@ -14,6 +14,7 @@ import java.util.regex.Pattern;
 
 import com.colen.tempora.loggers.generic.GenericEventInfo;
 import com.colen.tempora.loggers.generic.GenericLogger;
+import com.colen.tempora.loggers.generic.PlayerIDs;
 import com.colen.tempora.loggers.generic.column.Column;
 import com.colen.tempora.loggers.generic.column.ColumnDef;
 import com.colen.tempora.loggers.generic.column.ColumnType;
@@ -43,16 +44,18 @@ public class ReflectionUtils {
 
             ColumnType type = col.type() == ColumnType.AUTO ? ColumnType.inferFrom(field) : col.type();
 
-            ColumnDef.ColumnAccessor accessor = buildColumnAccessor(field);
+            ColumnDef.ColumnAccessor accessor = buildColumnAccessor(field, type);
 
             String constraints = col.constraints()
                 .trim();
-            // The rowid (eventID) is filled in by SQLite, so it has no default.
-            if (!("INTEGER".equals(type.getSqlType()) && "PRIMARY KEY".equalsIgnoreCase(constraints))) {
+            if (type == ColumnType.PLAYER) {
+                constraints = withDefault(constraints, playerDefault(field, accessor.get(fresh)));
+            } else if (!("INTEGER".equals(type.getSqlType()) && "PRIMARY KEY".equalsIgnoreCase(constraints))) {
+                // The rowid (eventID) is filled in by SQLite, so it has no default.
                 constraints = withDefault(constraints, sqlLiteral(field, accessor.get(fresh)));
             }
 
-            defs.add(new ColumnDef(name, type.getSqlType(), constraints, Arrays.asList(col.renamedFrom()), accessor));
+            defs.add(new ColumnDef(name, type, constraints, Arrays.asList(col.renamedFrom()), accessor));
         }
 
         // Freeze before caching
@@ -62,7 +65,7 @@ public class ReflectionUtils {
         return immutable;
     }
 
-    private static ColumnDef.ColumnAccessor buildColumnAccessor(Field field) {
+    private static ColumnDef.ColumnAccessor buildColumnAccessor(Field field, ColumnType columnType) {
 
         field.setAccessible(true);
 
@@ -81,7 +84,17 @@ public class ReflectionUtils {
         final ColumnDef.ColumnAccessor.Binder binder;
         final ColumnDef.ColumnAccessor.Reader reader;
 
-        if (type == int.class || type == Integer.class) {
+        if (columnType == ColumnType.PLAYER) {
+            if (type != String.class) {
+                throw new IllegalStateException(
+                    field.getDeclaringClass()
+                        .getSimpleName() + "."
+                        + field.getName()
+                        + " is a PLAYER column, so it must be a String.");
+            }
+            binder = (ps, i, v) -> ps.setInt(i, PlayerIDs.idFor((String) v));
+            reader = (rs, name) -> PlayerIDs.uuidFor(rs.getInt(name));
+        } else if (type == int.class || type == Integer.class) {
             binder = (ps, i, v) -> ps.setInt(i, (Integer) v);
             reader = ResultSet::getInt;
         } else if (type == long.class || type == Long.class) {
@@ -147,6 +160,23 @@ public class ReflectionUtils {
                     + ", which SQLite can't store.");
         }
         return value.toString();
+    }
+
+    /**
+     * A player column's default is the unknown player, whose number is the same in every world. Any other start value
+     * would need a number from a world's Players.db, which isn't open when loggers register.
+     */
+    private static String playerDefault(Field field, Object value) {
+        if (!PlayerUtils.UNKNOWN_PLAYER_NAME.equals(value)) {
+            throw new IllegalStateException(
+                field.getDeclaringClass()
+                    .getSimpleName() + "."
+                    + field.getName()
+                    + " is a PLAYER column, so it must start as PlayerUtils.UNKNOWN_PLAYER_NAME, not "
+                    + value
+                    + ".");
+        }
+        return String.valueOf(PlayerIDs.UNKNOWN_ID);
     }
 
     private static List<Field> getColumnFieldsAlphabetically(GenericLogger<?> logger) {

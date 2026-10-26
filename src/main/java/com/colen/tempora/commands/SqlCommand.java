@@ -226,7 +226,8 @@ public class SqlCommand extends TemporaSubcommand {
 
     @Override
     public String getExampleArgs() {
-        return "SELECT * FROM PlayerPositionLogger WHERE playerUUID = 'player_uuid_goes_here' AND Y > 80";
+        // Player columns hold each player's number, which player() gives from a name or UUID.
+        return "SELECT * FROM PlayerPositionLogger WHERE playerUUID = player('Notch') AND y > 80";
     }
 
 }

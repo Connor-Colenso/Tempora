@@ -11,6 +11,7 @@ import com.colen.tempora.TemporaEvents;
 import com.colen.tempora.chat.EventChat;
 import com.colen.tempora.loggers.generic.PositionalEventInfo;
 import com.colen.tempora.loggers.generic.column.Column;
+import com.colen.tempora.loggers.generic.column.ColumnType;
 import com.colen.tempora.utils.CommandUtils;
 import com.colen.tempora.utils.PlayerUtils;
 
@@ -22,7 +23,7 @@ public class CommandEventInfo extends PositionalEventInfo {
     // Commands longer than this are cut short in chat.
     private static final int MAX_SHOWN_LENGTH = 40;
 
-    @Column(constraints = "NOT NULL")
+    @Column(type = ColumnType.PLAYER, constraints = "NOT NULL")
     public String playerUUID = PlayerUtils.UNKNOWN_PLAYER_NAME;
 
     @Column(constraints = "NOT NULL")
