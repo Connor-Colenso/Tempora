@@ -4,16 +4,16 @@ A Forge (Minecraft 1.7.10, GTNH ecosystem) server-side mod for tracking griefing
 player activity. It's a slimmed-down alternative to Prism/CoreProtect/LogBlock: block changes
 (inside the regions you choose), player positions, inventory transfers, items picked up and
 dropped, entity deaths/spawns, explosions, item use, and commands are logged to a local SQLite
-database and can be queried in-game by operators. Server-wide events with no position, such as weather changes and TPS, are
-logged too.
+database and can be queried in-game by operators. Server-wide events with no position, such as players
+joining and leaving, weather changes and TPS, are logged too.
 
 ## Features
 
 - **Per-event-type logging** — block changes, player positions, entity spawns/deaths,
   explosions, inventory transfers, item pickups and drops, item use, and command history, each in
   its own SQLite database file.
-- **Server-wide logging** — weather changes and TPS, which happen everywhere rather than at a
-  place. See [Logger kinds](#logger-kinds).
+- **Server-wide logging** — players joining and leaving, weather changes and TPS, which belong to
+  the whole server rather than a place. See [Logger kinds](#logger-kinds).
 - **In-game querying** — look up what happened around you (`/tempora lookup`), click blocks with
   the Tempora wand, see the latest server-wide events (`/tempora global`), or run a read-only SQL
   query directly against a logger's table (`/tempora sql`).
@@ -33,8 +33,8 @@ run on its own. All of them require operator permission (permission level 2), an
 
 | Command | Purpose |
 |---|---|
-| `/tempora lookup [r:<radius>] [t:<time>] [l:<logger,...>]` | Show the latest events around you. Every filter is optional and they go in any order, e.g. `/tempora lookup t:1d l:break,place`. Defaults to 10 blocks, the last 3 days, every positional logger. |
-| `/tempora global [t:<time>] [l:<logger,...>] [n:<count>]` | Show the latest events from the global loggers (weather, TPS), from anywhere, including the server console. Defaults to the last 10 events of each over the last 3 days. |
+| `/tempora lookup [r:<radius>] [t:<time>] [l:<logger,...>] [p:<player,...>] [n:<count>]` | Show the latest events around you and draw them in the world. Every filter is optional and they go in any order, e.g. `/tempora lookup t:1d l:break,place p:Notch`. Defaults to 10 blocks, the last 3 days, every positional logger, anyone, and the latest 5 events of each logger (up to 50). |
+| `/tempora global [t:<time>] [l:<logger,...>] [n:<count>]` | Show the latest events from the global loggers (joins and leaves, weather, TPS), from anywhere, including the server console. Defaults to the last 10 events of each (up to 100) over the last 3 days. |
 | `/tempora home <player> [t:<time>] [dim:<id>]` | Find a player's most-visited chunk, based on their position history. |
 | `/tempora sql <SELECT ...>` | Run a read-only `SELECT` against a logger's table for ad-hoc investigation. Match a player with `player('<name or UUID>')`, e.g. `WHERE playerUUID = player('Notch')`, as player columns hold a number for each player (see [Storage](#storage)). |
 | `/tempora wand` | Get the Tempora wand. Left click a block to see its history, right click a face for the space in front of it. |
@@ -42,11 +42,16 @@ run on its own. All of them require operator permission (permission level 2), an
 | `/tempora region list [dim]` / `/tempora region remove [name]` | List or delete regions. |
 | `/tempora region set <name> <logger\|all> <on\|off\|clear>` | Turn a logger on or off inside a region. |
 | `/tempora region check [logger]` | Show which loggers record events where you stand, and why. |
-| `/tempora help [command]` | List every command, or explain one, e.g. `/tempora help region set`. |
+| `/tempora help [command]` | List every command, or explain one, e.g. `/tempora help region set`. A `?` after any command does the same, e.g. `/tempora lookup ?`. |
+
+Times (`t:`) are written like `30m`, `6h`, `1d`, `2w` or `1mo`. A range such as `t:3d-1d` looks between 3 days
+and 1 day ago. `p:` takes player names, comma separated, and `!Name` leaves a player out instead. Block changes
+and explosions go by the closest player, and loggers with no player, such as mob spawns, are skipped when `p:` is
+given.
 
 Loggers have short names for commands: `change`, `break`, `place`, `explosion`, `command`, `death`,
 `spawn`, `mobpos`, `inventory`, `pickup` (items picked up, thrown out, or dropped on death), `use`
-and `playerpos`, plus the global `weather` and `tps`. The full names (e.g. `PlayerBlockBreakLogger`)
+and `playerpos`, plus the global `connection`, `weather` and `tps`. The full names (e.g. `PlayerBlockBreakLogger`)
 also work, and are the table names for `/tempora sql`.
 
 ## Logger kinds
@@ -58,15 +63,19 @@ Every logger is one of two kinds:
   dimension and coordinates, follows [region](#regions) rules, is looked up around a position
   (`/tempora lookup`, the wand) and can be drawn in the world.
 - **Global** loggers record events that belong to the whole server, so they have no coordinates.
-  Regions don't affect them, and `/tempora global` shows them wherever you are. Tempora has two:
+  Regions don't affect them, and `/tempora global` shows them wherever you are. Tempora has three:
+  - `connection` records players joining and leaving the server, where they were at the time, and
+    why they left (timed out, a kick message, the server stopping). A player turned away before they
+    fully joined, e.g. for missing mods, isn't logged.
   - `weather` records each dimension's weather changing between clear, rain and thunder, whatever
     changed it (the weather cycle, `/weather`, another mod). Dimensions without a sky are skipped.
   - `tps` records the server's TPS every `loggingIntervalSeconds` (default 60): the mean and
     slowest tick time since the last record, and the TPS that mean works out to, as `/forge tps`
     does.
 
-`/tempora tp` and `/tempora trace` also exist, but are run by clicking Tempora's chat output rather
-than typed. `/tempora explode <power>`, for testing explosion logging, only exists in a development
+Clicking coordinates in Tempora's chat output teleports you there, in any dimension, if you can use
+`/tempora`. Block changes also have a `[Trace]` button in chat, which shows the code path (stack trace) that
+changed the block. `/tempora explode <power>`, for testing explosion logging, only exists in a development
 environment.
 
 ## Regions
@@ -111,7 +120,15 @@ Each logger's section in `loggers.cfg` has:
 - `oldestDataCutoff` — how long to retain logged events before they're deleted (e.g. `4months`).
 - `databaseCacheSizeMB` — the most memory SQLite may use to cache the logger's database. A bigger
   cache makes writing to a large database faster.
-- A maximum in-memory queue size per logger, to bound memory use if the database falls behind.
+- `maxEventsInQueueBeforeServerFreeze` — if this many events are waiting to be written, the server
+  stops ticking until the database catches up, so memory use stays bounded. If this happens a lot,
+  the logger is recording too much.
+- `maxShutdownTimeoutMilliseconds` — how long the server waits, while stopping, for the logger to
+  write what it still has queued.
+
+Some loggers have options of their own, such as `logNBT` (also store blocks' or items' NBT, on by
+default only for `inventory`), `playerPositionLoggingInterval` and `entity_position_logging_interval`
+(how often positions are recorded, in ticks), and the `tps` logger's `loggingIntervalSeconds`.
 
 Events are written by a background thread per logger, in SQLite's WAL mode. A server crash loses
 none of the events already written, and a power cut at most the last few seconds of *logs* (not
@@ -128,7 +145,7 @@ same in every logger's table, so keep it with the other files. Number 0 is the u
 `/tempora sql`, `player('<name or UUID>')` gives a player's number. Reading the files outside the
 game, attach `Players.db` and join on `id`.
 
-Mob positions (`mobpos`) log each mob every few seconds for as long as it lives, so each mob's UUID
+Mob positions (`mobpos`) log each mob every 25 seconds by default for as long as it lives, so each mob's UUID
 and name are stored once, in a `Mobs` table (`id`, `uuid`, `name`, `lastSeen`) in the same file, and
 each event holds the mob's number in `mobID`. To find one mob's positions with `/tempora sql`:
 `WHERE mobID = (SELECT id FROM Mobs WHERE uuid = '<uuid>')`. A mob is deleted from `Mobs` once its
@@ -232,11 +249,11 @@ needs. A logger without a renderer still shows each event as an outlined block w
 
 ## Data collected
 
-For server operators: Tempora records player UUIDs, position history, block changes (with
-container contents at the time of breaking, for some loggers), inventory transfers, and full
-command text/arguments, plus server-wide weather and TPS, retained for the configured
-`oldestDataCutoff` window. Any operator can
-query this data via `/tempora sql` or `/tempora lookup`.
+For server operators: Tempora records player UUIDs, position history, when players join and
+leave (with where they were and kick messages), block changes (with block NBT such as container
+contents, when `logNBT` is on), inventory transfers, and full command text/arguments, plus
+server-wide weather and TPS, retained for the configured `oldestDataCutoff` window. Any operator can
+query this data via `/tempora sql`, `/tempora lookup` or `/tempora global`.
 
 ## Testing
 

@@ -16,8 +16,10 @@ import com.colen.tempora.events.OnWorldLoad;
 import com.colen.tempora.loggers.generic.GenericRenderEventPacketHandler;
 import com.colen.tempora.loggers.generic.RenderEventPacket;
 import com.colen.tempora.networking.handlers.PacketRemoveClientRegionByUUID;
+import com.colen.tempora.networking.handlers.TeleportRequestHandler;
 import com.colen.tempora.networking.packets.PacketRemoveRegionFromClient;
 import com.colen.tempora.networking.packets.PacketShowRegionInWorld;
+import com.colen.tempora.networking.packets.PacketTeleportRequest;
 import com.colen.tempora.utils.GenericUtils;
 import com.colen.tempora.utils.WorldGenTicks;
 import com.gtnewhorizon.gtnhlib.config.ConfigurationManager;
@@ -57,6 +59,8 @@ public class CommonProxy {
 
         NETWORK
             .registerMessage(PacketRemoveClientRegionByUUID.class, PacketRemoveRegionFromClient.class, 3, Side.CLIENT);
+
+        NETWORK.registerMessage(TeleportRequestHandler.class, PacketTeleportRequest.class, 4, Side.SERVER);
 
         TemporaEvents.registerAll();
 

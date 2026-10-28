@@ -31,7 +31,6 @@ public class TemporaCommand extends CommandBase {
     // Kept so chat output can build clickable commands for them.
     public static final LookupCommand LOOKUP = new LookupCommand();
     public static final GlobalCommand GLOBAL = new GlobalCommand();
-    public static final TeleportCommand TELEPORT = new TeleportCommand();
     public static final RegionSetCommand REGION_SET = new RegionSetCommand();
 
     private static final TemporaSubcommandGroup ROOT = new TemporaSubcommandGroup("");
@@ -51,7 +50,6 @@ public class TemporaCommand extends CommandBase {
                 REGION_SET,
                 new RegionCheckCommand()));
         ROOT.add(new HelpCommand(ROOT));
-        ROOT.add(TELEPORT);
 
         // Only for testing explosion logging, so it never exists on a real server.
         if (GenericUtils.isDevEnvironment()) {

@@ -51,10 +51,15 @@ tempora.uuid.display=UUID: %s
 tempora.uuid.click_to_copy=Click to copy UUID.
 
 # Clickable coordinates.
-tempora.teleport.display=[%s %s %s]
+# Coordinates are in the player's number format (GTNHLib's numberFormatLocale), which needn't match their language,
+# so their separator is chosen in code from that format, e.g. [12,345 64 -2,000] or [12 345, 64, -2 000].
+tempora.teleport.display=[%s]
 tempora.teleport.hover=Click to teleport.
 tempora.teleport.dimension=%s (ID %s)
-tempora.teleport.exact=Exactly %s
+# Labelled, as these have decimals, and many formats write those with a comma, e.g. 12.345,5.
+tempora.teleport.exact=Exactly X: %s Y: %s Z: %s
+tempora.teleport.done=Teleported to %s in %s.
+tempora.teleport.no_permission=You need permission to use /tempora to teleport.
 
 # Stored with events when who or what did it is unknown, so these keys must keep their names.
 tempora.unknown.player=[UNKNOWN PLAYER]
@@ -230,11 +235,6 @@ tempora.command.sql.query_quantity_if_max=Showing the first %s results (server l
 # /tempora wand
 tempora.command.wand.description=Gives you a Tempora wand. Left click a block to see its history, right click a face to see the history of the space in front of it.
 tempora.command.wand.given=You have been given a Tempora wand. Left click a block to see its history, right click a face to see the space in front of it.
-
-# /tempora tp
-tempora.command.tp.description=Teleports you to a position, in any dimension. Tempora's clickable coordinates use this.
-tempora.command.tp.arg0=Position to teleport to.
-tempora.command.tp.arg1=Optional. Dimension to teleport to, defaults to your current one.
 
 # /tempora explode, only in a development environment
 tempora.command.explode.description=Creates an explosion at the block you are looking at, for testing that explosions are logged. Only exists in a development environment.

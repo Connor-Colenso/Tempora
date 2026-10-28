@@ -10,5 +10,6 @@ public class TemporaChatRegistry {
         ChatComponentCustomRegistry.register(ChatComponentBlockName::new);
         ChatComponentCustomRegistry.register(ChatComponentWrappedTranslation::new);
         ChatComponentCustomRegistry.register(ChatComponentStackTrace::new);
+        ChatComponentCustomRegistry.register(ChatComponentTeleport::new);
     }
 }
