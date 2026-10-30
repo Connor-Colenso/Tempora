@@ -211,13 +211,15 @@ tempora.command.global.arg2=How many events to show from each logger, up to 100,
 tempora.command.global.positional_logger=%s records events at a place, use %s to look them up around you.
 
 # /tempora home
-tempora.command.home.description=Finds the chunk a player has spent the most time in, from their position history. Useful for finding their base.
+tempora.command.home.description=Lists the places a player has spent the most time, busiest first, from their position history. Useful for finding their base, and for telling it apart from an AFK farm or spawn. Each place is the 3x3 chunks around its busiest chunk, and clicking it teleports you to where they last stood there.
 tempora.command.home.arg0=Name of the player to look up.
-tempora.command.home.arg1=Optional. Only use positions from this far back, e.g. 1mo, 2w.
-tempora.command.home.arg2=Optional. Only look in this dimension.
-tempora.command.home.result=Player %s is most active in dimension %s, click %s to visit the location.
+tempora.command.home.arg1=How far back to look, e.g. 1d, 3w, 1mo. A range such as 3w-1w looks between 3 weeks and 1 week ago. Default is everything still stored.
+tempora.command.home.arg2=Only look in this dimension, by ID. Default is every dimension.
+tempora.command.home.arg3=How many places to list, up to 10, default 3.
+tempora.command.home.header=Places %s spent the most time:
+tempora.command.home.spot=%s. %s of their time, in %s at %s, last there %s
+tempora.command.home.no_more=No other places where they spent much time.
 tempora.command.home.no_db=Player position logging is disabled, so there is no position history to search.
-tempora.command.home.no_data=No position data found for that query.
 
 # /tempora sql
 tempora.command.sql.description=Runs a read-only SELECT query against a logger's database and shows the results in chat, for investigations /tempora lookup can't express.
