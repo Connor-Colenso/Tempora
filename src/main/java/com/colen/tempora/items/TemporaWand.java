@@ -178,6 +178,7 @@ public class TemporaWand extends Item {
                 TimeWindow.allTime(),
                 PlayerFilter.anyone(),
                 LookupCommand.DEFAULT_COUNT,
+                null,
                 new ChatComponentTranslation("tempora.wand.nothing_found"));
         }
     }

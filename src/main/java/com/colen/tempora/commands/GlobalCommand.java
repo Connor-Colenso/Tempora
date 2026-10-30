@@ -8,14 +8,12 @@ import java.util.Map;
 
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
-import net.minecraft.util.ChatComponentTranslation;
-import net.minecraft.util.EnumChatFormatting;
-import net.minecraft.util.IChatComponent;
 
 import org.jetbrains.annotations.Nullable;
 
 import com.colen.tempora.TemporaLoggerManager;
 import com.colen.tempora.commands.command_base.CommandFilters;
+import com.colen.tempora.commands.command_base.SearchSummary;
 import com.colen.tempora.commands.command_base.TemporaSubcommand;
 import com.colen.tempora.loggers.generic.GenericGlobalLogger;
 import com.colen.tempora.loggers.generic.GenericLogger;
@@ -50,6 +48,10 @@ public class GlobalCommand extends TemporaSubcommand {
         List<GenericGlobalLogger<?>> loggers = parseLoggers(sender, filters.get("l"));
         if (loggers == null) return;
 
+        SearchSummary summary = new SearchSummary(this, filters).add("t", DEFAULT_TIME)
+            .add("l", "all")
+            .add("n", DEFAULT_COUNT);
+
         TemporaQueries.submit(sender, () -> {
             List<FoundEvents> found = new ArrayList<>();
             for (GenericGlobalLogger<?> logger : loggers) {
@@ -65,14 +67,7 @@ public class GlobalCommand extends TemporaSubcommand {
                 shown += events.show(target);
             }
 
-            if (shown == 0) {
-                IChatComponent nothingFound = new ChatComponentTranslation(
-                    "tempora.command.global.nothing_found",
-                    window.describe());
-                nothingFound.getChatStyle()
-                    .setColor(EnumChatFormatting.GRAY);
-                target.addChatMessage(nothingFound);
-            }
+            target.addChatMessage(summary.line(shown > 0));
         });
     }
 

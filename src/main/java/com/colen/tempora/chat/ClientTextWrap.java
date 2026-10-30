@@ -13,16 +13,16 @@ final class ClientTextWrap {
     private ClientTextWrap() {}
 
     /**
-     * Breaks text into lines no wider than half the screen, in GUI-scaled pixels as hovers are drawn, joined by
-     * newlines, which hovers show as lines. Measured each time, so it follows the window size and GUI scale.
+     * Breaks text into lines no wider than three quarters of the screen, in GUI-scaled pixels as hovers are drawn,
+     * joined by newlines, which hovers show as lines. Measured each time, so it follows the window size and GUI scale.
      */
-    static String wrapToHalfScreen(String text) {
+    static String wrapToHoverWidth(String text) {
         Minecraft mc = Minecraft.getMinecraft();
         FontRenderer font = mc.fontRenderer;
         if (font == null) return text;
 
         int screenWidth = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight).getScaledWidth();
-        int width = Math.max(MIN_WIDTH_PIXELS, screenWidth / 2);
+        int width = Math.max(MIN_WIDTH_PIXELS, screenWidth * 3 / 4);
         return String.join("\n", font.listFormattedStringToWidth(text, width));
     }
 }

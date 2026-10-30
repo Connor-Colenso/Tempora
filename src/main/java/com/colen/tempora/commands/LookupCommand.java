@@ -10,7 +10,6 @@ import java.util.Map;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.util.MathHelper;
@@ -19,6 +18,7 @@ import org.jetbrains.annotations.Nullable;
 
 import com.colen.tempora.TemporaLoggerManager;
 import com.colen.tempora.commands.command_base.CommandFilters;
+import com.colen.tempora.commands.command_base.SearchSummary;
 import com.colen.tempora.commands.command_base.TemporaSubcommand;
 import com.colen.tempora.loggers.generic.GenericGlobalLogger;
 import com.colen.tempora.loggers.generic.GenericLogger;
@@ -68,6 +68,8 @@ public class LookupCommand extends TemporaSubcommand {
         List<GenericPositionalLogger<?>> loggers = parseLoggers(sender, filters.get("l"));
         if (loggers == null) return;
 
+        SearchSummary summary = summarise(filters);
+
         showEvents(
             player,
             loggers,
@@ -79,7 +81,17 @@ public class LookupCommand extends TemporaSubcommand {
             window,
             players,
             count,
-            new ChatComponentTranslation("tempora.command.lookup.nothing_found", radius, window.describe()));
+            summary.line(true),
+            summary.line(false));
+    }
+
+    // Every filter, as typed or its default, for the line under the results.
+    public SearchSummary summarise(CommandFilters filters) {
+        return new SearchSummary(this, filters).add("r", DEFAULT_RADIUS)
+            .add("t", DEFAULT_TIME)
+            .add("l", "all")
+            .add("p", "anyone")
+            .add("n", String.valueOf(DEFAULT_COUNT));
     }
 
     // Comma separated positional logger names, or every positional logger if null. Null, after telling the sender,
@@ -113,10 +125,11 @@ public class LookupCommand extends TemporaSubcommand {
     }
 
     // Looks up each logger's latest events near a position in the player's dimension, up to count of each, on the query
-    // thread, then shows them with a single "nothing found" line if none of them had any. A radius of 0 means exactly
-    // that block. Loggers whose events have no player are left out when filtering by player.
+    // thread, then shows them followed by afterResults, if any, or just nothingFound if none of them had any. A radius
+    // of 0 means exactly that block. Loggers whose events have no player are left out when filtering by player.
     public static void showEvents(EntityPlayerMP player, Collection<GenericPositionalLogger<?>> loggers, int x, int y,
-        int z, int radius, TimeWindow window, PlayerFilter players, int count, IChatComponent nothingFound) {
+        int z, int radius, TimeWindow window, PlayerFilter players, int count, @Nullable IChatComponent afterResults,
+        IChatComponent nothingFound) {
         int dimension = player.dimension;
 
         TemporaQueries.submit(player, () -> {
@@ -134,7 +147,9 @@ public class LookupCommand extends TemporaSubcommand {
                 shown += events.show(sender);
             }
 
-            if (shown == 0) {
+            if (shown > 0) {
+                if (afterResults != null) sender.addChatMessage(afterResults);
+            } else {
                 nothingFound.getChatStyle()
                     .setColor(EnumChatFormatting.GRAY);
                 sender.addChatMessage(nothingFound);

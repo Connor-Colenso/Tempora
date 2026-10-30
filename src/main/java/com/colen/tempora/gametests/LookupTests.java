@@ -5,6 +5,7 @@ import static com.colen.tempora.gametests.TestSupport.eventsNear;
 import static com.colen.tempora.gametests.TestSupport.fakePlayer;
 import static com.gtnewhorizons.horizonqa.api.TestPos.at;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -13,6 +14,7 @@ import net.minecraft.command.CommandException;
 import net.minecraft.entity.passive.EntityPig;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.util.StatCollector;
 import net.minecraftforge.common.util.FakePlayer;
@@ -22,6 +24,9 @@ import com.colen.tempora.TemporaEvents;
 import com.colen.tempora.TemporaLoggerManager;
 import com.colen.tempora.chat.ChatComponentWrappedTranslation;
 import com.colen.tempora.commands.LookupCommand;
+import com.colen.tempora.commands.TemporaCommand;
+import com.colen.tempora.commands.command_base.CommandFilters;
+import com.colen.tempora.commands.command_base.SearchSummary;
 import com.colen.tempora.loggers.generic.GenericLogger;
 import com.colen.tempora.loggers.generic.GenericLogger.FoundEvents;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
@@ -390,14 +395,9 @@ public class LookupTests {
             .thenSucceed();
     }
 
-    // The t: filter's forms, and how "nothing found" messages describe them.
+    // The t: filter's forms, a range either way round.
     @GameTest
-    public static void timeWindowParsesAndDescribes(GameTestHelper helper) {
-        helper.assertEquals("in the last 6h", describe(helper, TimeWindow.parse("6h")), "t:6h");
-        helper.assertEquals("between 3d and 1d ago", describe(helper, TimeWindow.parse("3d-1d")), "t:3d-1d");
-        helper.assertEquals("between 3d and 1d ago", describe(helper, TimeWindow.parse("1d-3d")), "t:1d-3d");
-        helper.assertEquals("at any time", describe(helper, TimeWindow.allTime()), "all time");
-
+    public static void timeWindowParses(GameTestHelper helper) {
         long now = System.currentTimeMillis();
         TimeWindow range = TimeWindow.parse("1d-3d");
         helper.assertEquals(now - 3 * DAY_SECONDS * 1000, range.oldestMillis(now), "oldest of 1d-3d");
@@ -413,6 +413,74 @@ public class LookupTests {
             helper.assertThrows(CommandException.class, () -> TimeWindow.parse(bad), "t:" + bad + " was accepted");
         }
         helper.succeed();
+    }
+
+    // The line under a lookup's results lists every filter, typed or not, and which were left at their default.
+    @GameTest
+    public static void searchSummaryListsEveryFilter(GameTestHelper helper) {
+        CapturingSender sender = new CapturingSender("searchSummaryListsEveryFilter", helper.getWorld());
+        CommandFilters filters = CommandFilters
+            .parse(TemporaCommand.LOOKUP, sender, new String[] { "t:1d", "r:25" }, 0, "r", "t", "l", "p", "n");
+        helper.assertNotNull(filters, "filters were refused: " + sender.text());
+        SearchSummary summary = TemporaCommand.LOOKUP.summarise(filters);
+
+        IChatComponent searched = summary.line(true);
+        helper.assertEquals(
+            "Searched r:25 t:1d l:all p:anyone n:" + LookupCommand.DEFAULT_COUNT,
+            searched.getUnformattedText(),
+            "with results");
+        TestSupport.assertChatWellFormed(helper, searched, "searched");
+        IChatComponent nothingFound = summary.line(false);
+        helper.assertEquals(
+            "Nothing found r:25 t:1d l:all p:anyone n:" + LookupCommand.DEFAULT_COUNT,
+            nothingFound.getUnformattedText(),
+            "without results");
+        TestSupport.assertChatWellFormed(helper, nothingFound, "nothing found");
+
+        // Each filter, with a space between: r: was typed, l: left out.
+        List<?> parts = ((IChatComponent) ((ChatComponentTranslation) searched).getFormatArgs()[0]).getSiblings();
+        IChatComponent radius = (IChatComponent) parts.get(0);
+        IChatComponent loggers = (IChatComponent) parts.get(4);
+        helper.assertEquals(
+            EnumChatFormatting.GREEN,
+            radius.getChatStyle()
+                .getColor(),
+            "typed colour");
+        helper.assertEquals(
+            EnumChatFormatting.GRAY,
+            loggers.getChatStyle()
+                .getColor(),
+            "default colour");
+
+        // The last line of the hover says what the default is, and what it was overridden with if typed.
+        ChatComponentWrappedTranslation overridden = lastHoverLine(helper, radius);
+        helper.assertEquals("tempora.command.search.overridden", overridden.getKey(), "typed hover");
+        helper.assertEquals(Arrays.asList("10", "25"), overridden.getArgs(), "typed hover values");
+        helper.assertEquals(
+            EnumChatFormatting.GRAY,
+            overridden.getChatStyle()
+                .getColor(),
+            "typed hover colour");
+        ChatComponentWrappedTranslation usingDefault = lastHoverLine(helper, loggers);
+        helper.assertEquals("tempora.command.search.default", usingDefault.getKey(), "default hover");
+        helper.assertEquals(Arrays.asList("all"), usingDefault.getArgs(), "default hover value");
+        helper.assertEquals(
+            EnumChatFormatting.RED,
+            usingDefault.getChatStyle()
+                .getColor(),
+            "default hover colour");
+        helper.succeed();
+    }
+
+    private static ChatComponentWrappedTranslation lastHoverLine(GameTestHelper helper, IChatComponent filter) {
+        List<?> lines = filter.getChatStyle()
+            .getChatHoverEvent()
+            .getValue()
+            .getSiblings();
+        return helper.assertInstanceOf(
+            ChatComponentWrappedTranslation.class,
+            lines.get(lines.size() - 1),
+            "last line of the hover");
     }
 
     // A lookup shows the newest few events, and its header says there may be more.
@@ -608,12 +676,6 @@ public class LookupTests {
         event.playerUUID = PositionalLoggerTests.uuid(player);
         event.encodedNBT = "";
         return event;
-    }
-
-    private static String describe(GameTestHelper helper, TimeWindow window) {
-        IChatComponent description = window.describe();
-        TestSupport.assertChatWellFormed(helper, description, "time window");
-        return description.getUnformattedText();
     }
 
     // Shows a lookup's result to a throwaway sender, and checks how many events it showed.

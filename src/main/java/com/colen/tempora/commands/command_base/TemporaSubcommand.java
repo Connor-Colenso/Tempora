@@ -128,6 +128,16 @@ public abstract class TemporaSubcommand {
         return descriptions;
     }
 
+    // The .argN lang key of a key:value filter, e.g. "tempora.command.lookup.arg0" for "r", going by the argument
+    // that starts with it in the usage line, e.g. "[r:<radius>]".
+    public final String getFilterLangKey(String key) {
+        for (int i = 0; i < arguments.size(); i++) {
+            if (arguments.get(i)
+                .startsWith("[" + key + ":")) return getLangKey() + ".arg" + i;
+        }
+        throw new IllegalArgumentException(path + " has no " + key + ": filter");
+    }
+
     // The full help page, shown by /tempora help <path> and by typing ? after the command.
     public void sendHelp(ICommandSender sender) {
         // E.g. ----------- region set -----------

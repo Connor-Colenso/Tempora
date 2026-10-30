@@ -12,6 +12,8 @@ dependencies {
     // Just for dev tests
     runtimeOnlyNonPublishable("com.github.GTNewHorizons:GT5-Unofficial:5.09.54.220:dev")
     runtimeOnlyNonPublishable("com.github.GTNewHorizons:ModularUI:1.3.4:dev")
+    // Draws every hover in the pack, chat ones included, so lookup hovers look here as they will there.
+    runtimeOnlyNonPublishable("com.github.slprime:ChromaticTooltips:1.0.36-GTNH:dev")
 
     // In-game tests (com.colen.tempora.gametests), only present in the dev environment and CI.
     devOnlyNonPublishable("com.github.GTNewHorizons:Horizon-QA:0.15.0:dev")

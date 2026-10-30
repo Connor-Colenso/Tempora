@@ -12,7 +12,7 @@ import com.colen.tempora.loggers.generic.PlayerIDs;
 
 /**
  * Whose events a lookup shows, as a p: filter gives it: comma separated names, each with a leading ! to leave that
- * player out instead. "p:Colen,Kyium" is only their events, "p:!Colen,!Kyium" everyone's but theirs.
+ * player out instead. "p:Player1,Player2" is only their events, "p:!Player1,!Player2" everyone's but theirs.
  */
 public final class PlayerFilter {
 
