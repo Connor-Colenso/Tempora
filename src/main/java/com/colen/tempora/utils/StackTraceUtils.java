@@ -21,7 +21,8 @@ public class StackTraceUtils {
 
     // Trace text -> its ID, so each distinct trace is hashed once. Thread safe, as blocks change on other mods'
     // threads too. Emptied if it grows this large, which costs only re-hashing.
-    private static final int MAX_CACHED_IDS = 10_000;
+    // Keys are whole traces, a few KB each, so this stays small.
+    private static final int MAX_CACHED_IDS = 1_000;
     private static final ConcurrentHashMap<String, Long> IDS = new ConcurrentHashMap<>();
 
     public static String getCallingClassChain() {
