@@ -18,6 +18,8 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.world.World;
 import net.minecraftforge.common.config.Configuration;
+import net.minecraftforge.common.util.BlockSnapshot;
+import net.minecraftforge.event.world.BlockEvent.MultiPlaceEvent;
 import net.minecraftforge.event.world.BlockEvent.PlaceEvent;
 
 import org.jetbrains.annotations.NotNull;
@@ -84,6 +86,21 @@ public class PlayerBlockPlaceLogger extends GenericPositionalLogger<PlayerBlockP
         if (!isEnabledByConfig) return;
         if (isClientSide()) return; // Server side only
         if (event.isCanceled()) return;
+
+        // A door, bed or mod multi-block item places several blocks at once, one snapshot each. The event's own
+        // position is only the first of them.
+        if (event instanceof MultiPlaceEvent multi) {
+            for (BlockSnapshot replaced : multi.getReplacedBlockSnapshots()) {
+                logBlockPlace(
+                    event.player,
+                    event.world,
+                    replaced.x,
+                    replaced.y,
+                    replaced.z,
+                    event.world.getBlock(replaced.x, replaced.y, replaced.z));
+            }
+            return;
+        }
 
         logBlockPlace(event.player, event.world, event.x, event.y, event.z, event.block);
     }
