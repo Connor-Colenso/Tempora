@@ -281,7 +281,11 @@ public abstract class GenericLogger<EventInfo extends GenericEventInfo> {
             if (getQueueSize() >= maxEventsInQueueBeforeServerFreeze) {
                 warnQueueFull();
             }
-            concurrentEventQueue.put(eventInfo);
+            // Waits while the queue is full, but not for a worker that is gone (crashed, or stopped with the server):
+            // with nobody to empty the queue, that wait would never end, and on the server thread nor would the tick.
+            while (!concurrentEventQueue.offer(eventInfo, QUEUE_POLL_TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)) {
+                if (!isRunning) return;
+            }
         } catch (InterruptedException e) {
             LOG.error("Queue worker for {} was interrupted while queueing an event.", getLoggerName());
         }
@@ -363,6 +367,7 @@ public abstract class GenericLogger<EventInfo extends GenericEventInfo> {
 
                 // One batch of old data at a time, between writes, until there is none left.
                 if (pruneDue && !shuttingDownDatabaseThread) {
+                    // Never throws, so a failing prune doesn't end the worker: it is tried again next time.
                     boolean morePending = databaseManager.pruneOldData();
                     nextPruneTime = morePending ? 0 : System.currentTimeMillis() + PRUNE_INTERVAL_MILLISECONDS;
                 }

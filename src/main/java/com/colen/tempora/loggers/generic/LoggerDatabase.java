@@ -265,7 +265,9 @@ public class LoggerDatabase {
             if (deleted > 0) logger.pruneExtras(dbConnection);
             dbConnection.commit();
             return deleted == PRUNE_BATCH_SIZE;
-        } catch (SQLException e) {
+        } catch (SQLException | RuntimeException e) {
+            // Caught here, RuntimeExceptions too (e.g. from a logger's pruneExtras), so the worker carries on. Rolled
+            // back either way, so a half done prune isn't committed with the next batch of events.
             LOG.error("Could not delete old data from {}, will try again later.", tableName, e);
             try {
                 dbConnection.rollback();
