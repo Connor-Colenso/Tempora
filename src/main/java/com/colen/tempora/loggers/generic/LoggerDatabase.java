@@ -10,6 +10,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -368,9 +369,53 @@ public class LoggerDatabase {
         return "INSERT INTO " + logger.getLoggerName() + " (" + columnList + ") VALUES (" + placeholders + ")";
     }
 
+    // Single events tried after a batch fails, before deciding the database itself is failing (disk full, locked...)
+    // rather than one of the events.
+    private static final int RETRIES_BEFORE_GIVING_UP = 3;
+
+    /**
+     * Writes a batch of events in one transaction. If SQLite refuses it, e.g. one event has a NaN position, which a
+     * NOT NULL column refuses, the events are written again one at a time, so only the ones SQLite refuses are lost.
+     * Throws if the database refuses even single events.
+     */
+    public <EventInfo extends GenericEventInfo> void insertBatch(List<EventInfo> eventInfoQueue) throws SQLException {
+        try {
+            insertInOneTransaction(eventInfoQueue);
+        } catch (SQLException | RuntimeException batchFailure) {
+            if (eventInfoQueue.size() <= 1) throw batchFailure;
+
+            int written = 0, dropped = 0;
+            for (EventInfo event : eventInfoQueue) {
+                try {
+                    insertInOneTransaction(Collections.singletonList(event));
+                    written++;
+                } catch (SQLException | RuntimeException eventFailure) {
+                    dropped++;
+                    if (written == 0 && dropped >= RETRIES_BEFORE_GIVING_UP) throw batchFailure;
+                    LOG.error(
+                        "{} could not store event at {}, {}, {} (timestamp {}), it is dropped: {}",
+                        logger.getLoggerName(),
+                        event instanceof PositionalEventInfo positional ? positional.x : "-",
+                        event instanceof PositionalEventInfo positional ? positional.y : "-",
+                        event instanceof PositionalEventInfo positional ? positional.z : "-",
+                        event.timestamp,
+                        eventFailure.getMessage());
+                }
+            }
+            LOG.warn(
+                "A batch of {} events for {} failed ({}), so they were written one at a time: {} stored, {} dropped.",
+                eventInfoQueue.size(),
+                logger.getLoggerName(),
+                batchFailure.getMessage(),
+                written,
+                dropped);
+        }
+    }
+
     // This is responsible for saving the actual events to a database. It seems rather convoluted,
     // but is trying to optimise and minimise the impact of heavy reflection usage.
-    public <EventInfo extends GenericEventInfo> void insertBatch(List<EventInfo> eventInfoQueue) throws SQLException {
+    private <EventInfo extends GenericEventInfo> void insertInOneTransaction(List<EventInfo> eventInfoQueue)
+        throws SQLException {
         if (dbConnection == null) throw new SQLException("Database connection is null for " + logger.getLoggerName());
         if (eventInfoQueue == null || eventInfoQueue.isEmpty()) {
             return;
