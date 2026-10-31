@@ -47,7 +47,6 @@ public class TimeUtils {
             throw new CommandException("Invalid time description. Expected e.g. '1week' or '5months' etc.");
         }
 
-        long number = Long.parseLong(matcher.group(1));
         String raw = matcher.group(2)
             .toLowerCase(Locale.ROOT);
 
@@ -58,18 +57,29 @@ public class TimeUtils {
             throw new CommandException("Invalid time description. Unsupported unit: " + raw);
         }
 
-        return switch (unit) {
-            case "second" -> number;
-            case "minute" -> number * 60L;
-            case "hour" -> number * 3_600L;
-            case "day" -> number * 86_400L;
-            case "week" -> number * 604_800L;
-            case "month" -> number * 2_592_000L;
-            case "year" -> number * 31_557_600L;
-            case "decade" -> number * 315_576_000L;
+        long unitSeconds = switch (unit) {
+            case "second" -> 1L;
+            case "minute" -> 60L;
+            case "hour" -> 3_600L;
+            case "day" -> 86_400L;
+            case "week" -> 604_800L;
+            case "month" -> 2_592_000L;
+            case "year" -> 31_557_600L;
+            case "decade" -> 315_576_000L;
             default -> throw new IllegalStateException("Unexpected value: " + unit);
         };
+
+        // Anything longer is a typo, and would overflow once turned into milliseconds.
+        try {
+            long seconds = Math.multiplyExact(Long.parseLong(matcher.group(1)), unitSeconds);
+            if (seconds > MAX_SECONDS) throw new ArithmeticException();
+            return seconds;
+        } catch (NumberFormatException | ArithmeticException tooLong) {
+            throw new CommandException("Invalid time description. The longest is 1000 years.");
+        }
     }
+
+    private static final long MAX_SECONDS = 1000 * 31_557_600L;
 
     // Utility classes
     public static class DurationParts {
