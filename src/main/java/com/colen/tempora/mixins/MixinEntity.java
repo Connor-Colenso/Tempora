@@ -22,7 +22,7 @@ public abstract class MixinEntity implements IEntityMixin {
 
     @Inject(method = "writeToNBT", at = @At("RETURN"))
     private void onWrite(NBTTagCompound tag, CallbackInfo ci) {
-        tag.setBoolean("temporaHasBeenLogged", this.tempora$HasBeenLogged);
+        if (this.tempora$HasBeenLogged) tag.setBoolean("temporaHasBeenLogged", true);
     }
 
     @Inject(method = "readFromNBT", at = @At("RETURN"))
