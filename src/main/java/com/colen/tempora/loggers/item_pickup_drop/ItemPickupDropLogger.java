@@ -123,7 +123,7 @@ public class ItemPickupDropLogger extends GenericPositionalLogger<ItemPickupDrop
         eventInfo.itemID = Item.getIdFromItem(item.item);
         eventInfo.itemMetadata = item.meta;
         eventInfo.amount = (int) Math.min(Integer.MAX_VALUE, amount);
-        eventInfo.encodedNBT = NBTUtils.getEncodedItemNBT(item.tag, logNBT);
+        eventInfo.encodedNBT = NBTUtils.getEncodedItemNBT(item.item, item.tag, logNBT);
         eventInfo.rotationYaw = player.rotationYaw;
         eventInfo.rotationPitch = player.rotationPitch;
 

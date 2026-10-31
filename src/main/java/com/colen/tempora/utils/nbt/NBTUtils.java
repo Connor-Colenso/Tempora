@@ -8,6 +8,7 @@ import java.util.Base64;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import net.minecraft.item.Item;
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
@@ -124,11 +125,28 @@ public class NBTUtils {
         return NBT_DISABLED;
     }
 
+    // Items already warned about, see getEncodedItemNBT.
+    private static final Set<Item> UNSAVABLE_ITEMS = ConcurrentHashMap.newKeySet();
+
     // An item's NBT as the item loggers store it: NO_NBT when it has none, NBT_DISABLED when it has some but logging
-    // NBT is off.
-    public static String getEncodedItemNBT(NBTTagCompound tag, boolean nbtLoggingEnabled) {
+    // NBT is off, NBT_UNREADABLE when it can't be encoded.
+    public static String getEncodedItemNBT(Item item, NBTTagCompound tag, boolean nbtLoggingEnabled) {
         if (tag == null) return NO_NBT;
-        return nbtLoggingEnabled ? encodeToString(tag) : NBT_DISABLED;
+        if (!nbtLoggingEnabled) return NBT_DISABLED;
+
+        try {
+            return encodeToString(tag);
+        } catch (RuntimeException e) {
+            // A tag another mod filled with something NBT can't write, e.g. a null string. The event is still stored,
+            // without the NBT.
+            if (UNSAVABLE_ITEMS.add(item)) {
+                LOG.warn(
+                    "The NBT of a {} could not be encoded, so Tempora stores its events without NBT. Logged once per item.",
+                    Item.itemRegistry.getNameForObject(item),
+                    e);
+            }
+            return NBT_UNREADABLE;
+        }
     }
 
     // Undoes getEncodedItemNBT. Null when there was no NBT, it was not logged, or it cannot be read.
