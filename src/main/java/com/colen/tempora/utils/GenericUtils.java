@@ -4,6 +4,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
 import net.minecraft.launchwrapper.Launch;
 import net.minecraft.world.WorldProvider;
+import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.DimensionManager;
 
 import com.colen.tempora.config.Config;
@@ -13,10 +14,22 @@ import cpw.mods.fml.relauncher.Side;
 
 public class GenericUtils {
 
+    /**
+     * A dimension's name, or "Dimension <id>" for one that no longer exists (its mod was removed) or can't be named.
+     * Events and regions outlive the dimensions they were in, so this must never throw.
+     */
     public static String getDimensionName(int dimID) {
-        WorldProvider provider = DimensionManager.createProviderFor(dimID);
-        provider.setDimension(dimID);
-        return provider.getDimensionName();
+        try {
+            WorldServer loaded = DimensionManager.getWorld(dimID);
+            if (loaded != null) return loaded.provider.getDimensionName();
+            if (!DimensionManager.isDimensionRegistered(dimID)) return "Dimension " + dimID;
+
+            WorldProvider provider = DimensionManager.createProviderFor(dimID);
+            provider.setDimension(dimID);
+            return provider.getDimensionName();
+        } catch (RuntimeException e) {
+            return "Dimension " + dimID;
+        }
     }
 
     /**
