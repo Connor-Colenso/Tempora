@@ -29,61 +29,64 @@ public final class RenderRegionsInWorld {
         int curDim = Minecraft.getMinecraft().thePlayer.dimension;
 
         GL11.glPushMatrix();
-        correctForCamera(e);
+        // Popped even if drawing a region throws, or every frame after would push one more matrix.
+        try {
+            correctForCamera(e);
 
-        for (TemporaWorldRegion r : ClientRegionStore.all()) {
-            if (r.getDimID() != curDim) continue;
+            for (TemporaWorldRegion r : ClientRegionStore.all()) {
+                if (r.getDimID() != curDim) continue;
 
-            double eps = TemporaWorldRegion.BLOCK_EDGE_EPSILON;
+                double eps = TemporaWorldRegion.BLOCK_EDGE_EPSILON;
 
-            RenderUtils.renderBoundingBox(
-                r.getMinX() + eps,
-                r.getMinY() + eps,
-                r.getMinZ() + eps,
-                r.getMaxX() - eps,
-                r.getMaxY() - eps,
-                r.getMaxZ() - eps);
-
-            if (r.getRenderMode() == RegionRenderMode.REGION) {
-                float[] rgb = r.getColor()
-                    .getRGBColorComponents(null);
-                GL11.glColor3f(rgb[0], rgb[1], rgb[2]);
-
-                RenderUtils.renderRegion(
+                RenderUtils.renderBoundingBox(
                     r.getMinX() + eps,
                     r.getMinY() + eps,
                     r.getMinZ() + eps,
                     r.getMaxX() - eps,
                     r.getMaxY() - eps,
-                    r.getMaxZ() - eps,
-                    rgb[0],
-                    rgb[1],
-                    rgb[2]);
+                    r.getMaxZ() - eps);
 
-                // Render text info in region.
-                List<String> renderText = new ArrayList<>();
-                renderText.add(r.getLabel());
-                renderText.add(
-                    StatCollector.translateToLocalFormatted(
-                        "tempora.render.regions.author",
-                        PlayerUtils.playerNameFromUUID(r.getPlayerAuthorUUID())
-                            .getFormattedText()));
-                renderText.add(
-                    StatCollector.translateToLocalFormatted(
-                        "tempora.render.regions.created_on",
-                        new ChatComponentTimeRelative(r.getRegionOriginTimeMs()).getFormattedText()));
+                if (r.getRenderMode() == RegionRenderMode.REGION) {
+                    float[] rgb = r.getColor()
+                        .getRGBColorComponents(null);
+                    GL11.glColor3f(rgb[0], rgb[1], rgb[2]);
 
-                RenderUtils.renderFloatingText(
-                    renderText,
-                    r.getMidX(),
-                    r.getMidY(),
-                    r.getMidZ(),
-                    r.getColor()
-                        .getRGB() & 0xFFFFFF);
+                    RenderUtils.renderRegion(
+                        r.getMinX() + eps,
+                        r.getMinY() + eps,
+                        r.getMinZ() + eps,
+                        r.getMaxX() - eps,
+                        r.getMaxY() - eps,
+                        r.getMaxZ() - eps,
+                        rgb[0],
+                        rgb[1],
+                        rgb[2]);
+
+                    // Render text info in region.
+                    List<String> renderText = new ArrayList<>();
+                    renderText.add(r.getLabel());
+                    renderText.add(
+                        StatCollector.translateToLocalFormatted(
+                            "tempora.render.regions.author",
+                            PlayerUtils.playerNameFromUUID(r.getPlayerAuthorUUID())
+                                .getFormattedText()));
+                    renderText.add(
+                        StatCollector.translateToLocalFormatted(
+                            "tempora.render.regions.created_on",
+                            new ChatComponentTimeRelative(r.getRegionOriginTimeMs()).getFormattedText()));
+
+                    RenderUtils.renderFloatingText(
+                        renderText,
+                        r.getMidX(),
+                        r.getMidY(),
+                        r.getMidZ(),
+                        r.getColor()
+                            .getRGB() & 0xFFFFFF);
+                }
             }
+        } finally {
+            GL11.glPopMatrix();
         }
-
-        GL11.glPopMatrix();
 
         ClientRegionStore.expire();
     }
