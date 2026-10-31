@@ -26,7 +26,9 @@ import cpw.mods.fml.common.network.internal.FMLProxyPacket;
  * enchanting, and every mod packet, which is how AE2 terminals and ModularUI GUIs talk to the server) in an
  * {@link InventoryTransaction}. Also notices which packet opened a container, see {@link ContainerHosts}.
  * <p>
- * All packets are handled one at a time on the server thread, so a single active transaction is enough.
+ * All packets are handled one at a time on the server thread, so a single active transaction is enough. Every hook
+ * here is guarded, including against a LinkageError from a mod whose classes changed (AE2's, through
+ * AE2ContainerHosts), so a packet is always handled.
  */
 public final class InventoryTransactionTracker {
 
@@ -79,7 +81,7 @@ public final class InventoryTransactionTracker {
             // Only used to name a container the held item opens, so the stack itself is enough.
             ItemStack held = packet instanceof C08PacketPlayerBlockPlacement ? player.getCurrentEquippedItem() : null;
             return new PacketToken(player, packet, container, held, transaction);
-        } catch (Exception e) {
+        } catch (RuntimeException | LinkageError e) {
             LOG.error("Tempora inventory logging failed before a packet was handled; the packet is unaffected.", e);
             return null;
         }
@@ -97,7 +99,7 @@ public final class InventoryTransactionTracker {
             if (ContainerHosts.opensContainers(token.packet)) {
                 ContainerHosts.onPacketProcessed(token.player, token.packet, token.containerBefore, token.heldBefore);
             }
-        } catch (Exception e) {
+        } catch (RuntimeException | LinkageError e) {
             LOG.error("Tempora inventory logging failed after a packet was handled; the packet is unaffected.", e);
         } finally {
             if (active == token.transaction) active = null;
@@ -120,7 +122,7 @@ public final class InventoryTransactionTracker {
 
             active = new InventoryTransaction(player, container, false);
             return active;
-        } catch (Exception e) {
+        } catch (RuntimeException | LinkageError e) {
             LOG.error("Tempora inventory logging failed before a container was closed; closing is unaffected.", e);
             return null;
         }
@@ -132,7 +134,7 @@ public final class InventoryTransactionTracker {
         try {
             active = null;
             transaction.finish();
-        } catch (Exception e) {
+        } catch (RuntimeException | LinkageError e) {
             LOG.error("Tempora inventory logging failed after a container was closed; closing is unaffected.", e);
         } finally {
             if (active == transaction) active = null;

@@ -1,5 +1,7 @@
 package com.colen.tempora.mixins;
 
+import static com.colen.tempora.Tempora.LOG;
+
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -34,7 +36,12 @@ public abstract class MixinItemInWorldManager {
         try {
             return original.call(block, world, x, y, z, player, side, hitX, hitY, hitZ);
         } finally {
-            ContainerHosts.onBlockActivated(thisPlayerMP, containerBefore, world, x, y, z);
+            // Names the container from the block's tile entity, which is mod code: it must never fail the click.
+            try {
+                ContainerHosts.onBlockActivated(thisPlayerMP, containerBefore, world, x, y, z);
+            } catch (RuntimeException | LinkageError e) {
+                LOG.error("Tempora could not record which block opened a GUI; the click itself is unaffected.", e);
+            }
         }
     }
 }

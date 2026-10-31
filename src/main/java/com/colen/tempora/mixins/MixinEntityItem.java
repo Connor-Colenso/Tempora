@@ -1,5 +1,7 @@
 package com.colen.tempora.mixins;
 
+import static com.colen.tempora.Tempora.LOG;
+
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
@@ -31,6 +33,12 @@ public abstract class MixinEntityItem {
 
         original.call(player);
 
-        if (amountBefore > 0) logger.logPickup(player, self, stack, amountBefore);
+        if (amountBefore <= 0) return;
+        // Logging must never crash the entity's tick, e.g. on an item whose NBT can't be encoded.
+        try {
+            logger.logPickup(player, self, stack, amountBefore);
+        } catch (RuntimeException | LinkageError e) {
+            LOG.error("Tempora could not log an item pickup; the pickup itself is unaffected.", e);
+        }
     }
 }

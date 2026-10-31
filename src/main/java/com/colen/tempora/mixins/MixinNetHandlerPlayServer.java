@@ -1,5 +1,7 @@
 package com.colen.tempora.mixins;
 
+import static com.colen.tempora.Tempora.LOG;
+
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.network.NetHandlerPlayServer;
 import net.minecraft.util.IChatComponent;
@@ -21,6 +23,11 @@ public abstract class MixinNetHandlerPlayServer {
 
     @Inject(method = "onDisconnect", at = @At("HEAD"))
     private void tempora$logLeave(IChatComponent reason, CallbackInfo ci) {
-        TemporaEvents.playerConnectionLogger.onDisconnect(playerEntity, reason);
+        // An exception here would skip the rest of vanilla's disconnect, leaving the player on the player list.
+        try {
+            TemporaEvents.playerConnectionLogger.onDisconnect(playerEntity, reason);
+        } catch (RuntimeException | LinkageError e) {
+            LOG.error("Tempora could not log a player leaving; the disconnect itself is unaffected.", e);
+        }
     }
 }

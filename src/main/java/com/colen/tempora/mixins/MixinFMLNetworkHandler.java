@@ -1,5 +1,7 @@
 package com.colen.tempora.mixins;
 
+import static com.colen.tempora.Tempora.LOG;
+
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Container;
 import net.minecraft.world.World;
@@ -28,6 +30,11 @@ public abstract class MixinFMLNetworkHandler {
     @Inject(method = "openGui", at = @At("RETURN"))
     private static void tempora$afterOpenGui(EntityPlayer player, Object mod, int guiId, World world, int x, int y,
         int z, CallbackInfo ci, @Share("tempora$containerBefore") LocalRef<Container> containerBefore) {
-        ContainerHosts.onGuiOpened(player, containerBefore.get(), world, x, y, z);
+        // Names the container from the block's tile entity, which is mod code: it must never stop the GUI opening.
+        try {
+            ContainerHosts.onGuiOpened(player, containerBefore.get(), world, x, y, z);
+        } catch (RuntimeException | LinkageError e) {
+            LOG.error("Tempora could not record which block opened a GUI; the GUI itself is unaffected.", e);
+        }
     }
 }
