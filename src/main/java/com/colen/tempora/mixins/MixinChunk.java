@@ -15,6 +15,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import com.colen.tempora.TemporaEvents;
 
 @Mixin(Chunk.class)
+// Every Tempora call here is guarded, including against a LinkageError from another mod's code it calls (a pick block,
+// a tile entity's NBT), so a block write always goes ahead.
 public abstract class MixinChunk {
 
     @Shadow
@@ -38,7 +40,7 @@ public abstract class MixinChunk {
             int globalZ = (this.zPosition << 4) + localZ;
 
             TemporaEvents.blockChangeLogger.onSetBlockHead(globalX, y, globalZ, this.worldObj, newBlock);
-        } catch (Exception e) {
+        } catch (RuntimeException | LinkageError e) {
             LOG.error("Tempora block-change logging failed on block write start; block write continues.", e);
         }
     }
@@ -53,7 +55,7 @@ public abstract class MixinChunk {
             int globalZ = (this.zPosition << 4) + localZ;
 
             TemporaEvents.blockChangeLogger.onSetBlockReturn(globalX, y, globalZ, this.worldObj, cir);
-        } catch (Exception e) {
+        } catch (RuntimeException | LinkageError e) {
             LOG.error("Tempora block-change logging failed on block write end; block write continues.", e);
         }
     }
@@ -73,7 +75,7 @@ public abstract class MixinChunk {
             int globalZ = (this.zPosition << 4) + localZ;
 
             TemporaEvents.blockChangeLogger.onSetBlockHead(globalX, y, globalZ, this.worldObj, null);
-        } catch (Exception e) {
+        } catch (RuntimeException | LinkageError e) {
             LOG.error("Tempora block-change logging failed on metadata write start; write continues.", e);
         }
     }
@@ -87,7 +89,7 @@ public abstract class MixinChunk {
             int globalZ = (this.zPosition << 4) + localZ;
 
             TemporaEvents.blockChangeLogger.onSetBlockReturn(globalX, y, globalZ, this.worldObj, cir);
-        } catch (Exception e) {
+        } catch (RuntimeException | LinkageError e) {
             LOG.error("Tempora block-change logging failed on metadata write end; write continues.", e);
         }
     }

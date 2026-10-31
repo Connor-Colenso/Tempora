@@ -232,22 +232,20 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
     public void onSetBlockHead(int x, int y, int z, World world, @Nullable Block newBlock) {
         if (!isEnabledByConfig) return;
 
+        // Pushed before anything that could throw, so this call's RETURN always pops its own entry rather than the
+        // one of the setBlock call around it. Replaced below if the change is logged.
         Deque<BlockChangeEventInfo> stack = BLOCK_STACK.get();
+        stack.push(SKIPPED);
         int dimensionID = world.provider.dimensionId;
 
         // todo log world gen separately?
-        if (WorldGenPhaseTracker.isWorldGen() || !canLogHere(x, y, z, dimensionID)) {
-            stack.push(SKIPPED);
-            return;
-        }
+        if (WorldGenPhaseTracker.isWorldGen() || !canLogHere(x, y, z, dimensionID)) return;
 
         Block before = world.getBlock(x, y, z);
-        if (WorldGenTicks.isWorldGenChange(world, x, y, z, before, newBlock == null ? before : newBlock)) {
-            stack.push(SKIPPED);
-            return;
-        }
+        if (WorldGenTicks.isWorldGenChange(world, x, y, z, before, newBlock == null ? before : newBlock)) return;
 
         BlockChangeEventInfo e = new BlockChangeEventInfo();
+        stack.pop();
         stack.push(e);
 
         e.timestamp = System.currentTimeMillis();
