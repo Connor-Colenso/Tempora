@@ -1,11 +1,6 @@
 package com.colen.tempora.events;
 
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.world.World;
-
-import com.colen.tempora.config.Config;
 import com.colen.tempora.loggers.generic.TemporaQueries;
-import com.colen.tempora.utils.DebugUtils;
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
@@ -17,13 +12,5 @@ public class ServerTickHandler {
         if (event.phase != TickEvent.Phase.END) return;
 
         TemporaQueries.onServerTick();
-
-        // Debug generate random cube.
-        if (!Config.randomisedRegionGeneratorBlockChangeDebugger) return;
-
-        MinecraftServer server = MinecraftServer.getServer();
-        World world = server.worldServerForDimension(0);
-
-        DebugUtils.randomizeRegion(world, 10, 10, 10, 20, 20, 20);
     }
 }

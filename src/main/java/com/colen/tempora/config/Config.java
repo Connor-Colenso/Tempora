@@ -21,12 +21,10 @@ public class Config {
     public static final String DIRECTORY = "tempora";
 
     private static final String GENERAL_CATEGORY = "general";
-    private static final String DEBUG_CATEGORY = "debug";
 
     // Off by default so Tempora can ship in a pack and do nothing until a server or player turns it on. On by default
     // in the development workspace, where a config written by an earlier run can still turn it off.
     public static boolean enabled;
-    public static boolean randomisedRegionGeneratorBlockChangeDebugger;
 
     public static Configuration createLoggersConfig(File forgeConfigDirectory) {
         return new Configuration(new File(new File(forgeConfigDirectory, DIRECTORY), "loggers.cfg"));
@@ -42,12 +40,6 @@ public class Config {
         // -Dtempora.enabled=true/false wins over the file, for test runs in a real pack (see addon.gradle).
         String enabledOverride = System.getProperty("tempora.enabled");
         if (enabledOverride != null) enabled = Boolean.parseBoolean(enabledOverride);
-
-        randomisedRegionGeneratorBlockChangeDebugger = configuration.getBoolean(
-            "randomisedRegionGeneratorBlockChangeDebugger",
-            DEBUG_CATEGORY,
-            false,
-            "WARNING: Every tick creates a randomised block blob at 10,10,10 -> 20,20,20. Never use this in a world you care about.");
 
         if (configuration.hasChanged()) configuration.save();
 
