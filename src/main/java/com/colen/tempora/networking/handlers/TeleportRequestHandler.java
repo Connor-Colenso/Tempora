@@ -7,12 +7,16 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
+import net.minecraft.util.MathHelper;
+import net.minecraft.world.World;
+import net.minecraft.world.WorldServer;
 
 import com.colen.tempora.Tempora;
 import com.colen.tempora.commands.TemporaCommand;
 import com.colen.tempora.networking.packets.PacketTeleportRequest;
 import com.colen.tempora.utils.CommandUtils;
 import com.colen.tempora.utils.GenericUtils;
+import com.colen.tempora.utils.NoPortalTeleporter;
 
 import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import cpw.mods.fml.common.network.simpleimpl.IMessageHandler;
@@ -49,16 +53,21 @@ public class TeleportRequestHandler implements IMessageHandler<PacketTeleportReq
         if (!Double.isFinite(x) || !Double.isFinite(y) || !Double.isFinite(z)) return;
 
         if (player.dimension != targetDim) {
-            if (MinecraftServer.getServer()
-                .worldServerForDimension(targetDim) == null) {
+            WorldServer target = MinecraftServer.getServer()
+                .worldServerForDimension(targetDim);
+            if (target == null) {
                 sendError(player, "tempora.dimension.invalid", targetDim);
                 return;
             }
 
+            // Not the target world's own teleporter, which would build a Nether portal (or the End's platform) where
+            // the player arrives.
             player.mcServer.getConfigurationManager()
-                .transferPlayerToDimension(player, targetDim);
+                .transferPlayerToDimension(player, targetDim, new NoPortalTeleporter(target));
         }
 
+        // Most clicked coordinates are a block's (placed, broken, changed): if that block is solid now, stand on it.
+        y = standingHeight(player.worldObj, x, y, z);
         player.playerNetServerHandler.setPlayerLocation(x, y, z, player.rotationYaw, player.rotationPitch);
 
         // The coordinates are clickable again, to come back after wandering off.
@@ -78,6 +87,28 @@ public class TeleportRequestHandler implements IMessageHandler<PacketTeleportReq
             y,
             z,
             targetDim);
+    }
+
+    /**
+     * The lowest height at or above {@code y} where a player's feet and head are both clear, so a click on a solid
+     * block lands on top of it rather than inside it. {@code y} itself where that is already clear.
+     */
+    private static double standingHeight(World world, double x, double y, double z) {
+        int blockX = MathHelper.floor_double(x);
+        int blockZ = MathHelper.floor_double(z);
+        int blockY = MathHelper.floor_double(y);
+        for (int height = blockY; height < world.getHeight() - 1; height++) {
+            if (!isSolid(world, blockX, height, blockZ) && !isSolid(world, blockX, height + 1, blockZ)) {
+                return height == blockY ? y : height;
+            }
+        }
+        return y;
+    }
+
+    private static boolean isSolid(World world, int x, int y, int z) {
+        return world.getBlock(x, y, z)
+            .getMaterial()
+            .blocksMovement();
     }
 
     private static void sendError(EntityPlayerMP player, String key, Object... args) {
