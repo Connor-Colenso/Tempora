@@ -1,5 +1,6 @@
 package com.colen.tempora.events;
 
+import com.colen.tempora.loggers.generic.GenericLogger;
 import com.colen.tempora.loggers.generic.TemporaQueries;
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
@@ -12,5 +13,6 @@ public class ServerTickHandler {
         if (event.phase != TickEvent.Phase.END) return;
 
         TemporaQueries.onServerTick();
+        GenericLogger.announceFailures();
     }
 }

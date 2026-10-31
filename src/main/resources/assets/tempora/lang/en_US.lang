@@ -332,5 +332,6 @@ tempora.render.event.dropped=Dropped %s %s
 tempora.render.event.death_dropped=Died and dropped %s %s
 
 # === Warnings to operators ===
+tempora.warning.logger_failing=Tempora: %s can't store events (%s). Nothing it sees is being logged, check the server log urgently.
 tempora.warning.queue_too_large=Warning: %s has %s events pending, Tempora is struggling to keep up. You may be logging too much or a large event has occurred (explosion etc.).
 tempora.warning.regions_unreadable=Tempora could not read its region file when the server started, so no regions are in use. The file was kept as %s in the world's Tempora folder, and the server log has the error.

@@ -69,6 +69,16 @@ public abstract class GenericLogger<EventInfo extends GenericEventInfo> {
 
     private static volatile boolean loggersStarted;
 
+    // Why this logger can't store events right now, or null while it can. Set by its worker, which can't safely send
+    // chat itself, announceFailures tells ops from the server thread.
+    private volatile String failure;
+    // Worker thread only.
+    private int consecutiveBatchFailures;
+    // Server thread only.
+    private long lastFailureAnnounced;
+    private static final int BATCH_FAILURES_BEFORE_ALERT = 3;
+    private static final long FAILURE_ANNOUNCE_INTERVAL_MILLISECONDS = TimeUnit.MINUTES.toMillis(10);
+
     private int maxShutdownTimeoutMilliseconds;
     private int maxEventsInQueueBeforeServerFreeze;
     private static final int QUEUE_POLL_TIMEOUT_MILLISECONDS = 1000;
@@ -314,6 +324,9 @@ public abstract class GenericLogger<EventInfo extends GenericEventInfo> {
     }
 
     private void startQueueWorker() {
+        failure = null;
+        consecutiveBatchFailures = 0;
+        lastFailureAnnounced = 0;
         shuttingDownDatabaseThread = false;
         abandonQueue = false;
         isRunning = true;
@@ -337,6 +350,7 @@ public abstract class GenericLogger<EventInfo extends GenericEventInfo> {
         List<EventInfo> buffer = new ArrayList<>(MAX_EVENTS_PER_BATCH);
         // Due straight away, so a server that was down for a while catches up on old data first.
         long nextPruneTime = 0;
+        Exception death = null;
 
         try {
             while (!abandonQueue) {
@@ -379,16 +393,22 @@ public abstract class GenericLogger<EventInfo extends GenericEventInfo> {
                 getLoggerName(),
                 concurrentEventQueue.size(),
                 e);
+            death = e;
 
         } finally {
             isRunning = false;
+            // An Error isn't caught above, but still ends up here.
+            if (!shuttingDownDatabaseThread) failure = "its worker stopped" + (death != null ? ": " + death : "");
         }
     }
 
     private void writeBatch(List<EventInfo> buffer) {
         try {
             databaseManager.insertBatch(buffer);
+            consecutiveBatchFailures = 0;
+            failure = null;
         } catch (Exception e) {
+            if (++consecutiveBatchFailures >= BATCH_FAILURES_BEFORE_ALERT) failure = String.valueOf(e.getMessage());
             // A single bad/transient batch (a bad value, disk full, SQLITE_BUSY, ...) must not
             // permanently kill this logger's worker thread — log it and keep draining the queue.
             LOG.error(
@@ -771,6 +791,34 @@ public abstract class GenericLogger<EventInfo extends GenericEventInfo> {
      */
     public void requestPrune() {
         pruneRequested = true;
+    }
+
+    /** Why this logger can't store events right now, or null while it can. */
+    public @Nullable String getFailure() {
+        return failure;
+    }
+
+    /**
+     * Tells online ops about loggers that can't store events (their batches keep failing, or their worker stopped),
+     * every ten minutes while it lasts, as otherwise only the server log would know. On the server thread.
+     */
+    public static void announceFailures() {
+        long now = System.currentTimeMillis();
+        for (GenericLogger<?> logger : TemporaLoggerManager.getLoggerList()) {
+            String failure = logger.failure;
+            if (failure == null || !logger.started) continue;
+            if (now - logger.lastFailureAnnounced < FAILURE_ANNOUNCE_INTERVAL_MILLISECONDS) continue;
+            logger.lastFailureAnnounced = now;
+
+            LOG.error("{} can't store events: {}", logger.getLoggerName(), failure);
+            IChatComponent message = new ChatComponentTranslation(
+                "tempora.warning.logger_failing",
+                logger.getDisplayName(),
+                failure);
+            message.getChatStyle()
+                .setColor(EnumChatFormatting.RED);
+            PlayerUtils.sendMessageToOps(message);
+        }
     }
 
     public int getQueueSize() {
