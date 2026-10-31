@@ -405,7 +405,7 @@ public abstract class GenericLogger<EventInfo extends GenericEventInfo> {
             QUEUE_POLL_TIMEOUT_MILLISECONDS * 20,
             QUEUE_POLL_TIMEOUT_MILLISECONDS * 2,
             Integer.MAX_VALUE,
-            "Maximum time (in milliseconds) to wait for this logger to flush and stop during shutdown. Use 0 to wait forever until all queued events are written.");
+            "Maximum time (in milliseconds) to wait for this logger to flush and stop during shutdown. If it hasn't stopped by then, what is still queued is discarded.");
 
         maxEventsInQueueBeforeServerFreeze = config.getInt(
             "maxEventsInQueueBeforeServerFreeze",
@@ -693,8 +693,16 @@ public abstract class GenericLogger<EventInfo extends GenericEventInfo> {
         // running, which would stop the server from exiting.
         for (GenericLogger<?> logger : startedLoggers) {
             try {
-                logger.awaitWorkerStop();
-                logger.databaseManager.shutdownDatabase();
+                if (logger.awaitWorkerStop()) {
+                    logger.databaseManager.shutdownDatabase();
+                } else {
+                    // Closing it would wait on the statement the worker is stuck in.
+                    LOG.error(
+                        "{}'s worker is still running after two waits of {}ms, so its database is left open and the "
+                            + "server stops without it.",
+                        logger.getLoggerName(),
+                        logger.maxShutdownTimeoutMilliseconds);
+                }
             } catch (Exception e) {
                 LOG.error("Error closing {}.", logger.getLoggerName(), e);
             } finally {
@@ -727,7 +735,8 @@ public abstract class GenericLogger<EventInfo extends GenericEventInfo> {
         queueWorkerThread.interrupt();
     }
 
-    private void awaitWorkerStop() throws InterruptedException {
+    // Whether the worker stopped. If it hasn't after two waits, it is left to finish on its own.
+    private boolean awaitWorkerStop() throws InterruptedException {
         // Should be near instant if the queue is low.
         LOG.info(
             "Attempting to shut down queue worker {} for logger {}. There are {} events remaining to be processed within {}ms.",
@@ -744,8 +753,11 @@ public abstract class GenericLogger<EventInfo extends GenericEventInfo> {
                 queueWorkerThread.getName(),
                 getLoggerName(),
                 concurrentEventQueue.size());
-            queueWorkerThread.join();
+            // Once more for the batch it is writing, but not forever, a worker stuck inside SQLite (a locked file)
+            // must not stop the server from stopping.
+            queueWorkerThread.join(maxShutdownTimeoutMilliseconds);
         }
+        return !queueWorkerThread.isAlive();
     }
 
     /**
