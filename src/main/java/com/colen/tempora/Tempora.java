@@ -12,6 +12,7 @@ import org.apache.logging.log4j.Logger;
 import com.colen.tempora.blocks.RenderingErrorBlock;
 import com.colen.tempora.blocks.stress.StressTestBlock;
 import com.colen.tempora.commands.TemporaCommand;
+import com.colen.tempora.events.OnPlayerLogin;
 import com.colen.tempora.events.ServerTickHandler;
 import com.colen.tempora.items.TemporaWand;
 import com.colen.tempora.loggers.generic.GenericLogger;
@@ -69,6 +70,9 @@ public class Tempora {
         FMLCommonHandler.instance()
             .bus()
             .register(new ServerTickHandler());
+        FMLCommonHandler.instance()
+            .bus()
+            .register(new OnPlayerLogin());
     }
 
     @Mod.EventHandler

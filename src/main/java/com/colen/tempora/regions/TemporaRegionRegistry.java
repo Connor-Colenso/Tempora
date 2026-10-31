@@ -45,6 +45,10 @@ public final class TemporaRegionRegistry {
 
     private boolean dirty = false;
 
+    // Set when the region file could not be read on server start, so ops can be told as they join. The name it has
+    // now: moved aside if that worked, else its own.
+    private static volatile @Nullable String unreadableFileName;
+
     private TemporaRegionRegistry() {}
 
     /* ---------- Lifecycle ---------- */
@@ -52,13 +56,26 @@ public final class TemporaRegionRegistry {
     // Call on server start, before any logger can query regions.
     public static void load() {
         TemporaRegionRegistry registry = new TemporaRegionRegistry();
+        unreadableFileName = null;
 
         File file = getSaveFile();
         if (file.exists()) {
             try {
                 registry.readFromNBT(CompressedStreamTools.read(file));
             } catch (Exception e) {
-                throw new RuntimeException("Failed to load Tempora regions from " + file, e);
+                // A file that can't be read must not stop the server starting. It is kept beside the new one, so the
+                // regions in it can still be recovered by hand.
+                File kept = new File(
+                    file.getParentFile(),
+                    file.getName() + ".unreadable-" + System.currentTimeMillis());
+                boolean moved = file.renameTo(kept);
+                LOG.error(
+                    "Could not read Tempora's regions from {}, so the server starts with none. {}",
+                    file,
+                    moved ? "The file was moved to " + kept + "." : "The file could not be moved aside.",
+                    e);
+                unreadableFileName = (moved ? kept : file).getName();
+                registry = new TemporaRegionRegistry();
             }
         }
 
@@ -73,6 +90,12 @@ public final class TemporaRegionRegistry {
             registry.save();
         }
         instance = new TemporaRegionRegistry();
+        unreadableFileName = null;
+    }
+
+    // The region file this server could not read when it started, or null if it read fine (or there was none).
+    public static @Nullable String getUnreadableFileName() {
+        return unreadableFileName;
     }
 
     /* ---------- Editing ---------- */
@@ -95,6 +118,12 @@ public final class TemporaRegionRegistry {
 
     public static void setRule(TemporaWorldRegion region, String loggerName, LogRule rule) {
         region.putRule(loggerName, rule);
+        instance.changed();
+    }
+
+    // Several loggers at once, saving the file once rather than for each.
+    public static void setRules(TemporaWorldRegion region, Iterable<String> loggerNames, LogRule rule) {
+        for (String loggerName : loggerNames) region.putRule(loggerName, rule);
         instance.changed();
     }
 
@@ -212,7 +241,8 @@ public final class TemporaRegionRegistry {
 
             NBTTagCompound root = new NBTTagCompound();
             writeToNBT(root);
-            CompressedStreamTools.write(root, file);
+            // To a temporary file first, then moved over the old one, so a crash part way through leaves the old file.
+            CompressedStreamTools.safeWrite(root, file);
 
             dirty = false;
         } catch (Exception e) {

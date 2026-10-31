@@ -90,9 +90,7 @@ public class RegionSetCommand extends TemporaSubcommand {
             loggerNames.add(loggerName);
         }
 
-        for (String name : loggerNames) {
-            TemporaRegionRegistry.setRule(region, name, rule);
-        }
+        TemporaRegionRegistry.setRules(region, loggerNames, rule);
 
         IChatComponent msg = loggerName == null
             ? new ChatComponentTranslation(
