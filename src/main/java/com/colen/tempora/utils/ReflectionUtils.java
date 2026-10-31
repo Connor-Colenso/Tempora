@@ -92,7 +92,8 @@ public class ReflectionUtils {
                         + field.getName()
                         + " is a PLAYER column, so it must be a String.");
             }
-            binder = (ps, i, v) -> ps.setInt(i, PlayerIDs.idFor((String) v));
+            // Null as the unknown player, rather than failing the batch the event is written with.
+            binder = (ps, i, v) -> ps.setInt(i, v == null ? PlayerIDs.UNKNOWN_ID : PlayerIDs.idFor((String) v));
             reader = (rs, name) -> PlayerIDs.uuidFor(rs.getInt(name));
         } else if (type == int.class || type == Integer.class) {
             binder = (ps, i, v) -> ps.setInt(i, (Integer) v);
@@ -110,7 +111,8 @@ public class ReflectionUtils {
             binder = (ps, i, v) -> ps.setInt(i, ((Boolean) v) ? 1 : 0);
             reader = (rs, name) -> rs.getInt(name) != 0;
         } else if (type == String.class) {
-            binder = (ps, i, v) -> ps.setString(i, (String) v);
+            // Every column is NOT NULL, so a null (a mod naming its inventory null, say) is stored empty.
+            binder = (ps, i, v) -> ps.setString(i, v == null ? "" : (String) v);
             reader = ResultSet::getString;
         } else {
             throw new IllegalStateException("Unsupported field type: " + type.getName());
