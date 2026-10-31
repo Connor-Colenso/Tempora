@@ -19,7 +19,14 @@ public enum ColumnType {
      * {@link com.colen.tempora.utils.PlayerUtils#UNKNOWN_PLAYER_NAME}, and reads back as the UUID. Never inferred, so
      * player columns say so. Not for mobs' UUIDs, see PlayerIDs.
      */
-    PLAYER("INTEGER");
+    PLAYER("INTEGER"),
+
+    /**
+     * NBT as {@link com.colen.tempora.utils.nbt.NBTUtils} encodes it, on a String field, stored as the compressed bytes
+     * rather than their Base64 text (a quarter smaller). Its markers (NO_NBT and the like) are stored as they are.
+     * Never inferred, so NBT columns say so.
+     */
+    NBT("BLOB");
 
     private final String sqliteType;
 

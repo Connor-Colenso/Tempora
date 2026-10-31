@@ -18,10 +18,13 @@ import com.colen.tempora.loggers.generic.PositionalEventInfo;
 
 public class NBTUtils {
 
-    public static final String NO_NBT = "NO_NBT";
-    public static final String NBT_DISABLED = "NBT_PRESENT_LOGGING_OFF";
-    // The tile entity threw while saving its NBT (another mod's bug), so there is none to store.
-    public static final String NBT_UNREADABLE = "NBT_PRESENT_UNREADABLE";
+    // Stored in place of NBT, so kept to a character at most: almost every block and item event has one. None of them
+    // can be Base64, so real NBT is never mistaken for one.
+    public static final String NO_NBT = "";
+    // There was NBT, but logging NBT is off.
+    public static final String NBT_DISABLED = "-";
+    // The tile entity or item threw while saving its NBT (another mod's bug), so there is none to store.
+    public static final String NBT_UNREADABLE = "!";
 
     // Whether this is real encoded NBT, rather than null or one of the markers above.
     public static boolean hasStoredNBT(String encodedNBT) {

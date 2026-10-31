@@ -30,15 +30,14 @@ import com.colen.tempora.loggers.generic.LoggerDatabase;
 import com.colen.tempora.loggers.generic.PositionalEventInfo;
 import com.colen.tempora.regions.LogRule;
 import com.colen.tempora.utils.DatabaseUtils;
-import com.colen.tempora.utils.StackTraceUtils;
 import com.gtnewhorizons.horizonqa.api.GameTestHelper;
 import com.gtnewhorizons.horizonqa.api.TestPos;
 import com.gtnewhorizons.horizonqa.api.annotation.GameTest;
 import com.gtnewhorizons.horizonqa.api.annotation.GameTestHolder;
 
 /**
- * Block changes store the stack trace that made them, once per distinct trace, under an ID that is a hash of the
- * trace, so it can be shown however long ago and through any number of restarts. [Trace] carries the whole trace to
+ * Block changes store the stack trace that made them, once per distinct trace, under a number of its own in the trace
+ * table, so it can be shown however long ago and through any number of restarts. [Trace] carries the whole trace to
  * the client, which prints it when clicked.
  */
 @GameTestHolder(Tempora.MODID)
@@ -74,10 +73,9 @@ public class StackTraceTests {
                 helper.assertNotNull(first.getStackTrace(), "the trace wasn't read back with the event");
                 helper.assertEquals(first.stackTraceID, second.stackTraceID, "the same code should give the same ID");
                 helper.assertEquals(first.getStackTrace(), second.getStackTrace(), "the same trace");
-                helper.assertEquals(
-                    StackTraceUtils.getID(first.getStackTrace()),
-                    first.stackTraceID,
-                    "the ID is the trace's hash");
+                helper.assertTrue(
+                    first.stackTraceID > 0 && first.stackTraceID < 1_000_000,
+                    "traces are stored under a small number, got " + first.stackTraceID);
 
                 ChatComponentStackTrace trace = findTrace(first.localiseText());
                 helper.assertNotNull(trace, "the chat line has no [Trace]");
@@ -112,7 +110,7 @@ public class StackTraceTests {
         beforeDatabase.initialiseDatabase();
         BlockChangeEventInfo change = new BlockChangeEventInfo();
         change.timestamp = 1000;
-        change.stackTraceID = before.traceID(trace);
+        change.stackTraceHash = before.traceHash(trace);
         try {
             beforeDatabase.insertBatch(Collections.singletonList(change));
         } finally {

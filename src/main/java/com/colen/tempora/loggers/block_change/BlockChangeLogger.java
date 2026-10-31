@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -113,31 +114,35 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
     // --------------------------------------
     // Stack traces
     // --------------------------------------
-    // Each distinct stack trace is stored once, in this table beside the events, under its ID (a hash of its text,
-    // see StackTraceUtils.getID). Events refer to it by stackTraceID.
+    // Each distinct stack trace is stored once, in this table beside the events, under a number of its own. Events
+    // refer to it by that number (stackTraceID), which takes a byte or two where its hash would take eight. The hash
+    // (see StackTraceUtils.getID) finds a trace's row.
 
     static final String TRACE_TABLE = "StackTraces";
 
-    // Traces met since the database opened that may not be stored yet: ID -> text. Written with the next batch.
+    // Traces met since the database opened that may not be stored yet: hash -> text. Written with the next batch.
     private final Map<Long, String> unsavedTraces = new ConcurrentHashMap<>();
-    // IDs known to be stored, so each trace is written once per session rather than with every event.
-    private final Set<Long> savedTraces = ConcurrentHashMap.newKeySet();
+    // Hash -> number of the traces known to be stored, so each is looked up once per session. Only added to once the
+    // batch that stored it commits: a rolled back number may be given to another trace.
+    private final Map<Long, Long> traceNumbers = new ConcurrentHashMap<>();
 
-    /** The ID to store with an event for this trace. Queues the trace to be written with the event if it is new. */
-    public long traceID(String trace) {
-        long id = StackTraceUtils.getID(trace);
-        if (!savedTraces.contains(id)) unsavedTraces.putIfAbsent(id, trace);
-        return id;
+    /** The hash to give an event for this trace. Queues the trace to be written with the event if it is new. */
+    public long traceHash(String trace) {
+        long hash = StackTraceUtils.getID(trace);
+        if (!traceNumbers.containsKey(hash)) unsavedTraces.putIfAbsent(hash, trace);
+        return hash;
     }
 
     @Override
     protected void createExtraTables(Connection conn) throws SQLException {
         // A new database (another world, in singleplayer) has none of them yet.
         unsavedTraces.clear();
-        savedTraces.clear();
+        traceNumbers.clear();
         try (Statement st = conn.createStatement()) {
+            // AUTOINCREMENT, so a pruned trace's number is never given to another.
             st.execute(
-                "CREATE TABLE IF NOT EXISTS " + TRACE_TABLE + " (hash INTEGER PRIMARY KEY, trace TEXT NOT NULL)");
+                "CREATE TABLE IF NOT EXISTS " + TRACE_TABLE
+                    + " (id INTEGER PRIMARY KEY AUTOINCREMENT, hash INTEGER NOT NULL UNIQUE, trace TEXT NOT NULL)");
             // For pruning, which looks up whether any event still refers to each trace.
             st.execute(
                 "CREATE INDEX IF NOT EXISTS idx_" + getLoggerName()
@@ -147,35 +152,65 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
         }
     }
 
+    // Gives each event its trace's number, storing traces met for the first time. In the batch's transaction, before
+    // the events' columns are read.
     @Override
     protected @Nullable Runnable writeExtras(List<? extends GenericEventInfo> events, Connection conn)
         throws SQLException {
-        if (unsavedTraces.isEmpty()) return null;
+        Map<Long, Long> numbered = new HashMap<>();
+        try (PreparedStatement find = conn.prepareStatement("SELECT id FROM " + TRACE_TABLE + " WHERE hash = ?");
+            PreparedStatement insert = conn
+                .prepareStatement("INSERT INTO " + TRACE_TABLE + " (hash, trace) VALUES (?, ?) RETURNING id")) {
+            for (GenericEventInfo event : events) {
+                if (!(event instanceof BlockChangeEventInfo change) || change.stackTraceHash == 0) continue;
+                long hash = change.stackTraceHash;
 
-        Map<Long, String> writing = new HashMap<>(unsavedTraces);
-        try (PreparedStatement ps = conn
-            .prepareStatement("INSERT OR IGNORE INTO " + TRACE_TABLE + " (hash, trace) VALUES (?, ?)")) {
-            for (Map.Entry<Long, String> trace : writing.entrySet()) {
-                ps.setLong(1, trace.getKey());
-                ps.setString(2, trace.getValue());
-                ps.addBatch();
+                Long number = traceNumbers.get(hash);
+                if (number == null) number = numbered.get(hash);
+                if (number == null) {
+                    number = findTraceNumber(find, hash);
+                    if (number == null) {
+                        String trace = unsavedTraces.get(hash);
+                        // Its text went with the database it was met in (singleplayer switched worlds).
+                        number = trace == null ? 0 : insertTrace(insert, hash, trace);
+                    }
+                    numbered.put(hash, number);
+                }
+                change.stackTraceID = number;
             }
-            ps.executeBatch();
         }
+        if (numbered.isEmpty()) return null;
 
         return () -> {
-            for (Map.Entry<Long, String> trace : writing.entrySet()) {
-                savedTraces.add(trace.getKey());
-                unsavedTraces.remove(trace.getKey(), trace.getValue());
+            for (Map.Entry<Long, Long> trace : numbered.entrySet()) {
+                if (trace.getValue() == 0) continue;
+                traceNumbers.put(trace.getKey(), trace.getValue());
+                unsavedTraces.remove(trace.getKey());
             }
         };
+    }
+
+    private static @Nullable Long findTraceNumber(PreparedStatement find, long hash) throws SQLException {
+        find.setLong(1, hash);
+        try (ResultSet rs = find.executeQuery()) {
+            return rs.next() ? rs.getLong(1) : null;
+        }
+    }
+
+    private static long insertTrace(PreparedStatement insert, long hash, String trace) throws SQLException {
+        insert.setLong(1, hash);
+        insert.setString(2, trace);
+        try (ResultSet rs = insert.executeQuery()) {
+            rs.next();
+            return rs.getLong(1);
+        }
     }
 
     @Override
     public void loadExtras(List<? extends GenericEventInfo> events, Connection conn) throws SQLException {
         Map<Long, List<BlockChangeEventInfo>> byTrace = new HashMap<>();
         for (GenericEventInfo event : events) {
-            if (event instanceof BlockChangeEventInfo change) {
+            if (event instanceof BlockChangeEventInfo change && change.stackTraceID != 0) {
                 byTrace.computeIfAbsent(change.stackTraceID, id -> new ArrayList<>())
                     .add(change);
             }
@@ -184,7 +219,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
 
         String placeholders = String.join(", ", Collections.nCopies(byTrace.size(), "?"));
         try (PreparedStatement ps = conn
-            .prepareStatement("SELECT hash, trace FROM " + TRACE_TABLE + " WHERE hash IN (" + placeholders + ")")) {
+            .prepareStatement("SELECT id, trace FROM " + TRACE_TABLE + " WHERE id IN (" + placeholders + ")")) {
             int i = 1;
             for (long id : byTrace.keySet()) ps.setLong(i++, id);
             try (ResultSet rs = ps.executeQuery()) {
@@ -198,26 +233,27 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
     }
 
     /**
-     * Deletes traces no stored event refers to, except those met since the database opened: an event that refers to
-     * one may still be waiting in the queue, and a trace this logger thinks is stored must stay stored.
+     * Deletes traces no stored event refers to, except those numbered since the database opened: an event that refers
+     * to one may still be waiting in the queue, and a number this logger has handed out must stay stored.
      */
     @Override
     protected void pruneExtras(Connection conn) throws SQLException {
         List<Long> unreferenced = new ArrayList<>();
         try (Statement st = conn.createStatement();
             ResultSet rs = st.executeQuery(
-                "SELECT hash FROM " + TRACE_TABLE
+                "SELECT id FROM " + TRACE_TABLE
                     + " WHERE NOT EXISTS (SELECT 1 FROM "
                     + getLoggerName()
                     + " WHERE stackTraceID = "
                     + TRACE_TABLE
-                    + ".hash)")) {
+                    + ".id)")) {
             while (rs.next()) unreferenced.add(rs.getLong(1));
         }
 
-        try (PreparedStatement ps = conn.prepareStatement("DELETE FROM " + TRACE_TABLE + " WHERE hash = ?")) {
+        Set<Long> inUse = new HashSet<>(traceNumbers.values());
+        try (PreparedStatement ps = conn.prepareStatement("DELETE FROM " + TRACE_TABLE + " WHERE id = ?")) {
             for (long id : unreferenced) {
-                if (savedTraces.contains(id) || unsavedTraces.containsKey(id)) continue;
+                if (inUse.contains(id)) continue;
                 ps.setLong(1, id);
                 ps.addBatch();
             }
@@ -252,7 +288,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
         stack.push(e);
 
         e.timestamp = System.currentTimeMillis();
-        e.stackTraceID = traceID(StackTraceUtils.getCallingClassChain());
+        e.stackTraceHash = traceHash(StackTraceUtils.getCallingClassChain());
 
         e.x = x;
         e.y = y;
@@ -311,7 +347,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
 
         BlockChangeEventInfo e = new BlockChangeEventInfo();
         e.timestamp = System.currentTimeMillis();
-        e.stackTraceID = traceID(StackTraceUtils.getCallingClassChain());
+        e.stackTraceHash = traceHash(StackTraceUtils.getCallingClassChain());
 
         e.x = x;
         e.y = y;
@@ -366,7 +402,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
         double closestDistance = -1;
 
         if (closestPlayer != null) {
-            closestDistance = closestPlayer.getDistance(x, y, z);
+            closestDistance = Math.round(closestPlayer.getDistance(x, y, z));
         }
 
         eventInfo.closestPlayerUUID = closestPlayer != null ? closestPlayer.getUniqueID()

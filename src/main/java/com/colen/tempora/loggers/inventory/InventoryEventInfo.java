@@ -39,7 +39,7 @@ public class InventoryEventInfo extends PositionalEventInfo {
     public int amount;
 
     // NBTUtils.NO_NBT when the item had none, NBTUtils.NBT_DISABLED when it had some but logNBT was off.
-    @Column(constraints = "NOT NULL")
+    @Column(type = ColumnType.NBT, constraints = "NOT NULL")
     public String encodedNBT = NBTUtils.NO_NBT;
 
     // encodedNBT is deliberately not sent: the client only uses these events to draw boxes, and item NBT can be far

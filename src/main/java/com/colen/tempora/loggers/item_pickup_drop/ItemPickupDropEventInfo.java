@@ -37,7 +37,7 @@ public class ItemPickupDropEventInfo extends PositionalEventInfo {
     public int amount;
 
     // NBTUtils.NO_NBT when the item had none, NBTUtils.NBT_DISABLED when it had some but logNBT was off.
-    @Column(constraints = "NOT NULL")
+    @Column(type = ColumnType.NBT, constraints = "NOT NULL")
     public String encodedNBT = NBTUtils.NO_NBT;
 
     // Which way the player was looking, in degrees as Minecraft stores it. A thrown item sets off this way.

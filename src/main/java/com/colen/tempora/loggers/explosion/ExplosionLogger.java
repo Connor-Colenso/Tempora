@@ -104,7 +104,8 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionEventInfo>
         EntityPlayer closestPlayer = world.getClosestPlayer(x, y, z, -1);
         eventInfo.closestPlayerUUID = closestPlayer != null ? closestPlayer.getUniqueID()
             .toString() : UNKNOWN_PLAYER_NAME;
-        eventInfo.closestPlayerDistance = closestPlayer != null ? closestPlayer.getDistance(x, y, z) : -1;
+        // Whole blocks, as for block changes.
+        eventInfo.closestPlayerDistance = closestPlayer != null ? Math.round(closestPlayer.getDistance(x, y, z)) : -1;
 
         eventInfo.affectedBlockCoordinates = ChunkPositionUtils
             .encodePositions(affectedBlocks == null ? Collections.emptyList() : affectedBlocks);

@@ -31,7 +31,7 @@ public class PlayerBlockBreakEventInfo extends PositionalEventInfo {
     @Column(type = ColumnType.PLAYER, constraints = "NOT NULL")
     public String playerUUID = PlayerUtils.UNKNOWN_PLAYER_NAME;
 
-    @Column(constraints = "NOT NULL")
+    @Column(type = ColumnType.NBT, constraints = "NOT NULL")
     public String encodedNBT = NBTUtils.NO_NBT;
 
     @Override

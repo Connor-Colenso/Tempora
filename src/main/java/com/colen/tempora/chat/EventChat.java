@@ -1,6 +1,5 @@
 package com.colen.tempora.chat;
 
-import static com.colen.tempora.utils.ChatUtils.ONE_DP;
 import static com.gtnewhorizon.gtnhlib.util.numberformatting.NumberFormatUtil.formatNumber;
 
 import javax.annotation.Nullable;
@@ -68,7 +67,10 @@ public final class EventChat {
             .setChatHoverEvent(
                 new HoverEvent(
                     HoverEvent.Action.SHOW_TEXT,
-                    grey(new ChatComponentTranslation("tempora.chat.closest_player", formatNumber(distance, ONE_DP)))));
+                    grey(
+                        new ChatComponentTranslation(
+                            "tempora.chat.closest_player",
+                            formatNumber(Math.round(distance))))));
         return name;
     }
 

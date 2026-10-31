@@ -3,9 +3,12 @@ package com.colen.tempora.utils;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -18,6 +21,7 @@ import com.colen.tempora.loggers.generic.PlayerIDs;
 import com.colen.tempora.loggers.generic.column.Column;
 import com.colen.tempora.loggers.generic.column.ColumnDef;
 import com.colen.tempora.loggers.generic.column.ColumnType;
+import com.colen.tempora.utils.nbt.NBTUtils;
 
 public class ReflectionUtils {
 
@@ -95,6 +99,21 @@ public class ReflectionUtils {
             // Null as the unknown player, rather than failing the batch the event is written with.
             binder = (ps, i, v) -> ps.setInt(i, v == null ? PlayerIDs.UNKNOWN_ID : PlayerIDs.idFor((String) v));
             reader = (rs, name) -> PlayerIDs.uuidFor(rs.getInt(name));
+        } else if (columnType == ColumnType.NBT) {
+            if (type != String.class) {
+                throw new IllegalStateException(
+                    field.getDeclaringClass()
+                        .getSimpleName() + "."
+                        + field.getName()
+                        + " is an NBT column, so it must be a String.");
+            }
+            binder = (ps, i, v) -> bindNBT(ps, i, (String) v);
+            reader = (rs, name) -> {
+                Object stored = rs.getObject(name);
+                if (stored instanceof byte[]bytes) return Base64.getEncoder()
+                    .encodeToString(bytes);
+                return stored == null ? NBTUtils.NO_NBT : stored.toString();
+            };
         } else if (type == int.class || type == Integer.class) {
             binder = (ps, i, v) -> ps.setInt(i, (Integer) v);
             reader = ResultSet::getInt;
@@ -119,6 +138,24 @@ public class ReflectionUtils {
         }
 
         return new ColumnDef.ColumnAccessor(getter, setter, binder, reader);
+    }
+
+    // Real NBT as its bytes, a marker as its text. A value that isn't Base64 (never made by NBTUtils) is stored as
+    // unreadable rather than failing the batch.
+    private static void bindNBT(PreparedStatement ps, int i, String encodedNBT) throws SQLException {
+        if (!NBTUtils.hasStoredNBT(encodedNBT)) {
+            ps.setString(i, encodedNBT == null ? NBTUtils.NO_NBT : encodedNBT);
+            return;
+        }
+        byte[] bytes;
+        try {
+            bytes = Base64.getDecoder()
+                .decode(encodedNBT);
+        } catch (IllegalArgumentException e) {
+            ps.setString(i, NBTUtils.NBT_UNREADABLE);
+            return;
+        }
+        ps.setBytes(i, bytes);
     }
 
     // Helpers.

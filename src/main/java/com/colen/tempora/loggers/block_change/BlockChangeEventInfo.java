@@ -39,7 +39,7 @@ public class BlockChangeEventInfo extends PositionalEventInfo {
     @Column(constraints = "NOT NULL")
     public int beforePickBlockMeta;
 
-    @Column(constraints = "NOT NULL")
+    @Column(type = ColumnType.NBT, constraints = "NOT NULL")
     public String beforeEncodedNBT = NBTUtils.NO_NBT;
 
     @Column(constraints = "NOT NULL")
@@ -54,16 +54,21 @@ public class BlockChangeEventInfo extends PositionalEventInfo {
     @Column(constraints = "NOT NULL")
     public int afterPickBlockMeta;
 
-    @Column(constraints = "NOT NULL")
+    @Column(type = ColumnType.NBT, constraints = "NOT NULL")
     public String afterEncodedNBT = NBTUtils.NO_NBT;
 
-    // Not bothering to send to client.
+    // The trace's number in the trace table, filled in as the event is written (see BlockChangeLogger.writeExtras),
+    // or 0 if it has none. Not sent to the client.
     @Column(constraints = "NOT NULL")
     public long stackTraceID;
+
+    // The trace's hash (StackTraceUtils.getID), from which writeExtras finds its number. Not stored.
+    public long stackTraceHash;
 
     @Column(type = ColumnType.PLAYER, constraints = "NOT NULL")
     public String closestPlayerUUID = PlayerUtils.UNKNOWN_PLAYER_NAME;
 
+    // In whole blocks, as a whole number takes a few bytes where any other double takes eight.
     @Column(constraints = "NOT NULL")
     public double closestPlayerDistance;
 
