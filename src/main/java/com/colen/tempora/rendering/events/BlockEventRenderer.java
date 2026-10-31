@@ -105,6 +105,11 @@ public abstract class BlockEventRenderer<E extends PositionalEventInfo> implemen
         try {
             return block.createTileEntity(Minecraft.getMinecraft().theWorld, metadata);
         } catch (RuntimeException e) {
+            LOG.warn(
+                "Could not make a tile entity for {}:{} to draw it with, so it is drawn without one.",
+                Block.blockRegistry.getNameForObject(block),
+                metadata,
+                e);
             return null;
         }
     }

@@ -53,7 +53,7 @@ public class PlayerBlockPlaceEventInfo extends PositionalEventInfo {
         buf.writeInt(pickBlockID);
         buf.writeInt(pickBlockMeta);
         ByteBufUtils.writeUTF8String(buf, playerUUID);
-        ByteBufUtils.writeUTF8String(buf, encodedNBT);
+        ByteBufUtils.writeUTF8String(buf, NBTUtils.forClient(encodedNBT, this));
     }
 
     @Override

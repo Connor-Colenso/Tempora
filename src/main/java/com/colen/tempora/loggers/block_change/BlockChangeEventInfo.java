@@ -170,13 +170,13 @@ public class BlockChangeEventInfo extends PositionalEventInfo {
         buf.writeInt(beforeMetadata);
         buf.writeInt(beforePickBlockID);
         buf.writeInt(beforePickBlockMeta);
-        ByteBufUtils.writeUTF8String(buf, beforeEncodedNBT);
+        ByteBufUtils.writeUTF8String(buf, NBTUtils.forClient(beforeEncodedNBT, this));
 
         buf.writeInt(afterBlockID);
         buf.writeInt(afterMetadata);
         buf.writeInt(afterPickBlockID);
         buf.writeInt(afterPickBlockMeta);
-        ByteBufUtils.writeUTF8String(buf, afterEncodedNBT);
+        ByteBufUtils.writeUTF8String(buf, NBTUtils.forClient(afterEncodedNBT, this));
 
         ByteBufUtils.writeUTF8String(buf, closestPlayerUUID);
         buf.writeDouble(closestPlayerDistance);

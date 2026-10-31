@@ -1,13 +1,19 @@
 package com.colen.tempora.utils.nbt;
 
+import static com.colen.tempora.Tempora.LOG;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Base64;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
+
+import com.colen.tempora.loggers.generic.PositionalEventInfo;
 
 public class NBTUtils {
 
@@ -52,6 +58,40 @@ public class NBTUtils {
         } else {
             return NBT_DISABLED;
         }
+    }
+
+    // ByteBufUtils.writeUTF8String takes at most this many bytes, and encoded NBT is Base64, so one byte per character.
+    private static final int MAX_CLIENT_NBT_LENGTH = 16383;
+
+    // Events already warned about, so each is logged once rather than on every lookup that sends it (and twice per
+    // send, as RenderEventPacket.sendSafely writes it once to check it first).
+    private static final int MAX_WARNED_EVENTS = 1_000;
+    private static final Set<String> WARNED_EVENTS = ConcurrentHashMap.newKeySet();
+
+    /**
+     * Encoded NBT as sent to the client to draw an event: as stored, unless it is too long for a packet string,
+     * when the client is told only that there was some. It then draws the block with a fresh tile
+     * entity.
+     */
+    public static String forClient(String encodedNBT, PositionalEventInfo event) {
+        if (encodedNBT == null || encodedNBT.length() <= MAX_CLIENT_NBT_LENGTH) return encodedNBT;
+
+        if (WARNED_EVENTS.size() >= MAX_WARNED_EVENTS) WARNED_EVENTS.clear();
+        if (WARNED_EVENTS.add(event.getLoggerName() + ":" + event.eventID)) {
+            LOG.warn(
+                "{} event {} at {}, {}, {} in dimension {} has {} characters of tile entity NBT, more than the {} a packet "
+                    + "can carry. It is drawn with an empty tile entity instead (e.g. a chest without its items); the NBT "
+                    + "is still stored in full.",
+                event.getLoggerName(),
+                event.eventID,
+                event.x,
+                event.y,
+                event.z,
+                event.dimensionID,
+                encodedNBT.length(),
+                MAX_CLIENT_NBT_LENGTH);
+        }
+        return NBT_DISABLED;
     }
 
     // An item's NBT as the item loggers store it: NO_NBT when it has none, NBT_DISABLED when it has some but logging
