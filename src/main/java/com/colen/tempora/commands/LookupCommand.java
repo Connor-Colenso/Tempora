@@ -42,6 +42,8 @@ public class LookupCommand extends TemporaSubcommand {
     // Per logger. Each event is also drawn in the world, so this stays well below /tempora global's.
     public static final int DEFAULT_COUNT = 5;
     private static final int MAX_COUNT = 50;
+    // Only so the search box can't overflow an int: centre (at most 30 million out, the world border) + radius + 1.
+    private static final int MAX_RADIUS = 2_000_000_000;
 
     public LookupCommand() {
         super("lookup", "[r:<radius>]", "[t:<time>]", "[l:<logger,...>]", "[p:<player,...>]", "[n:<count>]");
@@ -59,7 +61,7 @@ public class LookupCommand extends TemporaSubcommand {
         CommandFilters filters = CommandFilters.parse(this, sender, args, 0, "r", "t", "l", "p", "n");
         if (filters == null) return;
 
-        int radius = CommandBase.parseIntWithMin(sender, filters.get("r", DEFAULT_RADIUS), 1);
+        int radius = CommandBase.parseIntBounded(sender, filters.get("r", DEFAULT_RADIUS), 1, MAX_RADIUS);
         TimeWindow window = TimeWindow.parse(filters.get("t", DEFAULT_TIME));
         String playerNames = filters.get("p");
         PlayerFilter players = playerNames == null ? PlayerFilter.anyone() : PlayerFilter.parse(playerNames);
