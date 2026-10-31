@@ -1,8 +1,6 @@
 package com.colen.tempora.rendering.events;
 
 import static com.colen.tempora.Tempora.LOG;
-import static com.colen.tempora.utils.nbt.NBTUtils.NBT_DISABLED;
-import static com.colen.tempora.utils.nbt.NBTUtils.NO_NBT;
 
 import java.awt.Color;
 import java.util.List;
@@ -44,7 +42,7 @@ public abstract class BlockEventRenderer<E extends PositionalEventInfo> implemen
 
     protected abstract int metadata(E event);
 
-    /** The block's tile entity NBT as NBTUtils encodes it, or NBTUtils.NO_NBT or NBTUtils.NBT_DISABLED. */
+    /** The block's tile entity NBT as NBTUtils encodes it, or one of its markers (see NBTUtils.hasStoredNBT). */
     protected abstract String encodedNBT(E event);
 
     @Override
@@ -79,7 +77,7 @@ public abstract class BlockEventRenderer<E extends PositionalEventInfo> implemen
 
     private static @Nullable TileEntity tileEntityFor(Block block, int metadata, @Nullable String encodedNBT) {
         TileEntity tileEntity;
-        if (encodedNBT == null || NO_NBT.equals(encodedNBT) || NBT_DISABLED.equals(encodedNBT)) {
+        if (!NBTUtils.hasStoredNBT(encodedNBT)) {
             tileEntity = defaultTileEntity(block, metadata);
         } else {
             // Null for tile entities this client does not have.

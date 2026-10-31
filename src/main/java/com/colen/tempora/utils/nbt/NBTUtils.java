@@ -19,6 +19,15 @@ public class NBTUtils {
 
     public static final String NO_NBT = "NO_NBT";
     public static final String NBT_DISABLED = "NBT_PRESENT_LOGGING_OFF";
+    // The tile entity threw while saving its NBT (another mod's bug), so there is none to store.
+    public static final String NBT_UNREADABLE = "NBT_PRESENT_UNREADABLE";
+
+    // Whether this is real encoded NBT, rather than null or one of the markers above.
+    public static boolean hasStoredNBT(String encodedNBT) {
+        return encodedNBT != null && !NO_NBT.equals(encodedNBT)
+            && !NBT_DISABLED.equals(encodedNBT)
+            && !NBT_UNREADABLE.equals(encodedNBT);
+    }
 
     // Encode NBTTagCompound to Base64 String
     public static String encodeToString(NBTTagCompound tagCompound) {
@@ -42,6 +51,9 @@ public class NBTUtils {
         }
     }
 
+    // Tile entity types already warned about, see getEncodedTileEntityNBT.
+    private static final Set<Class<?>> UNSAVABLE_TILE_ENTITIES = ConcurrentHashMap.newKeySet();
+
     // Realise this seems a bit silly but reduces code duplication elsewhere for handling identical logic.
     public static String getEncodedTileEntityNBT(World world, int x, int y, int z, boolean nbtLoggingEnabled) {
         if (world == null) return NO_NBT;
@@ -52,9 +64,27 @@ public class NBTUtils {
         }
 
         if (nbtLoggingEnabled) {
-            NBTTagCompound tag = new NBTTagCompound();
-            tileEntity.writeToNBT(tag);
-            return encodeToString(tag);
+            try {
+                NBTTagCompound tag = new NBTTagCompound();
+                tileEntity.writeToNBT(tag);
+                return encodeToString(tag);
+            } catch (RuntimeException | LinkageError e) {
+                // Another mod's tile entity that can't save itself. Logging must never stop the block being broken or
+                // changed, so the event is stored without its NBT.
+                if (UNSAVABLE_TILE_ENTITIES.add(tileEntity.getClass())) {
+                    LOG.warn(
+                        "{} at {}, {}, {} in dimension {} threw while saving its NBT, so Tempora stores its events without "
+                            + "NBT. Logged once per tile entity type.",
+                        tileEntity.getClass()
+                            .getName(),
+                        x,
+                        y,
+                        z,
+                        world.provider.dimensionId,
+                        e);
+                }
+                return NBT_UNREADABLE;
+            }
         } else {
             return NBT_DISABLED;
         }
@@ -103,7 +133,7 @@ public class NBTUtils {
 
     // Undoes getEncodedItemNBT. Null when there was no NBT, it was not logged, or it cannot be read.
     public static NBTTagCompound decodeItemNBT(String encodedNBT) {
-        if (encodedNBT == null || NO_NBT.equals(encodedNBT) || NBT_DISABLED.equals(encodedNBT)) return null;
+        if (!hasStoredNBT(encodedNBT)) return null;
 
         try {
             return decodeFromString(encodedNBT);
