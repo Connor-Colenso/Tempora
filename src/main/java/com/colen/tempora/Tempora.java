@@ -31,7 +31,14 @@ import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.network.simpleimpl.SimpleNetworkWrapper;
 
 @SuppressWarnings("unused")
-@Mod(modid = Tempora.MODID, version = Tags.VERSION, name = Tempora.MODNAME, acceptedMinecraftVersions = "[1.7.10]")
+// GTNHLib's chat components and config are used on both sides, so a pack without a recent enough one gets FML's
+// missing mod screen rather than a crash later on.
+@Mod(
+    modid = Tempora.MODID,
+    version = Tags.VERSION,
+    name = Tempora.MODNAME,
+    acceptedMinecraftVersions = "[1.7.10]",
+    dependencies = "required-after:gtnhlib@[0.11.52,);after:appliedenergistics2;after:NotEnoughItems")
 public class Tempora {
 
     public static final String MODID = "tempora";
