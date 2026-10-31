@@ -100,6 +100,12 @@ public class SqlCommand extends TemporaSubcommand {
             return;
         }
 
+        // A logger that is disabled, or failed to start, has no database to read.
+        if (targetLogger.notStarted()) {
+            sendError(sender, "tempora.command.sql.logger_off", targetLogger.getLoggerName());
+            return;
+        }
+
         GenericLogger<?> logger = targetLogger;
 
         // Execute the query read-only, on the query thread. A mistake in the query is the sender's to fix, so it is
@@ -132,7 +138,9 @@ public class SqlCommand extends TemporaSubcommand {
             sender.addChatMessage(GenericLogger.chatLineOrPlaceholder(eventData));
 
             // Render info. Global events have no position to draw.
-            if (eventData instanceof PositionalEventInfo positionalEvent && sender instanceof EntityPlayerMP player) {
+            // Only events in the player's dimension, as the client draws nothing else.
+            if (eventData instanceof PositionalEventInfo positionalEvent && sender instanceof EntityPlayerMP player
+                && positionalEvent.dimensionID == player.dimension) {
                 RenderEventPacket.sendSafely(positionalEvent, player);
             }
         }
@@ -174,10 +182,14 @@ public class SqlCommand extends TemporaSubcommand {
         }
     }
 
+    // "select *", with any spacing, or "select t.*".
+    private static final Pattern SELECT_STAR = Pattern.compile("\\bselect\\s+(\\w+\\.)?\\*");
+
     private static List<String> findMissingColumns(String sql, List<ColumnDef> required) {
         // If the query explicitly selects every column with *, accept it.
         String lowered = sql.toLowerCase(Locale.ROOT);
-        if (lowered.contains("select *")) return Collections.emptyList();
+        if (SELECT_STAR.matcher(lowered)
+            .find()) return Collections.emptyList();
 
         List<String> missing = new ArrayList<>();
 
@@ -195,7 +207,7 @@ public class SqlCommand extends TemporaSubcommand {
     private static boolean isSelectQuery(String sqlQuery) {
         // Simple check that it starts with SELECT ignoring whitespace & case
         return sqlQuery.trim()
-            .toLowerCase()
+            .toLowerCase(Locale.ROOT)
             .startsWith("select");
     }
 
