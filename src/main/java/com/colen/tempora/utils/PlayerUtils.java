@@ -2,6 +2,7 @@ package com.colen.tempora.utils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import java.util.regex.Pattern;
@@ -107,10 +108,10 @@ public class PlayerUtils {
         if (prefix == null) prefix = "";
 
         Map<UUID, String> map = UsernameCache.getMap();
-        String lowerPrefix = prefix.toLowerCase();
+        String lowerPrefix = prefix.toLowerCase(Locale.ROOT);
 
         for (String playerName : map.values()) {
-            if (playerName.toLowerCase()
+            if (playerName.toLowerCase(Locale.ROOT)
                 .startsWith(lowerPrefix)) {
                 completions.add(playerName);
             }
