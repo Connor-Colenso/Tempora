@@ -75,6 +75,8 @@ public class LoggerDatabase {
         config.setSynchronous(SQLiteConfig.SynchronousMode.NORMAL);
         // Negative means KiB rather than pages.
         config.setCacheSize(-cacheSizeMegabytes * 1024);
+        // Otherwise the -wal file keeps the size of the biggest burst ever written (e.g. a table rebuild).
+        config.setJournalSizeLimit(64 * 1024 * 1024);
 
         dbConnection = DriverManager.getConnection(dbUrl, config.toProperties());
     }
@@ -417,7 +419,14 @@ public class LoggerDatabase {
             }
             throw e;
         }
-        if (afterCommit != null) afterCommit.run();
+        // The events are stored by now, so a failure here must not be reported as the batch failing.
+        if (afterCommit != null) {
+            try {
+                afterCommit.run();
+            } catch (RuntimeException e) {
+                LOG.error("{} stored a batch, but failed to note what it wrote.", logger.getLoggerName(), e);
+            }
+        }
     }
 
     public void shutdownDatabase() throws SQLException {
