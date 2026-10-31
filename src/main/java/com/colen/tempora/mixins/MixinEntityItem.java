@@ -23,7 +23,7 @@ public abstract class MixinEntityItem {
     private void tempora$logPickup(EntityPlayer player, Operation<Void> original) {
         EntityItem self = (EntityItem) (Object) this;
         ItemPickupDropLogger logger = TemporaEvents.itemPickupDropLogger;
-        if (self.worldObj.isRemote || self.isDead || !logger.isEnabledByConfig()) {
+        if (self.worldObj.isRemote || self.isDead || !logger.isActive()) {
             original.call(player);
             return;
         }

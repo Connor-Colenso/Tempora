@@ -64,7 +64,7 @@ public final class InventoryTransactionTracker {
 
     public static @Nullable PacketToken beforePacket(EntityPlayerMP player, Packet packet) {
         try {
-            if (player == null || player instanceof FakePlayer || !TemporaEvents.inventoryLogger.isEnabledByConfig()) {
+            if (player == null || player instanceof FakePlayer || !TemporaEvents.inventoryLogger.isActive()) {
                 return null;
             }
 
@@ -113,7 +113,7 @@ public final class InventoryTransactionTracker {
      */
     public static @Nullable InventoryTransaction beforeClose(EntityPlayerMP player) {
         try {
-            if (active != null || player instanceof FakePlayer || !TemporaEvents.inventoryLogger.isEnabledByConfig()) {
+            if (active != null || player instanceof FakePlayer || !TemporaEvents.inventoryLogger.isActive()) {
                 return null;
             }
 

@@ -110,6 +110,8 @@ public final class WorldGenTicks {
 
         @SubscribeEvent
         public void onChunkSave(ChunkDataEvent.Save event) {
+            // No marks are made while Tempora is off, and looking for them walks every pending update in the world.
+            if (!GenericUtils.shouldTemporaRun()) return;
             NBTTagList saved = savedUpdates(event);
             if (saved.tagCount() == 0) return;
 
@@ -130,6 +132,7 @@ public final class WorldGenTicks {
         // After the chunk's pending updates were read back, so they are the world's again.
         @SubscribeEvent
         public void onChunkLoad(ChunkDataEvent.Load event) {
+            if (!GenericUtils.shouldTemporaRun()) return;
             NBTTagList saved = savedUpdates(event);
 
             Map<NextTickListEntry, Long> remaining = new HashMap<>();

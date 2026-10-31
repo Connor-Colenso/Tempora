@@ -17,6 +17,7 @@ import net.minecraft.network.play.client.C0BPacketEntityAction;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.FakePlayer;
 
+import com.colen.tempora.TemporaEvents;
 import com.colen.tempora.loggers.inventory.compat.AE2ContainerHosts;
 
 import cpw.mods.fml.common.Loader;
@@ -39,6 +40,7 @@ public final class ContainerHosts {
 
     /** FML openGui finished. */
     public static void onGuiOpened(EntityPlayer player, @Nullable Container before, World world, int x, int y, int z) {
+        if (!TemporaEvents.inventoryLogger.isActive()) return;
         if (!(player instanceof EntityPlayerMP playerMP) || player instanceof FakePlayer) return;
 
         Container opened = openedSince(playerMP, before);
@@ -52,6 +54,7 @@ public final class ContainerHosts {
     /** A block's onBlockActivated finished, any container opened during it belongs to that block. */
     public static void onBlockActivated(EntityPlayerMP player, @Nullable Container before, World world, int x, int y,
         int z) {
+        if (!TemporaEvents.inventoryLogger.isActive()) return;
         Container opened = openedSince(player, before);
         if (opened != null) register(opened, ContainerHost.block(world, x, y, z));
     }

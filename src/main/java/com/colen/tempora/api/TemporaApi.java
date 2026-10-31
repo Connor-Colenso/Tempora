@@ -197,8 +197,9 @@ public final class TemporaApi {
         TemporaEvents.entityPositionLogger.logEntityPosition(entity);
     }
 
-    // Loggers read the world when building an event, so only ever on the server thread.
+    // Loggers read the world when building an event, so only ever on the server thread. Nothing at all while Tempora
+    // is switched off, so a mod calling this on every action costs nothing in a pack that doesn't use Tempora.
     private static boolean onServer(@Nullable World world) {
-        return world != null && !world.isRemote && GenericUtils.isServerSide();
+        return GenericUtils.shouldTemporaRun() && world != null && !world.isRemote && GenericUtils.isServerSide();
     }
 }

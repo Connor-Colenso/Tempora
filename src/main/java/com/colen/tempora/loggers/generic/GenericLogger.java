@@ -93,6 +93,15 @@ public abstract class GenericLogger<EventInfo extends GenericEventInfo> {
         return isEnabledByConfig;
     }
 
+    /**
+     * Whether events reaching this logger now are stored: it is enabled, started for the current server and its
+     * worker is running. False whenever Tempora is switched off. Hot paths (mixins, the inventory tracker) check this
+     * before doing any work for an event.
+     */
+    public final boolean isActive() {
+        return isEnabledByConfig && started && isRunning;
+    }
+
     public LoggerDatabase getDatabaseManager() {
         return databaseManager;
     }

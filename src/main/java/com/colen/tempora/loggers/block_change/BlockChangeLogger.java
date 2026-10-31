@@ -41,6 +41,7 @@ import com.colen.tempora.TemporaEvents;
 import com.colen.tempora.enums.LoggerEventType;
 import com.colen.tempora.loggers.generic.GenericEventInfo;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
+import com.colen.tempora.utils.GenericUtils;
 import com.colen.tempora.utils.StackTraceUtils;
 import com.colen.tempora.utils.WorldGenPhaseTracker;
 import com.colen.tempora.utils.WorldGenTicks;
@@ -230,7 +231,9 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
 
     // newBlock is the block being set, or null for a metadata change.
     public void onSetBlockHead(int x, int y, int z, World world, @Nullable Block newBlock) {
-        if (!isEnabledByConfig) return;
+        // Not isActive(): its worker can stop between HEAD and RETURN, which would unpair them. These two only change
+        // with the config, so both calls of a pair always agree.
+        if (!isEnabledByConfig || !GenericUtils.shouldTemporaRun()) return;
 
         // Pushed before anything that could throw, so this call's RETURN always pops its own entry rather than the
         // one of the setBlock call around it. Replaced below if the change is logged.
@@ -273,7 +276,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
     }
 
     public void onSetBlockReturn(int x, int y, int z, World world, CallbackInfoReturnable<Boolean> cir) {
-        if (!isEnabledByConfig) return;
+        if (!isEnabledByConfig || !GenericUtils.shouldTemporaRun()) return;
 
         Deque<BlockChangeEventInfo> stack = BLOCK_STACK.get();
 
