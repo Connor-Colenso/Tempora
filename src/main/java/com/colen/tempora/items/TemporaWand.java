@@ -10,7 +10,6 @@ import java.util.UUID;
 import java.util.WeakHashMap;
 
 import net.minecraft.block.Block;
-import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
@@ -52,7 +51,8 @@ public class TemporaWand extends Item {
 
     public TemporaWand() {
         this.setMaxStackSize(1);
-        this.setCreativeTab(CreativeTabs.tabTools);
+        // In no creative tab, so creative players who may not use /tempora never pick it up. /tempora wand gives one.
+        this.setCreativeTab(null);
         this.setUnlocalizedName("tempora_wand");
         this.setTextureName("tempora:tempora_wand");
     }
@@ -140,7 +140,8 @@ public class TemporaWand extends Item {
     private static void checkSpot(EntityPlayerMP player, int x, int y, int z) {
         if (TemporaCommand.isDisabled(player)) return;
 
-        if (!PlayerUtils.isPlayerOp(player)) {
+        // The same check as /tempora itself, so whoever may run lookups may use the wand, and nobody else.
+        if (!player.canCommandSenderUseCommand(CommandUtils.OP_ONLY, TemporaCommand.NAME)) {
             IChatComponent alert = new ChatComponentTranslation("tempora.wand.alert");
             alert.getChatStyle()
                 .setColor(EnumChatFormatting.RED);
