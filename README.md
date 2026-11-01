@@ -50,9 +50,9 @@ and explosions go by the closest player, and loggers with no player, such as mob
 given.
 
 Loggers have short names for commands: `change`, `break`, `place`, `explosion`, `command`, `death`,
-`spawn`, `mobpos`, `inventory`, `pickup` (items picked up, thrown out, or dropped on death), `use`
-and `playerpos`, plus the global `connection`, `weather` and `tps`. The full names (e.g. `PlayerBlockBreakLogger`)
-also work, and are the table names for `/tempora sql`.
+`spawn`, `mobpos`, `inventory`, `pickup` (items picked up, thrown out, or dropped on death), `use`,
+`achievement` and `playerpos`, plus the global `connection`, `weather` and `tps`. The full names (e.g.
+`PlayerBlockBreakLogger`) also work, and are the table names for `/tempora sql`.
 
 ## Logger kinds
 

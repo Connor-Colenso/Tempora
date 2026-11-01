@@ -17,17 +17,21 @@ import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.stats.AchievementList;
+import net.minecraft.stats.StatisticsFile;
 import net.minecraft.util.DamageSource;
 import net.minecraft.world.ChunkPosition;
 import net.minecraft.world.World;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.event.CommandEvent;
+import net.minecraftforge.event.entity.player.AchievementEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.world.BlockEvent;
 
 import com.colen.tempora.Tempora;
 import com.colen.tempora.TemporaEvents;
+import com.colen.tempora.loggers.achievement.AchievementEventInfo;
 import com.colen.tempora.loggers.command.CommandEventInfo;
 import com.colen.tempora.loggers.entity_death.EntityDeathEventInfo;
 import com.colen.tempora.loggers.entity_spawn.EntitySpawnEventInfo;
@@ -287,6 +291,39 @@ public class PositionalLoggerTests {
                     .get(0);
                 helper.assertEquals("time", event.commandName, "commandName");
                 helper.assertEquals("query daytime", event.arguments, "arguments");
+                helper.assertEquals(uuid(player), event.playerUUID, "playerUUID");
+                assertWellFormed(helper, logger, probe.latest());
+            })
+            .thenSucceed();
+    }
+
+    @GameTest(timeoutTicks = TIMEOUT_TICKS)
+    public static void achievementIsLogged(GameTestHelper helper) {
+        GenericPositionalLogger<?> logger = TemporaEvents.achievementLogger;
+        FakePlayer player = fakePlayer(helper, "achievement");
+        Probe<List<PositionalEventInfo>> probe = new Probe<>(helper, "achievementIsLogged");
+
+        helper.startSequence()
+            .thenExecute("a player who has opened their inventory triggers three achievements", () -> {
+                // Fake players ignore addStat, so the events are fired as addStat would, and the one the player
+                // already has is given straight to their stats.
+                StatisticsFile stats = player.func_147099_x();
+                stats.func_150873_a(player, AchievementList.openInventory, 1);
+
+                // Had already, and one whose parent (Getting Wood) the player does not have: neither is given.
+                MinecraftForge.EVENT_BUS.post(new AchievementEvent(player, AchievementList.openInventory));
+                MinecraftForge.EVENT_BUS.post(new AchievementEvent(player, AchievementList.buildWorkBench));
+                // Given. Logged after the other two, so had they been logged they would be stored by now too.
+                MinecraftForge.EVENT_BUS.post(new AchievementEvent(player, AchievementList.mineWood));
+            })
+            .thenWaitUntil(
+                "achievement is logged",
+                WRITE_TICKS,
+                () -> assertCount(helper, probe.poll(() -> eventsAtPlayer(helper, logger, player)), 1))
+            .thenExecute("only Getting Wood is logged, and it reads back intact", () -> {
+                AchievementEventInfo event = (AchievementEventInfo) probe.latest()
+                    .get(0);
+                helper.assertEquals(AchievementList.mineWood.statId, event.achievementID, "achievementID");
                 helper.assertEquals(uuid(player), event.playerUUID, "playerUUID");
                 assertWellFormed(helper, logger, probe.latest());
             })

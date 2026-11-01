@@ -65,6 +65,7 @@ tempora.dimension.invalid=Dimension %s does not exist.
 
 # === Event lines ===
 # Every line reads: when, who, did what, where. The words here show grey.
+tempora.event.achievement=%s %s earned %s at %s
 tempora.event.block_break=%s %s broke %s at %s
 tempora.event.block_place=%s %s placed %s at %s
 tempora.event.block_change=%s %s became %s at %s near %s %s
@@ -139,6 +140,8 @@ tempora.logger.setting.nbt_items.off=Doesn't save item NBT (NBT is off).
 tempora.logger.setting.interval=Records every %s.
 tempora.logger.setting.retention=Keeps events for %s.
 
+tempora.logger.AchievementLogger.name=Achievements
+tempora.logger.AchievementLogger.description=Achievements players earn, logged where they stood. Only the first time each player earns one.
 tempora.logger.BlockChangeLogger.name=All block changes
 tempora.logger.BlockChangeLogger.description=Every block that changes, whatever changed it: players, machines, other mods or the world itself.
 tempora.logger.CommandLogger.name=Commands

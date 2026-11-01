@@ -1,5 +1,7 @@
 package com.colen.tempora;
 
+import com.colen.tempora.loggers.achievement.AchievementEventInfo;
+import com.colen.tempora.loggers.achievement.AchievementLogger;
 import com.colen.tempora.loggers.block_change.BlockChangeEventInfo;
 import com.colen.tempora.loggers.block_change.BlockChangeLogger;
 import com.colen.tempora.loggers.command.CommandEventInfo;
@@ -34,6 +36,7 @@ import com.colen.tempora.loggers.weather.WeatherLogger;
 public class TemporaEvents {
 
     // We keep these references as mixins and the API (com.colen.tempora.api.TemporaApi) log through them.
+    public static AchievementLogger achievementLogger = new AchievementLogger();
     public static BlockChangeLogger blockChangeLogger = new BlockChangeLogger();
     public static CommandLogger commandLogger = new CommandLogger();
     public static EntityDeathLogger entityDeathLogger = new EntityDeathLogger();
@@ -53,6 +56,7 @@ public class TemporaEvents {
     public static WeatherLogger weatherLogger = new WeatherLogger();
 
     // Logger names. DO NOT RENAME IT. This WILL break all past data.
+    public static final String ACHIEVEMENT = "AchievementLogger";
     public static final String BLOCK_CHANGE = "BlockChangeLogger";
     public static final String COMMAND = "CommandLogger";
     public static final String ENTITY_DEATH = "EntityDeathLogger";
@@ -71,6 +75,7 @@ public class TemporaEvents {
 
     public static void registerAll() {
 
+        TemporaLoggerManager.register(achievementLogger, AchievementEventInfo::new);
         TemporaLoggerManager.register(blockChangeLogger, BlockChangeEventInfo::new);
         TemporaLoggerManager.register(commandLogger, CommandEventInfo::new);
         TemporaLoggerManager.register(entityDeathLogger, EntityDeathEventInfo::new);

@@ -5,6 +5,7 @@ import net.minecraftforge.common.MinecraftForge;
 
 import com.colen.tempora.config.ClientConfig;
 import com.colen.tempora.config.DebugConfig;
+import com.colen.tempora.loggers.achievement.AchievementRenderer;
 import com.colen.tempora.loggers.block_change.BlockChangeRenderer;
 import com.colen.tempora.loggers.command.CommandRenderer;
 import com.colen.tempora.loggers.entity_death.EntityDeathRenderer;
@@ -57,6 +58,7 @@ public class ClientProxy extends CommonProxy {
 
     // How each of Tempora's positional loggers draws its events. Registered after the loggers, in CommonProxy.init.
     private static void registerEventRenderers() {
+        EventRenderers.register(TemporaEvents.achievementLogger, new AchievementRenderer());
         EventRenderers.register(TemporaEvents.blockChangeLogger, new BlockChangeRenderer());
         EventRenderers.register(TemporaEvents.commandLogger, new CommandRenderer());
         EventRenderers.register(TemporaEvents.entityDeathLogger, new EntityDeathRenderer());
