@@ -17,6 +17,7 @@ import com.colen.tempora.networking.packets.PacketTeleportRequest;
 import com.colen.tempora.utils.CommandUtils;
 import com.colen.tempora.utils.GenericUtils;
 import com.colen.tempora.utils.NoPortalTeleporter;
+import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 
 import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import cpw.mods.fml.common.network.simpleimpl.IMessageHandler;
@@ -58,7 +59,7 @@ public class TeleportRequestHandler implements IMessageHandler<PacketTeleportReq
             WorldServer target = MinecraftServer.getServer()
                 .worldServerForDimension(targetDim);
             if (target == null) {
-                sendError(player, "tempora.dimension.invalid", targetDim);
+                sendError(player, "tempora.dimension.invalid", new ChatComponentNumber(targetDim));
                 return;
             }
 

@@ -14,6 +14,7 @@ import com.colen.tempora.loggers.generic.column.ColumnType;
 import com.colen.tempora.utils.CommandUtils;
 import com.colen.tempora.utils.PlayerUtils;
 import com.colen.tempora.utils.nbt.NBTUtils;
+import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 
 import cpw.mods.fml.common.network.ByteBufUtils;
 import io.netty.buffer.ByteBuf;
@@ -70,7 +71,9 @@ public class InventoryEventInfo extends PositionalEventInfo {
     public IChatComponent localiseText() {
         InventoryLogger.Direction dir = InventoryLogger.Direction.fromDbId(direction);
         if (dir == null) {
-            IChatComponent invalid = new ChatComponentTranslation("tempora.event.inventory.invalid", direction);
+            IChatComponent invalid = new ChatComponentTranslation(
+                "tempora.event.inventory.invalid",
+                new ChatComponentNumber(direction));
             invalid.getChatStyle()
                 .setColor(EnumChatFormatting.RED);
             return invalid;

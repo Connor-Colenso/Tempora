@@ -23,6 +23,7 @@ import org.jetbrains.annotations.Nullable;
 import org.sqlite.ProgressHandler;
 
 import com.colen.tempora.config.CommandsConfig;
+import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 
 /**
  * Runs lookups (/tempora lookup, global, home, sql and the wand) on one "Tempora-Query" thread, so a slow query never
@@ -302,7 +303,7 @@ public final class TemporaQueries {
                     sender,
                     EnumChatFormatting.RED,
                     "tempora.query.timed_out",
-                    CommandsConfig.queryTimeLimitSeconds);
+                    new ChatComponentNumber(CommandsConfig.queryTimeLimitSeconds));
                 return;
             }
             if (failure != null) {

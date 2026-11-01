@@ -12,6 +12,7 @@ import com.colen.tempora.loggers.generic.column.Column;
 import com.colen.tempora.loggers.generic.column.ColumnType;
 import com.colen.tempora.utils.CommandUtils;
 import com.colen.tempora.utils.PlayerUtils;
+import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 
 /** A player joining or leaving the server, and where they were at the time. */
 public class PlayerConnectionEventInfo extends GlobalEventInfo {
@@ -43,7 +44,9 @@ public class PlayerConnectionEventInfo extends GlobalEventInfo {
     public IChatComponent localiseText() {
         PlayerConnectionLogger.Action act = PlayerConnectionLogger.Action.fromDbId(action);
         if (act == null) {
-            IChatComponent invalid = new ChatComponentTranslation("tempora.event.player_connection.invalid", action);
+            IChatComponent invalid = new ChatComponentTranslation(
+                "tempora.event.player_connection.invalid",
+                new ChatComponentNumber(action));
             invalid.getChatStyle()
                 .setColor(EnumChatFormatting.RED);
             return invalid;

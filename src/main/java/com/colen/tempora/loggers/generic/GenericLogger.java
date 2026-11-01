@@ -189,7 +189,10 @@ public abstract class GenericLogger<EventInfo extends GenericEventInfo> {
      */
     protected void addSettingsInfo(List<IChatComponent> lines) {}
 
-    /** A settings line: a translation key and its arguments, each a string or another settingLine or duration. */
+    /**
+     * A settings line: a translation key and its arguments, each a string, a number (formatted on the client) or
+     * another settingLine or duration.
+     */
     protected static ChatComponentWrappedTranslation settingLine(String key, Object... args) {
         return new ChatComponentWrappedTranslation(key, args);
     }
@@ -203,10 +206,10 @@ public abstract class GenericLogger<EventInfo extends GenericEventInfo> {
                 long count = seconds / unitSeconds[i];
                 return new ChatComponentWrappedTranslation(
                     "tempora.duration." + units[i] + (count == 1 ? ".one" : ".many"),
-                    String.valueOf(count));
+                    count);
             }
         }
-        return new ChatComponentWrappedTranslation("tempora.duration.second.many", String.valueOf(seconds));
+        return new ChatComponentWrappedTranslation("tempora.duration.second.many", seconds);
     }
 
     // Server ticks as a duration, or as ticks when they aren't a whole number of seconds.
@@ -214,7 +217,7 @@ public abstract class GenericLogger<EventInfo extends GenericEventInfo> {
         if (ticks % 20 == 0) return duration(ticks / 20);
         return new ChatComponentWrappedTranslation(
             ticks == 1 ? "tempora.duration.tick.one" : "tempora.duration.tick.many",
-            String.valueOf(ticks));
+            ticks);
     }
 
     private String translationKey(String part) {
@@ -646,7 +649,7 @@ public abstract class GenericLogger<EventInfo extends GenericEventInfo> {
 
         IChatComponent count = new ChatComponentTranslation(
             eventsFound >= limit ? "tempora.command.lookup.header.latest" : "tempora.command.lookup.header.count",
-            eventsFound);
+            new ChatComponentNumber(eventsFound));
         count.getChatStyle()
             .setColor(EnumChatFormatting.GRAY);
 

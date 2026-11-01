@@ -14,6 +14,7 @@ import com.colen.tempora.loggers.generic.column.ColumnType;
 import com.colen.tempora.utils.CommandUtils;
 import com.colen.tempora.utils.PlayerUtils;
 import com.colen.tempora.utils.nbt.NBTUtils;
+import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 
 import cpw.mods.fml.common.network.ByteBufUtils;
 import io.netty.buffer.ByteBuf;
@@ -77,7 +78,9 @@ public class ItemPickupDropEventInfo extends PositionalEventInfo {
     public IChatComponent localiseText() {
         ItemPickupDropLogger.Action act = ItemPickupDropLogger.Action.fromDbId(action);
         if (act == null) {
-            IChatComponent invalid = new ChatComponentTranslation("tempora.event.item_pickup_drop.invalid", action);
+            IChatComponent invalid = new ChatComponentTranslation(
+                "tempora.event.item_pickup_drop.invalid",
+                new ChatComponentNumber(action));
             invalid.getChatStyle()
                 .setColor(EnumChatFormatting.RED);
             return invalid;

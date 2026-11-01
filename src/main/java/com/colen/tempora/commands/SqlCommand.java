@@ -26,6 +26,7 @@ import com.colen.tempora.loggers.generic.RenderEventPacket;
 import com.colen.tempora.loggers.generic.TemporaQueries;
 import com.colen.tempora.loggers.generic.column.ColumnDef;
 import com.colen.tempora.utils.CommandUtils;
+import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 
 /**
  * /tempora sql <SELECT ...>
@@ -155,15 +156,15 @@ public class SqlCommand extends TemporaSubcommand {
         } else if (output.size() == CommandsConfig.sqlMaxResults) {
             ChatComponentTranslation queryMsg = new ChatComponentTranslation(
                 "tempora.command.sql.query_quantity_if_max",
-                output.size(),
-                CommandsConfig.sqlMaxResults);
+                new ChatComponentNumber(output.size()),
+                new ChatComponentNumber(CommandsConfig.sqlMaxResults));
             queryMsg.getChatStyle()
                 .setColor(EnumChatFormatting.GRAY);
             sender.addChatMessage(queryMsg);
         } else {
             ChatComponentTranslation queryMsg = new ChatComponentTranslation(
                 "tempora.command.sql.query_quantity",
-                output.size());
+                new ChatComponentNumber(output.size()));
             queryMsg.getChatStyle()
                 .setColor(EnumChatFormatting.GRAY);
             sender.addChatMessage(queryMsg);

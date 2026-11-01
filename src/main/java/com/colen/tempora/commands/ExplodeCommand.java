@@ -76,6 +76,12 @@ public class ExplodeCommand extends TemporaSubcommand {
         );
     }
 
+    // TNT's power, for scale.
+    @Override
+    protected Object[] getArgumentArgs(int index) {
+        return new Object[] { 4 };
+    }
+
     @Override
     public String getExampleArgs() {
         return "5";

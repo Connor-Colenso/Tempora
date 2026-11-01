@@ -14,11 +14,13 @@ import com.colen.tempora.TemporaLoggerManager;
 import com.colen.tempora.commands.command_base.CommandFilters;
 import com.colen.tempora.commands.command_base.SearchSummary;
 import com.colen.tempora.commands.command_base.TemporaSubcommand;
+import com.colen.tempora.config.CommandsConfig;
 import com.colen.tempora.loggers.generic.GenericGlobalLogger;
 import com.colen.tempora.loggers.generic.GenericLogger;
 import com.colen.tempora.loggers.generic.GenericLogger.FoundEvents;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.TemporaQueries;
+import com.colen.tempora.utils.TimeUtils;
 import com.colen.tempora.utils.TimeWindow;
 
 /**
@@ -101,6 +103,18 @@ public class GlobalCommand extends TemporaSubcommand {
         suggestions.put("l", TemporaLoggerManager.getGlobalShortNames());
         suggestions.put("n", Arrays.asList("10", "25", "50", "100"));
         return CommandFilters.complete(args, suggestions);
+    }
+
+    @Override
+    protected Object[] getDescriptionArgs() {
+        return new Object[] { Integer.parseInt(DEFAULT_COUNT),
+            TimeUtils.convertToSeconds(DEFAULT_TIME) / LookupCommand.DAY_SECONDS };
+    }
+
+    @Override
+    protected Object[] getArgumentArgs(int index) {
+        if (index == 2) return new Object[] { Integer.parseInt(DEFAULT_COUNT), CommandsConfig.maxResultsPerLogger };
+        return super.getArgumentArgs(index);
     }
 
     @Override

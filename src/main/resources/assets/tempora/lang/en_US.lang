@@ -189,7 +189,10 @@ tempora.command.list.header=Tempora commands. Click one to fill it in, hover ove
 tempora.command.bad_filter='%s' isn't a valid filter. Use any of: %s
 tempora.command.unknown_player=No player called '%s' has joined this server.
 tempora.command.unknown_logger=There is no logger called '%s'. Choices are: %s.
-tempora.command.count_capped=n:%s is over this server's limit, so it was capped to %s (maxResultsPerLogger in config/tempora/commands.cfg).
+tempora.time.invalid=Invalid time '%s'. Expected e.g. 30m, 6h, 1d, 2w or 1mo.
+tempora.time.unsupported_unit=Invalid time: '%s' isn't a unit of time.
+tempora.time.too_long=Invalid time: the longest is %s years.
+tempora.command.count_capped=%s events per logger is over this server's limit, so it was capped to %s (maxResultsPerLogger in config/tempora/commands.cfg).
 
 # /tempora help
 tempora.command.help.description=Lists every Tempora command, or shows how to use one, e.g. /tempora help region set. A ? after any command shows the same, e.g. /tempora lookup ?
@@ -199,27 +202,27 @@ tempora.command.help.label.usage=Usage: %s
 tempora.command.help.label.example=Example: %s
 
 # /tempora lookup
-tempora.command.lookup.description=Shows the latest events around you and draws them in the world. Every filter is optional and they can go in any order. By default it searches 10 blocks around you, over the last 3 days, in every logger, by anyone, and shows the latest 5 events of each. Loggers that aren't tied to a place, such as weather, are shown by /tempora global instead.
-tempora.command.lookup.arg0=How many blocks around you to search, default 10.
+tempora.command.lookup.description=Shows the latest events around you and draws them in the world. Every filter is optional and they can go in any order. By default it searches %s blocks around you, over the last %s days, in every logger, by anyone, and shows the latest %s events of each. Loggers that aren't tied to a place, such as weather, are shown by /tempora global instead.
+tempora.command.lookup.arg0=How many blocks around you to search, default %s.
 tempora.command.lookup.arg1=How far back to look, e.g. 30m, 6h, 1d, 2w, default 3d. A range such as 3d-1d looks between 3 days and 1 day ago.
 tempora.command.lookup.arg2=Which loggers to search, comma separated, e.g. break,place. Default is every logger.
 tempora.command.lookup.arg3=Whose events to show, comma separated, e.g. Player1,Player2. A ! leaves a player out instead, e.g. !Player1 for everyone but Player1. Block changes and explosions go by the closest player. Loggers with no player, such as mob spawns, are skipped. Default is anyone.
-tempora.command.lookup.arg4=How many events to show from each logger, default 5. The server's limit is 1000 unless changed in config.
+tempora.command.lookup.arg4=How many events to show from each logger, default %s. This server's limit is %s.
 tempora.command.lookup.global_logger=%s isn't tied to a place, so it can't be looked up around you. Use %s instead.
 
 # /tempora global
-tempora.command.global.description=Shows the latest events from loggers that aren't tied to a place, such as players joining and leaving, weather and TPS. Works from anywhere, including the server console. Every filter is optional and they can go in any order. By default it shows the last 10 events of each, over the last 3 days.
+tempora.command.global.description=Shows the latest events from loggers that aren't tied to a place, such as players joining and leaving, weather and TPS. Works from anywhere, including the server console. Every filter is optional and they can go in any order. By default it shows the last %s events of each, over the last %s days.
 tempora.command.global.arg0=How far back to look, e.g. 30m, 6h, 1d, 2w, default 3d. A range such as 3d-1d looks between 3 days and 1 day ago.
 tempora.command.global.arg1=Which loggers to show, comma separated, e.g. weather,tps. Default is every one.
-tempora.command.global.arg2=How many events to show from each logger, default 10. The server's limit is 1000 unless changed in config.
+tempora.command.global.arg2=How many events to show from each logger, default %s. This server's limit is %s.
 tempora.command.global.positional_logger=%s records events at a place, use %s to look them up around you.
 
 # /tempora player
-tempora.command.player.description=Shows a player's latest events wherever they happened, from every logger that records players: what they broke, placed, took from or put in containers, used, picked up, dropped, the commands they ran, and when they joined and left. Block changes and explosions go by the closest player. Works from anywhere, including the server console, and draws the events in your dimension in the world. Every filter is optional and they can go in any order. By default it shows the latest 5 events of each, over everything still stored.
+tempora.command.player.description=Shows a player's latest events wherever they happened, from every logger that records players: what they broke, placed, took from or put in containers, used, picked up, dropped, the commands they ran, and when they joined and left. Block changes and explosions go by the closest player. Works from anywhere, including the server console, and draws the events in your dimension in the world. Every filter is optional and they can go in any order. By default it shows the latest %s events of each, over everything still stored.
 tempora.command.player.arg0=Name of the player to look up.
 tempora.command.player.arg1=How far back to look, e.g. 30m, 6h, 1d, 2w. A range such as 3d-1d looks between 3 days and 1 day ago. Default is everything still stored.
 tempora.command.player.arg2=Which loggers to search, comma separated, e.g. break,place. Default is every logger that records players.
-tempora.command.player.arg3=How many events to show from each logger, default 5. The server's limit is 1000 unless changed in config.
+tempora.command.player.arg3=How many events to show from each logger, default %s. This server's limit is %s.
 tempora.command.player.header=Latest events by %s:
 tempora.command.player.no_player=%s doesn't record players. Choices are: %s.
 
@@ -244,11 +247,11 @@ tempora.command.status.queued=%s waiting to be saved
 tempora.command.status.total=Total %s on disk, %s free
 
 # /tempora home
-tempora.command.home.description=Lists the places a player has spent the most time, busiest first, from their position history. Useful for finding their base, and for telling it apart from an AFK farm or spawn. Each place is the 3x3 chunks around its busiest chunk, and clicking it teleports you to where they last stood there.
+tempora.command.home.description=Lists the places a player has spent the most time, busiest first, from their position history. Useful for finding their base, and for telling it apart from an AFK farm or spawn. Each place is the %sx%s chunks around its busiest chunk, and clicking it teleports you to where they last stood there.
 tempora.command.home.arg0=Name of the player to look up.
 tempora.command.home.arg1=How far back to look, e.g. 1d, 3w, 1mo. A range such as 3w-1w looks between 3 weeks and 1 week ago. Default is everything still stored.
 tempora.command.home.arg2=Only look in this dimension, by ID. Default is every dimension.
-tempora.command.home.arg3=How many places to list, up to 10, default 3.
+tempora.command.home.arg3=How many places to list, up to %s, default %s.
 tempora.command.home.header=Places %s spent the most time:
 tempora.command.home.spot=%s. %s of their time, in %s at %s, last there %s
 tempora.command.home.no_more=No other places where they spent much time.
@@ -273,7 +276,7 @@ tempora.command.wand.given=You have been given a Tempora wand. Left click a bloc
 
 # /tempora explode, only in a development environment
 tempora.command.explode.description=Creates an explosion at the block you are looking at, for testing that explosions are logged. Only exists in a development environment.
-tempora.command.explode.arg0=Power of the explosion, TNT is 4.
+tempora.command.explode.arg0=Power of the explosion, TNT is %s.
 tempora.command.explode.no_block_in_sight=No block in sight.
 tempora.command.explode.not_a_number=Power must be a number.
 

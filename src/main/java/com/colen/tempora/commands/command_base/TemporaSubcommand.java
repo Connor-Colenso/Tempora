@@ -15,8 +15,10 @@ import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
+import com.colen.tempora.chat.ChatComponentWrappedTranslation;
 import com.colen.tempora.commands.TemporaCommand;
 import com.colen.tempora.config.CommandsConfig;
+import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 
 /**
  * One subcommand of /tempora, e.g. "lookup" or "region set". Lang keys live under tempora.command.<path>, with the
@@ -72,7 +74,29 @@ public abstract class TemporaSubcommand {
     }
 
     public IChatComponent getDescription() {
-        return new ChatComponentTranslation(getLangKey() + ".description");
+        return new ChatComponentTranslation(getLangKey() + ".description", chatArgs(getDescriptionArgs()));
+    }
+
+    /**
+     * What fills in the .description lang string's placeholders, e.g. its default count. Numbers are formatted for the
+     * reader, so none are written into lang strings. Each a number or a string.
+     */
+    protected Object[] getDescriptionArgs() {
+        return new Object[0];
+    }
+
+    // What fills in the .argN lang string of argument index, as getDescriptionArgs does for the description.
+    protected Object[] getArgumentArgs(int index) {
+        return new Object[0];
+    }
+
+    // Numbers as components that format them on the client, for a ChatComponentTranslation.
+    private static Object[] chatArgs(Object[] args) {
+        Object[] chat = new Object[args.length];
+        for (int i = 0; i < args.length; i++) {
+            chat[i] = args[i] instanceof Number number ? new ChatComponentNumber(number) : args[i];
+        }
+        return chat;
     }
 
     // The command as typed, e.g. "/tempora region set", plus any arguments given.
@@ -124,18 +148,20 @@ public abstract class TemporaSubcommand {
                 new ChatComponentTranslation(
                     "%s: %s",
                     argument,
-                    new ChatComponentTranslation(getLangKey() + ".arg" + i)));
+                    new ChatComponentTranslation(getLangKey() + ".arg" + i, chatArgs(getArgumentArgs(i)))));
         }
 
         return descriptions;
     }
 
-    // The .argN lang key of a key:value filter, e.g. "tempora.command.lookup.arg0" for "r", going by the argument
-    // that starts with it in the usage line, e.g. "[r:<radius>]".
-    public final String getFilterLangKey(String key) {
+    // What a key:value filter does, from its .argN lang string, wrapped for a hover. Its argument is the one that
+    // starts with it in the usage line, e.g. "[r:<radius>]" for "r".
+    public final IChatComponent getFilterDescription(String key) {
         for (int i = 0; i < arguments.size(); i++) {
             if (arguments.get(i)
-                .startsWith("[" + key + ":")) return getLangKey() + ".arg" + i;
+                .startsWith("[" + key + ":")) {
+                return new ChatComponentWrappedTranslation(getLangKey() + ".arg" + i, getArgumentArgs(i));
+            }
         }
         throw new IllegalArgumentException(path + " has no " + key + ": filter");
     }
@@ -202,7 +228,7 @@ public abstract class TemporaSubcommand {
         int max = CommandsConfig.maxResultsPerLogger;
         if (count <= max) return count;
 
-        sendError(sender, "tempora.command.count_capped", typed, max);
+        sendError(sender, "tempora.command.count_capped", new ChatComponentNumber(count), new ChatComponentNumber(max));
         return max;
     }
 

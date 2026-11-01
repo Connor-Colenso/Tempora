@@ -18,6 +18,7 @@ import com.colen.tempora.networking.packets.PacketRemoveRegionFromClient;
 import com.colen.tempora.regions.TemporaRegionRegistry;
 import com.colen.tempora.regions.TemporaWorldRegion;
 import com.colen.tempora.utils.CommandUtils;
+import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 
 /**
  * /tempora region remove [name]
@@ -85,7 +86,9 @@ public class RegionRemoveCommand extends TemporaSubcommand {
     }
 
     private void sendPickOne(ICommandSender sender, List<TemporaWorldRegion> regions) {
-        IChatComponent header = new ChatComponentTranslation("tempora.command.region.remove.ambiguous", regions.size());
+        IChatComponent header = new ChatComponentTranslation(
+            "tempora.command.region.remove.ambiguous",
+            new ChatComponentNumber(regions.size()));
         header.getChatStyle()
             .setColor(EnumChatFormatting.YELLOW);
         sender.addChatMessage(header);

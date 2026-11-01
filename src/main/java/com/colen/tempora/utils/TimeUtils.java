@@ -14,6 +14,7 @@ import net.minecraft.util.IChatComponent;
 
 import com.colen.tempora.chat.ChatComponentTimeAbsolute;
 import com.colen.tempora.chat.ChatComponentTimeRelative;
+import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 
 public class TimeUtils {
 
@@ -44,7 +45,7 @@ public class TimeUtils {
         Matcher matcher = Pattern.compile("(\\d+)\\s*([a-zA-Z]+)")
             .matcher(timeDescription);
         if (!matcher.matches()) {
-            throw new CommandException("Invalid time description. Expected e.g. '1week' or '5months' etc.");
+            throw new CommandException("tempora.time.invalid", timeDescription);
         }
 
         String raw = matcher.group(2)
@@ -54,7 +55,7 @@ public class TimeUtils {
         String unit = UNIT_ALIASES.get(raw);
 
         if (unit == null) {
-            throw new CommandException("Invalid time description. Unsupported unit: " + raw);
+            throw new CommandException("tempora.time.unsupported_unit", raw);
         }
 
         long unitSeconds = switch (unit) {
@@ -75,11 +76,12 @@ public class TimeUtils {
             if (seconds > MAX_SECONDS) throw new ArithmeticException();
             return seconds;
         } catch (NumberFormatException | ArithmeticException tooLong) {
-            throw new CommandException("Invalid time description. The longest is 1000 years.");
+            throw new CommandException("tempora.time.too_long", new ChatComponentNumber(MAX_YEARS));
         }
     }
 
-    private static final long MAX_SECONDS = 1000 * 31_557_600L;
+    private static final int MAX_YEARS = 1000;
+    private static final long MAX_SECONDS = MAX_YEARS * 31_557_600L;
 
     // Utility classes
     public static class DurationParts {

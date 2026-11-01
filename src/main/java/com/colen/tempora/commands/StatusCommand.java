@@ -1,6 +1,8 @@
 package com.colen.tempora.commands;
 
+import static com.colen.tempora.utils.ChatUtils.ONE_DP;
 import static com.colen.tempora.utils.ChatUtils.createCenteredLine;
+import static com.gtnewhorizon.gtnhlib.util.numberformatting.NumberFormatUtil.formatNumber;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -12,7 +14,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -162,8 +163,8 @@ public class StatusCommand extends TemporaSubcommand {
             value /= 1024;
             unit++;
         }
-        String text = unit == 0 ? bytes + " B" : String.format(Locale.ROOT, "%.1f %s", value, units[unit]);
-        return EventChat.text(text, EnumChatFormatting.WHITE);
+        String number = unit == 0 ? formatNumber(bytes) : formatNumber(value, ONE_DP);
+        return EventChat.text(number + " " + units[unit], EnumChatFormatting.WHITE);
     }
 
     private static long fileSize(Path file) {

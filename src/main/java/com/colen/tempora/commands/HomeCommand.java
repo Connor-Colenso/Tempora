@@ -1,5 +1,7 @@
 package com.colen.tempora.commands;
 
+import static com.gtnewhorizon.gtnhlib.util.numberformatting.NumberFormatUtil.formatNumber;
+
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -214,7 +216,7 @@ public class HomeCommand extends TemporaSubcommand {
         return EventChat.line(
             "tempora.command.home.spot",
             rank,
-            EventChat.text(Math.round(spot.share * 100) + "%", EnumChatFormatting.WHITE),
+            EventChat.text(formatNumber(Math.round(spot.share * 100)) + "%", EnumChatFormatting.WHITE),
             EventChat.text(GenericUtils.getDimensionName(spot.dimension), EnumChatFormatting.WHITE),
             CommandUtils.teleportChatComponent(spot.x, spot.y, spot.z, spot.dimension, CommandUtils.TeleportType.EXACT),
             EventChat.time(spot.lastSeen));
@@ -284,6 +286,18 @@ public class HomeCommand extends TemporaSubcommand {
         suggestions.put("dim", dimensions);
         suggestions.put("n", Arrays.asList("1", "3", "5", "10"));
         return CommandFilters.complete(args, suggestions);
+    }
+
+    @Override
+    protected Object[] getDescriptionArgs() {
+        int placeChunks = AREA_RADIUS * 2 + 1;
+        return new Object[] { placeChunks, placeChunks };
+    }
+
+    @Override
+    protected Object[] getArgumentArgs(int index) {
+        if (index == 3) return new Object[] { MAX_COUNT, DEFAULT_COUNT };
+        return super.getArgumentArgs(index);
     }
 
     @Override

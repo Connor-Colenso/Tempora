@@ -15,6 +15,7 @@ import com.colen.tempora.chat.EventChat;
 import com.colen.tempora.commands.command_base.CommandFilters;
 import com.colen.tempora.commands.command_base.SearchSummary;
 import com.colen.tempora.commands.command_base.TemporaSubcommand;
+import com.colen.tempora.config.CommandsConfig;
 import com.colen.tempora.loggers.generic.GenericLogger;
 import com.colen.tempora.loggers.generic.GenericLogger.FoundEvents;
 import com.colen.tempora.loggers.generic.TemporaQueries;
@@ -137,6 +138,17 @@ public class PlayerCommand extends TemporaSubcommand {
         suggestions.put("l", shortNames(playerLoggers()));
         suggestions.put("n", Arrays.asList("5", "10", "25", "50"));
         return CommandFilters.complete(args, suggestions);
+    }
+
+    @Override
+    protected Object[] getDescriptionArgs() {
+        return new Object[] { Integer.parseInt(DEFAULT_COUNT) };
+    }
+
+    @Override
+    protected Object[] getArgumentArgs(int index) {
+        if (index == 3) return new Object[] { Integer.parseInt(DEFAULT_COUNT), CommandsConfig.maxResultsPerLogger };
+        return super.getArgumentArgs(index);
     }
 
     @Override

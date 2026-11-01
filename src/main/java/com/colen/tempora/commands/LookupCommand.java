@@ -20,6 +20,7 @@ import com.colen.tempora.TemporaLoggerManager;
 import com.colen.tempora.commands.command_base.CommandFilters;
 import com.colen.tempora.commands.command_base.SearchSummary;
 import com.colen.tempora.commands.command_base.TemporaSubcommand;
+import com.colen.tempora.config.CommandsConfig;
 import com.colen.tempora.loggers.generic.GenericGlobalLogger;
 import com.colen.tempora.loggers.generic.GenericLogger;
 import com.colen.tempora.loggers.generic.GenericLogger.FoundEvents;
@@ -27,6 +28,7 @@ import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.TemporaQueries;
 import com.colen.tempora.utils.PlayerFilter;
 import com.colen.tempora.utils.PlayerUtils;
+import com.colen.tempora.utils.TimeUtils;
 import com.colen.tempora.utils.TimeWindow;
 
 /**
@@ -39,6 +41,7 @@ public class LookupCommand extends TemporaSubcommand {
 
     private static final String DEFAULT_RADIUS = "10";
     private static final String DEFAULT_TIME = "3d";
+    static final long DAY_SECONDS = 86_400;
     // Per logger. Each event is also drawn in the world, so this stays well below /tempora global's.
     public static final int DEFAULT_COUNT = 5;
     // Only so the search box can't overflow an int: centre (at most 30 million out, the world border) + radius + 1.
@@ -170,6 +173,21 @@ public class LookupCommand extends TemporaSubcommand {
         suggestions.put("p", playerSuggestions);
         suggestions.put("n", Arrays.asList("5", "10", "25", "50"));
         return CommandFilters.complete(args, suggestions);
+    }
+
+    @Override
+    protected Object[] getDescriptionArgs() {
+        return new Object[] { Integer.parseInt(DEFAULT_RADIUS), TimeUtils.convertToSeconds(DEFAULT_TIME) / DAY_SECONDS,
+            DEFAULT_COUNT };
+    }
+
+    @Override
+    protected Object[] getArgumentArgs(int index) {
+        return switch (index) {
+            case 0 -> new Object[] { Integer.parseInt(DEFAULT_RADIUS) };
+            case 4 -> new Object[] { DEFAULT_COUNT, CommandsConfig.maxResultsPerLogger };
+            default -> super.getArgumentArgs(index);
+        };
     }
 
     @Override

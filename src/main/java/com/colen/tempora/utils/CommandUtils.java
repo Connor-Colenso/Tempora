@@ -58,7 +58,7 @@ public class CommandUtils {
                 new ChatComponentTranslation(
                     "tempora.teleport.dimension",
                     GenericUtils.getDimensionName(dimID),
-                    dimID));
+                    new ChatComponentNumber(dimID)));
         if (teleportType == TeleportType.EXACT) {
             hoverText.appendText("\n")
                 .appendSibling(

@@ -30,12 +30,15 @@ public final class SearchSummary {
         boolean isDefault = typed == null;
 
         // What the filter does, then whether it was left at its default, in red, or what it was given instead.
-        IChatComponent description = new ChatComponentWrappedTranslation(command.getFilterLangKey(key));
+        IChatComponent description = command.getFilterDescription(key);
         description.getChatStyle()
             .setColor(EnumChatFormatting.GRAY);
         IChatComponent value = isDefault
-            ? new ChatComponentWrappedTranslation("tempora.command.search.default", shownDefault)
-            : new ChatComponentWrappedTranslation("tempora.command.search.overridden", shownDefault, typed);
+            ? new ChatComponentWrappedTranslation("tempora.command.search.default", numberOrText(shownDefault))
+            : new ChatComponentWrappedTranslation(
+                "tempora.command.search.overridden",
+                numberOrText(shownDefault),
+                numberOrText(typed));
         value.getChatStyle()
             .setColor(isDefault ? EnumChatFormatting.RED : EnumChatFormatting.GRAY);
         IChatComponent hover = new ChatComponentText("");
@@ -52,6 +55,15 @@ public final class SearchSummary {
             .isEmpty()) filterList.appendSibling(new ChatComponentText(" "));
         filterList.appendSibling(filter);
         return this;
+    }
+
+    // A whole number, e.g. "1000", as a number to format on the client, anything else, e.g. "3d", as it is.
+    private static Object numberOrText(String value) {
+        try {
+            return Long.parseLong(value);
+        } catch (NumberFormatException e) {
+            return value;
+        }
     }
 
     // "Searched ..." to go under the results, or "Nothing found ..." if there were none.

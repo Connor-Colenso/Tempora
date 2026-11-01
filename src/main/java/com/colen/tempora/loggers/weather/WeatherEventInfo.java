@@ -11,6 +11,7 @@ import com.colen.tempora.TemporaEvents;
 import com.colen.tempora.chat.EventChat;
 import com.colen.tempora.loggers.generic.GlobalEventInfo;
 import com.colen.tempora.loggers.generic.column.Column;
+import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 
 public class WeatherEventInfo extends GlobalEventInfo {
 
@@ -32,7 +33,10 @@ public class WeatherEventInfo extends GlobalEventInfo {
             .setChatHoverEvent(
                 new HoverEvent(
                     HoverEvent.Action.SHOW_TEXT,
-                    EventChat.grey(new ChatComponentTranslation("tempora.chat.dimension_id", dimensionID))));
+                    EventChat.grey(
+                        new ChatComponentTranslation(
+                            "tempora.chat.dimension_id",
+                            new ChatComponentNumber(dimensionID)))));
 
         return EventChat.line(
             "tempora.event.weather",

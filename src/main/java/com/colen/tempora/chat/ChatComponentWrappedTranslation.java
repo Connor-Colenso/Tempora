@@ -1,8 +1,9 @@
 package com.colen.tempora.chat;
 
+import static com.gtnewhorizon.gtnhlib.util.numberformatting.NumberFormatUtil.formatNumber;
+
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import net.minecraft.network.PacketBuffer;
@@ -16,25 +17,36 @@ import cpw.mods.fml.common.FMLCommonHandler;
 /**
  * A translation for a hover, translated on the client and wrapped there to three quarters of the screen's width, as
  * hover text doesn't wrap by itself: a long description would otherwise run off the screen. Each argument is a string,
- * or another of these, also translated on the client, e.g. a duration inside "Keeps events for %s".
+ * a number, formatted on the client with formatNumber, or another of these, also translated on the client, e.g. a
+ * duration inside "Keeps events for %s".
  */
 public class ChatComponentWrappedTranslation extends AbstractChatComponentBuffer<ChatComponentWrappedTranslation> {
 
     private static final byte STRING_ARG = 0;
     private static final byte TRANSLATION_ARG = 1;
+    private static final byte LONG_ARG = 2;
+    private static final byte DOUBLE_ARG = 3;
 
     private String key;
-    // Each a String or a ChatComponentWrappedTranslation.
+    // Each a String, a Long, a Double or a ChatComponentWrappedTranslation.
     private List<Object> args;
 
     public ChatComponentWrappedTranslation(String key, Object... args) {
+        List<Object> checked = new ArrayList<>(args.length);
         for (Object arg : args) {
-            if (!(arg instanceof String) && !(arg instanceof ChatComponentWrappedTranslation)) {
-                throw new IllegalArgumentException("Arguments must be strings or wrapped translations, got " + arg);
+            if (arg instanceof Double || arg instanceof Float) {
+                checked.add(((Number) arg).doubleValue());
+            } else if (arg instanceof Number number) {
+                checked.add(number.longValue());
+            } else if (arg instanceof String || arg instanceof ChatComponentWrappedTranslation) {
+                checked.add(arg);
+            } else {
+                throw new IllegalArgumentException(
+                    "Arguments must be strings, numbers or wrapped translations, got " + arg);
             }
         }
         this.key = key;
-        this.args = Arrays.asList(args);
+        this.args = checked;
     }
 
     public ChatComponentWrappedTranslation() {}
@@ -66,7 +78,9 @@ public class ChatComponentWrappedTranslation extends AbstractChatComponentBuffer
         Object[] filled = new Object[args.size()];
         for (int i = 0; i < filled.length; i++) {
             Object arg = args.get(i);
-            filled[i] = arg instanceof ChatComponentWrappedTranslation nested ? nested.translate() : arg;
+            if (arg instanceof ChatComponentWrappedTranslation nested) filled[i] = nested.translate();
+            else if (arg instanceof Number number) filled[i] = formatNumber(number);
+            else filled[i] = arg;
         }
         return StatCollector.translateToLocalFormatted(key, filled);
     }
@@ -79,6 +93,12 @@ public class ChatComponentWrappedTranslation extends AbstractChatComponentBuffer
             if (arg instanceof ChatComponentWrappedTranslation nested) {
                 buf.writeByte(TRANSLATION_ARG);
                 nested.encode(buf);
+            } else if (arg instanceof Long number) {
+                buf.writeByte(LONG_ARG);
+                buf.writeLong(number);
+            } else if (arg instanceof Double number) {
+                buf.writeByte(DOUBLE_ARG);
+                buf.writeDouble(number);
             } else {
                 buf.writeByte(STRING_ARG);
                 writeString(buf, (String) arg);
@@ -92,12 +112,15 @@ public class ChatComponentWrappedTranslation extends AbstractChatComponentBuffer
         int count = buf.readInt();
         args = new ArrayList<>(count);
         for (int i = 0; i < count; i++) {
-            if (buf.readByte() == TRANSLATION_ARG) {
-                ChatComponentWrappedTranslation nested = new ChatComponentWrappedTranslation();
-                nested.decode(buf);
-                args.add(nested);
-            } else {
-                args.add(readString(buf));
+            switch (buf.readByte()) {
+                case TRANSLATION_ARG -> {
+                    ChatComponentWrappedTranslation nested = new ChatComponentWrappedTranslation();
+                    nested.decode(buf);
+                    args.add(nested);
+                }
+                case LONG_ARG -> args.add(buf.readLong());
+                case DOUBLE_ARG -> args.add(buf.readDouble());
+                default -> args.add(readString(buf));
             }
         }
     }

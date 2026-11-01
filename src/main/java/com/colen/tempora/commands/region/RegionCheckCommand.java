@@ -23,6 +23,7 @@ import com.colen.tempora.regions.LogRule;
 import com.colen.tempora.regions.TemporaRegionRegistry;
 import com.colen.tempora.regions.TemporaWorldRegion;
 import com.colen.tempora.utils.CommandUtils;
+import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 
 /**
  * /tempora region check [logger]
@@ -75,7 +76,7 @@ public class RegionCheckCommand extends TemporaSubcommand {
             "tempora.command.region.check.header",
             CommandUtils.teleportChatComponent(x, y, z, dimID, CommandUtils.TeleportType.EXACT),
             getDimensionName(dimID),
-            dimID);
+            new ChatComponentNumber(dimID));
         header.getChatStyle()
             .setColor(EnumChatFormatting.YELLOW);
         sender.addChatMessage(header);
