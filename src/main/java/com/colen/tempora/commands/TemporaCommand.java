@@ -38,7 +38,9 @@ public class TemporaCommand extends CommandBase {
     static {
         ROOT.add(LOOKUP);
         ROOT.add(GLOBAL);
+        ROOT.add(new PlayerCommand());
         ROOT.add(new HomeCommand());
+        ROOT.add(new StatusCommand());
         ROOT.add(new SqlCommand());
         ROOT.add(new WandCommand());
         ROOT.add(

@@ -41,7 +41,6 @@ public class LookupCommand extends TemporaSubcommand {
     private static final String DEFAULT_TIME = "3d";
     // Per logger. Each event is also drawn in the world, so this stays well below /tempora global's.
     public static final int DEFAULT_COUNT = 5;
-    private static final int MAX_COUNT = 50;
     // Only so the search box can't overflow an int: centre (at most 30 million out, the world border) + radius + 1.
     private static final int MAX_RADIUS = 2_000_000_000;
 
@@ -65,7 +64,7 @@ public class LookupCommand extends TemporaSubcommand {
         TimeWindow window = TimeWindow.parse(filters.get("t", DEFAULT_TIME));
         String playerNames = filters.get("p");
         PlayerFilter players = playerNames == null ? PlayerFilter.anyone() : PlayerFilter.parse(playerNames);
-        int count = CommandBase.parseIntBounded(sender, filters.get("n", String.valueOf(DEFAULT_COUNT)), 1, MAX_COUNT);
+        int count = parseCountPerLogger(sender, filters.get("n", String.valueOf(DEFAULT_COUNT)));
 
         List<GenericPositionalLogger<?>> loggers = parseLoggers(sender, filters.get("l"));
         if (loggers == null) return;

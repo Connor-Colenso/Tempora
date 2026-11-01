@@ -1,8 +1,5 @@
 package com.colen.tempora.loggers.player_position;
 
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.List;
 
 import net.minecraft.entity.player.EntityPlayer;
@@ -70,17 +67,11 @@ public class PlayerPositionLogger extends GenericPositionalLogger<PlayerPosition
             "How often player location is recorded by Tempora. Measured in ticks (20/second).");
     }
 
+    // Also holds every column /tempora home reads, so it never touches the table: one player's rows are spread across
+    // all of it, and reading them there one by one is slower than not having an index at all.
     @Override
-    protected void createExtraTables(Connection conn) throws SQLException {
-        // For /tempora home. Holds every column it reads, so it never touches the table: one player's rows are spread
-        // across all of it, and reading them there one by one is slower than not having an index at all.
-        try (Statement st = conn.createStatement()) {
-            st.execute(
-                "CREATE INDEX IF NOT EXISTS idx_" + getLoggerName()
-                    + "_player ON "
-                    + getLoggerName()
-                    + " (playerUUID, timestamp, dimensionID, x, z, y)");
-        }
+    protected String playerIndexColumns() {
+        return "playerUUID, timestamp, dimensionID, x, z, y";
     }
 
     @Override

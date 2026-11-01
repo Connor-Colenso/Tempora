@@ -29,6 +29,12 @@ public class PlayerConnectionLogger extends GenericGlobalLogger<PlayerConnection
 
     public static final String SERVER_STOPPED = "tempora.event.player_connection.server_stopped";
 
+    // The player joining or leaving.
+    @Override
+    protected String playerColumn() {
+        return "playerUUID";
+    }
+
     @Override
     public @NotNull String getLoggerName() {
         return TemporaEvents.PLAYER_CONNECTION;

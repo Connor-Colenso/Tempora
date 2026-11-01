@@ -4,15 +4,12 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 
+import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.IChatComponent;
 import net.minecraftforge.common.config.Configuration;
 
-import org.jetbrains.annotations.Nullable;
-
 import com.colen.tempora.commands.TemporaCommand;
-import com.colen.tempora.loggers.generic.column.ColumnDef;
-import com.colen.tempora.loggers.generic.column.ColumnType;
 import com.colen.tempora.regions.LogRule;
 import com.colen.tempora.regions.TemporaRegionRegistry;
 import com.colen.tempora.regions.TemporaWorldRegion;
@@ -34,15 +31,6 @@ public abstract class GenericPositionalLogger<EventInfo extends PositionalEventI
     // much data to run everywhere, so they only log inside regions that turn them on.
     protected boolean defaultForLogByDefault() {
         return true;
-    }
-
-    /**
-     * The column holding the player behind each event, which the p: filter of /tempora lookup matches. It must be a
-     * {@link ColumnType#PLAYER} column. Null if its events have no player, in which case a lookup filtered by player
-     * finds none of them.
-     */
-    protected @Nullable String playerColumn() {
-        return null;
     }
 
     // Whether this logger records events where no region has a rule for it.
@@ -95,22 +83,6 @@ public abstract class GenericPositionalLogger<EventInfo extends PositionalEventI
             "Whether this logger records events in places where no region has a rule for it. Use /tempora region set to turn it ON or OFF inside specific regions.");
     }
 
-    // The p: filter matches players by their number, so the player column must store them as one.
-    @Override
-    final void checkKindColumns(List<ColumnDef> columns) {
-        String playerColumn = playerColumn();
-        if (playerColumn == null) return;
-
-        boolean storesPlayers = columns.stream()
-            .anyMatch(col -> col.name.equals(playerColumn) && col.columnType == ColumnType.PLAYER);
-        if (!storesPlayers) {
-            throw new IllegalStateException(
-                getLoggerName() + "'s playerColumn() is "
-                    + playerColumn
-                    + ", which is not a ColumnType.PLAYER column.");
-        }
-    }
-
     @Override
     final Map<String, String> tableIndexes() {
         Map<String, String> indexes = super.tableIndexes();
@@ -132,6 +104,7 @@ public abstract class GenericPositionalLogger<EventInfo extends PositionalEventI
         if (!players.isAnyone() && playerColumn == null) return sender -> 0;
 
         // Whole blocks: block n covers n <= x < n + 1, so a mob or player standing in it (x = n + 0.5) is found too.
+        // The + keeps SQLite off the player index, which would read every event the player has anywhere.
         String sql = String.format("""
             SELECT * FROM %s
             WHERE x >= ? AND x < ?
@@ -141,7 +114,7 @@ public abstract class GenericPositionalLogger<EventInfo extends PositionalEventI
               AND timestamp >= ? AND timestamp <= ?%s
             ORDER BY timestamp DESC
             LIMIT ?;
-            """, getLoggerName(), players.isAnyone() ? "" : players.sqlCondition(playerColumn));
+            """, getLoggerName(), players.isAnyone() ? "" : players.sqlCondition("+" + playerColumn));
 
         List<EventInfo> events;
         try {
@@ -175,16 +148,19 @@ public abstract class GenericPositionalLogger<EventInfo extends PositionalEventI
 
         return guarded(sender -> {
             sendEventsInChat(sender, events, limit, TemporaCommand.LOOKUP.command("l:" + getShortName()));
-
-            // This tells the client what to render in the world, if anything. Not if the player has changed dimension
-            // since looking, as the client only draws events in the dimension it is in.
-            if (sender instanceof EntityPlayerMP player && player.dimension == dimensionId) {
-                for (EventInfo eventData : events) {
-                    RenderEventPacket.sendSafely(eventData, player);
-                }
-            }
-
+            drawInWorld(sender, events);
             return events.size();
         });
+    }
+
+    // Tells the client what to render in the world, if anything. Only events in the player's dimension, as the client
+    // only draws events in the dimension it is in, and they may have changed dimension since looking.
+    @Override
+    final void drawInWorld(ICommandSender sender, List<EventInfo> events) {
+        if (!(sender instanceof EntityPlayerMP player)) return;
+
+        for (EventInfo eventData : events) {
+            if (eventData.dimensionID == player.dimension) RenderEventPacket.sendSafely(eventData, player);
+        }
     }
 }

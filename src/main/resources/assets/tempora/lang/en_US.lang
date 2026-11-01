@@ -186,6 +186,7 @@ tempora.command.list.header=Tempora commands. Click one to fill it in, hover ove
 tempora.command.bad_filter='%s' isn't a valid filter. Use any of: %s
 tempora.command.unknown_player=No player called '%s' has joined this server.
 tempora.command.unknown_logger=There is no logger called '%s'. Choices are: %s.
+tempora.command.count_capped=n:%s is over this server's limit, so it was capped to %s (maxResultsPerLogger in config/tempora/commands.cfg).
 
 # /tempora help
 tempora.command.help.description=Lists every Tempora command, or shows how to use one, e.g. /tempora help region set. A ? after any command shows the same, e.g. /tempora lookup ?
@@ -200,15 +201,44 @@ tempora.command.lookup.arg0=How many blocks around you to search, default 10.
 tempora.command.lookup.arg1=How far back to look, e.g. 30m, 6h, 1d, 2w, default 3d. A range such as 3d-1d looks between 3 days and 1 day ago.
 tempora.command.lookup.arg2=Which loggers to search, comma separated, e.g. break,place. Default is every logger.
 tempora.command.lookup.arg3=Whose events to show, comma separated, e.g. Player1,Player2. A ! leaves a player out instead, e.g. !Player1 for everyone but Player1. Block changes and explosions go by the closest player. Loggers with no player, such as mob spawns, are skipped. Default is anyone.
-tempora.command.lookup.arg4=How many events to show from each logger, up to 50, default 5.
+tempora.command.lookup.arg4=How many events to show from each logger, default 5. The server's limit is 1000 unless changed in config.
 tempora.command.lookup.global_logger=%s isn't tied to a place, so it can't be looked up around you. Use %s instead.
 
 # /tempora global
 tempora.command.global.description=Shows the latest events from loggers that aren't tied to a place, such as players joining and leaving, weather and TPS. Works from anywhere, including the server console. Every filter is optional and they can go in any order. By default it shows the last 10 events of each, over the last 3 days.
 tempora.command.global.arg0=How far back to look, e.g. 30m, 6h, 1d, 2w, default 3d. A range such as 3d-1d looks between 3 days and 1 day ago.
 tempora.command.global.arg1=Which loggers to show, comma separated, e.g. weather,tps. Default is every one.
-tempora.command.global.arg2=How many events to show from each logger, up to 100, default 10.
+tempora.command.global.arg2=How many events to show from each logger, default 10. The server's limit is 1000 unless changed in config.
 tempora.command.global.positional_logger=%s records events at a place, use %s to look them up around you.
+
+# /tempora player
+tempora.command.player.description=Shows a player's latest events wherever they happened, from every logger that records players: what they broke, placed, took from or put in containers, used, picked up, dropped, the commands they ran, and when they joined and left. Block changes and explosions go by the closest player. Works from anywhere, including the server console, and draws the events in your dimension in the world. Every filter is optional and they can go in any order. By default it shows the latest 5 events of each, over everything still stored.
+tempora.command.player.arg0=Name of the player to look up.
+tempora.command.player.arg1=How far back to look, e.g. 30m, 6h, 1d, 2w. A range such as 3d-1d looks between 3 days and 1 day ago. Default is everything still stored.
+tempora.command.player.arg2=Which loggers to search, comma separated, e.g. break,place. Default is every logger that records players.
+tempora.command.player.arg3=How many events to show from each logger, default 5. The server's limit is 1000 unless changed in config.
+tempora.command.player.header=Latest events by %s:
+tempora.command.player.no_player=%s doesn't record players. Choices are: %s.
+
+# /tempora status
+tempora.command.status.description=Shows whether each logger is storing events, how many it holds and how old they are, how much disk it uses, and any backlog of events waiting to be saved, then the total size of Tempora's databases and the free disk space left. Hover over a logger's name for what it records and how it is set up. Works from anywhere, including the server console.
+# E.g. "break [OK] 12,345 events, 1.2 MB, oldest 3.9d ago, newest 5s ago".
+tempora.command.status.logger=%s %s %s, %s, oldest %s, newest %s
+tempora.command.status.events.one=%s event
+tempora.command.status.events.many=%s events
+tempora.command.status.logger.empty=%s %s no events yet, %s
+tempora.command.status.logger.unreadable=%s %s %s, couldn't read it: %s
+tempora.command.status.logger.stopped=%s %s
+tempora.command.status.state.ok=[OK]
+tempora.command.status.state.ok.hover=Storing events.
+tempora.command.status.state.failing=[Failing]
+tempora.command.status.state.failing.hover=Can't store events: %s
+tempora.command.status.state.off=[Off]
+tempora.command.status.state.off.hover=Disabled in config/tempora/loggers.cfg.
+tempora.command.status.state.not_started=[Not started]
+tempora.command.status.state.not_started.hover=Failed to start, so it stores nothing until the server restarts. See the server log.
+tempora.command.status.queued=%s waiting to be saved
+tempora.command.status.total=Total %s on disk, %s free
 
 # /tempora home
 tempora.command.home.description=Lists the places a player has spent the most time, busiest first, from their position history. Useful for finding their base, and for telling it apart from an AFK farm or spawn. Each place is the 3x3 chunks around its busiest chunk, and clicking it teleports you to where they last stood there.

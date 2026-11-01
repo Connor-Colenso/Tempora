@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.event.ClickEvent;
 import net.minecraft.event.HoverEvent;
@@ -15,6 +16,7 @@ import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
 import com.colen.tempora.commands.TemporaCommand;
+import com.colen.tempora.config.CommandsConfig;
 
 /**
  * One subcommand of /tempora, e.g. "lookup" or "region set". Lang keys live under tempora.command.<path>, with the
@@ -189,6 +191,19 @@ public abstract class TemporaSubcommand {
                     HoverEvent.Action.SHOW_TEXT,
                     new ChatComponentTranslation("tempora.command.usage.hint.hover")));
         sender.addChatMessage(hint);
+    }
+
+    /**
+     * An n: filter's count of events per logger, at least 1. One over {@link CommandsConfig#maxResultsPerLogger} is
+     * lowered to it, and the sender told so in red.
+     */
+    protected static int parseCountPerLogger(ICommandSender sender, String typed) {
+        int count = CommandBase.parseIntWithMin(sender, typed, 1);
+        int max = CommandsConfig.maxResultsPerLogger;
+        if (count <= max) return count;
+
+        sendError(sender, "tempora.command.count_capped", typed, max);
+        return max;
     }
 
     protected static void sendError(ICommandSender sender, String langKey, Object... args) {

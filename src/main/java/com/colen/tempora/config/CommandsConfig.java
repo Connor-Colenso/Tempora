@@ -18,6 +18,12 @@ public class CommandsConfig {
     public static int queryTimeLimitSeconds;
 
     @Config.Comment({
+        "Most events /tempora lookup, global and player show from each logger. A higher n: is lowered to this. Each event is a chat line, and lookup and player also draw them in the world, so a high limit floods chat." })
+    @Config.DefaultInt(1000)
+    @Config.RangeInt(min = 1, max = 100_000)
+    public static int maxResultsPerLogger;
+
+    @Config.Comment({
         "Most events /tempora sql shows from one query. Each is a chat line and is drawn in the world, so a high limit floods chat." })
     @Config.DefaultInt(100)
     @Config.RangeInt(min = 1, max = 1000)

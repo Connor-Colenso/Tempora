@@ -32,7 +32,9 @@ import com.colen.tempora.TemporaLoggerManager;
 import com.colen.tempora.chat.ChatComponentWrappedTranslation;
 import com.colen.tempora.enums.LoggerEventType;
 import com.colen.tempora.loggers.generic.column.ColumnDef;
+import com.colen.tempora.loggers.generic.column.ColumnType;
 import com.colen.tempora.utils.PlayerUtils;
+import com.colen.tempora.utils.TimeWindow;
 import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 
 import cpw.mods.fml.common.FMLCommonHandler;
@@ -217,6 +219,28 @@ public abstract class GenericLogger<EventInfo extends GenericEventInfo> {
 
     private String translationKey(String part) {
         return "tempora.logger." + getLoggerName() + "." + part;
+    }
+
+    /**
+     * The column holding the player behind each event, which /tempora player and the p: filter of /tempora lookup
+     * match. It must be a {@link ColumnType#PLAYER} column, and is indexed with the timestamp (see
+     * {@link #playerIndexColumns}). Null if its events have no player, in which case searches by player skip this
+     * logger.
+     */
+    protected @Nullable String playerColumn() {
+        return null;
+    }
+
+    /**
+     * The columns of the index on {@link #playerColumn}, which must start with it and the timestamp. Override to add
+     * more, e.g. to cover every column a query of your own reads.
+     */
+    protected String playerIndexColumns() {
+        return playerColumn() + ", timestamp";
+    }
+
+    public final boolean hasPlayerColumn() {
+        return playerColumn() != null;
     }
 
     public void handleCustomLoggerConfig(Configuration config) {}
@@ -461,17 +485,27 @@ public abstract class GenericLogger<EventInfo extends GenericEventInfo> {
      * registers, so its author finds out then rather than when a server starts.
      */
     public final void checkColumns() {
-        checkKindColumns(getAllTableColumns(this));
+        String playerColumn = playerColumn();
+        if (playerColumn == null) return;
+
+        // Searches match players by their number, so the player column must store them as one.
+        boolean storesPlayers = getAllTableColumns(this).stream()
+            .anyMatch(col -> col.name.equals(playerColumn) && col.columnType == ColumnType.PLAYER);
+        if (!storesPlayers) {
+            throw new IllegalStateException(
+                getLoggerName() + "'s playerColumn() is "
+                    + playerColumn
+                    + ", which is not a ColumnType.PLAYER column.");
+        }
     }
 
-    // What one kind of logger needs of its columns.
-    void checkKindColumns(List<ColumnDef> columns) {}
-
-    // Index name suffix -> indexed columns. Every logger is searched by time, positional loggers by place as well.
+    // Index name suffix -> indexed columns. Every logger is searched by time, positional loggers by place as well, and
+    // loggers with a player column by player.
     Map<String, String> tableIndexes() {
         Map<String, String> indexes = new LinkedHashMap<>();
         // Ascending: SQLite reads an index backwards just as fast, for newest-first lookups.
         indexes.put("timestamp", "timestamp");
+        if (playerColumn() != null) indexes.put("player", playerIndexColumns());
         return indexes;
     }
 
@@ -537,6 +571,47 @@ public abstract class GenericLogger<EventInfo extends GenericEventInfo> {
             throw e;
         }
     }
+
+    /**
+     * Finds one player's latest events, up to {@code limit} of them, wherever they happened, on the query thread (see
+     * {@link TemporaQueries}). Only for loggers with a {@link #playerColumn}. Showing them lists them in chat, with
+     * {@code narrowCommand} to search this logger alone, and draws those in the sender's dimension. Says nothing if
+     * there are none, so callers checking many loggers can report that once.
+     */
+    public final FoundEvents findEventsBy(String uuid, TimeWindow window, int limit, String narrowCommand) {
+        String playerColumn = playerColumn();
+        if (playerColumn == null) throw new IllegalStateException(getLoggerName() + " has no player column.");
+
+        String sql = String.format("""
+            SELECT * FROM %s
+            WHERE %s = ?
+              AND timestamp >= ? AND timestamp <= ?
+            ORDER BY timestamp DESC
+            LIMIT ?;
+            """, getLoggerName(), playerColumn);
+
+        List<EventInfo> events;
+        try {
+            events = queryEvents(sql, ps -> {
+                long now = System.currentTimeMillis();
+                ps.setInt(1, PlayerIDs.lookupID(uuid));
+                ps.setLong(2, window.oldestMillis(now));
+                ps.setLong(3, window.newestMillis(now));
+                ps.setInt(4, limit);
+            });
+        } catch (SQLException e) {
+            return queryFailed(e);
+        }
+
+        return guarded(sender -> {
+            sendEventsInChat(sender, events, limit, narrowCommand);
+            drawInWorld(sender, events);
+            return events.size();
+        });
+    }
+
+    // Draws found events in the world for the sender, if this kind of logger has anything to draw. Server thread.
+    void drawInWorld(ICommandSender sender, List<EventInfo> events) {}
 
     // What a lookup shows for this logger when its query failed.
     final FoundEvents queryFailed(SQLException e) {

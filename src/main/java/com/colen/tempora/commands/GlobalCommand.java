@@ -6,7 +6,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 
 import org.jetbrains.annotations.Nullable;
@@ -31,7 +30,6 @@ public class GlobalCommand extends TemporaSubcommand {
 
     private static final String DEFAULT_TIME = "3d";
     private static final String DEFAULT_COUNT = "10";
-    private static final int MAX_COUNT = 100;
 
     public GlobalCommand() {
         super("global", "[t:<time>]", "[l:<logger,...>]", "[n:<count>]");
@@ -43,7 +41,7 @@ public class GlobalCommand extends TemporaSubcommand {
         if (filters == null) return;
 
         TimeWindow window = TimeWindow.parse(filters.get("t", DEFAULT_TIME));
-        int count = CommandBase.parseIntBounded(sender, filters.get("n", DEFAULT_COUNT), 1, MAX_COUNT);
+        int count = parseCountPerLogger(sender, filters.get("n", DEFAULT_COUNT));
 
         List<GenericGlobalLogger<?>> loggers = parseLoggers(sender, filters.get("l"));
         if (loggers == null) return;
