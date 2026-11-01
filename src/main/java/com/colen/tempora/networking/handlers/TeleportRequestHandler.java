@@ -52,6 +52,8 @@ public class TeleportRequestHandler implements IMessageHandler<PacketTeleportReq
         // A NaN or infinite position would corrupt the player's saved position.
         if (!Double.isFinite(x) || !Double.isFinite(y) || !Double.isFinite(z)) return;
 
+        boolean wasFlying = player.capabilities.isFlying;
+
         if (player.dimension != targetDim) {
             WorldServer target = MinecraftServer.getServer()
                 .worldServerForDimension(targetDim);
@@ -69,6 +71,13 @@ public class TeleportRequestHandler implements IMessageHandler<PacketTeleportReq
         // Most clicked coordinates are a block's (placed, broken, changed): if that block is solid now, stand on it.
         y = standingHeight(player.worldObj, x, y, z);
         player.playerNetServerHandler.setPlayerLocation(x, y, z, player.rotationYaw, player.rotationPitch);
+
+        // Changing dimension gives the client a new player with its game mode's default abilities, so one who was
+        // flying would arrive falling. Only where the server still lets them fly, as a mod's flight may end on leaving.
+        if (wasFlying && player.capabilities.allowFlying) {
+            player.capabilities.isFlying = true;
+            player.sendPlayerAbilities();
+        }
 
         // The coordinates are clickable again, to come back after wandering off.
         IChatComponent teleported = new ChatComponentTranslation(
