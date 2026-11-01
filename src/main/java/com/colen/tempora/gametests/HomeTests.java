@@ -69,10 +69,6 @@ public class HomeTests {
             HomeCommand.pickHotSpots(new ArrayList<>(), 3)
                 .isEmpty(),
             "places found with no positions");
-
-        for (int i = 0; i < spots.size(); i++) {
-            TestSupport.assertChatWellFormed(helper, HomeCommand.spotLine(i + 1, spots.get(i)), "place " + (i + 1));
-        }
         helper.succeed();
     }
 

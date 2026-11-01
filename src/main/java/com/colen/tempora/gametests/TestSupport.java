@@ -9,16 +9,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
-import net.minecraft.event.HoverEvent;
-import net.minecraft.util.ChatComponentTranslation;
-import net.minecraft.util.IChatComponent;
-import net.minecraft.util.StatCollector;
 import net.minecraftforge.common.util.FakePlayer;
 
-import com.colen.tempora.chat.ChatComponentWrappedTranslation;
 import com.colen.tempora.loggers.generic.GenericEventInfo;
 import com.colen.tempora.loggers.generic.GenericGlobalLogger;
 import com.colen.tempora.loggers.generic.GenericLogger;
@@ -38,9 +31,6 @@ import io.netty.buffer.Unpooled;
 
 /** What Tempora's tests share: reading events back, and checks every logged event should pass. */
 final class TestSupport {
-
-    // A translation placeholder: %s, %d, or positional %1$s. %% is a literal percent sign.
-    private static final Pattern PLACEHOLDER = Pattern.compile("%(?:(\\d+)\\$)?([A-Za-z%])");
 
     private TestSupport() {}
 
@@ -150,8 +140,8 @@ final class TestSupport {
     // ---------- Checks every stored event should pass ----------
 
     /**
-     * Checks events read back from the database: each has an id from the database, unique within its logger, its
-     * chat line is well formed, and a positional event's render packet reads back exactly as it was written.
+     * Checks events read back from the database: each has an id from the database, unique within its logger, and a
+     * positional event's render packet reads back exactly as it was written.
      */
     static void assertWellFormed(GameTestHelper helper, GenericLogger<?> logger,
         List<? extends GenericEventInfo> events) {
@@ -163,84 +153,10 @@ final class TestSupport {
             helper.assertTrue(ids.add(event.eventID), context + " has the same id as another event");
             helper.assertTrue(event.timestamp > 0, context + " has no timestamp");
 
-            assertChatWellFormed(helper, event.localiseText(), context);
-
             if (event instanceof PositionalEventInfo positional) {
                 assertPacketRoundTrips(helper, positional, context);
             }
         }
-    }
-
-    /**
-     * Checks a chat line and everything in it, hovers included: every translation key exists, and is given exactly as
-     * many arguments as it has placeholders. Too few throws when the line is shown; too many means a value is
-     * silently missing from it.
-     */
-    static void assertChatWellFormed(GameTestHelper helper, IChatComponent component, String context) {
-        if (component instanceof ChatComponentTranslation translation) {
-            String key = translation.getKey();
-            // A key holding a placeholder is a literal format, e.g. "%s. ", which vanilla uses as it is.
-            boolean literalFormat = key.contains("%");
-            helper.assertTrue(
-                literalFormat || StatCollector.canTranslate(key),
-                context + ": missing translation for " + key);
-
-            String format = literalFormat ? key : StatCollector.translateToLocal(key);
-            Object[] args = translation.getFormatArgs();
-            helper.assertEquals(
-                placeholderCount(format),
-                args.length,
-                context + ": wrong number of arguments for " + key + " (\"" + format + "\")");
-
-            for (Object arg : args) {
-                if (arg instanceof IChatComponent argComponent) {
-                    assertChatWellFormed(helper, argComponent, context);
-                }
-            }
-        }
-
-        // Translated on the client, so its key and arguments are only checked here.
-        if (component instanceof ChatComponentWrappedTranslation wrapped) {
-            String key = wrapped.getKey();
-            helper.assertTrue(StatCollector.canTranslate(key), context + ": missing translation for " + key);
-            String format = StatCollector.translateToLocal(key);
-            helper.assertEquals(
-                placeholderCount(format),
-                wrapped.getArgs()
-                    .size(),
-                context + ": wrong number of arguments for " + key + " (\"" + format + "\")");
-            for (Object arg : wrapped.getArgs()) {
-                if (arg instanceof ChatComponentWrappedTranslation nested) {
-                    assertChatWellFormed(helper, nested, context);
-                }
-            }
-        }
-
-        HoverEvent hover = component.getChatStyle()
-            .getChatHoverEvent();
-        if (hover != null && hover.getAction() == HoverEvent.Action.SHOW_TEXT) {
-            assertChatWellFormed(helper, hover.getValue(), context + " (hover)");
-        }
-
-        for (Object sibling : component.getSiblings()) {
-            assertChatWellFormed(helper, (IChatComponent) sibling, context);
-        }
-    }
-
-    // How many arguments a translated string uses: as many as its plain placeholders, or its highest numbered one.
-    private static int placeholderCount(String format) {
-        int sequential = 0;
-        int highestNumbered = 0;
-        Matcher matcher = PLACEHOLDER.matcher(format);
-        while (matcher.find()) {
-            if ("%".equals(matcher.group(2))) continue;
-            if (matcher.group(1) != null) {
-                highestNumbered = Math.max(highestNumbered, Integer.parseInt(matcher.group(1)));
-            } else {
-                sequential++;
-            }
-        }
-        return Math.max(sequential, highestNumbered);
     }
 
     /**

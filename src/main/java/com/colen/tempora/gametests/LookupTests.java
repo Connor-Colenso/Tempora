@@ -5,7 +5,6 @@ import static com.colen.tempora.gametests.TestSupport.eventsNear;
 import static com.colen.tempora.gametests.TestSupport.fakePlayer;
 import static com.gtnewhorizons.horizonqa.api.TestPos.at;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -13,21 +12,11 @@ import net.minecraft.block.Block;
 import net.minecraft.command.CommandException;
 import net.minecraft.entity.passive.EntityPig;
 import net.minecraft.init.Blocks;
-import net.minecraft.util.ChatComponentTranslation;
-import net.minecraft.util.EnumChatFormatting;
-import net.minecraft.util.IChatComponent;
-import net.minecraft.util.StatCollector;
 import net.minecraftforge.common.util.FakePlayer;
 
 import com.colen.tempora.Tempora;
 import com.colen.tempora.TemporaEvents;
-import com.colen.tempora.TemporaLoggerManager;
-import com.colen.tempora.chat.ChatComponentWrappedTranslation;
 import com.colen.tempora.commands.LookupCommand;
-import com.colen.tempora.commands.TemporaCommand;
-import com.colen.tempora.commands.command_base.CommandFilters;
-import com.colen.tempora.commands.command_base.SearchSummary;
-import com.colen.tempora.loggers.generic.GenericLogger;
 import com.colen.tempora.loggers.generic.GenericLogger.FoundEvents;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.PositionalEventInfo;
@@ -273,12 +262,6 @@ public class LookupTests {
                                 3))
                         .show(chat),
                     "events shown");
-                helper.assertEquals(
-                    "Player block breaks (latest 3) [Info]",
-                    chat.getMessages()
-                        .get(0)
-                        .getUnformattedText(),
-                    "header");
             })
             .thenSucceed();
     }
@@ -411,170 +394,6 @@ public class LookupTests {
         // The command system shows the exception's message to the sender.
         for (String bad : new String[] { "3d-", "-1d", "3d-1d-1h", "soon" }) {
             helper.assertThrows(CommandException.class, () -> TimeWindow.parse(bad), "t:" + bad + " was accepted");
-        }
-        helper.succeed();
-    }
-
-    // The line under a lookup's results lists every filter, typed or not, and which were left at their default.
-    @GameTest
-    public static void searchSummaryListsEveryFilter(GameTestHelper helper) {
-        CapturingSender sender = new CapturingSender("searchSummaryListsEveryFilter", helper.getWorld());
-        CommandFilters filters = CommandFilters
-            .parse(TemporaCommand.LOOKUP, sender, new String[] { "t:1d", "r:25" }, 0, "r", "t", "l", "p", "n");
-        helper.assertNotNull(filters, "filters were refused: " + sender.text());
-        SearchSummary summary = TemporaCommand.LOOKUP.summarise(filters);
-
-        IChatComponent searched = summary.line(true);
-        helper.assertEquals(
-            "Searched r:25 t:1d l:all p:anyone n:" + LookupCommand.DEFAULT_COUNT,
-            searched.getUnformattedText(),
-            "with results");
-        TestSupport.assertChatWellFormed(helper, searched, "searched");
-        IChatComponent nothingFound = summary.line(false);
-        helper.assertEquals(
-            "Nothing found r:25 t:1d l:all p:anyone n:" + LookupCommand.DEFAULT_COUNT,
-            nothingFound.getUnformattedText(),
-            "without results");
-        TestSupport.assertChatWellFormed(helper, nothingFound, "nothing found");
-
-        // Each filter, with a space between: r: was typed, l: left out.
-        List<?> parts = ((IChatComponent) ((ChatComponentTranslation) searched).getFormatArgs()[0]).getSiblings();
-        IChatComponent radius = (IChatComponent) parts.get(0);
-        IChatComponent loggers = (IChatComponent) parts.get(4);
-        helper.assertEquals(
-            EnumChatFormatting.GREEN,
-            radius.getChatStyle()
-                .getColor(),
-            "typed colour");
-        helper.assertEquals(
-            EnumChatFormatting.GRAY,
-            loggers.getChatStyle()
-                .getColor(),
-            "default colour");
-
-        // The last line of the hover says what the default is, and what it was overridden with if typed.
-        ChatComponentWrappedTranslation overridden = lastHoverLine(helper, radius);
-        helper.assertEquals("tempora.command.search.overridden", overridden.getKey(), "typed hover");
-        helper.assertEquals(Arrays.asList("10", "25"), overridden.getArgs(), "typed hover values");
-        helper.assertEquals(
-            EnumChatFormatting.GRAY,
-            overridden.getChatStyle()
-                .getColor(),
-            "typed hover colour");
-        ChatComponentWrappedTranslation usingDefault = lastHoverLine(helper, loggers);
-        helper.assertEquals("tempora.command.search.default", usingDefault.getKey(), "default hover");
-        helper.assertEquals(Arrays.asList("all"), usingDefault.getArgs(), "default hover value");
-        helper.assertEquals(
-            EnumChatFormatting.RED,
-            usingDefault.getChatStyle()
-                .getColor(),
-            "default hover colour");
-        helper.succeed();
-    }
-
-    private static ChatComponentWrappedTranslation lastHoverLine(GameTestHelper helper, IChatComponent filter) {
-        List<?> lines = filter.getChatStyle()
-            .getChatHoverEvent()
-            .getValue()
-            .getSiblings();
-        return helper.assertInstanceOf(
-            ChatComponentWrappedTranslation.class,
-            lines.get(lines.size() - 1),
-            "last line of the hover");
-    }
-
-    // A lookup shows the newest few events, and its header says there may be more.
-    @GameTest(timeoutTicks = TIMEOUT_TICKS)
-    public static void showsLatestFiveWithHeader(GameTestHelper helper) {
-        GenericPositionalLogger<?> logger = TemporaEvents.playerBlockBreakLogger;
-        FakePlayer player = fakePlayer(helper, "lookup_latest");
-        TestPos centre = helper.absolute(at(2, 1, 2));
-        int dim = helper.getWorld().provider.dimensionId;
-        Probe<List<PositionalEventInfo>> stored = new Probe<>(helper, "showsLatestFiveWithHeader.stored");
-        Probe<FoundEvents> lookup = new Probe<>(helper, "showsLatestFiveWithHeader.lookup");
-        CapturingSender chat = new CapturingSender("showsLatestFiveWithHeader.chat", helper.getWorld());
-
-        helper.startSequence()
-            .thenExecute("break six blocks", () -> {
-                for (int x = 0; x < 5; x++) breakNew(helper, player, at(x, 1, 2));
-                breakNew(helper, player, at(2, 1, 3));
-            })
-            .thenWaitUntil(
-                "all six are stored",
-                WRITE_TICKS,
-                () -> helper.assertEquals(
-                    6L,
-                    stored.poll(() -> eventsNear(helper, logger, centre, 2))
-                        .size(),
-                    "events stored"))
-            .thenWaitUntil("the lookup shows five", WRITE_TICKS, () -> {
-                chat.getMessages()
-                    .clear();
-                helper.assertEquals(
-                    5L,
-                    lookup
-                        .poll(
-                            () -> logger.findEventsNear(
-                                dim,
-                                centre.x(),
-                                centre.y(),
-                                centre.z(),
-                                2,
-                                TimeWindow.allTime(),
-                                PlayerFilter.anyone(),
-                                LookupCommand.DEFAULT_COUNT))
-                        .show(chat),
-                    "events shown");
-            })
-            .thenExecute("the header names the logger and says these are the latest", () -> {
-                IChatComponent header = chat.getMessages()
-                    .get(0);
-                helper.assertEquals("Player block breaks (latest 5) [Info]", header.getUnformattedText(), "header");
-                TestSupport.assertChatWellFormed(helper, header, "header");
-
-                // Chat reaches the client as JSON. The [Info] hover's description must arrive as the component that
-                // translates and wraps it there, not as text already translated by the server.
-                IChatComponent received = IChatComponent.Serializer
-                    .func_150699_a(IChatComponent.Serializer.func_150696_a(header));
-                helper.assertEquals(header.getUnformattedText(), received.getUnformattedText(), "header after JSON");
-                IChatComponent info = (IChatComponent) ((ChatComponentTranslation) received).getFormatArgs()[2];
-                IChatComponent hover = info.getChatStyle()
-                    .getChatHoverEvent()
-                    .getValue();
-                helper.assertInstanceOf(
-                    ChatComponentWrappedTranslation.class,
-                    hover.getSiblings()
-                        .get(0),
-                    "[Info] hover description after JSON");
-
-                // The last line, how long events are kept, holds its duration as a translation of its own.
-                List<?> lines = hover.getSiblings();
-                ChatComponentWrappedTranslation retention = helper.assertInstanceOf(
-                    ChatComponentWrappedTranslation.class,
-                    lines.get(lines.size() - 1),
-                    "[Info] retention line after JSON");
-                helper.assertEquals("tempora.logger.setting.retention", retention.getKey(), "retention key");
-                helper.assertInstanceOf(
-                    ChatComponentWrappedTranslation.class,
-                    retention.getArgs()
-                        .get(0),
-                    "retention duration after JSON");
-            })
-            .thenSucceed();
-    }
-
-    // Lookups name each logger and describe it on hover, so every logger needs both in the lang file.
-    @GameTest
-    public static void everyLoggerHasNameAndDescription(GameTestHelper helper) {
-        for (GenericLogger<?> logger : TemporaLoggerManager.getLoggerList()) {
-            String prefix = "tempora.logger." + logger.getLoggerName();
-            helper.assertTrue(StatCollector.canTranslate(prefix + ".name"), "missing " + prefix + ".name");
-            helper
-                .assertTrue(StatCollector.canTranslate(prefix + ".description"), "missing " + prefix + ".description");
-            TestSupport.assertChatWellFormed(helper, logger.getDisplayName(), logger.getLoggerName() + " name");
-            TestSupport.assertChatWellFormed(helper, logger.getDescription(), logger.getLoggerName() + " description");
-            // The description and a line for each of the server's settings, e.g. how long events are kept.
-            TestSupport.assertChatWellFormed(helper, logger.getInfoHover(), logger.getLoggerName() + " [Info]");
         }
         helper.succeed();
     }

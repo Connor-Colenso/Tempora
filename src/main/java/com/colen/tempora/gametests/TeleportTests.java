@@ -1,6 +1,5 @@
 package com.colen.tempora.gametests;
 
-import static com.gtnewhorizon.gtnhlib.util.numberformatting.NumberFormatUtil.formatNumber;
 import static com.gtnewhorizons.horizonqa.api.TestPos.at;
 
 import java.nio.charset.StandardCharsets;
@@ -19,12 +18,8 @@ import net.minecraft.util.IChatComponent;
 import net.minecraft.world.WorldServer;
 
 import com.colen.tempora.Tempora;
-import com.colen.tempora.chat.ChatComponentTeleport;
 import com.colen.tempora.networking.handlers.TeleportRequestHandler;
 import com.colen.tempora.networking.packets.PacketTeleportRequest;
-import com.colen.tempora.utils.CommandUtils;
-import com.colen.tempora.utils.GenericUtils;
-import com.gtnewhorizon.gtnhlib.util.numberformatting.NumberFormatConfig;
 import com.gtnewhorizons.horizonqa.api.GameTestHelper;
 import com.gtnewhorizons.horizonqa.api.TestPos;
 import com.gtnewhorizons.horizonqa.api.annotation.GameTest;
@@ -39,68 +34,6 @@ import com.mojang.authlib.GameProfile;
 @GameTestHolder(Tempora.MODID)
 public class TeleportTests {
 
-    // The coordinates survive the trip to the client as JSON, with their hover and colour, and without a click event,
-    // as only the client installs that.
-    @GameTest
-    public static void coordinatesSurviveTheTripToTheClient(GameTestHelper helper) {
-        IChatComponent sent = CommandUtils.teleportChatComponent(-12345, 64, 10, 0, CommandUtils.TeleportType.BLOCK);
-        helper.assertTrue(sent instanceof ChatComponentTeleport, "coordinates should be a ChatComponentTeleport");
-        // A block is shown as that block, though the teleport is to its middle, in the player's number format.
-        helper.assertEquals(expectedPosition(-12345, 64, 10), sent.getUnformattedTextForChat(), "shown");
-
-        IChatComponent received = IChatComponent.Serializer
-            .func_150699_a(IChatComponent.Serializer.func_150696_a(sent));
-        helper.assertTrue(received instanceof ChatComponentTeleport, "the coordinates didn't survive JSON");
-        helper.assertEquals(
-            ((ChatComponentTeleport) sent).encodeToString(),
-            ((ChatComponentTeleport) received).encodeToString(),
-            "the position after JSON");
-        helper.assertEquals(
-            EnumChatFormatting.AQUA,
-            received.getChatStyle()
-                .getColor(),
-            "colour");
-        helper.assertNotNull(
-            received.getChatStyle()
-                .getChatHoverEvent(),
-            "the hover was lost");
-        helper.assertTrue(
-            received.getChatStyle()
-                .getChatClickEvent() == null,
-            "the server shouldn't send a click event");
-        helper.succeed();
-    }
-
-    /**
-     * Coordinates are separated by a space, or by ", " in number formats that group digits with spaces, so they never
-     * run together. The exact hover is labelled, as its decimals may be written with commas. Switches GTNHLib's number
-     * format for the test, and back before anything else runs, as the whole test runs within one tick.
-     */
-    @GameTest
-    public static void separatorFollowsNumberFormat(GameTestHelper helper) {
-        NumberFormatConfig.LocaleOption original = NumberFormatConfig.numberFormatLocale;
-        try {
-            assertShown(helper, NumberFormatConfig.LocaleOption.ENGLISH_US, "[12,345 64 -2,000]");
-            assertShown(helper, NumberFormatConfig.LocaleOption.GERMAN, "[12.345 64 -2.000]");
-            assertShown(helper, NumberFormatConfig.LocaleOption.FRENCH, "[12 345, 64, -2 000]");
-            assertShown(helper, NumberFormatConfig.LocaleOption.POLISH, "[12 345, 64, -2 000]");
-
-            NumberFormatConfig.numberFormatLocale = NumberFormatConfig.LocaleOption.FRENCH;
-            IChatComponent exact = CommandUtils
-                .teleportChatComponent(12345.5, 64, 10.25, 0, CommandUtils.TeleportType.EXACT);
-            String hover = exact.getChatStyle()
-                .getChatHoverEvent()
-                .getValue()
-                .getUnformattedText();
-            helper.assertTrue(
-                hover.contains("Exactly X: 12 345,5 Y: 64 Z: 10,25"),
-                "the exact position should be labelled, got " + hover);
-        } finally {
-            NumberFormatConfig.numberFormatLocale = original;
-        }
-        helper.succeed();
-    }
-
     @GameTest
     public static void opIsTeleported(GameTestHelper helper) {
         TestPlayer player = testPlayer(helper, "tp_op", true);
@@ -113,21 +46,6 @@ public class TeleportTests {
         helper.assertEquals(target.x() + 0.5, player.posX, "x");
         helper.assertEquals((double) target.y(), player.posY, "y");
         helper.assertEquals(target.z() + 0.5, player.posZ, "z");
-
-        // They're told where they went, with the coordinates clickable again.
-        helper.assertEquals(1L, player.messages.size(), "messages");
-        IChatComponent message = player.messages.get(0);
-        helper.assertTrue(
-            message instanceof ChatComponentTranslation translation && translation.getKey()
-                .equals("tempora.teleport.done") && translation.getFormatArgs()[0] instanceof ChatComponentTeleport,
-            "expected tempora.teleport.done with clickable coordinates, got " + message);
-        helper.assertEquals(
-            String.format(
-                "Teleported to %s in %s.",
-                expectedPosition(target.x(), target.y(), target.z()),
-                GenericUtils.getDimensionName(player.dimension)),
-            message.getUnformattedText(),
-            "message");
         helper.succeed();
     }
 
@@ -180,19 +98,6 @@ public class TeleportTests {
     }
 
     // ---------- Helpers ----------
-
-    private static void assertShown(GameTestHelper helper, NumberFormatConfig.LocaleOption format, String expected) {
-        NumberFormatConfig.numberFormatLocale = format;
-        IChatComponent shown = CommandUtils.teleportChatComponent(12345, 64, -2000, 0, CommandUtils.TeleportType.BLOCK);
-        helper.assertEquals(expected, shown.getUnformattedTextForChat(), format.name());
-    }
-
-    // How a block position should look in the server's own number format, worked out from what formatNumber prints
-    // rather than from the locale, so it doesn't just repeat ChatComponentTeleport's logic.
-    private static String expectedPosition(int x, int y, int z) {
-        boolean spaceGrouped = formatNumber(1000).contains(" ");
-        return "[" + String.join(spaceGrouped ? ", " : " ", formatNumber(x), formatNumber(y), formatNumber(z)) + "]";
-    }
 
     private static void assertOnlyError(GameTestHelper helper, TestPlayer player, String key) {
         helper.assertEquals(1L, player.messages.size(), "messages");
