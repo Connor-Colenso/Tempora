@@ -135,12 +135,14 @@ public final class EventChat {
         IChatComponent name = entityName(registryName);
         if (uuid == null) return name;
 
-        IChatComponent hover = new ChatComponentTranslation("tempora.uuid.display", uuid);
-        hover.appendText("\n")
-            .appendSibling(new ChatComponentTranslation("tempora.uuid.click_to_copy"));
+        // White, as a lone UUID hover (a player's) is drawn as a white title in the GTNH pack.
+        IChatComponent title = new ChatComponentTranslation("tempora.uuid.display", uuid);
+        title.getChatStyle()
+            .setColor(EnumChatFormatting.WHITE);
+        IChatComponent hover = titledHover(title, new ChatComponentTranslation("tempora.uuid.click_to_copy"));
 
         name.getChatStyle()
-            .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, grey(hover)))
+            .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hover))
             .setChatClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, uuid));
         return name;
     }
@@ -178,5 +180,31 @@ public final class EventChat {
         component.getChatStyle()
             .setColor(EnumChatFormatting.GRAY);
         return component;
+    }
+
+    /**
+     * A hover of several lines under a title, which must have a colour other than grey. Each line is grey unless it
+     * has a colour of its own.
+     * <p>
+     * The GTNH pack draws hovers with Chromatic Tooltips, which makes a hover's first line its title and turns it white
+     * unless it starts with a colour other than grey. So a hover starting with grey text, or with anything else first
+     * (even a reset), shows its first line white and the rest grey, e.g. half a wrapped description. Here the title is
+     * the hover's root, so its colour comes first and is kept.
+     */
+    public static IChatComponent titledHover(IChatComponent title, IChatComponent... lines) {
+        EnumChatFormatting colour = title.getChatStyle()
+            .getColor();
+        if (colour == null || colour == EnumChatFormatting.GRAY) {
+            throw new IllegalArgumentException("A hover's title needs a colour other than grey, or it is drawn white.");
+        }
+
+        for (IChatComponent line : lines) {
+            // Before appending, when an unset colour still reads as null rather than the title's.
+            if (line.getChatStyle()
+                .getColor() == null) grey(line);
+            title.appendText("\n")
+                .appendSibling(line);
+        }
+        return title;
     }
 }

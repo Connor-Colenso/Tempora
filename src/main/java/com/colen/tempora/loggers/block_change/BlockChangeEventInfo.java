@@ -1,9 +1,9 @@
 package com.colen.tempora.loggers.block_change;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import net.minecraft.event.HoverEvent;
-import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
@@ -108,14 +108,12 @@ public class BlockChangeEventInfo extends PositionalEventInfo {
 
         // Build hover text with truncation
         int maxLines = 7;
-        ChatComponentText hoverText = new ChatComponentText("");
+        List<IChatComponent> hoverLines = new ArrayList<>();
         int totalLines = stackTraceComponents.size();
         int start = Math.max(0, totalLines - maxLines);
 
         for (int i = totalLines - 1; i >= start; i--) {
-            IChatComponent line = stackTraceComponents.get(i);
-            hoverText.appendSibling(line);
-            if (i != start) hoverText.appendText("\n");
+            hoverLines.add(stackTraceComponents.get(i));
         }
 
         if (totalLines > maxLines) {
@@ -126,9 +124,14 @@ public class BlockChangeEventInfo extends PositionalEventInfo {
             IChatComponent stackTraceTooLongMsg = new ChatComponentTranslation("tempora.trace.hover.more", number);
             stackTraceTooLongMsg.getChatStyle()
                 .setColor(EnumChatFormatting.GRAY);
-            hoverText.appendText("\n");
-            hoverText.appendSibling(stackTraceTooLongMsg);
+            hoverLines.add(stackTraceTooLongMsg);
         }
+
+        // Titled in the [Trace] button's colour, so the first line of the trace isn't drawn as a white title.
+        IChatComponent title = new ChatComponentTranslation("tempora.trace.hover.title");
+        title.getChatStyle()
+            .setColor(EnumChatFormatting.AQUA);
+        IChatComponent hoverText = EventChat.titledHover(title, hoverLines.toArray(new IChatComponent[0]));
 
         IChatComponent stackTraceComponent = new ChatComponentStackTrace(stackTrace);
         stackTraceComponent.getChatStyle()

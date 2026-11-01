@@ -88,7 +88,7 @@ public class StatusCommand extends TemporaSubcommand {
                 new HoverEvent(
                     HoverEvent.Action.SHOW_TEXT,
                     // How long events are kept is only known once it has started.
-                    stored == null ? logger.getDescription() : logger.getInfoHover()));
+                    stored == null ? logger.getDescriptionHover() : logger.getInfoHover()));
 
         if (stored == null) {
             return EventChat.line(

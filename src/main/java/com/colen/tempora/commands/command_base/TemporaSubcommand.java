@@ -126,12 +126,16 @@ public abstract class TemporaSubcommand {
             .toString();
     }
 
-    // The usage line, clickable to fill the command into chat, with the description on hover.
+    // The usage line, clickable to fill the command into chat, with its description on hover, white rather than grey
+    // as it opens the hover (see EventChat.titledHover).
     public IChatComponent getUsageChatComponent() {
+        IChatComponent hover = getDescription();
+        hover.getChatStyle()
+            .setColor(EnumChatFormatting.WHITE);
         IChatComponent usage = new ChatComponentText(getUsage());
         usage.getChatStyle()
             .setChatClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, command() + " "))
-            .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, getDescription()));
+            .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hover));
         return usage;
     }
 

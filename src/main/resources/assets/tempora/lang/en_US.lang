@@ -100,6 +100,7 @@ tempora.event.weather=%s %s went from %s to %s
 tempora.trace.button=[Trace]
 tempora.trace.missing=[No trace]
 tempora.trace.full=Full stack trace
+tempora.trace.hover.title=What changed the block
 tempora.trace.hover.more=Click to see all %s lines.
 
 # === Lookup results ===

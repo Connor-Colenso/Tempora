@@ -2,7 +2,6 @@ package com.colen.tempora.loggers.command;
 
 import net.minecraft.event.ClickEvent;
 import net.minecraft.event.HoverEvent;
-import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
@@ -57,10 +56,12 @@ public class CommandEventInfo extends PositionalEventInfo {
         IChatComponent shown = EventChat
             .text(cut ? command.substring(0, MAX_SHOWN_LENGTH - 3) + "..." : command, EnumChatFormatting.WHITE);
 
-        IChatComponent hover = new ChatComponentText(cut ? command + "\n" : "");
-        hover.appendSibling(new ChatComponentTranslation("tempora.event.command.hover"));
+        IChatComponent clickToCopy = new ChatComponentTranslation("tempora.event.command.hover");
+        IChatComponent hover = cut
+            ? EventChat.titledHover(EventChat.text(command, EnumChatFormatting.WHITE), clickToCopy)
+            : EventChat.grey(clickToCopy);
         shown.getChatStyle()
-            .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, EventChat.grey(hover)))
+            .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hover))
             .setChatClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, command));
 
         return EventChat.line(

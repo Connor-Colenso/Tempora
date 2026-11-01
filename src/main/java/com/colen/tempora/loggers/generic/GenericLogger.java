@@ -30,6 +30,7 @@ import org.jetbrains.annotations.Nullable;
 
 import com.colen.tempora.TemporaLoggerManager;
 import com.colen.tempora.chat.ChatComponentWrappedTranslation;
+import com.colen.tempora.chat.EventChat;
 import com.colen.tempora.enums.LoggerEventType;
 import com.colen.tempora.loggers.generic.column.ColumnDef;
 import com.colen.tempora.loggers.generic.column.ColumnType;
@@ -161,24 +162,28 @@ public abstract class GenericLogger<EventInfo extends GenericEventInfo> {
             StatCollector.canTranslate(key) ? key : "tempora.logger.no_description");
     }
 
+    // What this logger records, as a hover. For a logger that hasn't started, whose settings aren't all known.
+    public final IChatComponent getDescriptionHover() {
+        return whiteDescription();
+    }
+
     // The [Info] hover in lookups: what this logger records, then how the server has it set up, one grey line each.
     public final IChatComponent getInfoHover() {
-        IChatComponent hover = new ChatComponentText("");
-        hover.appendSibling(getDescription());
-
         List<IChatComponent> settings = new ArrayList<>();
         addSettingsInfo(settings);
         settings.add(
             settingLine(
                 "tempora.logger.setting.retention",
                 duration(databaseManager.getOldestDataMilliseconds() / 1000)));
-        for (IChatComponent setting : settings) {
-            setting.getChatStyle()
-                .setColor(EnumChatFormatting.GRAY);
-            hover.appendSibling(new ChatComponentText("\n"))
-                .appendSibling(setting);
-        }
-        return hover;
+        return EventChat.titledHover(whiteDescription(), settings.toArray(new IChatComponent[0]));
+    }
+
+    // White rather than grey, as it opens a hover. See EventChat.titledHover.
+    private IChatComponent whiteDescription() {
+        IChatComponent description = getDescription();
+        description.getChatStyle()
+            .setColor(EnumChatFormatting.WHITE);
+        return description;
     }
 
     /**

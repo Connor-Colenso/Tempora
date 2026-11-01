@@ -13,6 +13,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.colen.tempora.TemporaLoggerManager;
 import com.colen.tempora.chat.ChatComponentTeleport;
+import com.colen.tempora.chat.EventChat;
 import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 
 public class CommandUtils {
@@ -52,24 +53,23 @@ public class CommandUtils {
     public static @NotNull IChatComponent teleportChatComponent(double x, double y, double z, final int dimID,
         final TeleportType teleportType) {
 
-        IChatComponent hoverText = new ChatComponentTranslation("tempora.teleport.hover");
-        hoverText.appendText("\n")
-            .appendSibling(
-                new ChatComponentTranslation(
-                    "tempora.teleport.dimension",
-                    GenericUtils.getDimensionName(dimID),
-                    new ChatComponentNumber(dimID)));
-        if (teleportType == TeleportType.EXACT) {
-            hoverText.appendText("\n")
-                .appendSibling(
-                    new ChatComponentTranslation(
-                        "tempora.teleport.exact",
-                        new ChatComponentNumber(x),
-                        new ChatComponentNumber(y),
-                        new ChatComponentNumber(z)));
-        }
-        hoverText.getChatStyle()
-            .setColor(EnumChatFormatting.GRAY);
+        // Titled in the coordinates' colour, as the GTNH pack's tooltips draw a grey first line white.
+        IChatComponent title = new ChatComponentTranslation("tempora.teleport.hover");
+        title.getChatStyle()
+            .setColor(EnumChatFormatting.AQUA);
+        IChatComponent dimension = new ChatComponentTranslation(
+            "tempora.teleport.dimension",
+            GenericUtils.getDimensionName(dimID),
+            new ChatComponentNumber(dimID));
+        IChatComponent hoverText = teleportType == TeleportType.EXACT ? EventChat.titledHover(
+            title,
+            dimension,
+            new ChatComponentTranslation(
+                "tempora.teleport.exact",
+                new ChatComponentNumber(x),
+                new ChatComponentNumber(y),
+                new ChatComponentNumber(z)))
+            : EventChat.titledHover(title, dimension);
 
         // Offset the teleport to put the player in the middle of the block. Still shown as that block, as the display
         // rounds down.

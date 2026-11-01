@@ -7,6 +7,7 @@ import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
 import com.colen.tempora.chat.ChatComponentWrappedTranslation;
+import com.colen.tempora.chat.EventChat;
 
 /**
  * The line under a lookup's results saying what was searched, e.g. "Searched r:10 t:3d l:all p:anyone n:5", so the
@@ -29,10 +30,10 @@ public final class SearchSummary {
         String typed = filters.get(key);
         boolean isDefault = typed == null;
 
-        // What the filter does, then whether it was left at its default, in red, or what it was given instead.
-        IChatComponent description = command.getFilterDescription(key);
-        description.getChatStyle()
-            .setColor(EnumChatFormatting.GRAY);
+        // Under the filter, whether it was left at its default, in red, or what it was given instead, in green like
+        // the filter, then what it does.
+        String shown = key + ":" + (isDefault ? shownDefault : typed);
+        EnumChatFormatting valueColour = isDefault ? EnumChatFormatting.RED : EnumChatFormatting.GREEN;
         IChatComponent value = isDefault
             ? new ChatComponentWrappedTranslation("tempora.command.search.default", numberOrText(shownDefault))
             : new ChatComponentWrappedTranslation(
@@ -40,13 +41,10 @@ public final class SearchSummary {
                 numberOrText(shownDefault),
                 numberOrText(typed));
         value.getChatStyle()
-            .setColor(isDefault ? EnumChatFormatting.RED : EnumChatFormatting.GRAY);
-        IChatComponent hover = new ChatComponentText("");
-        hover.appendSibling(description)
-            .appendSibling(new ChatComponentText("\n"))
-            .appendSibling(value);
+            .setColor(valueColour);
+        IChatComponent hover = EventChat.titledHover(value, command.getFilterDescription(key));
 
-        IChatComponent filter = new ChatComponentText(key + ":" + (isDefault ? shownDefault : typed));
+        IChatComponent filter = new ChatComponentText(shown);
         filter.getChatStyle()
             .setColor(isDefault ? EnumChatFormatting.GRAY : EnumChatFormatting.GREEN)
             .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hover));
