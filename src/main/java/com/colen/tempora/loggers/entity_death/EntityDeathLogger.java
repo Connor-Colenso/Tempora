@@ -2,11 +2,9 @@ package com.colen.tempora.loggers.entity_death;
 
 import static com.colen.tempora.utils.GenericUtils.entityRegistryName;
 import static com.colen.tempora.utils.GenericUtils.isClientSide;
-import static com.colen.tempora.utils.PlayerUtils.UNKNOWN_CAUSE;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.DamageSource;
@@ -23,6 +21,12 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
 public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathEventInfo> {
 
+    // The player who killed it, if one did.
+    @Override
+    protected String playerColumn() {
+        return "killerPlayer";
+    }
+
     @Override
     public @NotNull String getLoggerName() {
         return TemporaEvents.ENTITY_DEATH;
@@ -30,7 +34,7 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathEventI
 
     @Override
     public @NotNull String getShortName() {
-        return "death";
+        return "mobdeath";
     }
 
     @Override
@@ -53,7 +57,7 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathEventI
         logEntityDeath(event.entityLiving, event.source);
     }
 
-    /** Logs a mob dying, and what killed it. Players are not logged here, this is for mobs only. */
+    /** Logs a mob dying, and what killed it. Players are not logged here, they have the PlayerDeathLogger. */
     public void logEntityDeath(EntityLivingBase entity, @Nullable DamageSource source) {
         if (!isEnabledByConfig) return;
         if (entity instanceof EntityPlayerMP) return;
@@ -66,22 +70,9 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathEventI
         eventInfo.rotationYaw = entity.rotationYaw;
         eventInfo.rotationPitch = entity.rotationPitch;
 
-        // Get what killed it.
-        Entity trueSource = source == null ? null : source.getEntity();
-        if (trueSource != null) {
-            if (trueSource instanceof EntityPlayerMP player) {
-                // This is specific for players
-                eventInfo.killedBy = player.getUniqueID()
-                    .toString();
-            } else {
-                // Other entities by their EntityList name, e.g. [Zombie], which chat shows translated.
-                eventInfo.killedBy = "[" + entityRegistryName(trueSource) + "]";
-            }
-        } else if (source != null) {
-            eventInfo.killedBy = "[" + source.damageType + "]";
-        } else {
-            eventInfo.killedBy = UNKNOWN_CAUSE;
-        }
+        DeathCause cause = DeathCause.of(source);
+        eventInfo.killerPlayer = cause.killerPlayer;
+        eventInfo.killedBy = cause.killedBy;
 
         logEvent(eventInfo, entity.dimension, entity.posX, entity.posY, entity.posZ);
     }

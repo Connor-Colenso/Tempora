@@ -226,7 +226,8 @@ public class PositionalLoggerTests {
                 EntityDeathEventInfo event = (EntityDeathEventInfo) probe.latest()
                     .get(0);
                 helper.assertEquals("Pig", event.entityName, "entityName");
-                helper.assertEquals(uuid(player), event.killedBy, "killedBy");
+                helper.assertEquals(uuid(player), event.killerPlayer, "killerPlayer");
+                helper.assertEquals("[player]", event.killedBy, "killedBy");
                 assertWellFormed(helper, logger, probe.latest());
             })
             .thenSucceed();

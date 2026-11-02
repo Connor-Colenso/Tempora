@@ -64,6 +64,9 @@ public abstract class PlayerGhostRenderer<E extends PositionalEventInfo> impleme
         return 0;
     }
 
+    /** Changes the player once, as it is made, e.g. to draw them dying. */
+    protected void prepareGhost(EntityOtherPlayerMP ghost, E event) {}
+
     @Override
     public void renderWorld(List<E> events, EventRenderContext context) {
         for (List<E> here : groupsBySpot(events)) {
@@ -123,6 +126,7 @@ public abstract class PlayerGhostRenderer<E extends PositionalEventInfo> impleme
             ghost = new EntityOtherPlayerMP(context.world, profileOf(playerUUID(event)));
             ItemStack held = heldItem(event);
             if (held != null) ghost.inventory.mainInventory[ghost.inventory.currentItem] = held;
+            prepareGhost(ghost, event);
         } catch (RuntimeException | LinkageError e) {
             LOG.warn("Could not make a player for a {} event, showing a box instead.", event.getLoggerName(), e);
             ghost = null;

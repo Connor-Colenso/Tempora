@@ -1,15 +1,12 @@
 package com.colen.tempora.loggers.entity_death;
 
-import java.util.Locale;
-
-import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
-import net.minecraft.util.StatCollector;
 
 import com.colen.tempora.TemporaEvents;
 import com.colen.tempora.chat.EventChat;
 import com.colen.tempora.loggers.generic.PositionalEventInfo;
 import com.colen.tempora.loggers.generic.column.Column;
+import com.colen.tempora.loggers.generic.column.ColumnType;
 import com.colen.tempora.utils.CommandUtils;
 import com.colen.tempora.utils.PlayerUtils;
 
@@ -20,6 +17,10 @@ public class EntityDeathEventInfo extends PositionalEventInfo {
 
     @Column(constraints = "NOT NULL")
     public String entityName = "";
+
+    // See DeathCause.
+    @Column(type = ColumnType.PLAYER, constraints = "NOT NULL")
+    public String killerPlayer = PlayerUtils.UNKNOWN_PLAYER_NAME;
 
     @Column(constraints = "NOT NULL")
     public String killedBy = PlayerUtils.UNKNOWN_CAUSE;
@@ -37,6 +38,7 @@ public class EntityDeathEventInfo extends PositionalEventInfo {
     public void fromBytes(ByteBuf buf) {
         super.fromBytes(buf);
         entityName = ByteBufUtils.readUTF8String(buf);
+        killerPlayer = ByteBufUtils.readUTF8String(buf);
         killedBy = ByteBufUtils.readUTF8String(buf);
         entityUUID = ByteBufUtils.readUTF8String(buf);
         rotationYaw = buf.readFloat();
@@ -47,6 +49,7 @@ public class EntityDeathEventInfo extends PositionalEventInfo {
     public void toBytes(ByteBuf buf) {
         super.toBytes(buf);
         ByteBufUtils.writeUTF8String(buf, entityName);
+        ByteBufUtils.writeUTF8String(buf, killerPlayer);
         ByteBufUtils.writeUTF8String(buf, killedBy);
         ByteBufUtils.writeUTF8String(buf, entityUUID);
         buf.writeFloat(rotationYaw);
@@ -59,36 +62,13 @@ public class EntityDeathEventInfo extends PositionalEventInfo {
         IChatComponent victim = EventChat.entity(entityName, entityUUID);
         IChatComponent where = EventChat.where(this, CommandUtils.TeleportType.EXACT);
 
-        // Players are stored by UUID. Anything else is in brackets: a mob by its EntityList name, e.g. [Zombie] (older
-        // rows have its class, e.g. [EntityZombie]), or a damage type such as [fall] or [inFire].
-        if (PlayerUtils.isUUID(killedBy)) {
-            return EventChat.line("tempora.event.entity_death.killed", when, EventChat.player(killedBy), victim, where);
-        }
+        IChatComponent killer = DeathCause.killer(killerPlayer, killedBy);
+        if (killer != null) return EventChat.line("tempora.event.entity_death.killed", when, killer, victim, where);
 
-        if (killedBy != null && killedBy.length() > 2 && killedBy.startsWith("[") && killedBy.endsWith("]")) {
-            String cause = killedBy.substring(1, killedBy.length() - 1);
-            if (isEntity(cause)) {
-                return EventChat
-                    .line("tempora.event.entity_death.killed", when, EventChat.entityName(cause), victim, where);
-            }
-
-            // inFire -> in fire.
-            String damage = cause.replaceAll("([a-z])([A-Z])", "$1 $2")
-                .toLowerCase(Locale.ROOT);
-            return EventChat.line(
-                "tempora.event.entity_death.died",
-                when,
-                victim,
-                EventChat.text(damage, EnumChatFormatting.WHITE),
-                where);
-        }
+        IChatComponent damage = DeathCause.damage(killedBy);
+        if (damage != null) return EventChat.line("tempora.event.entity_death.died", when, victim, damage, where);
 
         return EventChat.line("tempora.event.entity_death.unknown", when, victim, where);
-    }
-
-    // Vanilla's damage types start lower case and have no translated entity name, mobs do one or the other.
-    private static boolean isEntity(String cause) {
-        return Character.isUpperCase(cause.charAt(0)) || StatCollector.canTranslate("entity." + cause + ".name");
     }
 
     @Override

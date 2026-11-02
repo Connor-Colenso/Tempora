@@ -3,14 +3,14 @@
 A Forge (Minecraft 1.7.10, GTNH ecosystem) server-side mod for tracking griefing and other
 player activity. It's a slimmed-down alternative to Prism/CoreProtect/LogBlock: block changes
 (inside the regions you choose), player positions, inventory transfers, items picked up and
-dropped, entity deaths/spawns, explosions, item use, and commands are logged to a local SQLite
+dropped, player and mob deaths, mob spawns, explosions, item use, and commands are logged to a local SQLite
 database and can be queried in-game by operators. Server-wide events with no position, such as players
 joining and leaving, weather changes and TPS, are logged too.
 
 ## Features
 
-- **Per-event-type logging** — block changes, player positions, entity spawns/deaths,
-  explosions, inventory transfers, item pickups and drops, item use, and command history, each in
+- **Per-event-type logging** — block changes, player positions, player and mob deaths,
+  entity spawns, explosions, inventory transfers, item pickups and drops, item use, and command history, each in
   its own SQLite database file.
 - **Server-wide logging** — players joining and leaving, weather changes and TPS, which belong to
   the whole server rather than a place. See [Logger kinds](#logger-kinds).
@@ -46,11 +46,11 @@ run on its own. All of them require operator permission (permission level 2), an
 
 Times (`t:`) are written like `30m`, `6h`, `1d`, `2w` or `1mo`. A range such as `t:3d-1d` looks between 3 days
 and 1 day ago. `p:` takes player names, comma separated, and `!Name` leaves a player out instead. Block changes
-and explosions go by the closest player, and loggers with no player, such as mob spawns, are skipped when `p:` is
-given.
+and explosions go by the closest player, mob deaths by the player who killed them, and loggers with
+no player, such as mob spawns, are skipped when `p:` is given.
 
-Loggers have short names for commands: `change`, `break`, `place`, `explosion`, `command`, `death`,
-`spawn`, `mobpos`, `inventory`, `pickup` (items picked up, thrown out, or dropped on death), `use`,
+Loggers have short names for commands: `change`, `break`, `place`, `explosion`, `command`, `mobdeath`,
+`playerdeath`, `spawn`, `mobpos`, `inventory`, `pickup` (items picked up, thrown out, or dropped on death), `use`,
 `achievement` and `playerpos`, plus the global `connection`, `weather` and `tps`. The full names (e.g.
 `PlayerBlockBreakLogger`) also work, and are the table names for `/tempora sql`.
 
@@ -179,7 +179,7 @@ if (Loader.isModLoaded(TemporaApi.MODID)) {
 | `logCommand` | `command` |
 | `logPlayerPosition` | `playerpos` |
 | `logEntitySpawn` | `spawn` |
-| `logEntityDeath` | `death` |
+| `logEntityDeath` | `mobdeath` |
 | `logEntityPosition` | `mobpos` |
 
 Calls only do anything on the server thread, and only while that logger is turned on. Each method's

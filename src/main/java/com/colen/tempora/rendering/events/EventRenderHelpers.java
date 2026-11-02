@@ -201,6 +201,13 @@ public final class EventRenderHelpers {
         return StatCollector.translateToLocal(PlayerUtils.UNKNOWN_PLAYER_NAME);
     }
 
+    /**
+     * What killed something, from the death loggers' columns (see DeathCause): the player if one did, else the cause.
+     */
+    public static String killerName(String killerPlayer, String killedBy) {
+        return PlayerUtils.isUUID(killerPlayer) ? playerName(killerPlayer) : playerName(killedBy);
+    }
+
     /** The player with this UUID if they are near enough for this client to see them, else null. */
     public static @Nullable EntityPlayer onlinePlayer(UUID uuid) {
         Minecraft mc = Minecraft.getMinecraft();
