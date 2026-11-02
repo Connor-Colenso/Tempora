@@ -34,6 +34,7 @@ import com.colen.tempora.chat.EventChat;
 import com.colen.tempora.enums.LoggerEventType;
 import com.colen.tempora.loggers.generic.column.ColumnDef;
 import com.colen.tempora.loggers.generic.column.ColumnType;
+import com.colen.tempora.utils.PlayerFilter;
 import com.colen.tempora.utils.PlayerUtils;
 import com.colen.tempora.utils.TimeWindow;
 import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
@@ -581,31 +582,32 @@ public abstract class GenericLogger<EventInfo extends GenericEventInfo> {
     }
 
     /**
-     * Finds one player's latest events, up to {@code limit} of them, wherever they happened, on the query thread (see
-     * {@link TemporaQueries}). Only for loggers with a {@link #playerColumn}. Showing them lists them in chat, with
-     * {@code narrowCommand} to search this logger alone, and draws those in the sender's dimension. Says nothing if
-     * there are none, so callers checking many loggers can report that once.
+     * Finds the latest events of the players {@code players} picks out, up to {@code limit} of them, wherever they
+     * happened, on the query thread (see {@link TemporaQueries}). Only for loggers with a {@link #playerColumn}.
+     * Showing them lists them in chat, with {@code narrowCommand} to search this logger alone, and draws those in the
+     * sender's dimension. Says nothing if there are none, so callers checking many loggers can report that once.
      */
-    public final FoundEvents findEventsBy(String uuid, TimeWindow window, int limit, String narrowCommand) {
+    public final FoundEvents findEventsBy(PlayerFilter players, TimeWindow window, int limit, String narrowCommand) {
         String playerColumn = playerColumn();
         if (playerColumn == null) throw new IllegalStateException(getLoggerName() + " has no player column.");
 
+        // A single player uses the player index, as "IN (?)" becomes "= ?". Only leaving players out walks the
+        // timestamp index from the newest end instead.
         String sql = String.format("""
             SELECT * FROM %s
-            WHERE %s = ?
-              AND timestamp >= ? AND timestamp <= ?
+            WHERE timestamp >= ? AND timestamp <= ?%s
             ORDER BY timestamp DESC
             LIMIT ?;
-            """, getLoggerName(), playerColumn);
+            """, getLoggerName(), players.sqlCondition(playerColumn));
 
         List<EventInfo> events;
         try {
             events = queryEvents(sql, ps -> {
                 long now = System.currentTimeMillis();
-                ps.setInt(1, PlayerIDs.lookupID(uuid));
-                ps.setLong(2, window.oldestMillis(now));
-                ps.setLong(3, window.newestMillis(now));
-                ps.setInt(4, limit);
+                ps.setLong(1, window.oldestMillis(now));
+                ps.setLong(2, window.newestMillis(now));
+                int index = players.bind(ps, 3);
+                ps.setInt(index, limit);
             });
         } catch (SQLException e) {
             return queryFailed(e);

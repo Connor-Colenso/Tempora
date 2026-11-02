@@ -7,7 +7,11 @@ import java.util.Collections;
 import java.util.List;
 
 import net.minecraft.command.CommandException;
+import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.IChatComponent;
 
+import com.colen.tempora.chat.EventChat;
 import com.colen.tempora.loggers.generic.PlayerIDs;
 
 /**
@@ -47,6 +51,24 @@ public final class PlayerFilter {
 
     public boolean isAnyone() {
         return includedUUIDs.isEmpty() && excludedUUIDs.isEmpty();
+    }
+
+    // Whose events these are, to name in a header: "Player1, Player2", "everyone but Player1", or "Player1 except
+    // Player2".
+    public IChatComponent describe() {
+        if (excludedUUIDs.isEmpty()) return names(includedUUIDs);
+        if (includedUUIDs.isEmpty())
+            return new ChatComponentTranslation("tempora.player_filter.everyone_but", names(excludedUUIDs));
+        return new ChatComponentTranslation("tempora.player_filter.except", names(includedUUIDs), names(excludedUUIDs));
+    }
+
+    private static IChatComponent names(List<String> uuids) {
+        IChatComponent names = new ChatComponentText("");
+        for (int i = 0; i < uuids.size(); i++) {
+            if (i > 0) names.appendText(", ");
+            names.appendSibling(EventChat.player(uuids.get(i)));
+        }
+        return names;
     }
 
     // E.g. " AND playerUUID IN (?, ?) AND playerUUID NOT IN (?)", to add to a WHERE. Empty for anyone.

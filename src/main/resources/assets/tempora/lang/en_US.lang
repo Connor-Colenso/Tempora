@@ -227,12 +227,14 @@ tempora.command.global.positional_logger=%s records events at a place, use %s to
 
 # /tempora player
 tempora.command.player.description=Shows a player's latest events wherever they happened, from every logger that records players: what they broke, placed, took from or put in containers, used, picked up, dropped, the commands they ran, and when they joined and left. Block changes and explosions go by the closest player. Works from anywhere, including the server console, and draws the events in your dimension in the world. Every filter is optional and they can go in any order. By default it shows the latest %s events of each, over everything still stored.
-tempora.command.player.arg0=Name of the player to look up.
+tempora.command.player.arg0=Whose events to show, comma separated, e.g. Player1,Player2. A ! leaves a player out instead, e.g. !Player1 for everyone but Player1.
 tempora.command.player.arg1=How far back to look, e.g. 30m, 6h, 1d, 2w. A range such as 3d-1d looks between 3 days and 1 day ago. Default is everything still stored.
 tempora.command.player.arg2=Which loggers to search, comma separated, e.g. break,place. Default is every logger that records players.
 tempora.command.player.arg3=How many events to show from each logger, default %s. This server's limit is %s.
 tempora.command.player.header=Latest events by %s:
 tempora.command.player.no_player=%s doesn't record players. Choices are: %s.
+tempora.player_filter.everyone_but=everyone but %s
+tempora.player_filter.except=%s except %s
 
 # /tempora status
 tempora.command.status.description=Shows whether each logger is storing events, how many it holds and how old they are, how much disk it uses, and any backlog of events waiting to be saved, then the total size of Tempora's databases and the free disk space left. Hover over a logger's name for what it records and how it is set up. Works from anywhere, including the server console.

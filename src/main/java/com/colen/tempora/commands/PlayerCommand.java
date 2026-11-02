@@ -19,12 +19,14 @@ import com.colen.tempora.config.CommandsConfig;
 import com.colen.tempora.loggers.generic.GenericLogger;
 import com.colen.tempora.loggers.generic.GenericLogger.FoundEvents;
 import com.colen.tempora.loggers.generic.TemporaQueries;
+import com.colen.tempora.utils.PlayerFilter;
 import com.colen.tempora.utils.PlayerUtils;
 import com.colen.tempora.utils.TimeWindow;
 
 /**
- * /tempora player <player> [t:<time>] [l:<logger,...>] [n:<count>]
- * Shows a player's latest events wherever they happened, from every logger that records players unless narrowed down
+ * /tempora player <player,...> [t:<time>] [l:<logger,...>] [n:<count>]
+ * Shows a player's latest events wherever they happened, or several players' (a ! leaves a player out instead, as p:
+ * does in a lookup), from every logger that records players unless narrowed down
  * with l:. Works from anywhere, including the server console. Players also get the events in their dimension drawn in
  * the world.
  */
@@ -43,11 +45,7 @@ public class PlayerCommand extends TemporaSubcommand {
             return;
         }
 
-        String uuid = PlayerUtils.uuidFromName(args[0]);
-        if (uuid == null) {
-            sendError(sender, "tempora.command.unknown_player", args[0]);
-            return;
-        }
+        PlayerFilter players = PlayerFilter.parse(args[0]);
 
         CommandFilters filters = CommandFilters.parse(this, sender, args, 1, "t", "l", "n");
         if (filters == null) return;
@@ -69,11 +67,11 @@ public class PlayerCommand extends TemporaSubcommand {
                 // A logger that is disabled, or failed to start, has no database to read.
                 if (logger.notStarted()) continue;
 
-                found.add(logger.findEventsBy(uuid, window, count, command(args[0], "l:" + logger.getShortName())));
+                found.add(logger.findEventsBy(players, window, count, command(args[0], "l:" + logger.getShortName())));
             }
             return found;
         }, (target, found) -> {
-            target.addChatMessage(EventChat.line("tempora.command.player.header", EventChat.player(uuid)));
+            target.addChatMessage(EventChat.line("tempora.command.player.header", players.describe()));
 
             int shown = 0;
             for (FoundEvents events : found) {
@@ -130,7 +128,17 @@ public class PlayerCommand extends TemporaSubcommand {
     @Override
     public List<String> tabComplete(ICommandSender sender, String[] args) {
         if (args.length == 1) {
-            return PlayerUtils.getTabCompletionForPlayerNames(args[0]);
+            // Keep everything up to the last comma, and any ! on the name being typed.
+            String typed = args[0];
+            int nameStart = typed.lastIndexOf(',') + 1;
+            if (typed.startsWith("!", nameStart)) nameStart++;
+
+            String done = typed.substring(0, nameStart);
+            List<String> completions = new ArrayList<>();
+            for (String name : PlayerUtils.getTabCompletionForPlayerNames(typed.substring(nameStart))) {
+                completions.add(done + name);
+            }
+            return completions;
         }
 
         Map<String, List<String>> suggestions = new LinkedHashMap<>();

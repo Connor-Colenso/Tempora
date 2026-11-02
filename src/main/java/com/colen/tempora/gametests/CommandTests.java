@@ -14,6 +14,7 @@ import com.colen.tempora.commands.TemporaCommand;
 import com.colen.tempora.loggers.generic.GenericLogger;
 import com.colen.tempora.loggers.generic.GenericLogger.FoundEvents;
 import com.colen.tempora.loggers.player_block_break.PlayerBlockBreakEventInfo;
+import com.colen.tempora.utils.PlayerFilter;
 import com.colen.tempora.utils.TimeWindow;
 import com.gtnewhorizons.horizonqa.api.GameTestHelper;
 import com.gtnewhorizons.horizonqa.api.TestPos;
@@ -32,14 +33,18 @@ public class CommandTests {
     // Far outside the test's cell, so only a search by player rather than by place finds it.
     private static final int FAR_AWAY = 20_000;
 
-    // A player's events are found wherever they happened, and nobody else's are.
+    // A player's events are found wherever they happened, and nobody else's are. Several players, and leaving one out
+    // with !, work as p: does in a lookup.
     @GameTest(timeoutTicks = TIMEOUT_TICKS)
     public static void playerSearchFindsTheirEventsAnywhere(GameTestHelper helper) {
         GenericLogger<?> logger = TemporaEvents.playerBlockBreakLogger;
         FakePlayer alice = fakePlayer(helper, "player_alice");
         FakePlayer bob = fakePlayer(helper, "player_bob");
         String a = PositionalLoggerTests.uuid(alice);
+        String b = PositionalLoggerTests.uuid(bob);
         Probe<FoundEvents> found = new Probe<>(helper, "playerSearchFindsTheirEventsAnywhere.found");
+        Probe<FoundEvents> both = new Probe<>(helper, "playerSearchFindsTheirEventsAnywhere.both");
+        Probe<FoundEvents> notBob = new Probe<>(helper, "playerSearchFindsTheirEventsAnywhere.notBob");
 
         helper.startSequence()
             .thenExecute("alice breaks a block here and one far away, bob one here", () -> {
@@ -50,8 +55,25 @@ public class CommandTests {
             .thenWaitUntil(
                 "both of alice's are found",
                 WRITE_TICKS,
-                () -> LookupTests
-                    .assertShown(helper, found.poll(() -> logger.findEventsBy(a, TimeWindow.allTime(), 10, "")), 2))
+                () -> LookupTests.assertShown(
+                    helper,
+                    found.poll(() -> logger.findEventsBy(PlayerFilter.parse(a), TimeWindow.allTime(), 10, "")),
+                    2))
+            .thenWaitUntil(
+                "alice,bob finds all three",
+                WRITE_TICKS,
+                () -> LookupTests.assertShown(
+                    helper,
+                    both.poll(() -> logger.findEventsBy(PlayerFilter.parse(a + "," + b), TimeWindow.allTime(), 10, "")),
+                    3))
+            .thenWaitUntil(
+                "alice,!bob finds alice's two",
+                WRITE_TICKS,
+                () -> LookupTests.assertShown(
+                    helper,
+                    notBob.poll(
+                        () -> logger.findEventsBy(PlayerFilter.parse(a + ",!" + b), TimeWindow.allTime(), 10, "")),
+                    2))
             .thenSucceed();
     }
 
