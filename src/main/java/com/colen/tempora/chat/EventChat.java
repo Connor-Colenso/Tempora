@@ -2,6 +2,8 @@ package com.colen.tempora.chat;
 
 import static com.gtnewhorizon.gtnhlib.util.numberformatting.NumberFormatUtil.formatNumber;
 
+import java.nio.charset.StandardCharsets;
+
 import javax.annotation.Nullable;
 
 import net.minecraft.event.ClickEvent;
@@ -30,7 +32,8 @@ import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 public final class EventChat {
 
     // Chat packets cannot carry arbitrarily large hover text, so huge NBT (full backpacks, AE2 cells) is not shown.
-    private static final int MAX_HOVER_NBT_LENGTH = 8192;
+    // Measured in bytes as sent: the JSON turns characters such as < into six byte escapes.
+    private static final int MAX_HOVER_NBT_BYTES = 16384;
 
     private EventChat() {}
 
@@ -117,11 +120,13 @@ public final class EventChat {
 
         IChatComponent name = text(itemStack.getDisplayName(), EnumChatFormatting.WHITE);
 
-        String hoverNBT = itemStack.writeToNBT(new NBTTagCompound())
-            .toString();
-        if (hoverNBT.length() <= MAX_HOVER_NBT_LENGTH) {
+        IChatComponent hoverNBT = new ChatComponentText(
+            itemStack.writeToNBT(new NBTTagCompound())
+                .toString());
+        if (IChatComponent.Serializer.func_150696_a(hoverNBT)
+            .getBytes(StandardCharsets.UTF_8).length <= MAX_HOVER_NBT_BYTES) {
             name.getChatStyle()
-                .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_ITEM, new ChatComponentText(hoverNBT)));
+                .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_ITEM, hoverNBT));
         }
 
         return name;
