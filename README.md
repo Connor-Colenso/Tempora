@@ -33,8 +33,8 @@ run on its own. All of them require operator permission (permission level 2), an
 
 | Command | Purpose |
 |---|---|
-| `/tempora lookup [r:<radius>] [t:<time>] [l:<logger,...>] [p:<player,...>] [n:<count>]` | Show the latest events around you and draw them in the world. Every filter is optional and they go in any order, e.g. `/tempora lookup t:1d l:break,place p:Notch`. Defaults to 10 blocks, the last 3 days, every positional logger, anyone, and the latest 5 events of each logger (up to 50). |
-| `/tempora global [t:<time>] [l:<logger,...>] [n:<count>]` | Show the latest events from the global loggers (joins and leaves, weather, TPS), from anywhere, including the server console. Defaults to the last 10 events of each (up to 100) over the last 3 days. |
+| `/tempora lookup [r:<radius>] [t:<time>] [l:<logger,...>] [p:<player,...>] [n:<count>]` | Show the latest events around you and draw them in the world. Every filter is optional and they go in any order, e.g. `/tempora lookup t:1d l:break,place p:Notch`. Defaults to 10 blocks, the last 3 days, every positional logger, anyone, and the latest 5 events of each logger (`n:` up to 1,000, see `maxResultsPerLogger`). |
+| `/tempora global [t:<time>] [l:<logger,...>] [n:<count>]` | Show the latest events from the global loggers (joins and leaves, weather, TPS), from anywhere, including the server console. Defaults to the last 10 events of each (`n:` up to 1,000, see `maxResultsPerLogger`) over the last 3 days. |
 | `/tempora home <player> [t:<time>] [dim:<id>] [n:<count>]` | List the places a player has spent the most time, from their position history, e.g. `/tempora home Notch t:3w`. Each place is the 3x3 chunks around its busiest chunk, with its share of their time, when they were last there, and a link to where they last stood. Places within 4 chunks of a busier one are left out, and so is anywhere under 1% of their time. Defaults to everything stored, every dimension, and 3 places (up to 10). |
 | `/tempora sql <SELECT ...>` | Run a read-only `SELECT` against a logger's table for ad-hoc investigation. Match a player with `player('<name or UUID>')`, e.g. `WHERE playerUUID = player('Notch')`, as player columns hold a number for each player (see [Storage](#storage)). |
 | `/tempora wand` | Get the Tempora wand. Left click a block to see its history, right click a face for the space in front of it. |
@@ -108,7 +108,8 @@ Tempora's config is split across three files in `config/tempora/`:
   someone turns it on (and restarts). In the development workspace it defaults to on.
   `-Dtempora.enabled=true` (or `false`) on the JVM overrides the file.
   Loggers added by other mods get their sections here too.
-- `commands.cfg` — the lookup time limit (`queryTimeLimitSeconds`) and how many events
+- `commands.cfg` — the lookup time limit (`queryTimeLimitSeconds`), the most events an `n:` can ask for
+  from each logger (`maxResultsPerLogger`, 1,000), and how many events
   `/tempora sql` shows (`sqlMaxResults`).
 - `client.cfg` — how far away looked up events are drawn, and client debug rendering.
 
