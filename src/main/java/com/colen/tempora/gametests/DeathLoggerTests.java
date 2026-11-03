@@ -20,7 +20,7 @@ import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import com.colen.tempora.Tempora;
 import com.colen.tempora.TemporaEvents;
 import com.colen.tempora.commands.LookupCommand;
-import com.colen.tempora.loggers.generic.GenericLogger.FoundEvents;
+import com.colen.tempora.loggers.generic.FoundEvents;
 import com.colen.tempora.loggers.generic.PositionalEventInfo;
 import com.colen.tempora.loggers.player_death.PlayerDeathEventInfo;
 import com.colen.tempora.utils.PlayerFilter;
@@ -117,8 +117,8 @@ public class DeathLoggerTests {
         TestPos pos = helper.absolute(BLOCK);
         int dim = helper.getWorld().provider.dimensionId;
         int n = LookupCommand.DEFAULT_COUNT;
-        Probe<FoundEvents> onlyAlice = new Probe<>(helper, "playerFilterFindsTheirKills.onlyAlice");
-        Probe<FoundEvents> both = new Probe<>(helper, "playerFilterFindsTheirKills.both");
+        Probe<FoundEvents<?>> onlyAlice = new Probe<>(helper, "playerFilterFindsTheirKills.onlyAlice");
+        Probe<FoundEvents<?>> both = new Probe<>(helper, "playerFilterFindsTheirKills.both");
 
         helper.startSequence()
             .thenExecute("alice and bob each kill a pig", () -> {

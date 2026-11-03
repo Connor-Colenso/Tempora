@@ -5,6 +5,7 @@ import static com.colen.tempora.gametests.TestSupport.eventsNear;
 import static com.colen.tempora.gametests.TestSupport.fakePlayer;
 import static com.gtnewhorizons.horizonqa.api.TestPos.at;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -17,10 +18,13 @@ import net.minecraftforge.common.util.FakePlayer;
 import com.colen.tempora.Tempora;
 import com.colen.tempora.TemporaEvents;
 import com.colen.tempora.commands.LookupCommand;
-import com.colen.tempora.loggers.generic.GenericLogger.FoundEvents;
+import com.colen.tempora.commands.command_base.SortOrder;
+import com.colen.tempora.loggers.generic.FoundEvents;
+import com.colen.tempora.loggers.generic.GenericEventInfo;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.PositionalEventInfo;
 import com.colen.tempora.loggers.player_block_break.PlayerBlockBreakEventInfo;
+import com.colen.tempora.loggers.player_block_place.PlayerBlockPlaceEventInfo;
 import com.colen.tempora.utils.PlayerFilter;
 import com.colen.tempora.utils.TimeWindow;
 import com.gtnewhorizons.horizonqa.api.GameTestHelper;
@@ -48,8 +52,8 @@ public class LookupTests {
         TestPos threeAway = at(4, 1, 1);
         TestPos c = helper.absolute(centre);
         int dim = helper.getWorld().provider.dimensionId;
-        Probe<FoundEvents> wide = new Probe<>(helper, "radiusLimitsWhatIsFound.wide");
-        Probe<FoundEvents> narrow = new Probe<>(helper, "radiusLimitsWhatIsFound.narrow");
+        Probe<FoundEvents<?>> wide = new Probe<>(helper, "radiusLimitsWhatIsFound.wide");
+        Probe<FoundEvents<?>> narrow = new Probe<>(helper, "radiusLimitsWhatIsFound.narrow");
 
         helper.startSequence()
             .thenExecute("break two blocks, three apart", () -> {
@@ -98,8 +102,8 @@ public class LookupTests {
         TestPos block = at(2, 1, 2);
         TestPos pos = helper.absolute(block);
         int dim = helper.getWorld().provider.dimensionId;
-        Probe<FoundEvents> anyTime = new Probe<>(helper, "timeLimitsWhatIsFound.anyTime");
-        Probe<FoundEvents> lastDay = new Probe<>(helper, "timeLimitsWhatIsFound.lastDay");
+        Probe<FoundEvents<?>> anyTime = new Probe<>(helper, "timeLimitsWhatIsFound.anyTime");
+        Probe<FoundEvents<?>> lastDay = new Probe<>(helper, "timeLimitsWhatIsFound.lastDay");
 
         helper.startSequence()
             .thenExecute("a break two days ago, and one now", () -> {
@@ -150,9 +154,9 @@ public class LookupTests {
         TestPos pos = helper.absolute(block);
         int dim = helper.getWorld().provider.dimensionId;
         int n = LookupCommand.DEFAULT_COUNT;
-        Probe<FoundEvents> lastThreeDays = new Probe<>(helper, "timeRangeLimitsWhatIsFound.lastThreeDays");
-        Probe<FoundEvents> range = new Probe<>(helper, "timeRangeLimitsWhatIsFound.range");
-        Probe<FoundEvents> reversed = new Probe<>(helper, "timeRangeLimitsWhatIsFound.reversed");
+        Probe<FoundEvents<?>> lastThreeDays = new Probe<>(helper, "timeRangeLimitsWhatIsFound.lastThreeDays");
+        Probe<FoundEvents<?>> range = new Probe<>(helper, "timeRangeLimitsWhatIsFound.range");
+        Probe<FoundEvents<?>> reversed = new Probe<>(helper, "timeRangeLimitsWhatIsFound.reversed");
 
         helper.startSequence()
             .thenExecute("breaks five days ago, two days ago, and now", () -> {
@@ -218,8 +222,8 @@ public class LookupTests {
         FakePlayer player = fakePlayer(helper, "lookup_count");
         TestPos centre = helper.absolute(at(2, 1, 2));
         int dim = helper.getWorld().provider.dimensionId;
-        Probe<FoundEvents> three = new Probe<>(helper, "countLimitsWhatIsShown.three");
-        Probe<FoundEvents> ten = new Probe<>(helper, "countLimitsWhatIsShown.ten");
+        Probe<FoundEvents<?>> three = new Probe<>(helper, "countLimitsWhatIsShown.three");
+        Probe<FoundEvents<?>> ten = new Probe<>(helper, "countLimitsWhatIsShown.ten");
         CapturingSender chat = new CapturingSender("countLimitsWhatIsShown.chat", helper.getWorld());
 
         helper.startSequence()
@@ -277,10 +281,10 @@ public class LookupTests {
         TestPos centre = helper.absolute(at(2, 1, 2));
         int dim = helper.getWorld().provider.dimensionId;
         int n = LookupCommand.DEFAULT_COUNT;
-        Probe<FoundEvents> onlyAlice = new Probe<>(helper, "playerFilterLimitsWhatIsFound.onlyAlice");
-        Probe<FoundEvents> notAlice = new Probe<>(helper, "playerFilterLimitsWhatIsFound.notAlice");
-        Probe<FoundEvents> both = new Probe<>(helper, "playerFilterLimitsWhatIsFound.both");
-        Probe<FoundEvents> neither = new Probe<>(helper, "playerFilterLimitsWhatIsFound.neither");
+        Probe<FoundEvents<?>> onlyAlice = new Probe<>(helper, "playerFilterLimitsWhatIsFound.onlyAlice");
+        Probe<FoundEvents<?>> notAlice = new Probe<>(helper, "playerFilterLimitsWhatIsFound.notAlice");
+        Probe<FoundEvents<?>> both = new Probe<>(helper, "playerFilterLimitsWhatIsFound.both");
+        Probe<FoundEvents<?>> neither = new Probe<>(helper, "playerFilterLimitsWhatIsFound.neither");
 
         helper.startSequence()
             .thenExecute("alice breaks two blocks and bob one", () -> {
@@ -378,6 +382,97 @@ public class LookupTests {
             .thenSucceed();
     }
 
+    // s:time takes the newest n of every logger's events together, rather than the newest n of each.
+    @GameTest(timeoutTicks = TIMEOUT_TICKS)
+    public static void timeSortTakesNewestAcrossLoggers(GameTestHelper helper) {
+        FakePlayer player = fakePlayer(helper, "lookup_by_time");
+        TestPos pos = helper.absolute(at(2, 1, 2));
+        int dim = helper.getWorld().provider.dimensionId;
+        long now = System.currentTimeMillis();
+        Probe<List<FoundEvents<?>>> found = new Probe<>(helper, "timeSortTakesNewestAcrossLoggers.found");
+
+        helper.startSequence()
+            .thenExecute("breaks 4 and 2 days ago, places 3 and 1 day ago, at the same block", () -> {
+                TemporaEvents.playerBlockBreakLogger.queueEventInfo(oldBreak(helper, player, pos, 4 * DAY_SECONDS));
+                TemporaEvents.playerBlockBreakLogger.queueEventInfo(oldBreak(helper, player, pos, 2 * DAY_SECONDS));
+                TemporaEvents.playerBlockPlaceLogger.queueEventInfo(oldPlace(helper, player, pos, 3 * DAY_SECONDS));
+                TemporaEvents.playerBlockPlaceLogger.queueEventInfo(oldPlace(helper, player, pos, DAY_SECONDS));
+            })
+            .thenWaitUntil("both loggers find their two", WRITE_TICKS, () -> {
+                List<FoundEvents<?>> both = found.poll(
+                    () -> Arrays.asList(
+                        TemporaEvents.playerBlockBreakLogger.findEventsNear(
+                            dim,
+                            pos.x(),
+                            pos.y(),
+                            pos.z(),
+                            0,
+                            TimeWindow.allTime(),
+                            PlayerFilter.anyone(),
+                            3),
+                        TemporaEvents.playerBlockPlaceLogger.findEventsNear(
+                            dim,
+                            pos.x(),
+                            pos.y(),
+                            pos.z(),
+                            0,
+                            TimeWindow.allTime(),
+                            PlayerFilter.anyone(),
+                            3)));
+                helper.assertEquals(
+                    4L,
+                    (long) FoundEvents.newestAcross(both, 10)
+                        .size(),
+                    "events found");
+            })
+            .thenExecute("n:3 by time takes the place, break and place from 1, 2 and 3 days ago", () -> {
+                List<FoundEvents<?>> both = found.latest();
+                List<GenericEventInfo> newest = FoundEvents.newestAcross(both, 3);
+                helper.assertEquals(3L, (long) newest.size(), "events taken");
+                long[] daysAgo = { 1, 2, 3 };
+                for (int i = 0; i < daysAgo.length; i++) {
+                    helper.assertEquals(
+                        daysAgo[i],
+                        Math.round((now - newest.get(i).timestamp) / (double) TimeUnit.DAYS.toMillis(1)),
+                        "days ago of event " + i + ", newest first");
+                }
+                helper.assertTrue(
+                    newest.get(0) instanceof PlayerBlockPlaceEventInfo
+                        && newest.get(1) instanceof PlayerBlockBreakEventInfo
+                        && newest.get(2) instanceof PlayerBlockPlaceEventInfo,
+                    "a place, a break, then a place");
+
+                CapturingSender chat = new CapturingSender("timeSortTakesNewestAcrossLoggers.chat", helper.getWorld());
+                helper.assertEquals(
+                    3L,
+                    (long) LookupCommand.show(chat, both, 3, SortOrder.TIME),
+                    "shown by time, chat was:\n" + chat.text());
+                helper.assertEquals(
+                    4L,
+                    (long) LookupCommand.show(chat, both, 3, SortOrder.LOGGER),
+                    "shown by logger, chat was:\n" + chat.text());
+            })
+            .thenSucceed();
+    }
+
+    // s: takes logger or time in any case, and refuses anything else with a message.
+    @GameTest
+    public static void sortFilterParses(GameTestHelper helper) {
+        CapturingSender sender = new CapturingSender("sortFilterParses", helper.getWorld());
+        helper.assertSame(SortOrder.LOGGER, SortOrder.parse(sender, "logger"), "s:logger");
+        helper.assertSame(SortOrder.TIME, SortOrder.parse(sender, "Time"), "s:Time");
+
+        int before = sender.getMessages()
+            .size();
+        helper.assertNull(SortOrder.parse(sender, "distance"), "s:distance was accepted");
+        helper.assertEquals(
+            before + 1L,
+            sender.getMessages()
+                .size(),
+            "the refusal should tell the sender why");
+        helper.succeed();
+    }
+
     // The t: filter's forms, a range either way round.
     @GameTest
     public static void timeWindowParses(GameTestHelper helper) {
@@ -439,7 +534,7 @@ public class LookupTests {
         TestPos pos = helper.absolute(block);
         int dim = helper.getWorld().provider.dimensionId;
         Probe<List<PositionalEventInfo>> stored = new Probe<>(helper, "radiusZeroFindsMobInBlock.stored");
-        Probe<FoundEvents> lookup = new Probe<>(helper, "radiusZeroFindsMobInBlock.lookup");
+        Probe<FoundEvents<?>> lookup = new Probe<>(helper, "radiusZeroFindsMobInBlock.lookup");
 
         helper.startSequence()
             .thenExecute("spawn a pig in the middle of a block, and one in the next block", () -> {
@@ -497,8 +592,24 @@ public class LookupTests {
         return event;
     }
 
+    // A place event from some time ago, as oldBreak.
+    private static PlayerBlockPlaceEventInfo oldPlace(GameTestHelper helper, FakePlayer player, TestPos pos,
+        long secondsAgo) {
+        PlayerBlockPlaceEventInfo event = new PlayerBlockPlaceEventInfo();
+        event.timestamp = System.currentTimeMillis() - TimeUnit.SECONDS.toMillis(secondsAgo);
+        event.dimensionID = helper.getWorld().provider.dimensionId;
+        event.x = pos.x();
+        event.y = pos.y();
+        event.z = pos.z();
+        event.blockID = Block.getIdFromBlock(Blocks.stone);
+        event.pickBlockID = event.blockID;
+        event.playerUUID = PositionalLoggerTests.uuid(player);
+        event.encodedNBT = "";
+        return event;
+    }
+
     // Shows a lookup's result to a throwaway sender, and checks how many events it showed.
-    static void assertShown(GameTestHelper helper, FoundEvents found, int expected) {
+    static void assertShown(GameTestHelper helper, FoundEvents<?> found, int expected) {
         CapturingSender chat = new CapturingSender("assertShown", helper.getWorld());
         helper.assertEquals((long) expected, found.show(chat), "events shown, chat was:\n" + chat.text());
     }

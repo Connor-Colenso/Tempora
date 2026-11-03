@@ -114,6 +114,9 @@ tempora.command.lookup.header=%s %s %s
 tempora.command.lookup.header.count=(%s)
 tempora.command.lookup.header.latest=(latest %s)
 tempora.command.lookup.header.hover=Click to search only %s.
+# With s:time, the one header above every logger's events, e.g. "Events by time (latest 10)", and the logger before each.
+tempora.command.lookup.timeline=Events by time
+tempora.command.lookup.tag=[%s]
 tempora.chat.info=[Info]
 tempora.command.lookup.too_many_pending=%s events are still waiting to be saved, so the newest may be missing.
 tempora.command.lookup.query_failed=Database query failed on %s: %s
@@ -201,6 +204,8 @@ tempora.time.invalid=Invalid time '%s'. Expected e.g. 30m, 6h, 1d, 2w or 1mo.
 tempora.time.unsupported_unit=Invalid time: '%s' isn't a unit of time.
 tempora.time.too_long=Invalid time: the longest is %s years.
 tempora.command.count_capped=%s events per logger is over this server's limit, so it was capped to %s (maxResultsPerLogger in config/tempora/commands.cfg).
+tempora.command.count_capped.total=%s events is over this server's limit, so it was capped to %s (maxResultsPerLogger in config/tempora/commands.cfg).
+tempora.command.bad_sort='%s' isn't a way to sort. Choices are: %s.
 
 # /tempora help
 tempora.command.help.description=Lists every Tempora command, or shows how to use one, e.g. /tempora help region set. A ? after any command shows the same, e.g. /tempora lookup ?
@@ -215,7 +220,8 @@ tempora.command.lookup.arg0=How many blocks around you to search, default %s.
 tempora.command.lookup.arg1=How far back to look, e.g. 30m, 6h, 1d, 2w, default 3d. A range such as 3d-1d looks between 3 days and 1 day ago.
 tempora.command.lookup.arg2=Which loggers to search, comma separated, e.g. break,place. Default is every logger.
 tempora.command.lookup.arg3=Whose events to show, comma separated, e.g. Player1,Player2. A ! leaves a player out instead, e.g. !Player1 for everyone but Player1. Block changes and explosions go by the closest player. Loggers with no player, such as mob spawns, are skipped. Default is anyone.
-tempora.command.lookup.arg4=How many events to show from each logger, default %s. This server's limit is %s.
+tempora.command.lookup.arg4=How many events to show from each logger, default %s, or in all with s:time, default %s. This server's limit is %s.
+tempora.command.lookup.arg5=How to list the events: logger shows each logger's under its own header, time shows them all together in the order they happened, newest last. Default is logger.
 tempora.command.lookup.global_logger=%s isn't tied to a place, so it can't be looked up around you. Use %s instead.
 
 # /tempora global
@@ -230,7 +236,8 @@ tempora.command.player.description=Shows a player's latest events wherever they 
 tempora.command.player.arg0=Whose events to show, comma separated, e.g. Player1,Player2. A ! leaves a player out instead, e.g. !Player1 for everyone but Player1.
 tempora.command.player.arg1=How far back to look, e.g. 30m, 6h, 1d, 2w. A range such as 3d-1d looks between 3 days and 1 day ago. Default is everything still stored.
 tempora.command.player.arg2=Which loggers to search, comma separated, e.g. break,place. Default is every logger that records players.
-tempora.command.player.arg3=How many events to show from each logger, default %s. This server's limit is %s.
+tempora.command.player.arg3=How many events to show from each logger, default %s, or in all with s:time, default %s. This server's limit is %s.
+tempora.command.player.arg4=How to list the events: logger shows each logger's under its own header, time shows them all together in the order they happened, newest last. Default is logger.
 tempora.command.player.header=Latest events by %s:
 tempora.command.player.no_player=%s doesn't record players. Choices are: %s.
 tempora.player_filter.everyone_but=everyone but %s

@@ -11,8 +11,8 @@ import net.minecraftforge.common.util.FakePlayer;
 import com.colen.tempora.Tempora;
 import com.colen.tempora.TemporaEvents;
 import com.colen.tempora.commands.TemporaCommand;
+import com.colen.tempora.loggers.generic.FoundEvents;
 import com.colen.tempora.loggers.generic.GenericLogger;
-import com.colen.tempora.loggers.generic.GenericLogger.FoundEvents;
 import com.colen.tempora.loggers.player_block_break.PlayerBlockBreakEventInfo;
 import com.colen.tempora.utils.PlayerFilter;
 import com.colen.tempora.utils.TimeWindow;
@@ -42,9 +42,9 @@ public class CommandTests {
         FakePlayer bob = fakePlayer(helper, "player_bob");
         String a = PositionalLoggerTests.uuid(alice);
         String b = PositionalLoggerTests.uuid(bob);
-        Probe<FoundEvents> found = new Probe<>(helper, "playerSearchFindsTheirEventsAnywhere.found");
-        Probe<FoundEvents> both = new Probe<>(helper, "playerSearchFindsTheirEventsAnywhere.both");
-        Probe<FoundEvents> notBob = new Probe<>(helper, "playerSearchFindsTheirEventsAnywhere.notBob");
+        Probe<FoundEvents<?>> found = new Probe<>(helper, "playerSearchFindsTheirEventsAnywhere.found");
+        Probe<FoundEvents<?>> both = new Probe<>(helper, "playerSearchFindsTheirEventsAnywhere.both");
+        Probe<FoundEvents<?>> notBob = new Probe<>(helper, "playerSearchFindsTheirEventsAnywhere.notBob");
 
         helper.startSequence()
             .thenExecute("alice breaks a block here and one far away, bob one here", () -> {

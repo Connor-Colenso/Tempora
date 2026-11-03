@@ -228,11 +228,21 @@ public abstract class TemporaSubcommand {
      * lowered to it, and the sender told so in red.
      */
     protected static int parseCountPerLogger(ICommandSender sender, String typed) {
+        return parseCount(sender, typed, "tempora.command.count_capped");
+    }
+
+    // An n: filter's count, as for parseCountPerLogger, as sorted by: per logger, or in all with s:time.
+    protected static int parseCount(ICommandSender sender, String typed, SortOrder order) {
+        return order == SortOrder.TIME ? parseCount(sender, typed, "tempora.command.count_capped.total")
+            : parseCountPerLogger(sender, typed);
+    }
+
+    private static int parseCount(ICommandSender sender, String typed, String cappedKey) {
         int count = CommandBase.parseIntWithMin(sender, typed, 1);
         int max = CommandsConfig.maxResultsPerLogger;
         if (count <= max) return count;
 
-        sendError(sender, "tempora.command.count_capped", new ChatComponentNumber(count), new ChatComponentNumber(max));
+        sendError(sender, cappedKey, new ChatComponentNumber(count), new ChatComponentNumber(max));
         return max;
     }
 

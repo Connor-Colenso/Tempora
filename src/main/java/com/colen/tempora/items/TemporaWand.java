@@ -26,6 +26,7 @@ import com.colen.tempora.TemporaLoggerManager;
 import com.colen.tempora.chat.EventChat;
 import com.colen.tempora.commands.LookupCommand;
 import com.colen.tempora.commands.TemporaCommand;
+import com.colen.tempora.commands.command_base.SortOrder;
 import com.colen.tempora.networking.packets.PacketShowRegionInWorld;
 import com.colen.tempora.regions.TemporaWorldRegion;
 import com.colen.tempora.rendering.ClientRegionStore;
@@ -179,6 +180,7 @@ public class TemporaWand extends Item {
                 TimeWindow.allTime(),
                 PlayerFilter.anyone(),
                 LookupCommand.DEFAULT_COUNT,
+                SortOrder.LOGGER,
                 null,
                 new ChatComponentTranslation("tempora.wand.nothing_found"));
         }

@@ -542,17 +542,6 @@ public abstract class GenericLogger<EventInfo extends GenericEventInfo> {
     // Lookups
     // --------------------------------------
 
-    /**
-     * One logger's part of a lookup: found on the query thread, then shown on the server thread. See
-     * {@link TemporaQueries}.
-     */
-    @FunctionalInterface
-    public interface FoundEvents {
-
-        // Sends them to the sender, on the server thread. Returns how many were shown.
-        int show(ICommandSender sender);
-    }
-
     @FunctionalInterface
     interface QueryParameters {
 
@@ -587,7 +576,8 @@ public abstract class GenericLogger<EventInfo extends GenericEventInfo> {
      * Showing them lists them in chat, with {@code narrowCommand} to search this logger alone, and draws those in the
      * sender's dimension. Says nothing if there are none, so callers checking many loggers can report that once.
      */
-    public final FoundEvents findEventsBy(PlayerFilter players, TimeWindow window, int limit, String narrowCommand) {
+    public final FoundEvents<EventInfo> findEventsBy(PlayerFilter players, TimeWindow window, int limit,
+        String narrowCommand) {
         String playerColumn = playerColumn();
         if (playerColumn == null) throw new IllegalStateException(getLoggerName() + " has no player column.");
 
@@ -610,26 +600,14 @@ public abstract class GenericLogger<EventInfo extends GenericEventInfo> {
                 ps.setInt(index, limit);
             });
         } catch (SQLException e) {
-            return queryFailed(e);
+            return FoundEvents.failed(this, e);
         }
 
-        return guarded(sender -> {
-            sendEventsInChat(sender, events, limit, narrowCommand);
-            drawInWorld(sender, events);
-            return events.size();
-        });
+        return FoundEvents.found(this, events, limit, narrowCommand);
     }
 
     // Draws found events in the world for the sender, if this kind of logger has anything to draw. Server thread.
     void drawInWorld(ICommandSender sender, List<EventInfo> events) {}
-
-    // What a lookup shows for this logger when its query failed.
-    final FoundEvents queryFailed(SQLException e) {
-        return sender -> {
-            sendQueryFailed(sender, e);
-            return 0;
-        };
-    }
 
     /**
      * Shows a header naming this logger and how many events were found, then lists them in chat, oldest first. Takes
@@ -654,37 +632,70 @@ public abstract class GenericLogger<EventInfo extends GenericEventInfo> {
             .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, nameHover))
             .setChatClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, narrowCommand));
 
-        IChatComponent count = new ChatComponentTranslation(
-            eventsFound >= limit ? "tempora.command.lookup.header.latest" : "tempora.command.lookup.header.count",
-            new ChatComponentNumber(eventsFound));
-        count.getChatStyle()
-            .setColor(EnumChatFormatting.GRAY);
-
         IChatComponent info = new ChatComponentTranslation("tempora.chat.info");
         info.getChatStyle()
             .setColor(EnumChatFormatting.DARK_AQUA)
             .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, getInfoHover()));
 
-        IChatComponent header = new ChatComponentTranslation("tempora.command.lookup.header", name, count, info);
+        IChatComponent header = new ChatComponentTranslation(
+            "tempora.command.lookup.header",
+            name,
+            countLabel(eventsFound, limit),
+            info);
         header.getChatStyle()
             .setColor(EnumChatFormatting.GRAY);
         sender.addChatMessage(header);
 
-        // If events waiting to process is large, then warn the user.
-        // Shouldn't really be happening.
-        if (getQueueSize() > 100) {
-            IChatComponent tooMany = new ChatComponentTranslation(
-                "tempora.command.lookup.too_many_pending",
-                new ChatComponentNumber(getQueueSize()));
-            tooMany.getChatStyle()
-                .setColor(EnumChatFormatting.GOLD);
-            sender.addChatMessage(tooMany);
-        }
+        sendPendingWarning(sender);
 
         // Newest at the bottom, where chat is read from.
         for (int i = eventsFound - 1; i >= 0; i--) {
             sender.addChatMessage(chatLineOrPlaceholder(newestFirst.get(i)));
         }
+    }
+
+    // E.g. "(3)", or "(latest 5)" when the lookup was limited to that many so there may be more.
+    static IChatComponent countLabel(int eventsFound, int limit) {
+        IChatComponent count = new ChatComponentTranslation(
+            eventsFound >= limit ? "tempora.command.lookup.header.latest" : "tempora.command.lookup.header.count",
+            new ChatComponentNumber(eventsFound));
+        count.getChatStyle()
+            .setColor(EnumChatFormatting.GRAY);
+        return count;
+    }
+
+    // If events waiting to process is large, then warn the user.
+    // Shouldn't really be happening.
+    final void sendPendingWarning(ICommandSender sender) {
+        if (getQueueSize() <= 100) return;
+
+        IChatComponent tooMany = new ChatComponentTranslation(
+            "tempora.command.lookup.too_many_pending",
+            new ChatComponentNumber(getQueueSize()));
+        tooMany.getChatStyle()
+            .setColor(EnumChatFormatting.GOLD);
+        sender.addChatMessage(tooMany);
+    }
+
+    /**
+     * E.g. "[break]", before each of this logger's events in a lookup sorted by time, with the logger's name and what
+     * it records on hover. Clicking it fills in {@code narrowCommand}, to search this logger alone.
+     */
+    final IChatComponent timelineTag(String narrowCommand) {
+        IChatComponent title = getDisplayName();
+        title.getChatStyle()
+            .setColor(EnumChatFormatting.GOLD);
+        IChatComponent hover = EventChat.titledHover(
+            title,
+            getInfoHover(),
+            new ChatComponentTranslation("tempora.command.lookup.header.hover", getDisplayName()));
+
+        IChatComponent tag = new ChatComponentTranslation("tempora.command.lookup.tag", getShortName());
+        tag.getChatStyle()
+            .setColor(EnumChatFormatting.GOLD)
+            .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hover))
+            .setChatClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, narrowCommand));
+        return tag;
     }
 
     /**
@@ -708,25 +719,13 @@ public abstract class GenericLogger<EventInfo extends GenericEventInfo> {
         }
     }
 
-    /**
-     * Shows a lookup's results for this logger, or says they couldn't be shown if that throws, so one broken logger
-     * doesn't stop the others' results being shown.
-     */
-    final FoundEvents guarded(FoundEvents show) {
-        return sender -> {
-            try {
-                return show.show(sender);
-            } catch (RuntimeException e) {
-                LOG.error("Could not show {}'s lookup results.", getLoggerName(), e);
-                IChatComponent failed = new ChatComponentTranslation(
-                    "tempora.command.lookup.logger_failed",
-                    getDisplayName());
-                failed.getChatStyle()
-                    .setColor(EnumChatFormatting.RED);
-                sender.addChatMessage(failed);
-                return 0;
-            }
-        };
+    // Says a lookup's results for this logger couldn't be shown, as showing them threw.
+    final void sendShowFailed(ICommandSender sender, RuntimeException e) {
+        LOG.error("Could not show {}'s lookup results.", getLoggerName(), e);
+        IChatComponent failed = new ChatComponentTranslation("tempora.command.lookup.logger_failed", getDisplayName());
+        failed.getChatStyle()
+            .setColor(EnumChatFormatting.RED);
+        sender.addChatMessage(failed);
     }
 
     final void sendQueryFailed(ICommandSender sender, SQLException e) {

@@ -24,7 +24,7 @@ import net.minecraftforge.event.entity.player.PlayerDropsEvent;
 import com.colen.tempora.Tempora;
 import com.colen.tempora.TemporaEvents;
 import com.colen.tempora.commands.LookupCommand;
-import com.colen.tempora.loggers.generic.GenericLogger.FoundEvents;
+import com.colen.tempora.loggers.generic.FoundEvents;
 import com.colen.tempora.loggers.generic.PositionalEventInfo;
 import com.colen.tempora.loggers.item_pickup_drop.ItemPickupDropEventInfo;
 import com.colen.tempora.loggers.item_pickup_drop.ItemPickupDropLogger;
@@ -202,8 +202,8 @@ public class ItemPickupDropLoggerTests {
         int dim = helper.getWorld().provider.dimensionId;
         int x = (int) Math.floor(alice.posX), y = (int) Math.floor(alice.posY), z = (int) Math.floor(alice.posZ);
         int n = LookupCommand.DEFAULT_COUNT;
-        Probe<FoundEvents> onlyAlice = new Probe<>(helper, "playerFilterFindsTheirItems.onlyAlice");
-        Probe<FoundEvents> both = new Probe<>(helper, "playerFilterFindsTheirItems.both");
+        Probe<FoundEvents<?>> onlyAlice = new Probe<>(helper, "playerFilterFindsTheirItems.onlyAlice");
+        Probe<FoundEvents<?>> both = new Probe<>(helper, "playerFilterFindsTheirItems.both");
 
         helper.startSequence()
             .thenExecute("alice and bob each throw out a stick", () -> {

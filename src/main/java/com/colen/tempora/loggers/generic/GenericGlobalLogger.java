@@ -30,7 +30,7 @@ public abstract class GenericGlobalLogger<EventInfo extends GlobalEventInfo> ext
      * Finds the latest events, up to {@code limit} of them, on the query thread (see {@link TemporaQueries}). Showing
      * them says nothing if there are none, so callers checking many loggers can report that once.
      */
-    public final FoundEvents findLatestEvents(TimeWindow window, int limit) {
+    public final FoundEvents<EventInfo> findLatestEvents(TimeWindow window, int limit) {
         String sql = String.format("""
             SELECT * FROM %s
             WHERE timestamp >= ? AND timestamp <= ?
@@ -47,12 +47,9 @@ public abstract class GenericGlobalLogger<EventInfo extends GlobalEventInfo> ext
                 ps.setInt(3, limit);
             });
         } catch (SQLException e) {
-            return queryFailed(e);
+            return FoundEvents.failed(this, e);
         }
 
-        return guarded(sender -> {
-            sendEventsInChat(sender, events, limit, TemporaCommand.GLOBAL.command("l:" + getShortName()));
-            return events.size();
-        });
+        return FoundEvents.found(this, events, limit, TemporaCommand.GLOBAL.command("l:" + getShortName()));
     }
 }

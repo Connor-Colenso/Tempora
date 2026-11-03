@@ -15,9 +15,9 @@ import com.colen.tempora.commands.command_base.CommandFilters;
 import com.colen.tempora.commands.command_base.SearchSummary;
 import com.colen.tempora.commands.command_base.TemporaSubcommand;
 import com.colen.tempora.config.CommandsConfig;
+import com.colen.tempora.loggers.generic.FoundEvents;
 import com.colen.tempora.loggers.generic.GenericGlobalLogger;
 import com.colen.tempora.loggers.generic.GenericLogger;
-import com.colen.tempora.loggers.generic.GenericLogger.FoundEvents;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.TemporaQueries;
 import com.colen.tempora.utils.TimeUtils;
@@ -53,7 +53,7 @@ public class GlobalCommand extends TemporaSubcommand {
             .add("n", DEFAULT_COUNT);
 
         TemporaQueries.submit(sender, () -> {
-            List<FoundEvents> found = new ArrayList<>();
+            List<FoundEvents<?>> found = new ArrayList<>();
             for (GenericGlobalLogger<?> logger : loggers) {
                 // A logger that is disabled, or failed to start, has no database to read.
                 if (logger.notStarted()) continue;
@@ -63,7 +63,7 @@ public class GlobalCommand extends TemporaSubcommand {
             return found;
         }, (target, found) -> {
             int shown = 0;
-            for (FoundEvents events : found) {
+            for (FoundEvents<?> events : found) {
                 shown += events.show(target);
             }
 

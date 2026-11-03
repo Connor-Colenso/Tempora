@@ -35,7 +35,7 @@ import com.colen.tempora.commands.LookupCommand;
 import com.colen.tempora.enums.LoggerEventType;
 import com.colen.tempora.loggers.entity_position.EntityPositionEventInfo;
 import com.colen.tempora.loggers.entity_position.EntityPositionLogger;
-import com.colen.tempora.loggers.generic.GenericLogger;
+import com.colen.tempora.loggers.generic.FoundEvents;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.LoggerDatabase;
 import com.colen.tempora.loggers.generic.PlayerIDs;
@@ -287,7 +287,7 @@ public class DatabaseTests {
         }
         database.insertBatch(events);
 
-        Probe<GenericLogger.FoundEvents> lookup = new Probe<>(helper, "brokenEventShowsPlaceholder");
+        Probe<FoundEvents<?>> lookup = new Probe<>(helper, "brokenEventShowsPlaceholder");
         CapturingSender chat = new CapturingSender("brokenEventShowsPlaceholder.chat", helper.getWorld());
 
         helper.startSequence()

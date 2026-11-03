@@ -96,12 +96,12 @@ public abstract class GenericPositionalLogger<EventInfo extends PositionalEventI
      * block. Showing them lists them in chat and draws them in the world, or says nothing if there are none, so callers
      * checking many loggers can report that once.
      */
-    public final FoundEvents findEventsNear(int dimensionId, int centreX, int centreY, int centreZ, int radius,
-        TimeWindow window, PlayerFilter players, int limit) {
+    public final FoundEvents<EventInfo> findEventsNear(int dimensionId, int centreX, int centreY, int centreZ,
+        int radius, TimeWindow window, PlayerFilter players, int limit) {
 
         // Without a player column, no event here can match a player filter.
         String playerColumn = playerColumn();
-        if (!players.isAnyone() && playerColumn == null) return sender -> 0;
+        if (!players.isAnyone() && playerColumn == null) return FoundEvents.none(this);
 
         // Whole blocks: block n covers n <= x < n + 1, so a mob or player standing in it (x = n + 0.5) is found too.
         // The + keeps SQLite off the player index, which would read every event the player has anywhere.
@@ -143,14 +143,10 @@ public abstract class GenericPositionalLogger<EventInfo extends PositionalEventI
                 ps.setInt(next, limit);
             });
         } catch (SQLException e) {
-            return queryFailed(e);
+            return FoundEvents.failed(this, e);
         }
 
-        return guarded(sender -> {
-            sendEventsInChat(sender, events, limit, TemporaCommand.LOOKUP.command("l:" + getShortName()));
-            drawInWorld(sender, events);
-            return events.size();
-        });
+        return FoundEvents.found(this, events, limit, TemporaCommand.LOOKUP.command("l:" + getShortName()));
     }
 
     // Tells the client what to render in the world, if anything. Only events in the player's dimension, as the client
