@@ -59,7 +59,7 @@ public class PlayerPositionLogger extends GenericPositionalLogger<PlayerPosition
     @Override
     public void handleCustomLoggerConfig(Configuration config) {
         playerPositionLoggingInterval = config.getInt(
-            "playerPositionLoggingInterval",
+            "loggingIntervalTicks",
             getLoggerName(),
             200,
             1,

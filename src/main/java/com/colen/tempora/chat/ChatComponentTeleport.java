@@ -85,7 +85,7 @@ public class ChatComponentTeleport extends AbstractClickableChatComponent<ChatCo
 
     @Override
     public String getID() {
-        return "TemporaTeleport";
+        return "tempora:ChatComponentTeleport";
     }
 
     @Override

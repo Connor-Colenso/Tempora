@@ -31,7 +31,7 @@ import org.jetbrains.annotations.Nullable;
 public final class TemporaRegionRegistry {
 
     private static final String DIR_NAME = "tempora";
-    private static final String FILE_NAME = "tempora_region_registry.dat";
+    private static final String FILE_NAME = "regions.dat";
 
     // Swapped out on server start/stop, so one world's regions never leak into another (e.g. in singleplayer).
     private static volatile TemporaRegionRegistry instance = new TemporaRegionRegistry();

@@ -3,7 +3,7 @@
 
 # === Blocks and items ===
 item.tempora_wand.name=Tempora Wand
-tile.renderingErrorBlock.name=Tempora Rendering Error
+tile.rendering_error_block.name=Tempora Rendering Error
 tile.temporaStressTestBlock.name=Tempora Stress Test Block
 tempora.tooltip.rendering_error=If you are seeing this, something has likely gone wrong with Tempora's event rendering. Please report it, thanks!
 # Air has no name in vanilla, but block changes can be to or from it.
@@ -334,7 +334,7 @@ tempora.command.region.set.set_all=Region %s: all loggers are now %s.
 tempora.command.region.set.cleared=Region %s: removed the rule for %s.
 tempora.command.region.set.cleared_all=Region %s: removed all rules.
 tempora.command.region.set.no_rule=Region %s has no rule for %s, nothing to clear.
-tempora.command.region.set.logger_disabled=Note: %s is disabled in the config (isEnabled=false under %s), so it won't log anywhere until that is turned back on.
+tempora.command.region.set.logger_disabled=Note: %s is disabled in the config (enabled=false under %s), so it won't log anywhere until that is turned back on.
 
 # /tempora region check
 tempora.command.region.check.description=Shows whether each logger records events where you are standing, and which region or config option decided it.

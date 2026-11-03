@@ -139,7 +139,7 @@ public class ChatComponentWrappedTranslation extends AbstractChatComponentBuffer
 
     @Override
     public String getID() {
-        return "ChatComponentWrappedTranslation";
+        return "tempora:ChatComponentWrappedTranslation";
     }
 
     @Override

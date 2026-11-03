@@ -217,7 +217,7 @@ public class EntityPositionLogger extends GenericPositionalLogger<EntityPosition
     @Override
     public void handleCustomLoggerConfig(Configuration config) {
         entityMovementLoggingInterval = config.getInt(
-            "entity_position_logging_interval",
+            "loggingIntervalTicks",
             getLoggerName(),
             500,
             1,

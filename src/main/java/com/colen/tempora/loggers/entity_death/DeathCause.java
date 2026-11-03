@@ -26,11 +26,11 @@ import com.colen.tempora.utils.PlayerUtils;
  */
 public final class DeathCause {
 
-    public final String killerPlayer;
+    public final String killerPlayerUUID;
     public final String killedBy;
 
-    private DeathCause(String killerPlayer, String killedBy) {
-        this.killerPlayer = killerPlayer;
+    private DeathCause(String killerPlayerUUID, String killedBy) {
+        this.killerPlayerUUID = killerPlayerUUID;
         this.killedBy = killedBy;
     }
 
@@ -49,8 +49,8 @@ public final class DeathCause {
     }
 
     /** Who killed it, a player or a mob, or null if neither did. */
-    public static @Nullable IChatComponent killer(String killerPlayer, String killedBy) {
-        if (PlayerUtils.isUUID(killerPlayer)) return EventChat.player(killerPlayer);
+    public static @Nullable IChatComponent killer(String killerPlayerUUID, String killedBy) {
+        if (PlayerUtils.isUUID(killerPlayerUUID)) return EventChat.player(killerPlayerUUID);
 
         String cause = unbracketed(killedBy);
         return cause != null && isEntity(cause) ? EventChat.entityName(cause) : null;

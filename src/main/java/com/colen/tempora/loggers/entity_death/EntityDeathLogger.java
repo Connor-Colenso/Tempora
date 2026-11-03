@@ -24,7 +24,7 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathEventI
     // The player who killed it, if one did.
     @Override
     protected String playerColumn() {
-        return "killerPlayer";
+        return "killerPlayerUUID";
     }
 
     @Override
@@ -71,7 +71,7 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathEventI
         eventInfo.rotationPitch = entity.rotationPitch;
 
         DeathCause cause = DeathCause.of(source);
-        eventInfo.killerPlayer = cause.killerPlayer;
+        eventInfo.killerPlayerUUID = cause.killerPlayerUUID;
         eventInfo.killedBy = cause.killedBy;
 
         logEvent(eventInfo, entity.dimension, entity.posX, entity.posY, entity.posZ);

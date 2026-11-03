@@ -31,7 +31,7 @@ public class ChatComponentTimeRelative extends AbstractChatComponentNumber {
 
     @Override
     public String getID() {
-        return "ChatComponentTimeRelative";
+        return "tempora:ChatComponentTimeRelative";
     }
 
     @Override

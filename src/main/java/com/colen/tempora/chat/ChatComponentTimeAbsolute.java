@@ -24,7 +24,7 @@ public class ChatComponentTimeAbsolute extends AbstractChatComponentNumber {
 
     @Override
     public String getID() {
-        return "ChatComponentTimeAbsolute";
+        return "tempora:ChatComponentTimeAbsolute";
     }
 
     @Override

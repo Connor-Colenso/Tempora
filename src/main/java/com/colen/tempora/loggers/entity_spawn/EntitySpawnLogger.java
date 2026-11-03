@@ -29,7 +29,7 @@ public class EntitySpawnLogger extends GenericPositionalLogger<EntitySpawnEventI
 
     @Override
     public @NotNull String getShortName() {
-        return "spawn";
+        return "mobspawn";
     }
 
     @Override

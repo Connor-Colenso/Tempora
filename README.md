@@ -50,7 +50,7 @@ and explosions go by the closest player, mob deaths by the player who killed the
 no player, such as mob spawns, are skipped when `p:` is given.
 
 Loggers have short names for commands: `change`, `break`, `place`, `explosion`, `command`, `mobdeath`,
-`playerdeath`, `spawn`, `mobpos`, `inventory`, `pickup` (items picked up, thrown out, or dropped on death), `use`,
+`playerdeath`, `mobspawn`, `mobpos`, `inventory`, `pickup` (items picked up, thrown out, or dropped on death), `use`,
 `achievement` and `playerpos`, plus the global `connection`, `weather` and `tps`. The full names (e.g.
 `PlayerBlockBreakLogger`) also work, and are the table names for `/tempora sql`.
 
@@ -114,7 +114,7 @@ Tempora's config is split across three files in `config/tempora/`:
 
 Each logger's section in `loggers.cfg` has:
 
-- `isEnabled` — turns the logger off entirely, regardless of regions.
+- `enabled` — turns the logger off entirely, regardless of regions.
 - `logByDefault` — whether the logger records events where no region has a rule for it.
   Positional loggers only.
 - `oldestDataCutoff` — how long to retain logged events before they're deleted (e.g. `4months`).
@@ -127,7 +127,7 @@ Each logger's section in `loggers.cfg` has:
   write what it still has queued.
 
 Some loggers have options of their own, such as `logNBT` (also store blocks' or items' NBT, on by
-default only for `inventory`), `playerPositionLoggingInterval` and `entity_position_logging_interval`
+default only for `inventory`), `loggingIntervalTicks` for `playerpos` and `mobpos`
 (how often positions are recorded, in ticks), and the `tps` logger's `loggingIntervalSeconds`.
 
 Events are written by a background thread per logger, in SQLite's WAL mode. A server crash loses
@@ -137,7 +137,7 @@ network filesystem.
 
 ### Storage
 
-Each logger has its own database file in the world's `tempora_databases/` folder, named after the
+Each logger has its own database file in the world's `tempora/databases/` folder, named after the
 logger. Columns that record a player (`playerUUID`, and `closestPlayerUUID` for block changes and
 explosions) hold a number for each player rather than their UUID, which keeps busy tables such as
 player positions much smaller. `Players.db` lists each player's number (`Players`: `id`, `uuid`), the
@@ -178,7 +178,7 @@ if (Loader.isModLoaded(TemporaApi.MODID)) {
 | `logItemUse` | `use` |
 | `logCommand` | `command` |
 | `logPlayerPosition` | `playerpos` |
-| `logEntitySpawn` | `spawn` |
+| `logEntitySpawn` | `mobspawn` |
 | `logEntityDeath` | `mobdeath` |
 | `logEntityPosition` | `mobpos` |
 
@@ -224,6 +224,8 @@ public class ReactorLogger extends GenericGlobalLogger<ReactorEventInfo> {
   `null`. Your chat line still sees it for those old events, so pick a value it can show, e.g. "unknown".
 - Mistakes such as mismatched names, a column type Tempora can't store, or a column with no initial value
   are reported when the logger registers, not when the server starts.
+- Names and short names are letters, digits and underscores, starting with a letter, and must not
+  match another logger's name or short name, ignoring case. `Players`, `general` and `all` are taken.
 - If one of your events can't be shown (its chat line or render packet throws), a lookup shows a
   placeholder for it and logs the error naming your logger. The rest of the lookup is unaffected.
 - A logger that fails later (its database won't open, its in-world rendering throws) is switched off

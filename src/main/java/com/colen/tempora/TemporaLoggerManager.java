@@ -1,6 +1,7 @@
 package com.colen.tempora;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -10,6 +11,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Supplier;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import net.minecraftforge.common.config.Configuration;
@@ -21,6 +23,7 @@ import com.colen.tempora.loggers.generic.GenericEventInfo;
 import com.colen.tempora.loggers.generic.GenericGlobalLogger;
 import com.colen.tempora.loggers.generic.GenericLogger;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
+import com.colen.tempora.loggers.generic.PlayerIDs;
 
 public final class TemporaLoggerManager {
 
@@ -85,9 +88,13 @@ public final class TemporaLoggerManager {
                     + "'s newEventInfo() and the factory it was registered with make different classes.");
         }
 
-        // 3. Validate uniqueness
-        if (LOGGERS.containsKey(loggerName)) {
-            throw new IllegalStateException("Logger already registered: " + loggerName);
+        // 3. Validate the names. The full name is a database file, a table and a config category, and players type
+        // both in commands, where case is ignored.
+        checkName(loggerName, "name", loggerName);
+        checkName(logger.getShortName(), "short name", loggerName);
+
+        if (findLogger(loggerName) != null) {
+            throw new IllegalStateException("Logger name already in use, ignoring case: " + loggerName);
         }
 
         if (findLogger(logger.getShortName()) != null) {
@@ -116,6 +123,30 @@ public final class TemporaLoggerManager {
         if (configLoaded) {
             configure(logger, Tempora.loggerConfig);
             if (Tempora.loggerConfig.hasChanged()) Tempora.loggerConfig.save();
+        }
+    }
+
+    private static final Pattern VALID_NAME = Pattern.compile("[A-Za-z][A-Za-z0-9_]*");
+
+    // Names Tempora uses itself: the players' database file, the config's general category, and the word for every
+    // logger in /tempora region set.
+    private static final List<String> RESERVED_NAMES = Arrays.asList(PlayerIDs.TABLE, "general", "all");
+
+    private static void checkName(String name, String what, String loggerName) {
+        if (name == null || !VALID_NAME.matcher(name)
+            .matches()) {
+            throw new IllegalStateException(
+                "Logger " + loggerName
+                    + "'s "
+                    + what
+                    + " must be letters, digits and underscores, starting with a letter: "
+                    + name);
+        }
+        for (String reserved : RESERVED_NAMES) {
+            if (reserved.equalsIgnoreCase(name)) {
+                throw new IllegalStateException(
+                    "Logger " + loggerName + "'s " + what + " is a name Tempora uses itself: " + name);
+            }
         }
     }
 

@@ -14,7 +14,7 @@ public class RenderingErrorBlock extends Block {
 
     public RenderingErrorBlock() {
         super(Material.rock);
-        setBlockName("renderingErrorBlock");
+        setBlockName("rendering_error_block");
         setBlockTextureName("tempora:rendering_error");
         setCreativeTab(null);
     }

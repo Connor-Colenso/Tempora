@@ -20,7 +20,7 @@ public class EntityDeathEventInfo extends PositionalEventInfo {
 
     // See DeathCause.
     @Column(type = ColumnType.PLAYER, constraints = "NOT NULL")
-    public String killerPlayer = PlayerUtils.UNKNOWN_PLAYER_NAME;
+    public String killerPlayerUUID = PlayerUtils.UNKNOWN_PLAYER_NAME;
 
     @Column(constraints = "NOT NULL")
     public String killedBy = PlayerUtils.UNKNOWN_CAUSE;
@@ -38,7 +38,7 @@ public class EntityDeathEventInfo extends PositionalEventInfo {
     public void fromBytes(ByteBuf buf) {
         super.fromBytes(buf);
         entityName = ByteBufUtils.readUTF8String(buf);
-        killerPlayer = ByteBufUtils.readUTF8String(buf);
+        killerPlayerUUID = ByteBufUtils.readUTF8String(buf);
         killedBy = ByteBufUtils.readUTF8String(buf);
         entityUUID = ByteBufUtils.readUTF8String(buf);
         rotationYaw = buf.readFloat();
@@ -49,7 +49,7 @@ public class EntityDeathEventInfo extends PositionalEventInfo {
     public void toBytes(ByteBuf buf) {
         super.toBytes(buf);
         ByteBufUtils.writeUTF8String(buf, entityName);
-        ByteBufUtils.writeUTF8String(buf, killerPlayer);
+        ByteBufUtils.writeUTF8String(buf, killerPlayerUUID);
         ByteBufUtils.writeUTF8String(buf, killedBy);
         ByteBufUtils.writeUTF8String(buf, entityUUID);
         buf.writeFloat(rotationYaw);
@@ -62,7 +62,7 @@ public class EntityDeathEventInfo extends PositionalEventInfo {
         IChatComponent victim = EventChat.entity(entityName, entityUUID);
         IChatComponent where = EventChat.where(this, CommandUtils.TeleportType.EXACT);
 
-        IChatComponent killer = DeathCause.killer(killerPlayer, killedBy);
+        IChatComponent killer = DeathCause.killer(killerPlayerUUID, killedBy);
         if (killer != null) return EventChat.line("tempora.event.entity_death.killed", when, killer, victim, where);
 
         IChatComponent damage = DeathCause.damage(killedBy);

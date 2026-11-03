@@ -36,7 +36,7 @@ public class CommonProxy {
         Tempora.loggerConfig = Config.createLoggersConfig(event.getModConfigurationDirectory());
         ConfigurationManager.registerConfig(CommandsConfig.class);
         GameRegistry.registerItem(Tempora.temporaWand, "admin_wand");
-        GameRegistry.registerBlock(renderingErrorBlock, RenderingErrorItemBlock.class, "renderingErrorBlock");
+        GameRegistry.registerBlock(renderingErrorBlock, RenderingErrorItemBlock.class, "rendering_error_block");
         // A debugging aid for load testing the loggers, so only in a development environment, as GT5 does with its
         // debug blocks.
         if (GenericUtils.isDevEnvironment()) {

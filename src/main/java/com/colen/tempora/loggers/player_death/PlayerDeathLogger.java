@@ -68,7 +68,7 @@ public class PlayerDeathLogger extends GenericPositionalLogger<PlayerDeathEventI
             .toString();
 
         DeathCause cause = DeathCause.of(source);
-        eventInfo.killerPlayer = cause.killerPlayer;
+        eventInfo.killerPlayerUUID = cause.killerPlayerUUID;
         eventInfo.killedBy = cause.killedBy;
 
         eventInfo.xpLevel = player.experienceLevel;

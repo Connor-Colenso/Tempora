@@ -53,7 +53,7 @@ public class ChatComponentStackTrace extends AbstractClickableChatComponent<Chat
 
     @Override
     public String getID() {
-        return "TemporaStackTrace";
+        return "tempora:ChatComponentStackTrace";
     }
 
     @Override

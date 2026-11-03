@@ -464,8 +464,7 @@ public abstract class GenericLogger<EventInfo extends GenericEventInfo> {
     }
 
     public final void genericConfig(@NotNull Configuration config) {
-        isEnabledByConfig = config
-            .getBoolean("isEnabled", getLoggerName(), true, "Enables this loggers functionality.");
+        isEnabledByConfig = config.getBoolean("enabled", getLoggerName(), true, "Enables this logger.");
         maxShutdownTimeoutMilliseconds = config.getInt(
             "maxShutdownTimeoutMilliseconds",
             getLoggerName(),

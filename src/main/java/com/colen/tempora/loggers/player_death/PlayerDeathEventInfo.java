@@ -25,7 +25,7 @@ public class PlayerDeathEventInfo extends PositionalEventInfo {
 
     // See DeathCause.
     @Column(type = ColumnType.PLAYER, constraints = "NOT NULL")
-    public String killerPlayer = PlayerUtils.UNKNOWN_PLAYER_NAME;
+    public String killerPlayerUUID = PlayerUtils.UNKNOWN_PLAYER_NAME;
 
     @Column(constraints = "NOT NULL")
     public String killedBy = PlayerUtils.UNKNOWN_CAUSE;
@@ -48,7 +48,7 @@ public class PlayerDeathEventInfo extends PositionalEventInfo {
     public void fromBytes(ByteBuf buf) {
         super.fromBytes(buf);
         playerUUID = ByteBufUtils.readUTF8String(buf);
-        killerPlayer = ByteBufUtils.readUTF8String(buf);
+        killerPlayerUUID = ByteBufUtils.readUTF8String(buf);
         killedBy = ByteBufUtils.readUTF8String(buf);
         xpLevel = buf.readInt();
         keepInventory = buf.readBoolean();
@@ -60,7 +60,7 @@ public class PlayerDeathEventInfo extends PositionalEventInfo {
     public void toBytes(ByteBuf buf) {
         super.toBytes(buf);
         ByteBufUtils.writeUTF8String(buf, playerUUID);
-        ByteBufUtils.writeUTF8String(buf, killerPlayer);
+        ByteBufUtils.writeUTF8String(buf, killerPlayerUUID);
         ByteBufUtils.writeUTF8String(buf, killedBy);
         buf.writeInt(xpLevel);
         buf.writeBoolean(keepInventory);
@@ -77,7 +77,7 @@ public class PlayerDeathEventInfo extends PositionalEventInfo {
             keepInventory ? "tempora.event.player_death.level_kept" : "tempora.event.player_death.level",
             EventChat.text(formatNumber(xpLevel), EnumChatFormatting.WHITE));
 
-        IChatComponent killer = DeathCause.killer(killerPlayer, killedBy);
+        IChatComponent killer = DeathCause.killer(killerPlayerUUID, killedBy);
         if (killer != null) {
             return EventChat.line("tempora.event.player_death.killed", when, victim, killer, where, level);
         }

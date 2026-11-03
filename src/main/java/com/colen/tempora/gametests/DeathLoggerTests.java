@@ -68,7 +68,7 @@ public class DeathLoggerTests {
                 PlayerDeathEventInfo event = (PlayerDeathEventInfo) probe.latest()
                     .get(0);
                 helper.assertEquals(uuid(player), event.playerUUID, "playerUUID");
-                helper.assertEquals(PlayerUtils.UNKNOWN_PLAYER_NAME, event.killerPlayer, "killerPlayer");
+                helper.assertEquals(PlayerUtils.UNKNOWN_PLAYER_NAME, event.killerPlayerUUID, "killerPlayerUUID");
                 helper.assertEquals("[Zombie]", event.killedBy, "killedBy");
                 helper.assertEquals(7L, event.xpLevel, "xpLevel");
                 helper.assertEquals(keepInventory, event.keepInventory, "keepInventory");
@@ -103,7 +103,7 @@ public class DeathLoggerTests {
                 PlayerDeathEventInfo event = (PlayerDeathEventInfo) probe.latest()
                     .get(0);
                 helper.assertEquals(uuid(victim), event.playerUUID, "playerUUID");
-                helper.assertEquals(uuid(killer), event.killerPlayer, "killerPlayer");
+                helper.assertEquals(uuid(killer), event.killerPlayerUUID, "killerPlayerUUID");
                 helper.assertEquals("[player]", event.killedBy, "killedBy");
             })
             .thenSucceed();

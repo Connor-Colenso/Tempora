@@ -61,7 +61,7 @@ public class ChatComponentBlockName extends AbstractChatComponentBuffer<ChatComp
 
     @Override
     public String getID() {
-        return "ChatComponentBlockName";
+        return "tempora:ChatComponentBlockName";
     }
 
     @Override
