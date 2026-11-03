@@ -1,5 +1,6 @@
 package com.colen.tempora.gametests;
 
+import java.nio.charset.StandardCharsets;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -10,6 +11,10 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.management.ItemInWorldManager;
+import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.util.FakePlayer;
 
 import com.colen.tempora.loggers.generic.GenericEventInfo;
@@ -25,6 +30,7 @@ import com.colen.tempora.regions.TemporaWorldRegion;
 import com.colen.tempora.utils.PlayerUtils;
 import com.gtnewhorizons.horizonqa.api.GameTestHelper;
 import com.gtnewhorizons.horizonqa.api.TestPos;
+import com.mojang.authlib.GameProfile;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -40,6 +46,26 @@ final class TestSupport {
      */
     static FakePlayer fakePlayer(GameTestHelper helper, String testName) {
         return helper.spawnFakePlayer("tempora_" + testName);
+    }
+
+    /**
+     * A player of its own for one test who is not a fake player, standing at the test's origin, for loggers that leave
+     * fake players out as those are machines. Never added to the world or the player list, and has no connection.
+     */
+    static EntityPlayerMP player(GameTestHelper helper, String testName) {
+        WorldServer world = helper.getWorld();
+        String profileName = "tempora_" + testName;
+        GameProfile profile = new GameProfile(
+            UUID.nameUUIDFromBytes(profileName.getBytes(StandardCharsets.UTF_8)),
+            profileName);
+        EntityPlayerMP player = new EntityPlayerMP(
+            MinecraftServer.getServer(),
+            world,
+            profile,
+            new ItemInWorldManager(world));
+        TestPos standing = helper.absolute(TestPos.at(0, 1, 0));
+        player.setPosition(standing.x() + 0.5, standing.y(), standing.z() + 0.5);
+        return player;
     }
 
     /**

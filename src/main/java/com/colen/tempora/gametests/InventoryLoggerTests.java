@@ -3,11 +3,10 @@ package com.colen.tempora.gametests;
 import static com.colen.tempora.gametests.PositionalLoggerTests.assertCount;
 import static com.colen.tempora.gametests.TestSupport.assertWellFormed;
 import static com.colen.tempora.gametests.TestSupport.eventsNear;
+import static com.colen.tempora.gametests.TestSupport.player;
 import static com.gtnewhorizons.horizonqa.api.TestPos.at;
 
-import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.UUID;
 
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Blocks;
@@ -17,10 +16,7 @@ import net.minecraft.inventory.IInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.play.client.C0EPacketClickWindow;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.management.ItemInWorldManager;
 import net.minecraft.tileentity.TileEntityChest;
-import net.minecraft.world.WorldServer;
 
 import com.colen.tempora.Tempora;
 import com.colen.tempora.TemporaEvents;
@@ -32,7 +28,6 @@ import com.gtnewhorizons.horizonqa.api.GameTestHelper;
 import com.gtnewhorizons.horizonqa.api.TestPos;
 import com.gtnewhorizons.horizonqa.api.annotation.GameTest;
 import com.gtnewhorizons.horizonqa.api.annotation.GameTestHolder;
-import com.mojang.authlib.GameProfile;
 
 /**
  * The inventory logger, which compares what a player and the containers they have open held before and after each GUI
@@ -56,7 +51,7 @@ public class InventoryLoggerTests {
     @GameTest(timeoutTicks = TIMEOUT_TICKS)
     public static void itemsPutInChestAreLogged(GameTestHelper helper) {
         InventoryLogger logger = TemporaEvents.inventoryLogger;
-        EntityPlayerMP player = testPlayer(helper, "inv_put");
+        EntityPlayerMP player = player(helper, "inv_put");
         TestPos chestPos = helper.absolute(at(2, 1, 2));
         Probe<List<PositionalEventInfo>> probe = new Probe<>(helper, "itemsPutInChestAreLogged");
 
@@ -87,7 +82,7 @@ public class InventoryLoggerTests {
     @GameTest(timeoutTicks = TIMEOUT_TICKS)
     public static void itemsTakenFromChestAreLogged(GameTestHelper helper) {
         InventoryLogger logger = TemporaEvents.inventoryLogger;
-        EntityPlayerMP player = testPlayer(helper, "inv_take");
+        EntityPlayerMP player = player(helper, "inv_take");
         TestPos chestPos = helper.absolute(at(2, 1, 2));
         Probe<List<PositionalEventInfo>> probe = new Probe<>(helper, "itemsTakenFromChestAreLogged");
 
@@ -118,7 +113,7 @@ public class InventoryLoggerTests {
     @GameTest(timeoutTicks = TIMEOUT_TICKS)
     public static void doubleChestLogsAtTheHalfUsed(GameTestHelper helper) {
         InventoryLogger logger = TemporaEvents.inventoryLogger;
-        EntityPlayerMP player = testPlayer(helper, "inv_double");
+        EntityPlayerMP player = player(helper, "inv_double");
         TileEntityChest[] halves = new TileEntityChest[2];
         TileEntityChest[] holder = new TileEntityChest[1];
         Probe<List<PositionalEventInfo>> holding = new Probe<>(helper, "doubleChestLogsAtTheHalfUsed.holding");
@@ -179,26 +174,6 @@ public class InventoryLoggerTests {
     }
 
     // ---------- Helpers ----------
-
-    /**
-     * A player for clicking containers. Not a FakePlayer, which the inventory logger ignores as those are machines, and
-     * never added to the world or the player list.
-     */
-    private static EntityPlayerMP testPlayer(GameTestHelper helper, String name) {
-        WorldServer world = helper.getWorld();
-        String profileName = "tempora_" + name;
-        GameProfile profile = new GameProfile(
-            UUID.nameUUIDFromBytes(profileName.getBytes(StandardCharsets.UTF_8)),
-            profileName);
-        EntityPlayerMP player = new EntityPlayerMP(
-            MinecraftServer.getServer(),
-            world,
-            profile,
-            new ItemInWorldManager(world));
-        TestPos standing = helper.absolute(at(0, 1, 0));
-        player.setPosition(standing.x() + 0.5, standing.y(), standing.z() + 0.5);
-        return player;
-    }
 
     private static TileEntityChest placeChest(GameTestHelper helper, TestPos local) {
         helper.setBlock(local, Blocks.chest);

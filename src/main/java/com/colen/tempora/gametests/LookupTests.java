@@ -2,7 +2,7 @@ package com.colen.tempora.gametests;
 
 import static com.colen.tempora.gametests.PositionalLoggerTests.breakBlock;
 import static com.colen.tempora.gametests.TestSupport.eventsNear;
-import static com.colen.tempora.gametests.TestSupport.fakePlayer;
+import static com.colen.tempora.gametests.TestSupport.player;
 import static com.gtnewhorizons.horizonqa.api.TestPos.at;
 
 import java.util.Arrays;
@@ -12,8 +12,8 @@ import java.util.concurrent.TimeUnit;
 import net.minecraft.block.Block;
 import net.minecraft.command.CommandException;
 import net.minecraft.entity.passive.EntityPig;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Blocks;
-import net.minecraftforge.common.util.FakePlayer;
 
 import com.colen.tempora.Tempora;
 import com.colen.tempora.TemporaEvents;
@@ -47,7 +47,7 @@ public class LookupTests {
     @GameTest(timeoutTicks = TIMEOUT_TICKS)
     public static void radiusLimitsWhatIsFound(GameTestHelper helper) {
         GenericPositionalLogger<?> logger = TemporaEvents.playerBlockBreakLogger;
-        FakePlayer player = fakePlayer(helper, "lookup_radius");
+        EntityPlayerMP player = player(helper, "lookup_radius");
         TestPos centre = at(1, 1, 1);
         TestPos threeAway = at(4, 1, 1);
         TestPos c = helper.absolute(centre);
@@ -98,7 +98,7 @@ public class LookupTests {
     @GameTest(timeoutTicks = TIMEOUT_TICKS)
     public static void timeLimitsWhatIsFound(GameTestHelper helper) {
         GenericPositionalLogger<?> logger = TemporaEvents.playerBlockBreakLogger;
-        FakePlayer player = fakePlayer(helper, "lookup_time");
+        EntityPlayerMP player = player(helper, "lookup_time");
         TestPos block = at(2, 1, 2);
         TestPos pos = helper.absolute(block);
         int dim = helper.getWorld().provider.dimensionId;
@@ -149,7 +149,7 @@ public class LookupTests {
     @GameTest(timeoutTicks = TIMEOUT_TICKS)
     public static void timeRangeLimitsWhatIsFound(GameTestHelper helper) {
         GenericPositionalLogger<PlayerBlockBreakEventInfo> logger = TemporaEvents.playerBlockBreakLogger;
-        FakePlayer player = fakePlayer(helper, "lookup_range");
+        EntityPlayerMP player = player(helper, "lookup_range");
         TestPos block = at(2, 1, 2);
         TestPos pos = helper.absolute(block);
         int dim = helper.getWorld().provider.dimensionId;
@@ -219,7 +219,7 @@ public class LookupTests {
     @GameTest(timeoutTicks = TIMEOUT_TICKS)
     public static void countLimitsWhatIsShown(GameTestHelper helper) {
         GenericPositionalLogger<?> logger = TemporaEvents.playerBlockBreakLogger;
-        FakePlayer player = fakePlayer(helper, "lookup_count");
+        EntityPlayerMP player = player(helper, "lookup_count");
         TestPos centre = helper.absolute(at(2, 1, 2));
         int dim = helper.getWorld().provider.dimensionId;
         Probe<FoundEvents<?>> three = new Probe<>(helper, "countLimitsWhatIsShown.three");
@@ -274,8 +274,8 @@ public class LookupTests {
     @GameTest(timeoutTicks = TIMEOUT_TICKS)
     public static void playerFilterLimitsWhatIsFound(GameTestHelper helper) {
         GenericPositionalLogger<?> logger = TemporaEvents.playerBlockBreakLogger;
-        FakePlayer alice = fakePlayer(helper, "lookup_alice");
-        FakePlayer bob = fakePlayer(helper, "lookup_bob");
+        EntityPlayerMP alice = player(helper, "lookup_alice");
+        EntityPlayerMP bob = player(helper, "lookup_bob");
         String a = PositionalLoggerTests.uuid(alice);
         String b = PositionalLoggerTests.uuid(bob);
         TestPos centre = helper.absolute(at(2, 1, 2));
@@ -385,7 +385,7 @@ public class LookupTests {
     // s:time takes the newest n of every logger's events together, rather than the newest n of each.
     @GameTest(timeoutTicks = TIMEOUT_TICKS)
     public static void timeSortTakesNewestAcrossLoggers(GameTestHelper helper) {
-        FakePlayer player = fakePlayer(helper, "lookup_by_time");
+        EntityPlayerMP player = player(helper, "lookup_by_time");
         TestPos pos = helper.absolute(at(2, 1, 2));
         int dim = helper.getWorld().provider.dimensionId;
         long now = System.currentTimeMillis();
@@ -571,13 +571,13 @@ public class LookupTests {
     // ---------- Helpers ----------
 
     // Puts a block there and breaks it as a player, logging a break.
-    private static void breakNew(GameTestHelper helper, FakePlayer player, TestPos local) {
+    private static void breakNew(GameTestHelper helper, EntityPlayerMP player, TestPos local) {
         helper.setBlock(local, Blocks.stone);
         breakBlock(helper, player, local);
     }
 
     // A break event from some time ago, to queue on the logger directly as logging always stamps the current time.
-    private static PlayerBlockBreakEventInfo oldBreak(GameTestHelper helper, FakePlayer player, TestPos pos,
+    private static PlayerBlockBreakEventInfo oldBreak(GameTestHelper helper, EntityPlayerMP player, TestPos pos,
         long secondsAgo) {
         PlayerBlockBreakEventInfo event = new PlayerBlockBreakEventInfo();
         event.timestamp = System.currentTimeMillis() - TimeUnit.SECONDS.toMillis(secondsAgo);
@@ -593,7 +593,7 @@ public class LookupTests {
     }
 
     // A place event from some time ago, as oldBreak.
-    private static PlayerBlockPlaceEventInfo oldPlace(GameTestHelper helper, FakePlayer player, TestPos pos,
+    private static PlayerBlockPlaceEventInfo oldPlace(GameTestHelper helper, EntityPlayerMP player, TestPos pos,
         long secondsAgo) {
         PlayerBlockPlaceEventInfo event = new PlayerBlockPlaceEventInfo();
         event.timestamp = System.currentTimeMillis() - TimeUnit.SECONDS.toMillis(secondsAgo);

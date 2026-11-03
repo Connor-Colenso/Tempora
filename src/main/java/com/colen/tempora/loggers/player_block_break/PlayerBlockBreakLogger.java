@@ -17,6 +17,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.world.World;
 import net.minecraftforge.common.config.Configuration;
+import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.event.world.BlockEvent;
 
 import org.jetbrains.annotations.NotNull;
@@ -84,6 +85,13 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
         if (!isEnabledByConfig) return;
         if (isClientSide()) return;
         if (event.isCanceled()) return;
+        // Machines post this event to ask whether they may break a block, often without breaking it: GT miners and
+        // pumps as a fake player under their owner's name, and an AE2 annihilation plane every few seconds for the air
+        // or liquid in front of it, as the player who placed it. Only a player's own breaks are kept, and a player
+        // never breaks air or a liquid. What machines really change is in the change logger.
+        if (event.getPlayer() instanceof FakePlayer) return;
+        if (event.block.isAir(event.world, event.x, event.y, event.z) || event.block.getMaterial()
+            .isLiquid()) return;
 
         logBlockBreak(event.getPlayer(), event.world, event.x, event.y, event.z, event.block, event.blockMetadata);
     }

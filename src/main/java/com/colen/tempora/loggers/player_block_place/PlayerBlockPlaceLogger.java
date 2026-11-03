@@ -19,6 +19,7 @@ import net.minecraft.util.IChatComponent;
 import net.minecraft.world.World;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.common.util.BlockSnapshot;
+import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.event.world.BlockEvent.MultiPlaceEvent;
 import net.minecraftforge.event.world.BlockEvent.PlaceEvent;
 
@@ -86,6 +87,11 @@ public class PlayerBlockPlaceLogger extends GenericPositionalLogger<PlayerBlockP
         if (!isEnabledByConfig) return;
         if (isClientSide()) return; // Server side only
         if (event.isCanceled()) return;
+        // Machines such as GT miners and pumps post this event as a fake player under their owner's name, to ask
+        // whether they may place a block, before placing it or without placing it at all, so it names the block that
+        // was already there. Only a player's own placements are kept. What machines really change is in the change
+        // logger.
+        if (event.player instanceof FakePlayer) return;
 
         // A door, bed or mod multi-block item places several blocks at once, one snapshot each. The event's own
         // position is only the first of them.

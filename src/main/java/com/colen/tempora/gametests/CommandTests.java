@@ -1,12 +1,12 @@
 package com.colen.tempora.gametests;
 
 import static com.colen.tempora.gametests.PositionalLoggerTests.breakBlock;
-import static com.colen.tempora.gametests.TestSupport.fakePlayer;
+import static com.colen.tempora.gametests.TestSupport.player;
 import static com.gtnewhorizons.horizonqa.api.TestPos.at;
 
 import net.minecraft.block.Block;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Blocks;
-import net.minecraftforge.common.util.FakePlayer;
 
 import com.colen.tempora.Tempora;
 import com.colen.tempora.TemporaEvents;
@@ -38,8 +38,8 @@ public class CommandTests {
     @GameTest(timeoutTicks = TIMEOUT_TICKS)
     public static void playerSearchFindsTheirEventsAnywhere(GameTestHelper helper) {
         GenericLogger<?> logger = TemporaEvents.playerBlockBreakLogger;
-        FakePlayer alice = fakePlayer(helper, "player_alice");
-        FakePlayer bob = fakePlayer(helper, "player_bob");
+        EntityPlayerMP alice = player(helper, "player_alice");
+        EntityPlayerMP bob = player(helper, "player_bob");
         String a = PositionalLoggerTests.uuid(alice);
         String b = PositionalLoggerTests.uuid(bob);
         Probe<FoundEvents<?>> found = new Probe<>(helper, "playerSearchFindsTheirEventsAnywhere.found");
@@ -77,13 +77,13 @@ public class CommandTests {
             .thenSucceed();
     }
 
-    private static void breakNew(GameTestHelper helper, FakePlayer player, TestPos local) {
+    private static void breakNew(GameTestHelper helper, EntityPlayerMP player, TestPos local) {
         helper.setBlock(local, Blocks.stone);
         breakBlock(helper, player, local);
     }
 
     // A break far from the test, queued on the logger directly.
-    private static PlayerBlockBreakEventInfo farBreak(GameTestHelper helper, FakePlayer player) {
+    private static PlayerBlockBreakEventInfo farBreak(GameTestHelper helper, EntityPlayerMP player) {
         PlayerBlockBreakEventInfo event = new PlayerBlockBreakEventInfo();
         event.timestamp = System.currentTimeMillis();
         event.dimensionID = helper.getWorld().provider.dimensionId;

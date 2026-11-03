@@ -3,6 +3,7 @@ package com.colen.tempora.gametests;
 import static com.colen.tempora.gametests.TestSupport.assertWellFormed;
 import static com.colen.tempora.gametests.TestSupport.eventsNear;
 import static com.colen.tempora.gametests.TestSupport.fakePlayer;
+import static com.colen.tempora.gametests.TestSupport.player;
 import static com.gtnewhorizons.horizonqa.api.TestPos.at;
 
 import java.util.HashSet;
@@ -12,6 +13,7 @@ import java.util.Set;
 import net.minecraft.block.Block;
 import net.minecraft.command.ICommand;
 import net.minecraft.entity.passive.EntityPig;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
@@ -23,8 +25,11 @@ import net.minecraft.util.DamageSource;
 import net.minecraft.world.ChunkPosition;
 import net.minecraft.world.World;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.common.util.BlockSnapshot;
 import net.minecraftforge.common.util.FakePlayer;
+import net.minecraftforge.common.util.ForgeDirection;
 import net.minecraftforge.event.CommandEvent;
+import net.minecraftforge.event.ForgeEventFactory;
 import net.minecraftforge.event.entity.player.AchievementEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.world.BlockEvent;
@@ -65,7 +70,7 @@ public class PositionalLoggerTests {
     @GameTest(timeoutTicks = TIMEOUT_TICKS)
     public static void brokenBlockIsLogged(GameTestHelper helper) {
         GenericPositionalLogger<?> logger = TemporaEvents.playerBlockBreakLogger;
-        FakePlayer player = fakePlayer(helper, "break");
+        EntityPlayerMP player = player(helper, "break");
         TestPos pos = helper.absolute(BLOCK);
         Probe<List<PositionalEventInfo>> probe = new Probe<>(helper, "brokenBlockIsLogged");
 
@@ -91,7 +96,7 @@ public class PositionalLoggerTests {
     @GameTest(timeoutTicks = TIMEOUT_TICKS)
     public static void placedBlockIsLogged(GameTestHelper helper) {
         GenericPositionalLogger<?> logger = TemporaEvents.playerBlockPlaceLogger;
-        FakePlayer player = fakePlayer(helper, "place");
+        EntityPlayerMP player = player(helper, "place");
         TestPos below = helper.absolute(at(BLOCK.x(), BLOCK.y() - 1, BLOCK.z()));
         TestPos pos = helper.absolute(BLOCK);
         Probe<List<PositionalEventInfo>> probe = new Probe<>(helper, "placedBlockIsLogged");
@@ -127,6 +132,60 @@ public class PositionalLoggerTests {
                 helper.assertEquals(uuid(player), event.playerUUID, "playerUUID");
                 assertWellFormed(helper, logger, probe.latest());
             })
+            .thenSucceed();
+    }
+
+    // Machines asking whether they may break or place a block are not logged as a player breaking or placing it: GT
+    // miners and pumps ask as fake players, and AE2 annihilation planes ask as their owner about the air or liquid in
+    // front of them.
+    @GameTest(timeoutTicks = TIMEOUT_TICKS)
+    public static void machineProbesAreNotLogged(GameTestHelper helper) {
+        GenericPositionalLogger<?> breaks = TemporaEvents.playerBlockBreakLogger;
+        GenericPositionalLogger<?> places = TemporaEvents.playerBlockPlaceLogger;
+        FakePlayer machine = fakePlayer(helper, "probe_machine");
+        EntityPlayerMP owner = player(helper, "probe_owner");
+        TestPos asked = helper.absolute(at(2, 1, 2));
+        TestPos real = at(2, 1, 4);
+        Probe<List<PositionalEventInfo>> realBreak = new Probe<>(helper, "machineProbesAreNotLogged.realBreak");
+        Probe<List<PositionalEventInfo>> realPlace = new Probe<>(helper, "machineProbesAreNotLogged.realPlace");
+        Probe<List<PositionalEventInfo>> askedBreaks = new Probe<>(helper, "machineProbesAreNotLogged.askedBreaks");
+        Probe<List<PositionalEventInfo>> askedPlaces = new Probe<>(helper, "machineProbesAreNotLogged.askedPlaces");
+
+        helper.startSequence()
+            .thenExecute("machines ask about blocks, then the owner breaks and places one", () -> {
+                helper.setBlock(at(1, 1, 2), Blocks.stone);
+                postBreak(helper, machine, at(1, 1, 2), Blocks.stone);
+                postPlace(helper, machine, at(1, 1, 2), Blocks.cobblestone);
+                postBreak(helper, owner, at(2, 1, 2), Blocks.air);
+                postBreak(helper, owner, at(3, 1, 2), Blocks.water);
+                // After the asks, so once these are stored the asks would have been too.
+                helper.setBlock(real, Blocks.stone);
+                breakBlock(helper, owner, real);
+                helper.setBlock(real, Blocks.brick_block);
+                postPlace(helper, owner, real, Blocks.air);
+            })
+            .thenWaitUntil(
+                "the owner's break is logged",
+                WRITE_TICKS,
+                () -> assertCount(
+                    helper,
+                    realBreak.poll(() -> eventsNear(helper, breaks, helper.absolute(real), 0)),
+                    1))
+            .thenWaitUntil(
+                "the owner's place is logged",
+                WRITE_TICKS,
+                () -> assertCount(
+                    helper,
+                    realPlace.poll(() -> eventsNear(helper, places, helper.absolute(real), 0)),
+                    1))
+            .thenWaitUntil(
+                "no break is logged for the asks",
+                WRITE_TICKS,
+                () -> assertCount(helper, askedBreaks.poll(() -> eventsNear(helper, breaks, asked, 1)), 0))
+            .thenWaitUntil(
+                "no place is logged for the asks",
+                WRITE_TICKS,
+                () -> assertCount(helper, askedPlaces.poll(() -> eventsNear(helper, places, asked, 1)), 0))
             .thenSucceed();
     }
 
@@ -335,10 +394,10 @@ public class PositionalLoggerTests {
 
     /**
      * Fires the event a player breaking a block does, then removes the block. Not through
-     * ItemInWorldManager.tryHarvestBlock, which sends the player a packet, and a fake player has no connection to send
+     * ItemInWorldManager.tryHarvestBlock, which sends the player a packet, and test players have no connection to send
      * it on.
      */
-    static void breakBlock(GameTestHelper helper, FakePlayer player, TestPos local) {
+    static void breakBlock(GameTestHelper helper, EntityPlayerMP player, TestPos local) {
         TestPos pos = helper.absolute(local);
         Block block = helper.getWorld()
             .getBlock(pos.x(), pos.y(), pos.z());
@@ -357,6 +416,25 @@ public class PositionalLoggerTests {
             .setBlockToAir(pos.x(), pos.y(), pos.z());
     }
 
+    // Fires the event a player breaking the given block does, whatever is there, and leaves the world as it is.
+    static void postBreak(GameTestHelper helper, EntityPlayerMP player, TestPos local, Block block) {
+        TestPos pos = helper.absolute(local);
+        MinecraftForge.EVENT_BUS
+            .post(new BlockEvent.BreakEvent(pos.x(), pos.y(), pos.z(), helper.getWorld(), block, 0, player));
+    }
+
+    /**
+     * Fires Forge's place event with the given block as the snapshot, and leaves the world as it is. The event names
+     * the block there now.
+     */
+    static void postPlace(GameTestHelper helper, EntityPlayerMP player, TestPos local, Block snapshot) {
+        TestPos pos = helper.absolute(local);
+        ForgeEventFactory.onPlayerBlockPlace(
+            player,
+            new BlockSnapshot(helper.getWorld(), pos.x(), pos.y(), pos.z(), snapshot, 0),
+            ForgeDirection.UNKNOWN);
+    }
+
     // Events logged where a fake player stands, for loggers that log at the player.
     static List<PositionalEventInfo> eventsAtPlayer(GameTestHelper helper, GenericPositionalLogger<?> logger,
         FakePlayer player) throws Exception {
@@ -367,7 +445,7 @@ public class PositionalLoggerTests {
         helper.assertEquals((long) expected, events.size(), "events stored");
     }
 
-    static String uuid(FakePlayer player) {
+    static String uuid(EntityPlayerMP player) {
         return player.getUniqueID()
             .toString();
     }
