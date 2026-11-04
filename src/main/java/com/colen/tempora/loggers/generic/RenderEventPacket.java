@@ -1,11 +1,11 @@
 package com.colen.tempora.loggers.generic;
 
 import static com.colen.tempora.Tempora.LOG;
-import static com.colen.tempora.Tempora.NETWORK;
 
 import net.minecraft.entity.player.EntityPlayerMP;
 
 import com.colen.tempora.TemporaLoggerManager;
+import com.colen.tempora.networking.PlayerPackets;
 
 import cpw.mods.fml.common.network.ByteBufUtils;
 import cpw.mods.fml.common.network.simpleimpl.IMessage;
@@ -35,7 +35,7 @@ public class RenderEventPacket implements IMessage {
             LOG.error("Could not send {} event {} to draw, so it is skipped.", event.getLoggerName(), event.eventID, e);
             return;
         }
-        NETWORK.sendTo(packet, player);
+        PlayerPackets.sendTo(packet, player);
     }
 
     // Events are sent with their logger's name rather than a numeric id, so the two sides agree even when the server

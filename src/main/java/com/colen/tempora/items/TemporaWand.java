@@ -1,7 +1,6 @@
 package com.colen.tempora.items;
 
 import static com.colen.tempora.Tempora.LOG;
-import static com.colen.tempora.Tempora.NETWORK;
 import static com.colen.tempora.utils.CommandUtils.teleportChatComponent;
 import static com.colen.tempora.utils.GenericUtils.getDimensionName;
 
@@ -20,6 +19,7 @@ import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.Facing;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.world.World;
+import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 
 import com.colen.tempora.TemporaLoggerManager;
@@ -27,6 +27,7 @@ import com.colen.tempora.chat.EventChat;
 import com.colen.tempora.commands.LookupCommand;
 import com.colen.tempora.commands.TemporaCommand;
 import com.colen.tempora.commands.command_base.SortOrder;
+import com.colen.tempora.networking.PlayerPackets;
 import com.colen.tempora.networking.packets.PacketShowRegionInWorld;
 import com.colen.tempora.regions.TemporaWorldRegion;
 import com.colen.tempora.rendering.ClientRegionStore;
@@ -65,6 +66,8 @@ public class TemporaWand extends Item {
     public void onLeftClickBlock(PlayerInteractEvent event) {
         if (event.action != PlayerInteractEvent.Action.LEFT_CLICK_BLOCK) return;
         if (!(event.entityPlayer instanceof EntityPlayerMP player)) return;
+        // A machine holding a wand (a block breaker or activator) can't read what it shows.
+        if (player instanceof FakePlayer) return;
 
         ItemStack held = player.getHeldItem();
         if (held == null || held.getItem() != this) return;
@@ -75,7 +78,7 @@ public class TemporaWand extends Item {
 
         if (isRepeatClick(player, event.x, event.y, event.z)) return;
 
-        NETWORK.sendTo(
+        PlayerPackets.sendTo(
             new PacketShowRegionInWorld.RegionMsg(outline(player.dimension, event.x, event.y, event.z)),
             player);
         checkSpot(player, event.x, event.y, event.z);
@@ -97,6 +100,8 @@ public class TemporaWand extends Item {
     @Override
     public boolean onItemUse(ItemStack stack, EntityPlayer player, World world, int x, int y, int z, int side,
         float hitX, float hitY, float hitZ) {
+        // A machine holding a wand can't read what it shows, and would alert admins as an unauthorised user.
+        if (player instanceof FakePlayer) return false;
 
         int px = x + Facing.offsetsXForSide[side];
         int py = y + Facing.offsetsYForSide[side];

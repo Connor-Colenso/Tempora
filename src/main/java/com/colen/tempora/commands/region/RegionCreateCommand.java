@@ -1,6 +1,5 @@
 package com.colen.tempora.commands.region;
 
-import static com.colen.tempora.Tempora.NETWORK;
 import static com.colen.tempora.utils.PlayerUtils.UNKNOWN_PLAYER_NAME;
 
 import java.util.Collections;
@@ -25,6 +24,7 @@ import com.colen.tempora.TemporaLoggerManager;
 import com.colen.tempora.commands.TemporaCommand;
 import com.colen.tempora.commands.command_base.TemporaSubcommand;
 import com.colen.tempora.loggers.generic.GenericLogger;
+import com.colen.tempora.networking.PlayerPackets;
 import com.colen.tempora.networking.packets.PacketShowRegionInWorld;
 import com.colen.tempora.regions.TemporaRegionRegistry;
 import com.colen.tempora.regions.TemporaWorldRegion;
@@ -123,7 +123,7 @@ public class RegionCreateCommand extends TemporaSubcommand {
         sender.addChatMessage(noRules);
 
         if (player != null) {
-            NETWORK.sendTo(new PacketShowRegionInWorld.RegionMsg(region), player);
+            PlayerPackets.sendTo(new PacketShowRegionInWorld.RegionMsg(region), player);
         }
     }
 

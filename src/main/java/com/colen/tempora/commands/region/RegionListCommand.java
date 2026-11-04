@@ -1,6 +1,5 @@
 package com.colen.tempora.commands.region;
 
-import static com.colen.tempora.Tempora.NETWORK;
 import static com.colen.tempora.utils.GenericUtils.getDimensionName;
 
 import java.util.Comparator;
@@ -17,6 +16,7 @@ import net.minecraft.util.IChatComponent;
 import net.minecraftforge.common.DimensionManager;
 
 import com.colen.tempora.commands.command_base.TemporaSubcommand;
+import com.colen.tempora.networking.PlayerPackets;
 import com.colen.tempora.networking.packets.PacketShowRegionInWorld;
 import com.colen.tempora.regions.TemporaRegionRegistry;
 import com.colen.tempora.regions.TemporaWorldRegion;
@@ -88,7 +88,7 @@ public class RegionListCommand extends TemporaSubcommand {
 
         if (sender instanceof EntityPlayerMP player) {
             for (TemporaWorldRegion regionToSend : regions) {
-                NETWORK.sendTo(new PacketShowRegionInWorld.RegionMsg(regionToSend), player);
+                PlayerPackets.sendTo(new PacketShowRegionInWorld.RegionMsg(regionToSend), player);
             }
         }
     }
