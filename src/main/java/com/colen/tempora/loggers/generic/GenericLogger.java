@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import net.minecraft.command.ICommandSender;
 import net.minecraft.event.ClickEvent;
@@ -82,6 +83,15 @@ public abstract class GenericLogger<EventInfo extends GenericEventInfo> {
     private long lastFailureAnnounced;
     private static final int BATCH_FAILURES_BEFORE_ALERT = 3;
     private static final long FAILURE_ANNOUNCE_INTERVAL_MILLISECONDS = TimeUnit.MINUTES.toMillis(10);
+
+    // Events this logger couldn't store since admins were last told, counted by whichever thread dropped them (the
+    // server thread for a bad position, the worker for an event SQLite refused). announceFailures tells admins.
+    private final AtomicInteger droppedEvents = new AtomicInteger();
+    private volatile String lastDropReason = "";
+    // Server thread only.
+    private long lastDropAnnounced;
+    // A broken mob can be logged every few seconds, so admins are told at most this often, with the number dropped.
+    private static final long DROP_ANNOUNCE_INTERVAL_MILLISECONDS = TimeUnit.MINUTES.toMillis(1);
 
     private int maxShutdownTimeoutMilliseconds;
     private int maxEventsInQueueBeforeServerFreeze;
@@ -365,10 +375,38 @@ public abstract class GenericLogger<EventInfo extends GenericEventInfo> {
         return true;
     }
 
+    /**
+     * Notes an event this logger can't store, and why: in the server log now, and to admins in chat (see
+     * {@link #announceFailures}). Any thread.
+     */
+    final void noteDroppedEvent(GenericEventInfo event, String reason) {
+        if (event instanceof PositionalEventInfo positional) {
+            LOG.warn(
+                "{} could not store an event at {}, {}, {} in dimension {} (timestamp {}), so it is dropped: {}",
+                getLoggerName(),
+                positional.x,
+                positional.y,
+                positional.z,
+                positional.dimensionID,
+                event.timestamp,
+                reason);
+        } else {
+            LOG.warn(
+                "{} could not store an event (timestamp {}), so it is dropped: {}",
+                getLoggerName(),
+                event.timestamp,
+                reason);
+        }
+        lastDropReason = reason;
+        droppedEvents.incrementAndGet();
+    }
+
     private void startQueueWorker() {
         failure = null;
         consecutiveBatchFailures = 0;
         lastFailureAnnounced = 0;
+        droppedEvents.set(0);
+        lastDropAnnounced = 0;
         shuttingDownDatabaseThread = false;
         abandonQueue = false;
         isRunning = true;
@@ -891,26 +929,51 @@ public abstract class GenericLogger<EventInfo extends GenericEventInfo> {
     }
 
     /**
-     * Tells online ops about loggers that can't store events (their batches keep failing, or their worker stopped),
-     * every ten minutes while it lasts, as otherwise only the server log would know. On the server thread.
+     * Tells online admins about loggers that can't store events (their batches keep failing, or their worker stopped),
+     * every ten minutes while it lasts, and about single events a logger had to drop, at most once a minute each, as
+     * otherwise only the server log would know. On the server thread.
      */
     public static void announceFailures() {
         long now = System.currentTimeMillis();
         for (GenericLogger<?> logger : TemporaLoggerManager.getLoggerList()) {
-            String failure = logger.failure;
-            if (failure == null || !logger.started) continue;
-            if (now - logger.lastFailureAnnounced < FAILURE_ANNOUNCE_INTERVAL_MILLISECONDS) continue;
-            logger.lastFailureAnnounced = now;
-
-            LOG.error("{} can't store events: {}", logger.getLoggerName(), failure);
-            IChatComponent message = new ChatComponentTranslation(
-                "tempora.warning.logger_failing",
-                logger.getDisplayName(),
-                failure);
-            message.getChatStyle()
-                .setColor(EnumChatFormatting.RED);
-            PlayerUtils.sendMessageToAuthorisedTemporaUsers(message);
+            if (!logger.started) continue;
+            logger.announceFailure(now);
+            logger.announceDroppedEvents(now);
         }
+    }
+
+    private void announceFailure(long now) {
+        String failure = this.failure;
+        if (failure == null) return;
+        if (now - lastFailureAnnounced < FAILURE_ANNOUNCE_INTERVAL_MILLISECONDS) return;
+        lastFailureAnnounced = now;
+
+        LOG.error("{} can't store events: {}", getLoggerName(), failure);
+        IChatComponent message = new ChatComponentTranslation(
+            "tempora.warning.logger_failing",
+            getDisplayName(),
+            failure);
+        message.getChatStyle()
+            .setColor(EnumChatFormatting.RED);
+        PlayerUtils.sendMessageToAuthorisedTemporaUsers(message);
+    }
+
+    private void announceDroppedEvents(long now) {
+        if (droppedEvents.get() == 0) return;
+        if (now - lastDropAnnounced < DROP_ANNOUNCE_INTERVAL_MILLISECONDS) return;
+        lastDropAnnounced = now;
+        int dropped = droppedEvents.getAndSet(0);
+
+        IChatComponent alert = new ChatComponentTranslation("tempora.wand.alert");
+        alert.getChatStyle()
+            .setColor(EnumChatFormatting.RED);
+        PlayerUtils.sendMessageToAuthorisedTemporaUsers(
+            EventChat.line(
+                "tempora.warning.events_dropped",
+                alert,
+                getDisplayName(),
+                new ChatComponentNumber(dropped),
+                lastDropReason));
     }
 
     public int getQueueSize() {

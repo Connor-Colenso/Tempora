@@ -66,6 +66,15 @@ public abstract class GenericPositionalLogger<EventInfo extends PositionalEventI
         eventInfo.y = y;
         eventInfo.z = z;
 
+        // A position that isn't a number (a mod's broken entity) can't be stored, as its column refuses it, nor found
+        // by place. Turned away here, as in a batch it would cost the events around it a retry one at a time.
+        if (!Double.isFinite(x) || !Double.isFinite(y) || !Double.isFinite(z)) {
+            if (!isActive()) return;
+            eventInfo.timestamp = System.currentTimeMillis();
+            noteDroppedEvent(eventInfo, "its position is not a number");
+            return;
+        }
+
         logNewEvent(eventInfo);
     }
 

@@ -359,6 +359,59 @@ public class DatabaseTests {
         }
     }
 
+    // Events SQLite refuses (here a NaN position, which its NOT NULL column refuses) cost only themselves, however
+    // many of them lead the batch.
+    @GameTest
+    public static void refusedEventsDropOnlyThemselves(GameTestHelper helper) throws Exception {
+        RefusedEventTestLogger logger = new RefusedEventTestLogger();
+        String table = logger.getLoggerName();
+        deleteDatabaseFiles(table);
+        helper.afterTest(() -> deleteDatabaseFiles(table));
+
+        LoggerDatabase database = logger.getDatabaseManager();
+        database.genericConfig(throwawayConfig(helper));
+        database.initialiseDatabase();
+        try {
+            List<MigrationTestEvent> events = new ArrayList<>();
+            for (int i = 0; i < 8; i++) {
+                MigrationTestEvent event = new MigrationTestEvent();
+                event.timestamp = i + 1;
+                // The first three are refused.
+                event.x = i < 3 ? Double.NaN : i;
+                event.note = "event " + i;
+                events.add(event);
+            }
+            database.insertBatch(events);
+        } finally {
+            database.shutdownDatabase();
+        }
+
+        List<String> stored = new ArrayList<>();
+        try (Connection conn = DriverManager.getConnection(DatabaseUtils.jdbcUrl(table + ".db"));
+            Statement st = conn.createStatement();
+            ResultSet rs = st.executeQuery("SELECT note FROM " + table + " ORDER BY timestamp")) {
+            while (rs.next()) stored.add(rs.getString(1));
+        }
+        helper.assertIterableEquals(
+            Arrays.asList("event 3", "event 4", "event 5", "event 6", "event 7"),
+            stored,
+            "events stored");
+        helper.succeed();
+    }
+
+    public static class RefusedEventTestLogger extends MigrationTestLogger {
+
+        @Override
+        public @NotNull String getLoggerName() {
+            return "TemporaTestRefusedEventLogger";
+        }
+
+        @Override
+        public @NotNull String getShortName() {
+            return "test_refused_event";
+        }
+    }
+
     // ---------- Pruning ----------
 
     // Events older than the logger's oldestDataCutoff are deleted, and newer ones kept.

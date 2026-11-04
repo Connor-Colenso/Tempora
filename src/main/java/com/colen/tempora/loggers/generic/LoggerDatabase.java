@@ -21,6 +21,7 @@ import net.minecraftforge.common.config.Configuration;
 
 import org.jetbrains.annotations.NotNull;
 import org.sqlite.SQLiteConfig;
+import org.sqlite.SQLiteErrorCode;
 
 import com.colen.tempora.Tempora;
 import com.colen.tempora.loggers.generic.column.ColumnDef;
@@ -371,20 +372,17 @@ public class LoggerDatabase {
         return "INSERT INTO " + logger.getLoggerName() + " (" + columnList + ") VALUES (" + placeholders + ")";
     }
 
-    // Single events tried after a batch fails, before deciding the database itself is failing (disk full, locked...)
-    // rather than one of the events.
-    private static final int RETRIES_BEFORE_GIVING_UP = 3;
-
     /**
-     * Writes a batch of events in one transaction. If SQLite refuses it, e.g. one event has a NaN position, which a
-     * NOT NULL column refuses, the events are written again one at a time, so only the ones SQLite refuses are lost.
-     * Throws if the database refuses even single events.
+     * Writes a batch of events in one transaction. If SQLite refuses an event in it, e.g. a NaN in a NOT NULL column,
+     * the events are written again one at a time, so only the ones it refuses are lost, each noted in the server log
+     * and to admins. Throws if the database itself is failing (disk full, I/O error, locked...), as then every event
+     * would fail the same way.
      */
     public <EventInfo extends GenericEventInfo> void insertBatch(List<EventInfo> eventInfoQueue) throws SQLException {
         try {
             insertInOneTransaction(eventInfoQueue);
         } catch (SQLException | RuntimeException batchFailure) {
-            if (eventInfoQueue.size() <= 1) throw batchFailure;
+            if (!isRefusedEvent(batchFailure)) throw batchFailure;
 
             int written = 0, dropped = 0;
             for (EventInfo event : eventInfoQueue) {
@@ -392,16 +390,10 @@ public class LoggerDatabase {
                     insertInOneTransaction(Collections.singletonList(event));
                     written++;
                 } catch (SQLException | RuntimeException eventFailure) {
+                    // The database started failing part way through.
+                    if (!isRefusedEvent(eventFailure)) throw eventFailure;
                     dropped++;
-                    if (written == 0 && dropped >= RETRIES_BEFORE_GIVING_UP) throw batchFailure;
-                    LOG.error(
-                        "{} could not store event at {}, {}, {} (timestamp {}), it is dropped: {}",
-                        logger.getLoggerName(),
-                        event instanceof PositionalEventInfo positional ? positional.x : "-",
-                        event instanceof PositionalEventInfo positional ? positional.y : "-",
-                        event instanceof PositionalEventInfo positional ? positional.z : "-",
-                        event.timestamp,
-                        eventFailure.getMessage());
+                    logger.noteDroppedEvent(event, String.valueOf(eventFailure.getMessage()));
                 }
             }
             LOG.warn(
@@ -412,6 +404,18 @@ public class LoggerDatabase {
                 written,
                 dropped);
         }
+    }
+
+    /**
+     * Whether a failed insert was SQLite refusing an event, rather than the database failing: a constraint (e.g. NOT
+     * NULL refusing a NaN), a value too big or of the wrong type, or one Tempora couldn't bind.
+     */
+    private static boolean isRefusedEvent(Exception failure) {
+        if (failure instanceof RuntimeException) return true;
+        int code = ((SQLException) failure).getErrorCode();
+        return code == SQLiteErrorCode.SQLITE_CONSTRAINT.code || code == SQLiteErrorCode.SQLITE_TOOBIG.code
+            || code == SQLiteErrorCode.SQLITE_MISMATCH.code
+            || code == SQLiteErrorCode.SQLITE_RANGE.code;
     }
 
     // This is responsible for saving the actual events to a database. It seems rather convoluted,
