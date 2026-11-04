@@ -7,6 +7,8 @@ import static com.gtnewhorizons.horizonqa.api.TestPos.at;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Blocks;
+import net.minecraft.network.rcon.RConConsoleSource;
+import net.minecraft.server.MinecraftServer;
 
 import com.colen.tempora.Tempora;
 import com.colen.tempora.TemporaEvents;
@@ -14,6 +16,8 @@ import com.colen.tempora.commands.TemporaCommand;
 import com.colen.tempora.loggers.generic.FoundEvents;
 import com.colen.tempora.loggers.generic.GenericLogger;
 import com.colen.tempora.loggers.player_block_break.PlayerBlockBreakEventInfo;
+import com.colen.tempora.regions.TemporaRegionRegistry;
+import com.colen.tempora.regions.TemporaWorldRegion;
 import com.colen.tempora.utils.PlayerFilter;
 import com.colen.tempora.utils.TimeWindow;
 import com.gtnewhorizons.horizonqa.api.GameTestHelper;
@@ -75,6 +79,36 @@ public class CommandTests {
                         () -> logger.findEventsBy(PlayerFilter.parse(a + ",!" + b), TimeWindow.allTime(), 10, "")),
                     2))
             .thenSucceed();
+    }
+
+    // RCon runs commands on its own thread and replies before anything Tempora does on the server thread, so /tempora
+    // refuses it. The same command from the console still works, so the refusal isn't down to the command itself.
+    @GameTest
+    public static void rconIsRefused(GameTestHelper helper) {
+        TemporaCommand command = new TemporaCommand();
+        String fromConsole = "test_console_region";
+        String fromRcon = "test_rcon_region";
+        helper.afterTest(() -> {
+            for (String label : new String[] { fromConsole, fromRcon }) {
+                TemporaWorldRegion region = TemporaRegionRegistry.getByLabel(label);
+                if (region != null) TemporaRegionRegistry.remove(region);
+            }
+        });
+
+        command.processCommand(MinecraftServer.getServer(), regionCreate(helper, fromConsole));
+        command.processCommand(RConConsoleSource.instance, regionCreate(helper, fromRcon));
+
+        helper.assertNotNull(TemporaRegionRegistry.getByLabel(fromConsole), "the console should create a region");
+        helper.assertNull(TemporaRegionRegistry.getByLabel(fromRcon), "a region was created over RCon");
+        helper.succeed();
+    }
+
+    // /tempora region create over one block of the test, in its dimension.
+    private static String[] regionCreate(GameTestHelper helper, String label) {
+        TestPos at = helper.absolute(at(1, 1, 1));
+        String x = String.valueOf(at.x()), y = String.valueOf(at.y()), z = String.valueOf(at.z());
+        return new String[] { "region", "create", label, x, y, z, x, y, z,
+            String.valueOf(helper.getWorld().provider.dimensionId) };
     }
 
     private static void breakNew(GameTestHelper helper, EntityPlayerMP player, TestPos local) {

@@ -8,6 +8,7 @@ import java.util.List;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.network.rcon.RConConsoleSource;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
@@ -84,6 +85,18 @@ public class TemporaCommand extends CommandBase {
     @Override
     public void processCommand(ICommandSender sender, String[] args) {
         if (isDisabled(sender)) return;
+
+        // RCon runs commands on its own thread and replies as soon as the command returns. Lookups finish later, on
+        // the server thread, so their results would be lost, and region commands would change regions and send packets
+        // while the server thread uses them. The same goes for any other mod running commands off the server thread.
+        if (sender instanceof RConConsoleSource || !GenericUtils.isServerSide()) {
+            IChatComponent refused = new ChatComponentTranslation("tempora.command.not_server_thread");
+            refused.getChatStyle()
+                .setColor(EnumChatFormatting.RED);
+            sender.addChatMessage(refused);
+            return;
+        }
+
         ROOT.execute(sender, args);
     }
 
