@@ -234,6 +234,42 @@ public class PositionalLoggerTests {
             .thenSucceed();
     }
 
+    // Creepers, ghasts and withers with mobGriefing off, and mod blasts made not to break blocks: the explosion is
+    // still logged, with no destroyed blocks, as vanilla leaves them all standing.
+    @GameTest(timeoutTicks = TIMEOUT_TICKS)
+    public static void nonDamagingExplosionLogsNoBlocks(GameTestHelper helper) {
+        GenericPositionalLogger<?> logger = TemporaEvents.explosionLogger;
+        TestPos pos = helper.absolute(BLOCK);
+        double x = pos.x() + 0.5, y = pos.y() + 0.5, z = pos.z() + 0.5;
+        Probe<List<PositionalEventInfo>> probe = new Probe<>(helper, "nonDamagingExplosionLogsNoBlocks");
+
+        helper.startSequence()
+            .thenExecute("set off an explosion that breaks nothing", () -> {
+                helper.setBlock(at(BLOCK.x(), BLOCK.y() - 1, BLOCK.z()), Blocks.dirt);
+                helper.getWorld()
+                    .newExplosion(null, x, y, z, 1.5f, false, false);
+            })
+            .thenWaitUntil(
+                "explosion is logged",
+                WRITE_TICKS,
+                () -> assertCount(
+                    helper,
+                    probe.poll(() -> eventsNear(logger, helper.getWorld().provider.dimensionId, x, y, z, 0.01)),
+                    1))
+            .thenExecute("no blocks are listed as destroyed", () -> {
+                helper.assertBlockPresent(Blocks.dirt, at(BLOCK.x(), BLOCK.y() - 1, BLOCK.z()));
+                ExplosionEventInfo event = (ExplosionEventInfo) probe.latest()
+                    .get(0);
+                helper.assertEquals(1.5, event.power, 0.001, "power");
+                helper.assertTrue(
+                    ChunkPositionUtils.decodePositions(event.affectedBlockCoordinates)
+                        .isEmpty(),
+                    "no destroyed blocks");
+                assertWellFormed(helper, logger, probe.latest());
+            })
+            .thenSucceed();
+    }
+
     @GameTest(timeoutTicks = TIMEOUT_TICKS)
     public static void mobSpawnIsLogged(GameTestHelper helper) {
         GenericPositionalLogger<?> logger = TemporaEvents.entitySpawnLogger;

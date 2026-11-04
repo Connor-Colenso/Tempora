@@ -77,7 +77,10 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionEventInfo>
             // so a creeper (3) would be logged as 6.
             explosion.explosionSize / 2f,
             exploder,
-            destroyedBlocks(event.world, explosion.affectedBlockPositions));
+            // An explosion that does not break blocks (isSmoking false, e.g. creepers, ghasts and withers with
+            // mobGriefing off) still reports every position it reached, but vanilla leaves them all standing.
+            explosion.isSmoking ? destroyedBlocks(event.world, explosion.affectedBlockPositions)
+                : Collections.emptyList());
     }
 
     /**
