@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.event.HoverEvent;
 import net.minecraft.server.MinecraftServer;
@@ -69,26 +68,20 @@ public class PlayerUtils {
         return nameComponent;
     }
 
-    public static boolean isPlayerOp(EntityPlayer player) {
-        if (!(player instanceof EntityPlayerMP playerMP)) return false;
-
-        MinecraftServer server = playerMP.mcServer;
-        return server.getConfigurationManager()
-            .func_152596_g(player.getGameProfile());
-    }
-
     /**
-     * Sends a translated chat message to every online operator.
+     * Sends a translated chat message to every online player who may use /tempora (see
+     * {@link CommandUtils#mayUseTempora}). This is structured in this manner so that ServerUtilities permissions that
+     * are granted for Tempora also notify you of these messages.
      *
      * @param translationKey the translation key in the language file
      * @param params         optional arguments that will be substituted into the translation
      */
-    public static void sendMessageToOps(String translationKey, Object... params) {
-        sendMessageToOps(new ChatComponentTranslation(translationKey, params));
+    public static void sendMessageToAuthorisedTemporaUsers(String translationKey, Object... params) {
+        sendMessageToAuthorisedTemporaUsers(new ChatComponentTranslation(translationKey, params));
     }
 
-    /** Sends a chat message to every online operator. */
-    public static void sendMessageToOps(IChatComponent message) {
+    /** Sends a chat message to every online player who may use /tempora (see {@link CommandUtils#mayUseTempora}). */
+    public static void sendMessageToAuthorisedTemporaUsers(IChatComponent message) {
         MinecraftServer server = MinecraftServer.getServer();
         if (server == null) return;
 
@@ -96,7 +89,7 @@ public class PlayerUtils {
         if (scm == null) return;
 
         for (EntityPlayerMP player : scm.playerEntityList) {
-            if (isPlayerOp(player)) {
+            if (CommandUtils.mayUseTempora(player)) {
                 player.addChatMessage(message);
             }
         }

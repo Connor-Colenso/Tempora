@@ -7,6 +7,7 @@ import java.util.List;
 
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
@@ -17,6 +18,7 @@ import com.colen.tempora.commands.region.RegionCreateCommand;
 import com.colen.tempora.commands.region.RegionListCommand;
 import com.colen.tempora.commands.region.RegionRemoveCommand;
 import com.colen.tempora.commands.region.RegionSetCommand;
+import com.colen.tempora.utils.CommandUtils;
 import com.colen.tempora.utils.GenericUtils;
 
 /**
@@ -99,6 +101,11 @@ public class TemporaCommand extends CommandBase {
     @Override
     public List<String> addTabCompletionOptions(ICommandSender sender, String[] args) {
         if (!GenericUtils.shouldTemporaRun()) return Collections.emptyList();
+        // Vanilla only checks permission when completing the command's name, so without this anyone could list every
+        // player name the server knows and every region label.
+        boolean mayUse = sender instanceof EntityPlayerMP player ? CommandUtils.mayUseTempora(player)
+            : canCommandSenderUseCommand(sender);
+        if (!mayUse) return Collections.emptyList();
         return ROOT.tabComplete(sender, args);
     }
 }

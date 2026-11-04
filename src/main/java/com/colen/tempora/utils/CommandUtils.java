@@ -3,6 +3,8 @@ package com.colen.tempora.utils;
 import java.util.List;
 
 import net.minecraft.command.CommandBase;
+import net.minecraft.command.ICommandManager;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.event.HoverEvent;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatComponentTranslation;
@@ -14,11 +16,26 @@ import org.jetbrains.annotations.NotNull;
 import com.colen.tempora.TemporaLoggerManager;
 import com.colen.tempora.chat.ChatComponentTeleport;
 import com.colen.tempora.chat.EventChat;
+import com.colen.tempora.commands.TemporaCommand;
 import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 
 public class CommandUtils {
 
     public static final int OP_ONLY = 2;
+
+    /**
+     * Whether this player may use /tempora, and so the wand, teleport clicks and Tempora's warnings to admins. Asked of
+     * the server's list of commands the player may use, which is what permission mods change (ServerUtilities applies
+     * its ranks there), so this always agrees with /tempora itself. Without such a mod it is /tempora's op check.
+     */
+    public static boolean mayUseTempora(EntityPlayerMP player) {
+        ICommandManager commands = player.mcServer.getCommandManager();
+        Object tempora = commands.getCommands()
+            .get(TemporaCommand.NAME);
+        if (tempora == null) return player.canCommandSenderUseCommand(OP_ONLY, TemporaCommand.NAME);
+        return commands.getPossibleCommands(player)
+            .contains(tempora);
+    }
 
     @NotNull
     public static List<String> completeLoggerNames(String[] args) {

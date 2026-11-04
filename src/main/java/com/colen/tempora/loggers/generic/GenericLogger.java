@@ -354,7 +354,7 @@ public abstract class GenericLogger<EventInfo extends GenericEventInfo> {
             "Maximum queue size of {} reached for {}, slowing server down.",
             maxEventsInQueueBeforeServerFreeze,
             getLoggerName());
-        PlayerUtils.sendMessageToOps(
+        PlayerUtils.sendMessageToAuthorisedTemporaUsers(
             "tempora.warning.queue_too_large",
             getLoggerName(),
             new ChatComponentNumber(getQueueSize()));
@@ -909,7 +909,7 @@ public abstract class GenericLogger<EventInfo extends GenericEventInfo> {
                 failure);
             message.getChatStyle()
                 .setColor(EnumChatFormatting.RED);
-            PlayerUtils.sendMessageToOps(message);
+            PlayerUtils.sendMessageToAuthorisedTemporaUsers(message);
         }
     }
 

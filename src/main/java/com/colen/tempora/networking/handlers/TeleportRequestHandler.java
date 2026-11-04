@@ -1,6 +1,6 @@
 package com.colen.tempora.networking.handlers;
 
-import static com.colen.tempora.utils.CommandUtils.OP_ONLY;
+import static com.colen.tempora.utils.CommandUtils.mayUseTempora;
 
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.server.MinecraftServer;
@@ -40,7 +40,7 @@ public class TeleportRequestHandler implements IMessageHandler<PacketTeleportReq
         if (TemporaCommand.isDisabled(player)) return;
 
         // Any client can send this packet, so it gets the same permission check /tempora does.
-        if (!player.canCommandSenderUseCommand(OP_ONLY, TemporaCommand.NAME)) {
+        if (!mayUseTempora(player)) {
             sendError(player, "tempora.teleport.no_permission");
             return;
         }

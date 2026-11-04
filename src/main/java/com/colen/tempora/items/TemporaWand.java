@@ -142,11 +142,11 @@ public class TemporaWand extends Item {
         if (TemporaCommand.isDisabled(player)) return;
 
         // The same check as /tempora itself, so whoever may run lookups may use the wand, and nobody else.
-        if (!player.canCommandSenderUseCommand(CommandUtils.OP_ONLY, TemporaCommand.NAME)) {
+        if (!CommandUtils.mayUseTempora(player)) {
             IChatComponent alert = new ChatComponentTranslation("tempora.wand.alert");
             alert.getChatStyle()
                 .setColor(EnumChatFormatting.RED);
-            PlayerUtils.sendMessageToOps(
+            PlayerUtils.sendMessageToAuthorisedTemporaUsers(
                 EventChat.line(
                     "tempora.wand.unauthorised",
                     alert,

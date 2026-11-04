@@ -1,11 +1,11 @@
 package com.colen.tempora.events;
 
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
-import com.colen.tempora.commands.TemporaCommand;
 import com.colen.tempora.regions.TemporaRegionRegistry;
 import com.colen.tempora.utils.CommandUtils;
 
@@ -24,7 +24,7 @@ public class OnPlayerLogin {
     public static void warnIfRegionsUnreadable(EntityPlayer player) {
         String fileName = TemporaRegionRegistry.getUnreadableFileName();
         if (fileName == null) return;
-        if (!player.canCommandSenderUseCommand(CommandUtils.OP_ONLY, TemporaCommand.NAME)) return;
+        if (!(player instanceof EntityPlayerMP playerMP) || !CommandUtils.mayUseTempora(playerMP)) return;
 
         IChatComponent warning = new ChatComponentTranslation("tempora.warning.regions_unreadable", fileName);
         warning.getChatStyle()
