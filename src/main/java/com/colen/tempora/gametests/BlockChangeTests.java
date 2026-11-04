@@ -2,6 +2,7 @@ package com.colen.tempora.gametests;
 
 import static com.colen.tempora.gametests.TestSupport.assertWellFormed;
 import static com.colen.tempora.gametests.TestSupport.eventsNear;
+import static com.colen.tempora.gametests.TestSupport.player;
 import static com.colen.tempora.gametests.TestSupport.region;
 import static com.gtnewhorizons.horizonqa.api.TestPos.at;
 
@@ -9,6 +10,9 @@ import java.util.List;
 
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemBlock;
+import net.minecraft.item.ItemStack;
 
 import com.colen.tempora.Tempora;
 import com.colen.tempora.TemporaEvents;
@@ -20,6 +24,8 @@ import com.gtnewhorizons.horizonqa.api.GameTestHelper;
 import com.gtnewhorizons.horizonqa.api.TestPos;
 import com.gtnewhorizons.horizonqa.api.annotation.GameTest;
 import com.gtnewhorizons.horizonqa.api.annotation.GameTestHolder;
+
+import cpw.mods.fml.common.registry.GameRegistry;
 
 /**
  * The block change logger sees both ways a chunk's blocks change: a block set (Chunk.func_150807_a) and a metadata
@@ -65,6 +71,63 @@ public class BlockChangeTests {
                 helper.assertEquals(0, change.beforeMetadata, "metadata before");
                 helper.assertEquals(woolID, change.afterBlockID, "block after");
                 helper.assertEquals(5, change.afterMetadata, "metadata after");
+            })
+            .thenSucceed();
+    }
+
+    // GT's machine type, which is also its item's damage, is given to the tile entity only after the block is placed.
+    // The change is stored as the finished machine, not the blank one the block write left. GT is only on the dev
+    // runtime classpath, so it is reached through its registered block and the plain ItemBlock API.
+    @GameTest(timeoutTicks = 200)
+    public static void tileEntitySetUpAfterPlacingIsStored(GameTestHelper helper) {
+        GenericPositionalLogger<?> logger = TemporaEvents.blockChangeLogger;
+        TestPos machine = at(1, 1, 1);
+        int lvHull = 11;
+        Probe<List<PositionalEventInfo>> events = new Probe<>(helper, "tileEntitySetUpAfterPlacingIsStored");
+
+        helper.startSequence()
+            .thenExecute("place a GT LV hull from its item", () -> {
+                Block machines = GameRegistry.findBlock("gregtech", "gt.blockmachines");
+                helper.assertNotNull(machines, "GT's machine block");
+                region(helper, "test_late_tile_entity", machine, machine, TemporaEvents.BLOCK_CHANGE, LogRule.ON);
+
+                ItemStack hull = new ItemStack(machines, 1, lvHull);
+                TestPos at = helper.absolute(machine);
+                helper.assertTrue(
+                    ((ItemBlock) hull.getItem()).placeBlockAt(
+                        hull,
+                        player(helper, "tileEntitySetUpAfterPlacingIsStored"),
+                        helper.getWorld(),
+                        at.x(),
+                        at.y(),
+                        at.z(),
+                        1,
+                        0.5f,
+                        0.5f,
+                        0.5f,
+                        0),
+                    "the hull was not placed");
+            })
+            .thenWaitUntil(
+                "the placement is stored",
+                100,
+                () -> helper.assertFalse(
+                    events.poll(() -> eventsNear(helper, logger, helper.absolute(machine), 0))
+                        .isEmpty(),
+                    "no block change stored for the hull"))
+            .thenExecute("it is stored as an LV hull", () -> {
+                List<PositionalEventInfo> stored = events.latest();
+                assertWellFormed(helper, logger, stored);
+                helper.assertEquals(1, stored.size(), "block changes stored for one placement");
+
+                BlockChangeEventInfo change = (BlockChangeEventInfo) stored.get(0);
+                Block machines = GameRegistry.findBlock("gregtech", "gt.blockmachines");
+                helper.assertEquals(Block.getIdFromBlock(machines), change.afterBlockID, "block after");
+                helper.assertEquals(
+                    Item.getIdFromItem(Item.getItemFromBlock(machines)),
+                    change.afterPickBlockID,
+                    "pick item after");
+                helper.assertEquals(lvHull, change.afterPickBlockMeta, "machine type after");
             })
             .thenSucceed();
     }

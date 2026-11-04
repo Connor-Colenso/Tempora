@@ -21,8 +21,10 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import javax.annotation.Nullable;
 
@@ -33,6 +35,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.world.World;
+import net.minecraftforge.common.DimensionManager;
 import net.minecraftforge.common.config.Configuration;
 
 import org.jetbrains.annotations.NotNull;
@@ -329,7 +332,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
         }
 
         fillAfterState(e, world, x, y, z);
-        recordSetBlock(e.x, e.y, e.z, e, world);
+        recordSetBlock(x, y, z, e, world);
     }
 
     /**
@@ -397,7 +400,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
         e.afterEncodedNBT = getEncodedTileEntityNBT(world, x, y, z, BlockChangeLogger.isLogNBTEnabled());
     }
 
-    private void recordSetBlock(double x, double y, double z, BlockChangeEventInfo eventInfo, World world) {
+    private void recordSetBlock(int x, int y, int z, BlockChangeEventInfo eventInfo, World world) {
         EntityPlayer closestPlayer = world.getClosestPlayer(x, y, z, -1);
         double closestDistance = -1;
 
@@ -409,7 +412,73 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
             .toString() : UNKNOWN_PLAYER_NAME;
         eventInfo.closestPlayerDistance = closestDistance;
 
-        queueEventInfo(eventInfo);
+        // Mods often set up a new block's tile entity just after placing it: GT gives a machine its type, owner and
+        // facing, vanilla a skull its type. Until then it reads as a blank block, so a block with a tile entity is
+        // read again at the end of the tick.
+        if (Block.getBlockById(eventInfo.afterBlockID)
+            .hasTileEntity(eventInfo.afterMetadata)) {
+            pendingChanges.add(new PendingChange(eventInfo, world, x, y, z));
+        } else {
+            queueEventInfo(eventInfo);
+        }
+    }
+
+    // --------------------------------------
+    // Changes waiting for the end of the tick
+    // --------------------------------------
+
+    private final Queue<PendingChange> pendingChanges = new ConcurrentLinkedQueue<>();
+
+    private static final class PendingChange {
+
+        final BlockChangeEventInfo event;
+        final World world;
+        final int x, y, z;
+
+        PendingChange(BlockChangeEventInfo event, World world, int x, int y, int z) {
+            this.event = event;
+            this.world = world;
+            this.x = x;
+            this.y = y;
+            this.z = z;
+        }
+    }
+
+    /**
+     * Reads the blocks with a tile entity changed this tick again, now that whoever placed them has set them up, and
+     * queues their events. At the end of every server tick, and as the server stops.
+     */
+    public void onTickEnd() {
+        PendingChange change;
+        while ((change = pendingChanges.poll()) != null) {
+            try {
+                rereadAfterState(change);
+            } catch (RuntimeException | LinkageError e) {
+                // Another mod's block or tile entity. The event keeps what was read as it changed.
+                LOG.error("Tempora could not read a changed block again at the end of the tick.", e);
+            }
+            queueEventInfo(change.event);
+        }
+    }
+
+    private static void rereadAfterState(PendingChange change) {
+        BlockChangeEventInfo e = change.event;
+        World world = change.world;
+        int x = change.x, y = change.y, z = change.z;
+
+        // Not in a world or chunk that has unloaded since, which reading would load again.
+        if (DimensionManager.getWorld(e.dimensionID) != world || !world.blockExists(x, y, z)) return;
+        // Only while it is still the block this change made. If it changed again this tick, that change is an event of
+        // its own, and this one keeps what was read at the time.
+        if (Block.getIdFromBlock(world.getBlock(x, y, z)) != e.afterBlockID
+            || world.getBlockMetadata(x, y, z) != e.afterMetadata) return;
+
+        fillAfterState(e, world, x, y, z);
+    }
+
+    @Override
+    protected void beforeServerClose() {
+        onTickEnd();
     }
 
 }
