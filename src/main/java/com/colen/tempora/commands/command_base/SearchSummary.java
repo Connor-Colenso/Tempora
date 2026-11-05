@@ -28,7 +28,8 @@ public final class SearchSummary {
     // A filter as typed, or with shownDefault, e.g. "10" or "all", if it was left out.
     public SearchSummary add(String key, String shownDefault) {
         String typed = filters.get(key);
-        boolean isDefault = typed == null;
+        // Typing the default, e.g. s:logger, still leaves it at the default rather than overriding it.
+        boolean isDefault = typed == null || typed.equalsIgnoreCase(shownDefault);
 
         // Under the filter, whether it was left at its default, in red, or what it was given instead, in green like
         // the filter, then what it does.
