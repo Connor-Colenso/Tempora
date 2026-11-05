@@ -32,7 +32,8 @@ public abstract class EntityEventRenderer<E extends PositionalEventInfo> impleme
     protected final Color colour;
 
     // Made once per event rather than every frame. Null for events whose entity cannot be drawn. Weak, so each goes
-    // once ClientEventStore drops its event.
+    // after ClientEventStore drops its event, but only once the map is next used, so it is also emptied as the world
+    // unloads: each entity keeps its world.
     private final Map<E, Entity> ghosts = new WeakHashMap<>();
 
     protected EntityEventRenderer(Color colour) {
@@ -51,6 +52,11 @@ public abstract class EntityEventRenderer<E extends PositionalEventInfo> impleme
 
     /** Adjusts a newly made entity before it is first drawn, e.g. to pose it. */
     protected void prepareGhost(Entity entity, E event) {}
+
+    @Override
+    public void clearCaches() {
+        ghosts.clear();
+    }
 
     @Override
     public void renderWorld(List<E> events, EventRenderContext context) {

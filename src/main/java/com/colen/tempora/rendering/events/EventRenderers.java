@@ -42,6 +42,14 @@ public final class EventRenderers {
         }
     }
 
+    /** Empties every renderer's caches, as the client world unloads. */
+    static void clearCaches() {
+        for (EventRenderer<?> renderer : RENDERERS.values()) {
+            renderer.clearCaches();
+        }
+        FALLBACK.clearCaches();
+    }
+
     /**
      * The renderer for the named logger, or the plain fallback. Typed by the caller: a logger's renderer only ever gets
      * that logger's events.

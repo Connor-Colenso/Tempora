@@ -37,7 +37,8 @@ public abstract class PlayerGhostRenderer<E extends PositionalEventInfo> impleme
     protected final Color colour;
 
     // Made once per event rather than every frame, keyed by the newest event at each spot. Null when the player cannot
-    // be drawn. Weak, so each goes once ClientEventStore drops its event.
+    // be drawn. Weak, so each goes after ClientEventStore drops its event, but only once the map is next used, so it
+    // is also emptied as the world unloads: each player keeps its world.
     private final Map<E, EntityOtherPlayerMP> ghosts = new WeakHashMap<>();
 
     protected PlayerGhostRenderer(Color colour) {
@@ -66,6 +67,11 @@ public abstract class PlayerGhostRenderer<E extends PositionalEventInfo> impleme
 
     /** Changes the player once, as it is made, e.g. to draw them dying. */
     protected void prepareGhost(EntityOtherPlayerMP ghost, E event) {}
+
+    @Override
+    public void clearCaches() {
+        ghosts.clear();
+    }
 
     @Override
     public void renderWorld(List<E> events, EventRenderContext context) {

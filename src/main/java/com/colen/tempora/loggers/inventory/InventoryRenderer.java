@@ -35,9 +35,15 @@ public class InventoryRenderer implements EventRenderer<InventoryEventInfo> {
     // Radians per tick, about once round every ten seconds.
     private static final double ORBIT_SPEED = 0.03;
 
-    // Made once per event rather than every frame. Null for items this client does not have. Weak, so each goes once
-    // ClientEventStore drops its event.
+    // Made once per event rather than every frame. Null for items this client does not have. Weak, so each goes after
+    // ClientEventStore drops its event, but only once the map is next used, so it is also emptied as the world
+    // unloads: each item keeps its world.
     private final Map<InventoryEventInfo, EntityItem> items = new WeakHashMap<>();
+
+    @Override
+    public void clearCaches() {
+        items.clear();
+    }
 
     @Override
     public void renderWorld(List<InventoryEventInfo> events, EventRenderContext context) {

@@ -48,6 +48,10 @@ public final class ClientEventStore {
         }
     }
 
+    public static void clear() {
+        EVENTS.clear();
+    }
+
     public static boolean isEmpty() {
         return EVENTS.isEmpty();
     }

@@ -27,4 +27,11 @@ public interface EventRenderer<E extends PositionalEventInfo> {
      * be covered by any block drawn after it.
      */
     default void renderText(List<E> events, EventRenderContext context) {}
+
+    /**
+     * Drops whatever this renderer keeps between frames, as the client world unloads (leaving a server, or changing
+     * dimension). A cache of entities or tile entities must be emptied here: each keeps the world it was made in, and
+     * with it that whole world, in memory.
+     */
+    default void clearCaches() {}
 }

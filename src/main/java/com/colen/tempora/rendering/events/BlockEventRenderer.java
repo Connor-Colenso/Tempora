@@ -31,7 +31,8 @@ public abstract class BlockEventRenderer<E extends PositionalEventInfo> implemen
     private final Color highlight;
 
     // Made once per event rather than every frame, as decoding NBT and building a tile entity is not cheap. Weak, so
-    // each goes once ClientEventStore drops its event.
+    // each goes after ClientEventStore drops its event, but only once the map is next used, so it is also emptied as
+    // the world unloads: each tile entity keeps its world.
     private final Map<E, GhostBlock> ghosts = new WeakHashMap<>();
 
     protected BlockEventRenderer(Color highlight) {
@@ -44,6 +45,11 @@ public abstract class BlockEventRenderer<E extends PositionalEventInfo> implemen
 
     /** The block's tile entity NBT as NBTUtils encodes it, or one of its markers (see NBTUtils.hasStoredNBT). */
     protected abstract String encodedNBT(E event);
+
+    @Override
+    public void clearCaches() {
+        ghosts.clear();
+    }
 
     @Override
     public void renderWorld(List<E> events, EventRenderContext context) {

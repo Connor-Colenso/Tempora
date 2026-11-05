@@ -38,6 +38,11 @@ public class ExplosionRenderer implements EventRenderer<ExplosionEventInfo> {
     private final Map<ExplosionEventInfo, Set<ChunkPosition>> destroyedBlocks = new WeakHashMap<>();
 
     @Override
+    public void clearCaches() {
+        destroyedBlocks.clear();
+    }
+
+    @Override
     public void renderWorld(List<ExplosionEventInfo> events, EventRenderContext context) {
         for (ExplosionEventInfo event : events) {
             // The centre is not on a block grid, so centre the TNT on it.

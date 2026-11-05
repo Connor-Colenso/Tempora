@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Set;
 
 import net.minecraftforge.client.event.RenderWorldLastEvent;
+import net.minecraftforge.event.world.WorldEvent;
 
 import org.lwjgl.opengl.GL11;
 
@@ -55,6 +56,17 @@ public final class RenderEventsInWorld {
         } finally {
             GL11.glPopMatrix();
         }
+    }
+
+    // Leaving a server, or changing dimension. The events kept are the old world's, so nothing to draw is lost, and the
+    // renderers' ghosts would otherwise keep that whole world in memory.
+    @SuppressWarnings("unused")
+    @SubscribeEvent
+    public void onWorldUnload(WorldEvent.Unload e) {
+        if (!e.world.isRemote) return;
+
+        ClientEventStore.clear();
+        EventRenderers.clearCaches();
     }
 
     private void forEachWorkingRenderer(Map<String, List<PositionalEventInfo>> visible, RenderPass pass) {
