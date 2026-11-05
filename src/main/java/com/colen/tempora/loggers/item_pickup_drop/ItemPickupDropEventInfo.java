@@ -22,30 +22,30 @@ import io.netty.buffer.ByteBuf;
 public class ItemPickupDropEventInfo extends PositionalEventInfo {
 
     // An ItemPickupDropLogger.Action.
-    @Column(constraints = "NOT NULL")
+    @Column
     public int action;
 
-    @Column(type = ColumnType.PLAYER, constraints = "NOT NULL")
+    @Column(type = ColumnType.PLAYER)
     public String playerUUID = PlayerUtils.UNKNOWN_PLAYER_NAME;
 
-    @Column(constraints = "NOT NULL")
+    @Column
     public int itemID;
 
-    @Column(constraints = "NOT NULL")
+    @Column
     public int itemMetadata;
 
-    @Column(constraints = "NOT NULL")
+    @Column
     public int amount;
 
     // NBTUtils.NO_NBT when the item had none, NBTUtils.NBT_DISABLED when it had some but logNBT was off.
-    @Column(type = ColumnType.NBT, constraints = "NOT NULL")
+    @Column(type = ColumnType.NBT)
     public String encodedNBT = NBTUtils.NO_NBT;
 
     // Which way the player was looking, in degrees as Minecraft stores it. A thrown item sets off this way.
-    @Column(constraints = "NOT NULL")
+    @Column
     public float rotationYaw;
 
-    @Column(constraints = "NOT NULL")
+    @Column
     public float rotationPitch;
 
     // encodedNBT is deliberately not sent, as for the inventory logger: the client only draws these events, and item

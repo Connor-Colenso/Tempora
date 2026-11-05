@@ -11,15 +11,15 @@ import com.colen.tempora.loggers.generic.column.Column;
  */
 public abstract class GenericEventInfo {
 
-    @Column(constraints = "NOT NULL")
+    @Column
     public long timestamp;
 
-    // The table's rowid, so it costs nothing to store or index. SQLite assigns it when the event is written, counting
-    // up, so it is 0 until then and only unique within its own logger.
-    @Column(constraints = "PRIMARY KEY")
+    // The table's rowid (its INTEGER PRIMARY KEY), so it costs nothing to store or index. SQLite assigns it when the
+    // event is written, counting up, so it is 0 until then and only unique within its own logger.
+    @Column
     public long eventID;
 
-    @Column(constraints = "NOT NULL")
+    @Column
     public int versionID;
 
     // Only the two kinds extend this directly.

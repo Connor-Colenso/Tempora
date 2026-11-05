@@ -15,13 +15,13 @@ import io.netty.buffer.ByteBuf;
 
 public class ItemUseEventInfo extends PositionalEventInfo {
 
-    @Column(type = ColumnType.PLAYER, constraints = "NOT NULL")
+    @Column(type = ColumnType.PLAYER)
     public String playerUUID = PlayerUtils.UNKNOWN_PLAYER_NAME;
 
-    @Column(constraints = "NOT NULL")
+    @Column
     public int itemID;
 
-    @Column(constraints = "NOT NULL")
+    @Column
     public int itemMetadata;
 
     @Override

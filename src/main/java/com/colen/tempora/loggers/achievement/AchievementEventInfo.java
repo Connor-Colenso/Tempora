@@ -22,11 +22,11 @@ import io.netty.buffer.ByteBuf;
 /** A player earning an achievement, where they stood when they earned it. */
 public class AchievementEventInfo extends PositionalEventInfo {
 
-    @Column(type = ColumnType.PLAYER, constraints = "NOT NULL")
+    @Column(type = ColumnType.PLAYER)
     public String playerUUID = PlayerUtils.UNKNOWN_PLAYER_NAME;
 
     // The achievement's stat ID, e.g. achievement.mineWood.
-    @Column(constraints = "NOT NULL")
+    @Column
     public String achievementID = "";
 
     @Override

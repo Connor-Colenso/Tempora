@@ -18,26 +18,26 @@ import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 public class PlayerConnectionEventInfo extends GlobalEventInfo {
 
     // A PlayerConnectionLogger.Action.
-    @Column(constraints = "NOT NULL")
+    @Column
     public int action;
 
-    @Column(type = ColumnType.PLAYER, constraints = "NOT NULL")
+    @Column(type = ColumnType.PLAYER)
     public String playerUUID = PlayerUtils.UNKNOWN_PLAYER_NAME;
 
     // Why a player left: a translation key such as disconnect.timeout, or the text of a kick message. Empty for joins.
-    @Column(constraints = "NOT NULL")
+    @Column
     public String reason = "";
 
-    @Column(constraints = "NOT NULL")
+    @Column
     public int dimensionID;
 
-    @Column(constraints = "NOT NULL")
+    @Column
     public double x;
 
-    @Column(constraints = "NOT NULL")
+    @Column
     public double y;
 
-    @Column(constraints = "NOT NULL")
+    @Column
     public double z;
 
     @Override

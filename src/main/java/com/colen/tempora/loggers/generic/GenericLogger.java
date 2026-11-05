@@ -527,22 +527,27 @@ public abstract class GenericLogger<EventInfo extends GenericEventInfo> {
     void kindConfig(Configuration config) {}
 
     /**
-     * Throws if Tempora can't store this logger's columns, e.g. a field of a type it doesn't know. Run as the logger
-     * registers, so its author finds out then rather than when a server starts.
+     * Throws if Tempora can't store this logger's columns: a field of a type it doesn't know, one that starts as null,
+     * a player column that isn't one, or a table SQLite refuses (a column named after an SQL keyword, two with one
+     * name). Run as the logger registers, so its author finds out then rather than when a server starts.
      */
     public final void checkColumns() {
-        String playerColumn = playerColumn();
-        if (playerColumn == null) return;
+        List<ColumnDef> columns = getAllTableColumns(this);
 
         // Searches match players by their number, so the player column must store them as one.
-        boolean storesPlayers = getAllTableColumns(this).stream()
-            .anyMatch(col -> col.name.equals(playerColumn) && col.columnType == ColumnType.PLAYER);
-        if (!storesPlayers) {
-            throw new IllegalStateException(
-                getLoggerName() + "'s playerColumn() is "
-                    + playerColumn
-                    + ", which is not a ColumnType.PLAYER column.");
+        String playerColumn = playerColumn();
+        if (playerColumn != null) {
+            boolean storesPlayers = columns.stream()
+                .anyMatch(col -> col.name.equals(playerColumn) && col.columnType == ColumnType.PLAYER);
+            if (!storesPlayers) {
+                throw new IllegalStateException(
+                    getLoggerName() + "'s playerColumn() is "
+                        + playerColumn
+                        + ", which is not a ColumnType.PLAYER column.");
+            }
         }
+
+        databaseManager.checkSql();
     }
 
     // Index name suffix -> indexed columns. Every logger is searched by time, positional loggers by place as well, and

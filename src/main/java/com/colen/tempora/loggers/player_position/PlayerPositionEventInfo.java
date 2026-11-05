@@ -15,7 +15,7 @@ import io.netty.buffer.ByteBuf;
 
 public class PlayerPositionEventInfo extends PositionalEventInfo {
 
-    @Column(type = ColumnType.PLAYER, constraints = "NOT NULL")
+    @Column(type = ColumnType.PLAYER)
     public String playerUUID = PlayerUtils.UNKNOWN_PLAYER_NAME;
 
     @Override

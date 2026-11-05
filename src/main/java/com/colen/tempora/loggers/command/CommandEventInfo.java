@@ -22,13 +22,13 @@ public class CommandEventInfo extends PositionalEventInfo {
     // Commands longer than this are cut short in chat.
     private static final int MAX_SHOWN_LENGTH = 40;
 
-    @Column(type = ColumnType.PLAYER, constraints = "NOT NULL")
+    @Column(type = ColumnType.PLAYER)
     public String playerUUID = PlayerUtils.UNKNOWN_PLAYER_NAME;
 
-    @Column(constraints = "NOT NULL")
+    @Column
     public String commandName = "";
 
-    @Column(constraints = "NOT NULL")
+    @Column
     public String arguments = "";
 
     @Override

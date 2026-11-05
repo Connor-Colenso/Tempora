@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
@@ -36,7 +37,10 @@ import com.colen.tempora.enums.LoggerEventType;
 import com.colen.tempora.loggers.entity_position.EntityPositionEventInfo;
 import com.colen.tempora.loggers.entity_position.EntityPositionLogger;
 import com.colen.tempora.loggers.generic.FoundEvents;
+import com.colen.tempora.loggers.generic.GenericGlobalLogger;
+import com.colen.tempora.loggers.generic.GenericLogger;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
+import com.colen.tempora.loggers.generic.GlobalEventInfo;
 import com.colen.tempora.loggers.generic.LoggerDatabase;
 import com.colen.tempora.loggers.generic.PlayerIDs;
 import com.colen.tempora.loggers.generic.PositionalEventInfo;
@@ -164,13 +168,13 @@ public class DatabaseTests {
     // As a logger's event looks after a few versions: one column renamed, one added since.
     public static class MigrationTestEvent extends PositionalEventInfo {
 
-        @Column(constraints = "NOT NULL")
+        @Column
         public String note = "";
 
-        @Column(constraints = "NOT NULL", renamedFrom = "oldCount")
+        @Column(renamedFrom = "oldCount")
         public int count;
 
-        @Column(constraints = "NOT NULL")
+        @Column
         public int addedLater = 7;
 
         @Override
@@ -238,7 +242,7 @@ public class DatabaseTests {
 
     public static class NullDefaultTestEvent extends PositionalEventInfo {
 
-        @Column(constraints = "NOT NULL")
+        @Column
         public String owner;
 
         @Override
@@ -595,7 +599,7 @@ public class DatabaseTests {
 
     public static class PlayerTestEvent extends PositionalEventInfo {
 
-        @Column(type = ColumnType.PLAYER, constraints = "NOT NULL")
+        @Column(type = ColumnType.PLAYER)
         public String playerUUID = PlayerUtils.UNKNOWN_PLAYER_NAME;
 
         @Override
@@ -616,6 +620,109 @@ public class DatabaseTests {
         protected String playerColumn() {
             return "note";
         }
+    }
+
+    // ---------- Register-time checks ----------
+
+    // Every logger's columns are checked as it registers, not only those with a player column, so a column Tempora
+    // can't store fails there rather than when a server starts.
+    @GameTest
+    public static void validGlobalLoggerPassesRegisterCheck(GameTestHelper helper) {
+        new CheckedTestLogger<>("TemporaTestValidGlobal", ValidColumnEvent::new).checkColumns();
+        helper.succeed();
+    }
+
+    @GameTest
+    public static void unknownFieldTypeIsRefusedAtRegister(GameTestHelper helper) {
+        assertRefusedAtRegister(helper, new CheckedTestLogger<>("TemporaTestCharColumn", CharColumnEvent::new));
+    }
+
+    @GameTest
+    public static void sqlKeywordColumnIsRefusedAtRegister(GameTestHelper helper) {
+        assertRefusedAtRegister(helper, new CheckedTestLogger<>("TemporaTestKeywordColumn", KeywordColumnEvent::new));
+    }
+
+    // SQLite column names ignore case, so this is a second timestamp column.
+    @GameTest
+    public static void columnClashingWithBaseColumnIsRefusedAtRegister(GameTestHelper helper) {
+        assertRefusedAtRegister(helper, new CheckedTestLogger<>("TemporaTestClashColumn", ClashColumnEvent::new));
+    }
+
+    private static void assertRefusedAtRegister(GameTestHelper helper, GenericLogger<?> logger) {
+        helper.assertThrows(
+            IllegalStateException.class,
+            logger::checkColumns,
+            logger.getLoggerName() + "'s columns were accepted");
+        helper.succeed();
+    }
+
+    // A global logger, with no player column, that only exists to have its columns checked. Never registered.
+    public static class CheckedTestLogger<E extends GlobalEventInfo> extends GenericGlobalLogger<E> {
+
+        private final String name;
+        private final Supplier<E> events;
+
+        CheckedTestLogger(String name, Supplier<E> events) {
+            this.name = name;
+            this.events = events;
+        }
+
+        @Override
+        public @NotNull String getLoggerName() {
+            return name;
+        }
+
+        @Override
+        public @NotNull String getShortName() {
+            return "test_checked";
+        }
+
+        @Override
+        public @NotNull E newEventInfo() {
+            return events.get();
+        }
+
+        @Override
+        public @NotNull LoggerEventType getLoggerEventType() {
+            return LoggerEventType.None;
+        }
+    }
+
+    public abstract static class CheckedTestEvent extends GlobalEventInfo {
+
+        @Override
+        public IChatComponent localiseText() {
+            return new ChatComponentText("");
+        }
+
+        @Override
+        public String getLoggerName() {
+            return "TemporaTestChecked";
+        }
+    }
+
+    public static class ValidColumnEvent extends CheckedTestEvent {
+
+        @Column
+        public String note = "";
+    }
+
+    public static class CharColumnEvent extends CheckedTestEvent {
+
+        @Column
+        public char letter = 'a';
+    }
+
+    public static class KeywordColumnEvent extends CheckedTestEvent {
+
+        @Column
+        public int order;
+    }
+
+    public static class ClashColumnEvent extends CheckedTestEvent {
+
+        @Column
+        public long Timestamp;
     }
 
     // ---------- Mobs ----------

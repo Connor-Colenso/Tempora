@@ -16,22 +16,22 @@ import io.netty.buffer.ByteBuf;
 
 public class PlayerBlockPlaceEventInfo extends PositionalEventInfo {
 
-    @Column(constraints = "NOT NULL")
+    @Column
     public int blockID;
 
-    @Column(constraints = "NOT NULL")
+    @Column
     public int metadata;
 
-    @Column(constraints = "NOT NULL")
+    @Column
     public int pickBlockID;
 
-    @Column(constraints = "NOT NULL")
+    @Column
     public int pickBlockMeta;
 
-    @Column(type = ColumnType.PLAYER, constraints = "NOT NULL")
+    @Column(type = ColumnType.PLAYER)
     public String playerUUID = PlayerUtils.UNKNOWN_PLAYER_NAME;
 
-    @Column(type = ColumnType.NBT, constraints = "NOT NULL")
+    @Column(type = ColumnType.NBT)
     public String encodedNBT = NBTUtils.NO_NBT;
 
     @Override

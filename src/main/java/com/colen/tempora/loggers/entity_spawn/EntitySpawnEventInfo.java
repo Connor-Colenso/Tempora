@@ -13,16 +13,16 @@ import io.netty.buffer.ByteBuf;
 
 public class EntitySpawnEventInfo extends PositionalEventInfo {
 
-    @Column(constraints = "NOT NULL")
+    @Column
     public String entityName = "";
 
-    @Column(constraints = "NOT NULL")
+    @Column
     public String entityUUID = "";
 
-    @Column(constraints = "NOT NULL")
+    @Column
     public float rotationYaw;
 
-    @Column(constraints = "NOT NULL")
+    @Column
     public float rotationPitch;
 
     @Override

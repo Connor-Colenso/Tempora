@@ -16,14 +16,14 @@ import com.colen.tempora.loggers.generic.column.Column;
 public class TPSEventInfo extends GlobalEventInfo {
 
     // Worked out as /forge tps does, from the mean tick time, so at most 20.
-    @Column(constraints = "NOT NULL")
+    @Column
     public double tps;
 
-    @Column(constraints = "NOT NULL")
+    @Column
     public double meanTickMs;
 
     // The slowest single tick, to show lag spikes the mean smooths over.
-    @Column(constraints = "NOT NULL")
+    @Column
     public double maxTickMs;
 
     @Override

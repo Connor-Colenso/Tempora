@@ -223,8 +223,10 @@ public class ReactorLogger extends GenericGlobalLogger<ReactorEventInfo> {
 - Every `@Column` field needs a non-null initial value, e.g. `public String reactorName = "";`. That value
   becomes the column's default, so events logged before you added a column read back with it rather than
   `null`. Your chat line still sees it for those old events, so pick a value it can show, e.g. "unknown".
-- Mistakes such as mismatched names, a column type Tempora can't store, or a column with no initial value
-  are reported when the logger registers, not when the server starts.
+- Column names go into SQL as they are, so don't name one after an SQL keyword (`from`, `order`,
+  `group`...), and don't reuse a base column's name (`timestamp`, `x`...), ignoring case.
+- Mistakes such as mismatched names, a column type Tempora can't store, a column with no initial value, or
+  a column name SQLite refuses are reported when the logger registers.
 - Names and short names are letters, digits and underscores, starting with a letter, and must not
   match another logger's name or short name, ignoring case. `Players`, `general` and `all` are taken.
 - If one of your events can't be shown (its chat line or render packet throws), a lookup shows a

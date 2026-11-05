@@ -313,18 +313,67 @@ public class LoggerDatabase {
         String tableName = logger.getLoggerName();
 
         try (Statement stmt = dbConnection.createStatement()) {
-            for (Map.Entry<String, String> index : logger.tableIndexes()
-                .entrySet()) {
-                stmt.execute(
-                    String.format(
-                        "CREATE INDEX IF NOT EXISTS idx_%s_%s ON %s (%s);",
-                        tableName,
-                        index.getKey(),
-                        tableName,
-                        index.getValue()));
+            for (String sql : indexSQL()) {
+                stmt.execute(sql);
             }
         } catch (SQLException e) {
             throw new IllegalStateException("Could not create index for " + tableName, e);
+        }
+    }
+
+    private List<String> indexSQL() {
+        String tableName = logger.getLoggerName();
+        return logger.tableIndexes()
+            .entrySet()
+            .stream()
+            .map(
+                index -> String.format(
+                    "CREATE INDEX IF NOT EXISTS idx_%s_%s ON %s (%s);",
+                    tableName,
+                    index.getKey(),
+                    tableName,
+                    index.getValue()))
+            .collect(Collectors.toList());
+    }
+
+    /**
+     * Makes this logger's table and indexes in an empty in-memory database, and prepares its insert, so SQL that
+     * SQLite refuses (a column named after an SQL keyword, two columns with one name) fails as the logger registers,
+     * not when a server starts. Skipped if SQLite can't load here: then no logger can start, and that is reported then.
+     */
+    void checkSql() {
+        Connection memory;
+        try {
+            memory = new SQLiteConfig().createConnection("jdbc:sqlite::memory:");
+        } catch (SQLException | LinkageError e) {
+            LOG.warn(
+                "Could not open SQLite to check {}'s columns, so they are checked when the server starts instead.",
+                logger.getLoggerName(),
+                e);
+            return;
+        }
+
+        String sql = null;
+        try (Connection conn = memory; Statement st = conn.createStatement()) {
+            sql = createTableSQL(logger.getLoggerName(), getAllTableColumns(logger));
+            st.execute(sql);
+            for (String index : indexSQL()) {
+                sql = index;
+                st.execute(sql);
+            }
+            sql = generateInsertSQL();
+            conn.prepareStatement(sql)
+                .close();
+        } catch (SQLException e) {
+            throw new IllegalStateException(
+                "SQLite refuses " + logger.getLoggerName()
+                    + "'s table: "
+                    + e.getMessage()
+                    + ", in "
+                    + sql
+                    + " Check that no column is named after an SQL keyword, such as from or order, and that no two"
+                    + " columns share a name, ignoring case.",
+                e);
         }
     }
 

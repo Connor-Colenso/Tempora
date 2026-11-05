@@ -13,7 +13,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.regex.Pattern;
 
 import com.colen.tempora.loggers.generic.GenericEventInfo;
 import com.colen.tempora.loggers.generic.GenericLogger;
@@ -50,13 +49,14 @@ public class ReflectionUtils {
 
             ColumnDef.ColumnAccessor accessor = buildColumnAccessor(field, type);
 
-            String constraints = col.constraints()
-                .trim();
-            if (type == ColumnType.PLAYER) {
-                constraints = withDefault(constraints, playerDefault(field, accessor.get(fresh)));
-            } else if (!("INTEGER".equals(type.getSqlType()) && "PRIMARY KEY".equalsIgnoreCase(constraints))) {
-                // The rowid (eventID) is filled in by SQLite, so it has no default.
-                constraints = withDefault(constraints, sqlLiteral(field, accessor.get(fresh)));
+            String constraints;
+            if (isEventID(field)) {
+                // The rowid, filled in by SQLite, so it has no default.
+                constraints = "PRIMARY KEY";
+            } else if (type == ColumnType.PLAYER) {
+                constraints = withDefault(playerDefault(field, accessor.get(fresh)));
+            } else {
+                constraints = withDefault(sqlLiteral(field, accessor.get(fresh)));
             }
 
             defs.add(new ColumnDef(name, type, constraints, Arrays.asList(col.renamedFrom()), accessor));
@@ -160,21 +160,18 @@ public class ReflectionUtils {
 
     // Helpers.
 
-    private static final Pattern DEFAULT_CLAUSE = Pattern.compile("(?i)\\s*\\bDEFAULT\\s+('(?:[^']|'')*'|[^\\s]+)");
-    private static final Pattern NOT_NULL = Pattern.compile("(?i)\\bNOT\\s+NULL\\b");
+    private static boolean isEventID(Field field) {
+        return field.getDeclaringClass() == GenericEventInfo.class && field.getName()
+            .equals("eventID");
+    }
 
     /**
      * Every column is NOT NULL, with its field's value in a new event as its DEFAULT. When a later version adds a
      * column, the events already stored get that default rather than NULL, which the event's code would then have to
-     * cope with. A DEFAULT written in the annotation is replaced, so the Java value is the one source of truth.
+     * cope with.
      */
-    private static String withDefault(String constraints, String defaultValue) {
-        String withoutDefault = DEFAULT_CLAUSE.matcher(constraints)
-            .replaceAll("")
-            .trim();
-        String notNull = NOT_NULL.matcher(withoutDefault)
-            .find() ? withoutDefault : (withoutDefault + " NOT NULL").trim();
-        return notNull + " DEFAULT " + defaultValue;
+    private static String withDefault(String defaultValue) {
+        return "NOT NULL DEFAULT " + defaultValue;
     }
 
     // A field's value as an SQL literal. Null is refused: every column needs a real default.

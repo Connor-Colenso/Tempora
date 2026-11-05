@@ -21,26 +21,26 @@ import io.netty.buffer.ByteBuf;
 
 public class InventoryEventInfo extends PositionalEventInfo {
 
-    @Column(constraints = "NOT NULL")
+    @Column
     public String containerName = "";
 
-    @Column(constraints = "NOT NULL")
+    @Column
     public int direction;
 
-    @Column(type = ColumnType.PLAYER, constraints = "NOT NULL")
+    @Column(type = ColumnType.PLAYER)
     public String playerUUID = PlayerUtils.UNKNOWN_PLAYER_NAME;
 
-    @Column(constraints = "NOT NULL")
+    @Column
     public int itemID;
 
-    @Column(constraints = "NOT NULL")
+    @Column
     public int itemMetadata;
 
-    @Column(constraints = "NOT NULL")
+    @Column
     public int amount;
 
     // NBTUtils.NO_NBT when the item had none, NBTUtils.NBT_DISABLED when it had some but logNBT was off.
-    @Column(type = ColumnType.NBT, constraints = "NOT NULL")
+    @Column(type = ColumnType.NBT)
     public String encodedNBT = NBTUtils.NO_NBT;
 
     // encodedNBT is deliberately not sent: the client only uses these events to draw boxes, and item NBT can be far

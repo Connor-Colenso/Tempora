@@ -27,49 +27,49 @@ import io.netty.buffer.ByteBuf;
 
 public class BlockChangeEventInfo extends PositionalEventInfo {
 
-    @Column(constraints = "NOT NULL")
+    @Column
     public int beforeBlockID;
 
-    @Column(constraints = "NOT NULL")
+    @Column
     public int beforeMetadata;
 
-    @Column(constraints = "NOT NULL")
+    @Column
     public int beforePickBlockID;
 
-    @Column(constraints = "NOT NULL")
+    @Column
     public int beforePickBlockMeta;
 
-    @Column(type = ColumnType.NBT, constraints = "NOT NULL")
+    @Column(type = ColumnType.NBT)
     public String beforeEncodedNBT = NBTUtils.NO_NBT;
 
-    @Column(constraints = "NOT NULL")
+    @Column
     public int afterBlockID;
 
-    @Column(constraints = "NOT NULL")
+    @Column
     public int afterMetadata;
 
-    @Column(constraints = "NOT NULL")
+    @Column
     public int afterPickBlockID;
 
-    @Column(constraints = "NOT NULL")
+    @Column
     public int afterPickBlockMeta;
 
-    @Column(type = ColumnType.NBT, constraints = "NOT NULL")
+    @Column(type = ColumnType.NBT)
     public String afterEncodedNBT = NBTUtils.NO_NBT;
 
     // The trace's number in the trace table, filled in as the event is written (see BlockChangeLogger.writeExtras),
     // or 0 if it has none. Not sent to the client.
-    @Column(constraints = "NOT NULL")
+    @Column
     public long stackTraceID;
 
     // The trace's hash (StackTraceUtils.getID), from which writeExtras finds its number. Not stored.
     public long stackTraceHash;
 
-    @Column(type = ColumnType.PLAYER, constraints = "NOT NULL")
+    @Column(type = ColumnType.PLAYER)
     public String closestPlayerUUID = PlayerUtils.UNKNOWN_PLAYER_NAME;
 
     // In whole blocks, as a whole number takes a few bytes where any other double takes eight.
-    @Column(constraints = "NOT NULL")
+    @Column
     public double closestPlayerDistance;
 
     private String stackTrace;

@@ -16,14 +16,14 @@ import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 public class WeatherEventInfo extends GlobalEventInfo {
 
     // Weather is per dimension, though most dimensions follow the overworld's.
-    @Column(constraints = "NOT NULL")
+    @Column
     public int dimensionID;
 
     // Weather names: CLEAR, RAIN or THUNDER.
-    @Column(constraints = "NOT NULL")
+    @Column
     public String weather = "";
 
-    @Column(constraints = "NOT NULL")
+    @Column
     public String previousWeather = "";
 
     @Override

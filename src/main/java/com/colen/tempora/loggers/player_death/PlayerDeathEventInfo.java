@@ -20,28 +20,28 @@ import io.netty.buffer.ByteBuf;
 
 public class PlayerDeathEventInfo extends PositionalEventInfo {
 
-    @Column(type = ColumnType.PLAYER, constraints = "NOT NULL")
+    @Column(type = ColumnType.PLAYER)
     public String playerUUID = PlayerUtils.UNKNOWN_PLAYER_NAME;
 
     // See DeathCause.
-    @Column(type = ColumnType.PLAYER, constraints = "NOT NULL")
+    @Column(type = ColumnType.PLAYER)
     public String killerPlayerUUID = PlayerUtils.UNKNOWN_PLAYER_NAME;
 
-    @Column(constraints = "NOT NULL")
+    @Column
     public String killedBy = PlayerUtils.UNKNOWN_CAUSE;
 
     // The XP level they had, which dying loses unless keepInventory is on.
-    @Column(constraints = "NOT NULL")
+    @Column
     public int xpLevel;
 
     // The keepInventory game rule, which decides whether they dropped everything.
-    @Column(constraints = "NOT NULL")
+    @Column
     public boolean keepInventory;
 
-    @Column(constraints = "NOT NULL")
+    @Column
     public float rotationYaw;
 
-    @Column(constraints = "NOT NULL")
+    @Column
     public float rotationPitch;
 
     @Override

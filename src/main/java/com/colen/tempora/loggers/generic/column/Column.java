@@ -6,7 +6,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Marks a field with its column order for database inserts.
+ * Marks a field of an event as a database column. Every column is NOT NULL, with the field's value in a new event as
+ * its default: the value events stored before the column existed read back as.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
@@ -26,11 +27,6 @@ public @interface Column {
      * (e.g. BOOLEAN is stored as INTEGER).
      */
     ColumnType type() default ColumnType.AUTO;
-
-    /**
-     * Extra constraints (NOT NULL, DEFAULT, etc.)
-     */
-    String constraints() default "";
 
     /**
      * Previous column name(s) this field was known as, oldest first.

@@ -15,17 +15,17 @@ public class EntityPositionEventInfo extends PositionalEventInfo {
 
     // The mob's number in this logger's Mobs table, which holds its UUID and name once however often it is logged.
     // Given by the logger as the event is stored, see EntityPositionLogger.
-    @Column(constraints = "NOT NULL")
+    @Column
     public long mobID;
 
     // Not columns: stored in the Mobs table. Set as the mob is logged, and filled in again as events are read back.
     public String entityName = "";
     public String entityUUID = "";
 
-    @Column(constraints = "NOT NULL")
+    @Column
     public float rotationYaw;
 
-    @Column(constraints = "NOT NULL")
+    @Column
     public float rotationPitch;
 
     @Override

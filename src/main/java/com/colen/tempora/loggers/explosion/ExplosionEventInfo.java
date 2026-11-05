@@ -28,15 +28,15 @@ import io.netty.buffer.ByteBuf;
 
 public class ExplosionEventInfo extends PositionalEventInfo {
 
-    @Column(constraints = "NOT NULL DEFAULT -1")
+    @Column
     public float power;
-    @Column(constraints = "NOT NULL")
+    @Column
     public String exploder = PlayerUtils.UNKNOWN_CAUSE;
-    @Column(type = ColumnType.PLAYER, constraints = "NOT NULL")
+    @Column(type = ColumnType.PLAYER)
     public String closestPlayerUUID = PlayerUtils.UNKNOWN_PLAYER_NAME;
-    @Column(constraints = "NOT NULL DEFAULT -1")
+    @Column
     public double closestPlayerDistance;
-    @Column(constraints = "NOT NULL")
+    @Column
     public String affectedBlockCoordinates = "";
 
     @Override
