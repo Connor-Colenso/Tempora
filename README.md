@@ -33,9 +33,11 @@ run on its own. All of them require operator permission (permission level 2), an
 
 | Command | Purpose |
 |---|---|
-| `/tempora lookup [r:<radius>] [t:<time>] [l:<logger,...>] [p:<player,...>] [n:<count>]` | Show the latest events around you and draw them in the world. Every filter is optional and they go in any order, e.g. `/tempora lookup t:1d l:break,place p:Notch`. Defaults to 10 blocks, the last 3 days, every positional logger, anyone, and the latest 5 events of each logger (`n:` up to 1,000, see `maxResultsPerLogger`). |
+| `/tempora lookup [r:<radius>] [t:<time>] [l:<logger,...>] [p:<player,...>] [n:<count>] [s:<logger\|time>]` | Show the latest events around you and draw them in the world. Every filter is optional and they go in any order, e.g. `/tempora lookup t:1d l:break,place p:Notch`. Defaults to 10 blocks, the last 3 days, every positional logger, anyone, and the latest 5 events of each logger (`n:` up to 1,000, see `maxResultsPerLogger`). `s:time` lists every logger's events together in the order they happened, the latest 10 in all, rather than each logger under its own header. |
+| `/tempora player <player,...> [t:<time>] [l:<logger,...>] [n:<count>] [s:<logger\|time>]` | Show a player's latest events wherever they happened, from every logger that records players, e.g. `/tempora player Notch t:1d l:break`. Works from anywhere, including the server console, and draws the events in your dimension in the world. Defaults to everything still stored and the latest 5 events of each logger; `t:`, `l:`, `n:` and `s:` work as for `lookup`. |
 | `/tempora global [t:<time>] [l:<logger,...>] [n:<count>]` | Show the latest events from the global loggers (joins and leaves, weather, TPS), from anywhere, including the server console. Defaults to the last 10 events of each (`n:` up to 1,000, see `maxResultsPerLogger`) over the last 3 days. |
 | `/tempora home <player> [t:<time>] [dim:<id>] [n:<count>]` | List the places a player has spent the most time, from their position history, e.g. `/tempora home Notch t:3w`. Each place is the 3x3 chunks around its busiest chunk, with its share of their time, when they were last there, and a link to where they last stood. Places within 4 chunks of a busier one are left out, and so is anywhere under 1% of their time. Defaults to everything stored, every dimension, and 3 places (up to 10). |
+| `/tempora status` | Show whether each logger is storing events, how many it holds and how old they are, its disk use and any backlog waiting to be saved, then the total size of Tempora's databases and the free disk space. Works from the server console too. |
 | `/tempora sql <SELECT ...>` | Run a read-only `SELECT` against a logger's table for ad-hoc investigation. Match a player with `player('<name or UUID>')`, e.g. `WHERE playerUUID = player('Notch')`, as player columns hold a number for each player (see [Storage](#storage)). |
 | `/tempora wand` | Get the Tempora wand. Left click a block to see its history, right click a face for the space in front of it. |
 | `/tempora region create <name> <x1 y1 z1> <x2 y2 z2> [dim]` | Create a region. Coordinates can be relative to you, e.g. `~-50`. |
@@ -161,7 +163,12 @@ written straight into chunk storage. Other mods can report these through
 `com.colen.tempora.api.TemporaApi`. Reported events are stored and looked up exactly like the ones
 Tempora logs itself, and follow the same config and region rules.
 
-Compile against Tempora's API jar (the `api` classifier) and only call it when Tempora is loaded:
+Compile against Tempora's API jar, from GTNH's Maven, and only call it when Tempora is loaded:
+
+```groovy
+compileOnly("com.github.GTNewHorizons:Tempora:<version>:api")
+```
+
 
 ```java
 if (Loader.isModLoaded(TemporaApi.MODID)) {
@@ -188,8 +195,10 @@ Javadoc says what it records and when to call it.
 
 ### Adding your own logger
 
-A mod can also add a logger of its own, of either [kind](#logger-kinds). Subclass one of these pairs,
-giving the event `@Column` fields of type `boolean`, `int`, `long`, `float`, `double` or `String`:
+A mod can also add a logger of its own, of either [kind](#logger-kinds). That needs the whole mod
+rather than the API jar, e.g. `implementation("com.github.GTNewHorizons:Tempora:<version>:dev")`.
+Subclass one of these pairs, giving the event `@Column` fields of type `boolean`, `int`, `long`,
+`float`, `double` or `String`:
 
 | Kind | Logger | Event | Log an event with |
 |---|---|---|---|
@@ -291,4 +300,4 @@ other mods ship (GT5, AE2, ...), on a fresh world, then stops; it fails if a tes
 
 ## License
 
-MIT — see [LICENSE](src/main/resources/LICENSE).
+MIT — see [LICENSE](LICENSE).
