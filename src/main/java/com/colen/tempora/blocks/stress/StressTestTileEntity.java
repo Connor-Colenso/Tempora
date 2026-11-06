@@ -29,7 +29,7 @@ public class StressTestTileEntity extends TileEntity {
         Random rand = worldObj.rand;
         int maxY = Math.min(yCoord + SIZE + 5, worldObj.getHeight() - 1);
 
-        for (int y = yCoord + 1; y <= maxY; y++) {
+        for (int y = yCoord + 5; y <= maxY; y++) {
             for (int dx = 0; dx < SIZE; dx++) {
                 for (int dz = 0; dz < SIZE; dz++) {
                     Object[] entry = PALETTE[rand.nextInt(PALETTE.length)];
