@@ -54,7 +54,7 @@ public class GenericUtils {
         return !isClientSide();
     }
 
-    // True when launched from the development workspace (runClient, runServer), false in a real modpack.
+    // True when launched from the development workspace (runClient, runServer), false in full pack.
     public static boolean isDevEnvironment() {
         return Boolean.TRUE.equals(Launch.blackboard.get("fml.deobfuscatedEnvironment"));
     }
