@@ -103,19 +103,20 @@ position and which region (or config option) decided it.
 
 ## Configuration
 
-Tempora's config is split across three files in `config/tempora/`:
+Tempora's config is split across five files in `config/tempora/`:
 
-- `loggers.cfg` — a section per logger (below), plus `enabled`, which turns Tempora on at all. It
-  defaults to off, in singleplayer and on servers alike, so the mod does nothing in a pack until
-  someone turns it on (and restarts). In the development workspace it defaults to on.
+- `tempora.cfg` — `enabled`, which turns Tempora on at all. It defaults to off, in singleplayer
+  and on servers alike, so the mod does nothing in a pack until someone turns it on (and
+  restarts). In the development workspace it defaults to on.
   `-Dtempora.enabled=true` (or `false`) on the JVM overrides the file.
-  Loggers added by other mods get their sections here too.
+- `positional_loggers.cfg` and `global_loggers.cfg` — a section per logger (below), in the file
+  for its kind. Loggers added by other mods get their sections here too.
 - `commands.cfg` — the lookup time limit (`queryTimeLimitSeconds`), the most events an `n:` can ask for
   from each logger (`maxResultsPerLogger`, 1,000), and how many events
   `/tempora sql` shows (`sqlMaxResults`).
 - `client.cfg` — how far away looked up events are drawn, and client debug rendering.
 
-Each logger's section in `loggers.cfg` has:
+Each logger's section has:
 
 - `enabled` — turns the logger off entirely, regardless of regions.
 - `logByDefault` — whether the logger records events where no region has a rule for it.

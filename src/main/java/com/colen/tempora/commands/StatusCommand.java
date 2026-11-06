@@ -29,6 +29,7 @@ import org.jetbrains.annotations.Nullable;
 import com.colen.tempora.TemporaLoggerManager;
 import com.colen.tempora.chat.EventChat;
 import com.colen.tempora.commands.command_base.TemporaSubcommand;
+import com.colen.tempora.config.Config;
 import com.colen.tempora.loggers.generic.GenericLogger;
 import com.colen.tempora.loggers.generic.TemporaQueries;
 import com.colen.tempora.utils.DatabaseUtils;
@@ -95,7 +96,7 @@ public class StatusCommand extends TemporaSubcommand {
                 "tempora.command.status.logger.stopped",
                 name,
                 logger.isEnabledByConfig() ? state("not_started", EnumChatFormatting.RED, null)
-                    : state("off", EnumChatFormatting.DARK_GRAY, null));
+                    : state("off", EnumChatFormatting.DARK_GRAY, Config.loggerConfigFileName(logger)));
         }
 
         String failure = logger.getFailure();

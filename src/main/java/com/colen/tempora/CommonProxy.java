@@ -3,7 +3,6 @@ package com.colen.tempora;
 import static com.colen.tempora.Tempora.NETWORK;
 import static com.colen.tempora.Tempora.renderingErrorBlock;
 import static com.colen.tempora.Tempora.stressTestBlock;
-import static com.colen.tempora.config.Config.synchronizeConfiguration;
 
 import net.minecraftforge.common.MinecraftForge;
 
@@ -33,7 +32,8 @@ import cpw.mods.fml.relauncher.Side;
 public class CommonProxy {
 
     public void preInit(FMLPreInitializationEvent event) {
-        Tempora.loggerConfig = Config.createLoggersConfig(event.getModConfigurationDirectory());
+        // First, so Config.enabled is known from preInit on.
+        Config.load(event.getModConfigurationDirectory());
         ConfigurationManager.registerConfig(CommandsConfig.class);
         GameRegistry.registerItem(Tempora.temporaWand, "admin_wand");
         GameRegistry.registerBlock(renderingErrorBlock, RenderingErrorItemBlock.class, "rendering_error_block");
@@ -65,13 +65,11 @@ public class CommonProxy {
         TemporaEvents.registerAll();
 
         // Each logger handles their own config settings. Loggers other mods register later read theirs as they do.
-        TemporaLoggerManager.loadConfig(Tempora.loggerConfig);
+        TemporaLoggerManager.loadConfig();
 
         MinecraftForge.EVENT_BUS.register(new OnWorldLoad());
         MinecraftForge.EVENT_BUS.register(Tempora.temporaWand);
         MinecraftForge.EVENT_BUS.register(new WorldGenTicks.ChunkSaves());
-
-        synchronizeConfiguration(Tempora.loggerConfig);
     }
 
     public void postInit(FMLPostInitializationEvent event) {

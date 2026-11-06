@@ -19,6 +19,7 @@ import net.minecraftforge.common.config.Configuration;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import com.colen.tempora.config.Config;
 import com.colen.tempora.loggers.generic.GenericEventInfo;
 import com.colen.tempora.loggers.generic.GenericGlobalLogger;
 import com.colen.tempora.loggers.generic.GenericLogger;
@@ -121,16 +122,15 @@ public final class TemporaLoggerManager {
 
         // Registered after Tempora read its config, e.g. by another mod in its own init.
         if (configLoaded) {
-            configure(logger, Tempora.loggerConfig);
-            if (Tempora.loggerConfig.hasChanged()) Tempora.loggerConfig.save();
+            configure(logger);
+            Config.saveLoggerConfigs();
         }
     }
 
     private static final Pattern VALID_NAME = Pattern.compile("[A-Za-z][A-Za-z0-9_]*");
 
-    // Names Tempora uses itself: the players' database file, the config's general category, and the word for every
-    // logger in /tempora region set.
-    private static final List<String> RESERVED_NAMES = Arrays.asList(PlayerIDs.TABLE, "general", "all");
+    // Names Tempora uses itself: the players' database file, and the word for every logger in /tempora region set.
+    private static final List<String> RESERVED_NAMES = Arrays.asList(PlayerIDs.TABLE, "all");
 
     private static void checkName(String name, String what, String loggerName) {
         if (name == null || !VALID_NAME.matcher(name)
@@ -151,16 +151,17 @@ public final class TemporaLoggerManager {
     }
 
     /** Reads every registered logger's settings. Loggers registered afterwards read theirs as they register. */
-    public static void loadConfig(Configuration config) {
+    public static void loadConfig() {
         for (GenericLogger<?> logger : LOGGERS.values()) {
-            configure(logger, config);
+            configure(logger);
         }
         configLoaded = true;
 
-        if (config.hasChanged()) config.save();
+        Config.saveLoggerConfigs();
     }
 
-    private static void configure(GenericLogger<?> logger, Configuration config) {
+    private static void configure(GenericLogger<?> logger) {
+        Configuration config = Config.loggerConfig(logger);
         logger.handleCustomLoggerConfig(config);
         logger.genericConfig(config);
     }

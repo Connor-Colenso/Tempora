@@ -195,7 +195,7 @@ tempora.command.usage=Usage: %s
 tempora.command.usage.hint=See %s for details.
 tempora.command.usage.hint.hover=Click to show it.
 tempora.command.unknown=There is no Tempora command called '%s'.
-tempora.command.disabled=Tempora is disabled. Set enabled=true in config/tempora/loggers.cfg and restart the server to use these features.
+tempora.command.disabled=Tempora is disabled. Set enabled=true in config/tempora/tempora.cfg and restart the server to use these features.
 tempora.command.not_server_thread=Tempora commands can't be run over RCon, or by mods from another thread. Use the server console, or run them in game.
 tempora.command.list.header=Tempora commands. Click one to fill it in, hover over it to see what it does:
 tempora.command.bad_filter='%s' isn't a valid filter. Use any of: %s
@@ -258,7 +258,7 @@ tempora.command.status.state.ok.hover=Storing events.
 tempora.command.status.state.failing=[Failing]
 tempora.command.status.state.failing.hover=Can't store events: %s
 tempora.command.status.state.off=[Off]
-tempora.command.status.state.off.hover=Disabled in config/tempora/loggers.cfg.
+tempora.command.status.state.off.hover=Disabled in config/tempora/%s.
 tempora.command.status.state.not_started=[Not started]
 tempora.command.status.state.not_started.hover=Failed to start, so it stores nothing until the server restarts. See the server log.
 tempora.command.status.queued=%s waiting to be saved

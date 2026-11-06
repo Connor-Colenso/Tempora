@@ -4,7 +4,6 @@ import static com.colen.tempora.utils.GenericUtils.shouldTemporaRun;
 
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
-import net.minecraftforge.common.config.Configuration;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -52,9 +51,6 @@ public class Tempora {
     @SidedProxy(clientSide = "com.colen.tempora.ClientProxy", serverSide = "com.colen.tempora.CommonProxy")
     public static CommonProxy proxy;
 
-    // config/tempora/loggers.cfg, see Config.
-    public static Configuration loggerConfig;
-
     public static Block renderingErrorBlock = new RenderingErrorBlock();
     public static Block stressTestBlock = new StressTestBlock();
     public static Item temporaWand = new TemporaWand();
@@ -86,7 +82,7 @@ public class Tempora {
         registerNewCommands(event);
 
         if (!shouldTemporaRun()) {
-            LOG.info("Tempora is disabled in config/tempora/loggers.cfg, so nothing will be logged.");
+            LOG.info("Tempora is disabled in config/tempora/tempora.cfg, so nothing will be logged.");
             return;
         }
 
