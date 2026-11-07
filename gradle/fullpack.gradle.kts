@@ -96,15 +96,20 @@ abstract class SetupFullPackTask : DefaultTask() {
         // Created here rather than held in a field: task fields end up in the configuration cache.
         val http = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.NORMAL).build()
         val followLatest = update.get() && !offline.get()
+        val requested = requestedTag.orNull
+        // A pinned daily that's installed, or whose zip is in the cache, needs nothing from GitHub. CI restores the
+        // zip from its cache, so a GitHub outage doesn't fail the run.
+        val cached = requested?.takeIf { it != installed }?.let { cachedZip(it) }
         val release: Map<*, *>? = when {
-            requestedTag.isPresent -> fetchRelease(http, "tags/" + encode(requestedTag.get()))
+            requested != null && (requested == installed || cached != null) -> null
+            requested != null -> fetchRelease(http, "tags/" + encode(requested))
             followLatest -> latestOrNull(http, installed)
             installed != null -> null
             // Not following the latest: a first install joins the other side's daily, so the two can connect.
             otherInstalled != null -> fetchRelease(http, "tags/" + encode(otherInstalled))
             else -> fetchRelease(http, "latest")
         }
-        val tag = release?.get("tag_name") as String? ?: installed!!
+        val tag = release?.get("tag_name") as String? ?: requested ?: installed!!
         if (tag == installed) {
             // release is null here when GitHub couldn't be asked, so the installed daily may not be the latest.
             val note = if (followLatest && release != null) " (the latest)" else ""
@@ -113,11 +118,14 @@ abstract class SetupFullPackTask : DefaultTask() {
             return
         }
 
-        val pattern = Regex(assetPattern.get())
-        val asset = (release!!["assets"] as List<*>).map { it as Map<*, *> }
-            .firstOrNull { pattern.containsMatchIn(it["name"] as String) }
-            ?: throw GradleException("Release $tag has no asset matching ${pattern.pattern}")
-        val zip = download(http, asset)
+        val zip = cached ?: run {
+            val pattern = Regex(assetPattern.get())
+            val asset = (release!!["assets"] as List<*>).map { it as Map<*, *> }
+                .firstOrNull { pattern.containsMatchIn(it["name"] as String) }
+                ?: throw GradleException("Release $tag has no asset matching ${pattern.pattern}")
+            download(http, asset)
+        }
+        if (cached != null) logger.lifecycle("Full pack: using cached ${cached.name}")
 
         logger.lifecycle("Full pack: installing $tag into $instance")
         val firstInstall = installed == null
@@ -135,6 +143,17 @@ abstract class SetupFullPackTask : DefaultTask() {
 
     private fun installedTag(instance: File): String? =
         File(instance, ".fullpack/tag").takeIf { it.isFile }?.readText()?.trim()
+
+    /**
+     * This side's zip for tag if it's in the cache. Asset names hold the tag, e.g.
+     * GTNH-daily-2026-11-07+822-server-java17-26.zip. A download is only renamed to its name once its size and
+     * checksum are right, so one that's there is whole.
+     */
+    private fun cachedZip(tag: String): File? {
+        val pattern = Regex(assetPattern.get())
+        return cacheDir.get().asFile.listFiles()
+            ?.firstOrNull { it.isFile && "-$tag-" in it.name && pattern.containsMatchIn(it.name) }
+    }
 
     /**
      * The latest daily. Or, when GitHub can't be reached (no network, rate limited), null to carry on with the
@@ -177,15 +196,29 @@ abstract class SetupFullPackTask : DefaultTask() {
         return builder
     }
 
+    /** Tries a few times on a server error or a dropped connection, GitHub's API gives the odd 502/504. */
     private fun fetchRelease(http: HttpClient, path: String): Map<*, *> {
         val url = "https://api.github.com/repos/${repo.get()}/releases/$path"
-        val response = http.send(
-            request(url).header("Accept", "application/vnd.github+json").build(),
-            HttpResponse.BodyHandlers.ofString())
-        if (response.statusCode() != 200) {
-            throw GradleException("GitHub API returned ${response.statusCode()} for $url: ${response.body().take(300)}")
+        val attempts = 3
+        for (attempt in 1..attempts) {
+            val failure = try {
+                val response = http.send(
+                    request(url).header("Accept", "application/vnd.github+json").build(),
+                    HttpResponse.BodyHandlers.ofString())
+                when {
+                    response.statusCode() == 200 -> return JsonSlurper().parseText(response.body()) as Map<*, *>
+                    response.statusCode() < 500 || attempt == attempts -> throw GradleException(
+                        "GitHub API returned ${response.statusCode()} for $url: ${response.body().take(300)}")
+                    else -> "HTTP ${response.statusCode()}"
+                }
+            } catch (e: java.io.IOException) {
+                if (attempt == attempts) throw GradleException("Could not reach $url: ${e.message}", e)
+                e.toString()
+            }
+            logger.warn("Full pack: GitHub API failed ($failure), retrying $url")
+            Thread.sleep(5_000L * attempt)
         }
-        return JsonSlurper().parseText(response.body()) as Map<*, *>
+        throw IllegalStateException("unreachable")
     }
 
     private fun download(http: HttpClient, asset: Map<*, *>): File {

@@ -6,6 +6,7 @@ import static com.gtnewhorizons.horizonqa.api.TestPos.at;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,9 +30,12 @@ import net.minecraft.world.chunk.IChunkProvider;
 import net.minecraft.world.chunk.storage.AnvilChunkLoader;
 import net.minecraft.world.gen.ChunkProviderGenerate;
 import net.minecraft.world.gen.ChunkProviderServer;
+import net.minecraft.world.gen.structure.MapGenStronghold;
 import net.minecraft.world.storage.WorldInfo;
 import net.minecraftforge.common.DimensionManager;
 import net.minecraftforge.event.world.ChunkDataEvent;
+
+import org.jetbrains.annotations.Nullable;
 
 import com.colen.tempora.Tempora;
 import com.colen.tempora.TemporaEvents;
@@ -336,32 +340,83 @@ public class WorldGenTests {
         return rows;
     }
 
-    // A structure, the start of the stronghold nearest the origin, which population builds from lots of pieces
+    // A structure, the start of a stronghold, which population builds from lots of pieces. The nearest to the origin
+    // whose area is still new. Finding spawn in the void world loads a chunk at every step of a random walk, up to 1000
+    // of them out from the origin, and that trail can cross a stronghold's area
     @GameTest(batch = WORLDGEN_BATCH, timeoutTicks = 300)
     public static void overworldStrongholdIsNotLogged(GameTestHelper helper) {
         WorldServer world = MinecraftServer.getServer()
             .worldServerForDimension(OVERWORLD);
-        ChunkPosition start = asNormalOverworld(world, () -> world.findClosestStructure("Stronghold", 0, 64, 0));
-        helper.assertTrue(start != null, "the overworld has no strongholds");
-        int startChunkX = start.chunkPosX >> 4, startChunkZ = start.chunkPosZ >> 4;
-        helper.assumeTrue(
-            !world.theChunkProviderServer.chunkExists(startChunkX, startChunkZ)
-                && !((AnvilChunkLoader) world.theChunkProviderServer.currentChunkLoader)
-                    .chunkExists(world, startChunkX, startChunkZ),
-            "the stronghold was generated in this world before");
-        // Its start chunk is in the middle of the populated ones
-        Area area = new Area(helper, "overworldStrongholdIsNotLogged", OVERWORLD, startChunkX - 1, startChunkZ - 1)
-            .asNormalOverworld();
+        List<ChunkPosition> strongholds = asNormalOverworld(world, () -> new StrongholdFinder().positions(world));
+        helper.assertFalse(strongholds.isEmpty(), "the overworld has no strongholds");
+
+        Area area = null;
+        boolean testedBefore = false;
+        StringBuilder taken = new StringBuilder();
+        for (ChunkPosition start : strongholds) {
+            // Its start chunk is in the middle of the populated ones
+            int chunkX = (start.chunkPosX >> 4) - 1, chunkZ = (start.chunkPosZ >> 4) - 1;
+            String generated = generatedChunk(world, chunkX, chunkZ);
+            if (generated == null) {
+                area = new Area(helper, "overworldStrongholdIsNotLogged", OVERWORLD, chunkX, chunkZ)
+                    .asNormalOverworld();
+                break;
+            }
+            testedBefore |= isGenerated(world, chunkX + 1, chunkZ + 1);
+            taken.append(" stronghold at chunk ")
+                .append(chunkX + 1)
+                .append(", ")
+                .append(chunkZ + 1)
+                .append(" has ")
+                .append(generated)
+                .append(';');
+        }
+        // A world the tests ran in before has used its strongholds up. Otherwise something new is taking their chunks
+        if (area == null) helper.assumeTrue(!testedBefore, "this world's strongholds were generated before");
+        helper.assertTrue(area != null, "every stronghold's area was generated before the test:" + taken);
+        Area strongholdArea = area;
 
         helper.startSequence()
             .thenExecute("generate the stronghold's chunks, then change a block and spawn a mob there", () -> {
-                area.generate();
-                helper.assertTrue(area.populatedBlocks(Blocks.stonebrick) > 0, "no stronghold was built");
-                area.changeByHand();
+                strongholdArea.generate();
+                helper.assertTrue(strongholdArea.populatedBlocks(Blocks.stonebrick) > 0, "no stronghold was built");
+                strongholdArea.changeByHand();
             })
-            .thenWaitUntil("the hand's change and spawn are stored", 100, area::assertHandChangesStored)
-            .thenWaitUntil("nothing from generation is stored", 100, area::assertOnlyHandChangesStored)
+            .thenWaitUntil("the hand's change and spawn are stored", 100, strongholdArea::assertHandChangesStored)
+            .thenWaitUntil("nothing from generation is stored", 100, strongholdArea::assertOnlyHandChangesStored)
             .thenSucceed();
+    }
+
+    // Where a normal overworld's strongholds go, nearest the origin first. Worked out from the seed like
+    // World.findClosestStructure does, nothing gets generated. Call it inside asNormalOverworld, placing them checks
+    // biomes
+    private static final class StrongholdFinder extends MapGenStronghold {
+
+        @SuppressWarnings("unchecked")
+        List<ChunkPosition> positions(WorldServer world) {
+            // Sets the world and places the strongholds
+            func_151545_a(world, 0, 64, 0);
+            List<ChunkPosition> positions = new ArrayList<>(getCoordList());
+            positions.sort(
+                Comparator.comparingLong(p -> (long) p.chunkPosX * p.chunkPosX + (long) p.chunkPosZ * p.chunkPosZ));
+            return positions;
+        }
+    }
+
+    // The first chunk of the AREA_CHUNKS square from chunkX, chunkZ that's loaded or saved, null if they're all new
+    private static @Nullable String generatedChunk(WorldServer world, int chunkX, int chunkZ) {
+        for (int x = chunkX; x < chunkX + AREA_CHUNKS; x++) {
+            for (int z = chunkZ; z < chunkZ + AREA_CHUNKS; z++) {
+                if (isGenerated(world, x, z)) return "chunk " + x + ", " + z;
+            }
+        }
+        return null;
+    }
+
+    private static boolean isGenerated(WorldServer world, int chunkX, int chunkZ) {
+        ChunkProviderServer provider = world.theChunkProviderServer;
+        return provider.chunkExists(chunkX, chunkZ)
+            || ((AnvilChunkLoader) provider.currentChunkLoader).chunkExists(world, chunkX, chunkZ);
     }
 
     // Each GTNH dimension by the name the pack gives it, their generators and mod world gen in them are what the
@@ -544,14 +599,8 @@ public class WorldGenTests {
             TemporaRegionRegistry.setRule(region, TemporaEvents.ENTITY_SPAWN, LogRule.ON);
 
             ChunkProviderServer provider = world.theChunkProviderServer;
-            for (int x = chunkX; x < chunkX + AREA_CHUNKS; x++) {
-                for (int z = chunkZ; z < chunkZ + AREA_CHUNKS; z++) {
-                    helper.assertFalse(
-                        provider.chunkExists(x, z)
-                            || ((AnvilChunkLoader) provider.currentChunkLoader).chunkExists(world, x, z),
-                        "chunk " + x + ", " + z + " was generated before the test");
-                }
-            }
+            String generated = generatedChunk(world, chunkX, chunkZ);
+            helper.assertTrue(generated == null, generated + " was generated before the test");
 
             // Terrain of the chunks to be populated before population, straight from the generator. A copy, the chunks
             // the world gets are made again when they load
@@ -574,6 +623,7 @@ public class WorldGenTests {
                     provider.loadChunk(x, z);
                 }
             }
+            populateDeferred(provider);
 
             for (int x = chunkX; x < chunkX + AREA_CHUNKS - 1; x++) {
                 for (int z = chunkZ; z < chunkZ + AREA_CHUNKS - 1; z++) {
@@ -581,6 +631,25 @@ public class WorldGenTests {
                     helper.assertTrue(chunk.isTerrainPopulated, "chunk " + x + ", " + z + " was not populated");
                     populationChanges += differences(terrain.get(key(x, z)), blocks(chunk));
                 }
+            }
+        }
+
+        // A mod's population can load chunks two out (cascading world gen), and the population their loading sets off
+        // runs inside it. Hodgepodge's throttleChunkGeneration (on in GTNH) puts that off for its scheduler, which only
+        // gets to chunks near a player and a test server has none. So run what it put off like its scheduler does,
+        // outside any other population. Each can put more off, so until the populated chunks are all done
+        private void populateDeferred(ChunkProviderServer provider) {
+            for (int round = 0; round < AREA_CHUNKS * AREA_CHUNKS; round++) {
+                boolean populated = false;
+                for (int x = chunkX; x < chunkX + AREA_CHUNKS - 1; x++) {
+                    for (int z = chunkZ; z < chunkZ + AREA_CHUNKS - 1; z++) {
+                        if (!provider.provideChunk(x, z).isTerrainPopulated) {
+                            provider.populate(provider, x, z);
+                            populated = true;
+                        }
+                    }
+                }
+                if (!populated) return;
             }
         }
 

@@ -45,8 +45,14 @@ jobs:
         id: daily
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        # A few tries, GitHub's API gives the odd 502/504
         run: |
-          tag=$(gh api repos/GTNewHorizons/GTNH-Daily-Builds/releases/latest --jq .tag_name)
+          for attempt in 1 2 3; do
+            tag=$(gh api repos/GTNewHorizons/GTNH-Daily-Builds/releases/latest --jq .tag_name) && break
+            [[ $attempt == 3 ]] && exit 1
+            echo "::warning::Couldn't get the latest daily, retrying"
+            sleep $((attempt * 10))
+          done
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
           echo "Testing against GTNH \`$tag\`" >> "$GITHUB_STEP_SUMMARY"
 
@@ -75,9 +81,11 @@ jobs:
         with:
           validate-wrappers: true
 
-      # The server zip is ~570 MB. Exact key only, restoring an older daily would just be saved again alongside it
-      - name: Cache the daily
-        uses: actions/cache@v5
+      # The server zip is ~570 MB. Exact key only, restoring an older daily would just be saved again alongside it.
+      # Restore and save are separate steps so a run whose tests fail still saves it
+      - name: Restore the daily
+        id: daily-cache
+        uses: actions/cache/restore@v5
         with:
           path: ~/.gradle/caches/gtnh-fullpack
           key: gtnh-fullpack-server-${{ steps.daily.outputs.tag }}
@@ -94,6 +102,24 @@ jobs:
           ./gradlew --build-cache --stacktrace runFullPackServerTests
           -PfullPack.tag=${{ steps.daily.outputs.tag }}
           < /dev/null
+
+      # Whether or not the tests passed, as long as the zip was downloaded whole: setup only names it once it is, and
+      # a broken download leaves a .part, which isn't saved
+      - name: Check for a downloaded daily
+        id: daily-downloaded
+        if: ${{ always() && steps.daily-cache.outputs.cache-hit != 'true' }}
+        run: |
+          rm -f ~/.gradle/caches/gtnh-fullpack/*.part
+          if compgen -G "$HOME/.gradle/caches/gtnh-fullpack/*.zip" > /dev/null; then
+            echo "found=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Save the daily
+        if: ${{ always() && steps.daily-downloaded.outputs.found == 'true' }}
+        uses: actions/cache/save@v5
+        with:
+          path: ~/.gradle/caches/gtnh-fullpack
+          key: gtnh-fullpack-server-${{ steps.daily.outputs.tag }}
 
       - name: Summarize Horizon-QA result
         if: ${{ always() && steps.tests.conclusion != 'skipped' }}
