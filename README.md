@@ -69,7 +69,7 @@ run on its own. All of them require operator permission (permission level 2), an
 Times (`t:`) are written like `30m`, `6h`, `1d`, `2w` or `1mo`. A range such as `t:3d-1d` looks between 3 days
 and 1 day ago. `p:` takes player names, comma separated, and `!Name` leaves a player out instead. Block changes
 and explosions go by the closest player, mob deaths by the player who killed them, and loggers with
-no player, such as mob spawns, are skipped when `p:` is given.
+no player, such as mob spawns, are skipped when `p:` is given. TEST
 
 Loggers have short names for commands: `change`, `break`, `place`, `explosion`, `command`, `mobdeath`,
 `playerdeath`, `mobspawn`, `mobpos`, `inventory`, `pickup` (items picked up, thrown out, or dropped on death), `use`,
