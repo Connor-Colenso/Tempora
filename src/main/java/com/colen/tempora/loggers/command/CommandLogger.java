@@ -17,7 +17,6 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
 public class CommandLogger extends GenericPositionalLogger<CommandEventInfo> {
 
-    // The player who ran the command.
     @Override
     protected String playerColumn() {
         return "playerUUID";
@@ -46,7 +45,6 @@ public class CommandLogger extends GenericPositionalLogger<CommandEventInfo> {
     @SubscribeEvent(priority = EventPriority.LOWEST)
     @SuppressWarnings("unused")
     public void onCommand(final CommandEvent event) {
-        // Server side only.
         if (!isEnabledByConfig) return;
         if (isClientSide()) return;
         if (event.isCanceled()) return;
@@ -56,7 +54,7 @@ public class CommandLogger extends GenericPositionalLogger<CommandEventInfo> {
         }
     }
 
-    /** Logs a command a player ran, at the player's position. */
+    // Logs a command a player ran, at their position
     public void logCommand(EntityPlayer player, String commandName, String[] arguments) {
         if (!isEnabledByConfig) return;
 

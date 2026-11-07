@@ -24,13 +24,10 @@ import com.colen.tempora.utils.PlayerFilter;
 import com.colen.tempora.utils.PlayerUtils;
 import com.colen.tempora.utils.TimeWindow;
 
-/**
- * /tempora player <player,...> [t:<time>] [l:<logger,...>] [n:<count>] [s:<sort>]
- * Shows a player's latest events wherever they happened, or several players' (a ! leaves a player out instead, as p:
- * does in a lookup), from every logger that records players unless narrowed down with l:, under each logger or with
- * s:time all together in the order they happened. Works from anywhere, including the server console. Players also get
- * the events in their dimension drawn in the world.
- */
+// /tempora player <player,...> [t:<time>] [l:<logger,...>] [n:<count>] [s:<sort>]
+// Latest events of one or more players wherever they happened (a ! leaves a player out, same as p: in a lookup), from
+// every logger that records players unless narrowed with l:. Under each logger or with s:time all together in order.
+// Works from anywhere, console too. Players also get the ones in their dimension drawn in the world
 public class PlayerCommand extends TemporaSubcommand {
 
     private static final int DEFAULT_COUNT = LookupCommand.DEFAULT_COUNT;
@@ -70,7 +67,7 @@ public class PlayerCommand extends TemporaSubcommand {
         TemporaQueries.submit(sender, () -> {
             List<FoundEvents<?>> found = new ArrayList<>();
             for (GenericLogger<?> logger : loggers) {
-                // A logger that is disabled, or failed to start, has no database to read.
+                // Disabled or failed to start, no db to read
                 if (logger.notStarted()) continue;
 
                 found.add(logger.findEventsBy(players, window, count, command(args[0], "l:" + logger.getShortName())));
@@ -85,8 +82,8 @@ public class PlayerCommand extends TemporaSubcommand {
         });
     }
 
-    // Comma separated logger names, or every logger that records players if null. Null, after telling the sender, if
-    // a name is unknown or a logger that doesn't record players.
+    // Comma separated logger names, or every logger that records players if null. Returns null after telling the sender
+    // if a name is unknown or doesn't record players
     private static @Nullable List<GenericLogger<?>> parseLoggers(ICommandSender sender, @Nullable String names) {
         if (names == null) return playerLoggers();
 
@@ -115,7 +112,7 @@ public class PlayerCommand extends TemporaSubcommand {
         for (GenericLogger<?> logger : TemporaLoggerManager.getLoggerList()) {
             if (logger.hasPlayerColumn()) loggers.add(logger);
         }
-        // So results come in the same order every time.
+        // Same order every time
         loggers.sort(
             (a, b) -> a.getShortName()
                 .compareTo(b.getShortName()));
@@ -131,7 +128,7 @@ public class PlayerCommand extends TemporaSubcommand {
     @Override
     public List<String> tabComplete(ICommandSender sender, String[] args) {
         if (args.length == 1) {
-            // Keep everything up to the last comma, and any ! on the name being typed.
+            // Keep everything up to the last comma, plus any ! on the name being typed
             String typed = args[0];
             int nameStart = typed.lastIndexOf(',') + 1;
             if (typed.startsWith("!", nameStart)) nameStart++;

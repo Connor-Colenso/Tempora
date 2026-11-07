@@ -31,8 +31,8 @@ import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.network.simpleimpl.SimpleNetworkWrapper;
 
 @SuppressWarnings("unused")
-// GTNHLib's chat components and config are used on both sides, so a pack without a recent enough one gets FML's
-// missing mod screen rather than a crash later on.
+// GTNHLib chat components and config get used on both sides, so a pack with an old GTNHLib gets FML's missing mod
+// screen instead of crashing later
 @Mod(
     modid = Tempora.MODID,
     version = Tags.VERSION,
@@ -78,7 +78,7 @@ public class Tempora {
 
     @Mod.EventHandler
     public void serverStarting(FMLServerStartingEvent event) {
-        // Even while Tempora is off, so /tempora can say how to turn it on.
+        // Even while Tempora is off, so /tempora can say how to turn it on
         registerNewCommands(event);
 
         if (!shouldTemporaRun()) {
@@ -86,7 +86,7 @@ public class Tempora {
             return;
         }
 
-        // Before any logger starts, as loggers check regions for every event.
+        // Before any logger starts, loggers check regions on every event
         TemporaRegionRegistry.load();
 
         for (GenericLogger<?> logger : TemporaLoggerManager.getLoggerList()) {
@@ -102,7 +102,7 @@ public class Tempora {
 
     @Mod.EventHandler
     public void serverStopping(FMLServerStoppingEvent event) {
-        // Before the loggers close their databases, as it reads them.
+        // Before the loggers close their dbs since it reads them
         TemporaQueries.onServerClose();
 
         GenericLogger.onServerClose();

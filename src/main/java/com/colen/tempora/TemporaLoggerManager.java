@@ -30,34 +30,26 @@ public final class TemporaLoggerManager {
 
     private TemporaLoggerManager() {}
 
-    /* ---------------- LOGGER REGISTRY ---------------- */
-
     private static final Map<String, GenericLogger<?>> LOGGERS = new HashMap<>();
 
-    /* ---------------- REGISTRY ---------------- */
-
-    // Keyed by logger name, which is also what the client is sent, so both sides agree even when the server has
-    // loggers (from other mods) that the client does not.
+    // Keyed by logger name, which is also what the client gets sent, so both sides agree when the server has loggers
+    // from other mods the client doesn't
     private static final Map<String, Supplier<? extends GenericEventInfo>> FACTORIES = new HashMap<>();
     private static final Set<Class<?>> EVENT_INFO_CLASSES = new HashSet<>();
 
-    // Whether loadConfig has run. Loggers registered after that read their config as they register.
+    // Whether loadConfig has run, loggers registered after that read their config on register
     private static boolean configLoaded;
 
-    /* ---------------- PACKET REGISTRATION ---------------- */
-
     /**
-     * Adds a logger, either kind: a {@link GenericPositionalLogger} for events at a place, or a
-     * {@link GenericGlobalLogger} for events that belong to the whole server. Call this while mods load (preInit, init
-     * or postInit), on both client and server. Anything wrong with the logger (names, columns) is reported here, rather
-     * than when the server starts.
+     * Adds a logger of either kind, {@link GenericPositionalLogger} for stuff at a place or {@link GenericGlobalLogger}
+     * for server wide stuff. Call during mod loading (preInit, init or postInit) on both client and server. Anything
+     * wrong with the logger (names, columns) gets thrown here instead of on server start
      * <p>
-     * See TemporaEvents.java in Tempora mod for example usages.
+     * See TemporaEvents for examples
      */
     public static <EventInfo extends GenericEventInfo> void register(GenericLogger<EventInfo> logger,
         Supplier<EventInfo> factory) {
 
-        // 1. Validate inputs
         Objects.requireNonNull(logger, "logger must not be null");
         Objects.requireNonNull(factory, "factory must not be null");
 
@@ -69,10 +61,10 @@ public final class TemporaLoggerManager {
                     + " was registered while the server is running. Register loggers while mods load (preInit, init or postInit).");
         }
 
-        // 2. Probe factory output
+        // Probe the factory
         EventInfo probe = Objects.requireNonNull(factory.get(), "factory.get() must not return null");
 
-        // The event names its logger, which is how the client and the commands find it, so the two must agree.
+        // The event names its logger, that's how the client and commands find it, so they have to match
         if (!loggerName.equals(probe.getLoggerName())) {
             throw new IllegalStateException(
                 "Logger " + loggerName
@@ -81,7 +73,7 @@ public final class TemporaLoggerManager {
                     + ". GenericEventInfo.getLoggerName() must return the same name as its logger.");
         }
 
-        // The table's columns come from newEventInfo(), the client builds events with the factory.
+        // Table columns come from newEventInfo() but the client builds events with the factory
         if (logger.newEventInfo()
             .getClass() != probe.getClass()) {
             throw new IllegalStateException(
@@ -89,8 +81,8 @@ public final class TemporaLoggerManager {
                     + "'s newEventInfo() and the factory it was registered with make different classes.");
         }
 
-        // 3. Validate the names. The full name is a database file, a table and a config category, and players type
-        // both in commands, where case is ignored.
+        // Check the names. The full name is a db file, a table and a config category, and players type both in commands
+        // where case is ignored
         checkName(loggerName, "name", loggerName);
         checkName(logger.getShortName(), "short name", loggerName);
 
@@ -108,19 +100,18 @@ public final class TemporaLoggerManager {
                     .getName());
         }
 
-        // 4. Check the columns now, so a field Tempora cannot store fails here rather than when the server starts.
+        // Check columns now so a field Tempora can't store fails here not on server start
         try {
             logger.checkColumns();
         } catch (RuntimeException e) {
             throw new IllegalStateException("Logger " + loggerName + " has a column Tempora cannot store.", e);
         }
 
-        // 5. Register
         LOGGERS.put(loggerName, logger);
         EVENT_INFO_CLASSES.add(probe.getClass());
         FACTORIES.put(loggerName, factory);
 
-        // Registered after Tempora read its config, e.g. by another mod in its own init.
+        // Registered after we read our config, e.g. by another mod in its own init
         if (configLoaded) {
             configure(logger);
             Config.saveLoggerConfigs();
@@ -129,7 +120,7 @@ public final class TemporaLoggerManager {
 
     private static final Pattern VALID_NAME = Pattern.compile("[A-Za-z][A-Za-z0-9_]*");
 
-    // Names Tempora uses itself: the players' database file, and the word for every logger in /tempora region set.
+    // Names we use ourselves, the players db file and the word for every logger in /tempora region set
     private static final List<String> RESERVED_NAMES = Arrays.asList(PlayerIDs.TABLE, "all");
 
     private static void checkName(String name, String what, String loggerName) {
@@ -150,7 +141,7 @@ public final class TemporaLoggerManager {
         }
     }
 
-    /** Reads every registered logger's settings. Loggers registered afterwards read theirs as they register. */
+    /** Reads every registered logger's settings, loggers registered after this read theirs on register */
     public static void loadConfig() {
         for (GenericLogger<?> logger : LOGGERS.values()) {
             configure(logger);
@@ -166,22 +157,18 @@ public final class TemporaLoggerManager {
         logger.genericConfig(config);
     }
 
-    /* ---------------- NETWORK HELPERS ---------------- */
-
-    /** A blank event for the named logger, or null if this side has no such logger. */
+    // Blank event for the named logger, or null if this side doesn't have it
     public static @Nullable GenericEventInfo createEventInfo(String loggerName) {
         Supplier<? extends GenericEventInfo> factory = FACTORIES.get(loggerName);
         return factory == null ? null : factory.get();
     }
 
-    /* ---------------- LOGGER ACCESS ---------------- */
-
     public static @Nullable GenericLogger<?> getLogger(String loggerName) {
         return LOGGERS.get(loggerName);
     }
 
-    // For names players type: the short name ("break") or the full logger name, ignoring case. Either kind of logger,
-    // so commands can tell the player when they named the wrong kind.
+    // For names players type, the short name ("break") or full name ignoring case. Either kind of logger so commands
+    // can say when the wrong kind was named
     public static @Nullable GenericLogger<?> findLogger(String typed) {
         for (GenericLogger<?> logger : LOGGERS.values()) {
             if (logger.getShortName()
@@ -194,13 +181,13 @@ public final class TemporaLoggerManager {
         return null;
     }
 
-    // How a logger is shown to players. Falls back to the stored name for loggers that no longer exist.
+    // How a logger is shown to players, falls back to the stored name for loggers that don't exist any more
     public static String displayName(String loggerName) {
         GenericLogger<?> logger = LOGGERS.get(loggerName);
         return logger == null ? loggerName : logger.getShortName();
     }
 
-    /** Every logger, of both kinds. */
+    // Every logger, both kinds
     public static Collection<GenericLogger<?>> getLoggerList() {
         return Collections.unmodifiableCollection(LOGGERS.values());
     }
@@ -236,7 +223,7 @@ public final class TemporaLoggerManager {
             .collect(Collectors.toList());
     }
 
-    /** Every logger's full name, which is also its table name. */
+    // Every logger's full name, which is also its table name
     @NotNull
     public static List<String> getAllLoggerNames() {
         return LOGGERS.values()

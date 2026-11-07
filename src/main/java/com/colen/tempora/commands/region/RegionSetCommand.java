@@ -21,11 +21,9 @@ import com.colen.tempora.regions.TemporaRegionRegistry;
 import com.colen.tempora.regions.TemporaWorldRegion;
 import com.colen.tempora.utils.CommandUtils;
 
-/**
- * /tempora region set <name> <logger|all> <on|off|clear>
- * Sets or clears a region's rule for a positional logger. See TemporaRegionRegistry for how rules from overlapping
- * regions combine. Global loggers have no position, so regions never affect them.
- */
+// /tempora region set <name> <logger|all> <on|off|clear>
+// Sets or clears a region's rule for a positional logger. See TemporaRegionRegistry for how overlapping regions
+// combine. Global loggers have no position so regions never affect them
 public class RegionSetCommand extends TemporaSubcommand {
 
     private static final String ALL_LOGGERS = "all";
@@ -79,7 +77,7 @@ public class RegionSetCommand extends TemporaSubcommand {
         sender.addChatMessage(region.getRulesChatComponent());
     }
 
-    // A null loggerName means every positional logger.
+    // Null loggerName means every positional logger
     private static void setRules(ICommandSender sender, TemporaWorldRegion region, String loggerName, LogRule rule) {
         List<String> loggerNames = new ArrayList<>();
         if (loggerName == null) {
@@ -106,7 +104,7 @@ public class RegionSetCommand extends TemporaSubcommand {
             .setColor(EnumChatFormatting.GREEN);
         sender.addChatMessage(msg);
 
-        // A rule can't turn on a logger that is switched off entirely, so say so rather than leave them guessing.
+        // A rule can't turn on a logger that's switched off entirely, so say so instead of leaving them guessing
         if (rule == LogRule.ON) {
             for (String name : loggerNames) {
                 GenericLogger<?> logger = TemporaLoggerManager.getLogger(name);
@@ -123,7 +121,7 @@ public class RegionSetCommand extends TemporaSubcommand {
         }
     }
 
-    // A null loggerName means every logger.
+    // Null loggerName means every logger
     private static void clearRules(ICommandSender sender, TemporaWorldRegion region, String loggerName) {
         IChatComponent msg;
 
@@ -151,8 +149,8 @@ public class RegionSetCommand extends TemporaSubcommand {
         sender.addChatMessage(msg);
     }
 
-    // Matches registered positional loggers by short or full name. Also matches rules already on the region, so a rule
-    // for a logger that has since been removed from the mod can still be cleared.
+    // Matches registered positional loggers by short or full name. Also matches rules already on the region so a rule
+    // for a logger that's since been removed can still be cleared
     private static String resolveLoggerName(String typed, TemporaWorldRegion region) {
         if (TemporaLoggerManager.findLogger(typed) instanceof GenericPositionalLogger<?>logger) {
             return logger.getLoggerName();

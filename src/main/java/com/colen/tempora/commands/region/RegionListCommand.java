@@ -22,11 +22,9 @@ import com.colen.tempora.regions.TemporaRegionRegistry;
 import com.colen.tempora.regions.TemporaWorldRegion;
 import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 
-/**
- * /tempora region list [dim_ID]
- * Lists every region with its rules, and clickable coordinates to teleport there. Players also get the regions drawn
- * in the world for a short time.
- */
+// /tempora region list [dim_ID]
+// Lists every region with its rules and clickable coords to teleport there. Players also get them drawn in the world
+// for a bit
 public class RegionListCommand extends TemporaSubcommand {
 
     public RegionListCommand() {
@@ -70,7 +68,7 @@ public class RegionListCommand extends TemporaSubcommand {
             Comparator.comparingInt(TemporaWorldRegion::getDimID)
                 .thenComparingLong(TemporaWorldRegion::getRegionOriginTimeMs));
 
-        // List every region, grouped by dimension.
+        // Every region, grouped by dimension
         HashSet<Integer> dimIDsSeen = new HashSet<>();
         for (TemporaWorldRegion r : regions) {
             if (dimIDsSeen.add(r.getDimID())) {

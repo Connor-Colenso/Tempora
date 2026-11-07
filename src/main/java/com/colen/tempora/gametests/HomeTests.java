@@ -17,24 +17,24 @@ import com.gtnewhorizons.horizonqa.api.GameTestHelper;
 import com.gtnewhorizons.horizonqa.api.annotation.GameTest;
 import com.gtnewhorizons.horizonqa.api.annotation.GameTestHolder;
 
-/** What /tempora home finds: the places a player spent the most time, from their logged positions. */
+// What /tempora home finds, the places a player spent the most time from their logged positions
 @GameTestHolder(Tempora.MODID)
 public class HomeTests {
 
     private static final int WRITE_TICKS = 100;
     private static final int TIMEOUT_TICKS = 250;
 
-    // A base over three chunks counts once, a farm and a nether base each count, and a path between them doesn't.
+    // A base over three chunks counts once, a farm and a nether base each count, a path between them doesn't
     @GameTest
     public static void picksSeparatePlacesBusiestFirst(GameTestHelper helper) {
         List<ChunkHits> chunks = new ArrayList<>(
             Arrays.asList(
                 new ChunkHits(0, 0, 0, 400, 100, 1, 64, 1),
                 new ChunkHits(0, 1, 0, 300, 100, 17, 64, 1),
-                // Where they stood last in the base, so where its link goes.
+                // Where they last stood in the base, so where its link goes
                 new ChunkHits(0, 0, 1, 200, 300, 5, 70, 20),
                 new ChunkHits(0, 20, 20, 500, 200, 330, 12, 330),
-                // The same chunk in the nether is a place of its own.
+                // Same chunk in the nether is its own place
                 new ChunkHits(-1, 0, 0, 300, 50, 8, 40, 8)));
         for (int x = 6; x < 16; x++) {
             chunks.add(new ChunkHits(0, x, 10, 1, 150, x * 16, 64, 160));
@@ -72,7 +72,7 @@ public class HomeTests {
         helper.succeed();
     }
 
-    // Read from the database: chunks round down on the negative side, and t: and dim: limit what is counted.
+    // Read from the db. Chunks round down on the negative side, t: and dim: limit what gets counted
     @GameTest(timeoutTicks = TIMEOUT_TICKS)
     public static void findsPlacesFromLoggedPositions(GameTestHelper helper) {
         String uuid = UUID.randomUUID()
@@ -85,7 +85,7 @@ public class HomeTests {
 
         helper.startSequence()
             .thenExecute("30 positions now and 10 from two weeks ago, far from other tests", () -> {
-                // x -160016.5 is in chunk -10002. Rounding towards zero would make it -160016, in chunk -10001.
+                // x -160016.5 is in chunk -10002. Rounding towards zero would make it -160016, in chunk -10001
                 for (int i = 0; i < 30; i++) {
                     TemporaEvents.playerPositionLogger
                         .queueEventInfo(position(uuid, now - i * 1000L, dim, -160016.5, 64, -160000.5));

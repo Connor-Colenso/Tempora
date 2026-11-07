@@ -16,7 +16,7 @@ import com.colen.tempora.rendering.events.PlayerGhostRenderer;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-/** Shows the player where they used each item, holding the newest, with what they used there above them. */
+// Player where they used each item holding the newest, with what they used there above them
 @SideOnly(Side.CLIENT)
 public class ItemUseRenderer extends PlayerGhostRenderer<ItemUseEventInfo> {
 
@@ -38,7 +38,7 @@ public class ItemUseRenderer extends PlayerGhostRenderer<ItemUseEventInfo> {
     protected List<String> label(List<ItemUseEventInfo> eventsHere) {
         List<String> lines = new ArrayList<>();
         for (ItemUseEventInfo event : eventsHere) {
-            // Item 0 is an empty hand.
+            // Item 0 is an empty hand
             String item = event.itemID == 0 ? StatCollector.translateToLocal("tempora.render.event.empty_hand")
                 : EventRenderHelpers.itemName(event.itemID, event.itemMetadata);
 

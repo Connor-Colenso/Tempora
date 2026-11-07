@@ -17,8 +17,8 @@ import com.colen.tempora.loggers.inventory.ContainerHosts;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 
-// A container opened while a block handles being right clicked belongs to that block. Containers opened by the held
-// item instead (onItemUse etc.) are left to InventoryTransactionTracker.
+// A container opened while a block handles a right click belongs to that block. Ones opened by the held item instead
+// (onItemUse etc) are left to InventoryTransactionTracker
 @Mixin(ItemInWorldManager.class)
 public abstract class MixinItemInWorldManager {
 
@@ -36,7 +36,7 @@ public abstract class MixinItemInWorldManager {
         try {
             return original.call(block, world, x, y, z, player, side, hitX, hitY, hitZ);
         } finally {
-            // Names the container from the block's tile entity, which is mod code: it must never fail the click.
+            // Names the container from the block's TE, which is mod code, so it must never fail the click
             try {
                 ContainerHosts.onBlockActivated(thisPlayerMP, containerBefore, world, x, y, z);
             } catch (RuntimeException | LinkageError e) {

@@ -29,18 +29,16 @@ import com.gtnewhorizons.horizonqa.api.TestPos;
 import com.gtnewhorizons.horizonqa.api.annotation.GameTest;
 import com.gtnewhorizons.horizonqa.api.annotation.GameTestHolder;
 
-/**
- * The inventory logger, which compares what a player and the containers they have open held before and after each GUI
- * click. The tests click a chest's container on the server, between the same tracker hooks MixinNetworkManager wraps a
- * real click packet in.
- */
+// Inventory logger, which compares what a player and their open containers held before and after each GUI click. Tests
+// click a chest's container on the server between the same tracker hooks MixinNetworkManager wraps a real click packet
+// in
 @GameTestHolder(Tempora.MODID)
 public class InventoryLoggerTests {
 
     private static final int WRITE_TICKS = 100;
     private static final int TIMEOUT_TICKS = 200;
 
-    // Container slot of the player's first hotbar slot, after a chest's slots and the player's 27 main slots.
+    // Container slot of the player's first hotbar slot, after the chest's slots and the player's 27 main slots
     private static final int SINGLE_CHEST_HOTBAR_0 = 27 + 27;
     private static final int DOUBLE_CHEST_HOTBAR_0 = 54 + 27;
 
@@ -109,7 +107,7 @@ public class InventoryLoggerTests {
             .thenSucceed();
     }
 
-    // A double chest is two chests. Items put in it are logged at the half that holds them, not the one clicked.
+    // Double chest is two chests. Items put in get logged at the half that holds them, not the one clicked
     @GameTest(timeoutTicks = TIMEOUT_TICKS)
     public static void doubleChestLogsAtTheHalfUsed(GameTestHelper helper) {
         InventoryLogger logger = TemporaEvents.inventoryLogger;
@@ -124,7 +122,7 @@ public class InventoryLoggerTests {
                 halves[0] = placeChest(helper, at(1, 1, 2));
                 halves[1] = placeChest(helper, at(2, 1, 2));
                 TestPos clicked = helper.absolute(at(1, 1, 2));
-                // The double chest's inventory, as opening it in game would give.
+                // The double chest's inventory, same as opening it in game gives
                 IInventory doubleChest = Blocks.chest
                     .func_149951_m(helper.getWorld(), clicked.x(), clicked.y(), clicked.z());
                 helper.assertEquals(54L, doubleChest.getSizeInventory(), "double chest size");
@@ -173,19 +171,17 @@ public class InventoryLoggerTests {
             .thenSucceed();
     }
 
-    // ---------- Helpers ----------
+    // Helpers
 
     private static TileEntityChest placeChest(GameTestHelper helper, TestPos local) {
         helper.setBlock(local, Blocks.chest);
         return helper.assertTileEntityPresent(TileEntityChest.class, local);
     }
 
-    /**
-     * Clicks a slot of the player's open container, as handling a click packet does, inside the inventory tracker's
-     * before and after hooks.
-     */
+    // Clicks a slot of the player's open container like handling a click packet does, inside the inventory tracker's
+    // before and after hooks
     private static void click(EntityPlayerMP player, int slot, int button, int mode) {
-        // Only its type matters to the tracker. Its other constructor is client side only.
+        // Only its type matters to the tracker, the other constructor is client only
         C0EPacketClickWindow packet = new C0EPacketClickWindow();
         InventoryTransactionTracker.PacketToken token = InventoryTransactionTracker.beforePacket(player, packet);
         try {

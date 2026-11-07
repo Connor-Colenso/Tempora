@@ -29,7 +29,7 @@ public final class RenderIDsInWorld {
 
         if (player == null || world == null) return;
 
-        // Interpolated camera position+
+        // Interpolated camera position
         double camX = player.lastTickPosX + (player.posX - player.lastTickPosX) * e.partialTicks;
         double camY = player.lastTickPosY + (player.posY - player.lastTickPosY) * e.partialTicks;
         double camZ = player.lastTickPosZ + (player.posZ - player.lastTickPosZ) * e.partialTicks;

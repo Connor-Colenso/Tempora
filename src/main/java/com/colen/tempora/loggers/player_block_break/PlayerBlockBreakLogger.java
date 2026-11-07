@@ -31,7 +31,6 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
 public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockBreakEventInfo> {
 
-    // The player who broke the block.
     @Override
     protected String playerColumn() {
         return "playerUUID";
@@ -81,14 +80,13 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
     @SubscribeEvent(priority = EventPriority.LOWEST)
     @SuppressWarnings("unused")
     public void onBlockBreak(final @NotNull BlockEvent.BreakEvent event) {
-        // Server side only.
         if (!isEnabledByConfig) return;
         if (isClientSide()) return;
         if (event.isCanceled()) return;
-        // Machines post this event to ask whether they may break a block, often without breaking it: GT miners and
-        // pumps as a fake player under their owner's name, and an AE2 annihilation plane every few seconds for the air
-        // or liquid in front of it, as the player who placed it. Only a player's own breaks are kept, and a player
-        // never breaks air or a liquid. What machines really change is in the change logger.
+        // Machines post this to ask if they can break a block, often without breaking it. GT miners and pumps as a fake
+        // player under the owner's name, AE2 annihilation planes every few seconds for the air or liquid in front as
+        // whoever placed them. Only keep a player's own breaks, players never break air or liquid anyway. What machines
+        // actually change ends up in the block change logger
         if (event.getPlayer() instanceof FakePlayer) return;
         if (event.block.isAir(event.world, event.x, event.y, event.z) || event.block.getMaterial()
             .isLiquid()) return;
@@ -96,10 +94,8 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
         logBlockBreak(event.getPlayer(), event.world, event.x, event.y, event.z, event.block, event.blockMetadata);
     }
 
-    /**
-     * Logs a block being broken. Call this before the block is removed, so its tile entity's NBT can still be read.
-     * {@code player} may be null when nobody in particular broke it.
-     */
+    // Logs a block being broken. Call before it's removed so the TE NBT can still be read. player can be null if nobody
+    // in particular broke it
     public void logBlockBreak(@Nullable EntityPlayer player, World world, int x, int y, int z, Block block,
         int metadata) {
         if (!isEnabledByConfig) return;
@@ -110,13 +106,12 @@ public class PlayerBlockBreakLogger extends GenericPositionalLogger<PlayerBlockB
 
         eventInfo.encodedNBT = getEncodedTileEntityNBT(world, x, y, z, logNBT);
 
-        // Calculate pickBlockID and pickBlockMeta using getPickBlock
         ItemStack pickStack = getPickBlockSafe(block, world, x, y, z);
         if (pickStack != null && pickStack.getItem() != null) {
             eventInfo.pickBlockID = Item.getIdFromItem(pickStack.getItem());
             eventInfo.pickBlockMeta = pickStack.getItemDamage();
         } else {
-            // Fallback to raw values if pickBlock is null
+            // Fall back to raw values if there's no pick block
             eventInfo.pickBlockID = eventInfo.blockID;
             eventInfo.pickBlockMeta = eventInfo.metadata;
         }

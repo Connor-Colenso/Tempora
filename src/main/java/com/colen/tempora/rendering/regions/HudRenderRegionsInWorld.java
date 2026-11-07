@@ -22,7 +22,7 @@ public class HudRenderRegionsInWorld {
 
     private final Minecraft mc = Minecraft.getMinecraft();
 
-    // Probably very inefficient, but it's fine for now.
+    // Probably very inefficient but fine for now
     @SubscribeEvent
     public void onRenderText(RenderGameOverlayEvent.Text event) {
         if (event.type != RenderGameOverlayEvent.ElementType.TEXT) return;
@@ -32,7 +32,7 @@ public class HudRenderRegionsInWorld {
 
         if (!mc.theWorld.isRemote) return;
         if (mc.gameSettings.showDebugInfo) return;
-        // Keep out of the way of the player list in multiplayer.
+        // Stay out of the way of the player list in multiplayer
         if (!mc.isSingleplayer() && mc.gameSettings.keyBindPlayerList.getIsKeyPressed()) return;
 
         FontRenderer font = mc.fontRenderer;
@@ -47,7 +47,6 @@ public class HudRenderRegionsInWorld {
 
         if (regions.isEmpty()) return;
 
-        // Filter to regions intersecting the player
         List<TemporaWorldRegion> intersectingRegions = regions.stream()
             .filter(r -> r.getDimID() == player.dimension)
             .filter(r -> r.intersectsWith(player.dimension, player.boundingBox))
@@ -58,7 +57,6 @@ public class HudRenderRegionsInWorld {
         int y = 5;
         final int lineHeight = font.FONT_HEIGHT + 2;
 
-        // Draw descriptor line
         String descriptorText;
         if (intersectingRegions.size() == 1) {
             descriptorText = StatCollector
@@ -71,7 +69,6 @@ public class HudRenderRegionsInWorld {
         font.drawString(descriptorText, (screenWidth - font.getStringWidth(descriptorText)) / 2, y, 0xFFFFFF);
         y += lineHeight;
 
-        // Draw up to MAX_REGIONS_TO_SHOW_ON_HUD intersecting regions
         final int MAX_REGIONS_TO_SHOW_ON_HUD = 10;
         int indexEnd = Math.min(intersectingRegions.size(), MAX_REGIONS_TO_SHOW_ON_HUD);
 

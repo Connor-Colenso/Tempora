@@ -3,10 +3,8 @@ package com.colen.tempora.networking.packets;
 import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import io.netty.buffer.ByteBuf;
 
-/**
- * Sent by the client when a player clicks coordinates in Tempora's chat output, asking to be teleported there. The
- * server checks the player may use /tempora before doing so, as any client can send it.
- */
+// Sent by the client when a player clicks coords in our chat output to ask to be teleported there. Server checks they
+// can use /tempora first since any client can send it
 public class PacketTeleportRequest implements IMessage {
 
     private double x;
@@ -14,7 +12,7 @@ public class PacketTeleportRequest implements IMessage {
     private double z;
     private int dimID;
 
-    // Required empty constructor
+    // Needs an empty constructor
     public PacketTeleportRequest() {}
 
     public PacketTeleportRequest(double x, double y, double z, int dimID) {

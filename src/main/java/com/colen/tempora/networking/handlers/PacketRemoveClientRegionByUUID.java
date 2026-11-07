@@ -15,7 +15,7 @@ public class PacketRemoveClientRegionByUUID implements IMessageHandler<PacketRem
     @SideOnly(Side.CLIENT)
     public IMessage onMessage(final PacketRemoveRegionFromClient message, MessageContext ctx) {
         handleRemoveRegionByUUID(message.getUUID());
-        return null; // one-way packet
+        return null; // One way packet
     }
 
     @SideOnly(Side.CLIENT)

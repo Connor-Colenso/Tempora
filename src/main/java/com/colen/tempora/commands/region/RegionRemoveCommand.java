@@ -20,11 +20,9 @@ import com.colen.tempora.regions.TemporaWorldRegion;
 import com.colen.tempora.utils.CommandUtils;
 import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 
-/**
- * /tempora region remove [name]
- * Deletes a region by name, or the region the player is standing in. Regions can be nested, so if the player is
- * inside more than one, nothing is removed and they are asked to pick one by name instead.
- */
+// /tempora region remove [name]
+// Deletes a region by name, or the one the player is standing in. Regions can be nested, so if they're in more than one
+// nothing gets removed and they're asked to pick by name
 public class RegionRemoveCommand extends TemporaSubcommand {
 
     public RegionRemoveCommand() {
@@ -47,7 +45,7 @@ public class RegionRemoveCommand extends TemporaSubcommand {
                 return;
             }
         } else {
-            // Without a name, use the region the player is standing in.
+            // No name, use the region the player is standing in
             if (!(sender instanceof EntityPlayerMP player)) {
                 sender.addChatMessage(CommandUtils.playerOnly());
                 return;
@@ -71,7 +69,7 @@ public class RegionRemoveCommand extends TemporaSubcommand {
 
         TemporaRegionRegistry.remove(region);
 
-        // Stops it rendering for anyone currently looking at it.
+        // Stops it rendering for anyone looking at it
         NETWORK.sendToAll(new PacketRemoveRegionFromClient(region.getRegionUUID()));
 
         IChatComponent msg = new ChatComponentTranslation(

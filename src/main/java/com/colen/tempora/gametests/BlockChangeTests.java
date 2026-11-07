@@ -27,15 +27,13 @@ import com.gtnewhorizons.horizonqa.api.annotation.GameTestHolder;
 
 import cpw.mods.fml.common.registry.GameRegistry;
 
-/**
- * The block change logger sees both ways a chunk's blocks change: a block set (Chunk.func_150807_a) and a metadata
- * change alone (Chunk.setBlockMetadata), as doors, levers, crops growing and machines turning do.
- */
+// Block change logger sees both ways a chunk's blocks change, a block set (Chunk.func_150807_a) and a meta only change
+// (Chunk.setBlockMetadata) like doors, levers, crops and GT machines turning
 @GameTestHolder(Tempora.MODID)
 public class BlockChangeTests {
 
-    // setBlockMetadata is func_76589_b outside the dev environment, so this one only means something in the full
-    // pack (runFullPackServerTests), where the mod runs reobfuscated. An unmapped hook once matched nothing there.
+    // setBlockMetadata is func_76589_b outside dev, so this only really means something in the full pack
+    // (runFullPackServerTests) where the mod runs reobfuscated. An unmapped hook once matched nothing there
     @GameTest(timeoutTicks = 200)
     public static void metadataOnlyChangeIsStored(GameTestHelper helper) {
         GenericPositionalLogger<?> logger = TemporaEvents.blockChangeLogger;
@@ -44,7 +42,7 @@ public class BlockChangeTests {
 
         helper.startSequence()
             .thenExecute("recolour a wool block by its metadata alone", () -> {
-                // Placed before the region exists, so the only change stored is the metadata one.
+                // Placed before the region exists so the meta change is the only one stored
                 helper.setBlock(wool, Blocks.wool, 0);
                 region(helper, "test_metadata_only", wool, wool, TemporaEvents.BLOCK_CHANGE, LogRule.ON);
                 TestPos at = helper.absolute(wool);
@@ -75,9 +73,9 @@ public class BlockChangeTests {
             .thenSucceed();
     }
 
-    // GT's machine type, which is also its item's damage, is given to the tile entity only after the block is placed.
-    // The change is stored as the finished machine, not the blank one the block write left. GT is only on the dev
-    // runtime classpath, so it is reached through its registered block and the plain ItemBlock API.
+    // GT gives the TE its machine type (also its item damage) only after the block is placed. The change should be
+    // stored as the finished machine not the blank one the block write left. GT is only on the dev runtime classpath so
+    // go through its registered block and the plain ItemBlock API
     @GameTest(timeoutTicks = 200)
     public static void tileEntitySetUpAfterPlacingIsStored(GameTestHelper helper) {
         GenericPositionalLogger<?> logger = TemporaEvents.blockChangeLogger;

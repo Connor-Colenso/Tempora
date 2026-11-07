@@ -35,16 +35,14 @@ import com.gtnewhorizons.horizonqa.api.TestPos;
 import com.gtnewhorizons.horizonqa.api.annotation.GameTest;
 import com.gtnewhorizons.horizonqa.api.annotation.GameTestHolder;
 
-/**
- * Block changes store the stack trace that made them, once per distinct trace, under a number of its own in the trace
- * table, so it can be shown however long ago and through any number of restarts. [Trace] carries the whole trace to
- * the client, which prints it when clicked.
- */
+// Block changes store the stack trace that made them, once per distinct trace under its own number in the trace table,
+// so it can be shown however long ago and across restarts. [Trace] carries the whole trace to the client which prints
+// it on click
 @GameTestHolder(Tempora.MODID)
 public class StackTraceTests {
 
     // Two blocks changed by the same code have the same trace, stored once, and both read it back. Their chat lines
-    // carry it in [Trace], and survive the trip to the client.
+    // carry it in [Trace] and survive the trip to the client
     @GameTest(timeoutTicks = 200)
     public static void blockChangesStoreTheirTraceOnce(GameTestHelper helper) {
         BlockChangeLogger logger = TemporaEvents.blockChangeLogger;
@@ -81,7 +79,7 @@ public class StackTraceTests {
                 helper.assertNotNull(trace, "the chat line has no [Trace]");
                 helper.assertEquals(first.getStackTrace(), trace.getTrace(), "[Trace] carries the stored trace");
 
-                // Chat reaches the client as JSON.
+                // Chat reaches the client as JSON
                 IChatComponent received = IChatComponent.Serializer
                     .func_150699_a(IChatComponent.Serializer.func_150696_a(first.localiseText()));
                 ChatComponentStackTrace receivedTrace = findTrace(received);
@@ -93,17 +91,15 @@ public class StackTraceTests {
             .thenSucceed();
     }
 
-    /**
-     * A trace is read from the database, so a restart loses nothing: a new logger on the same database (as after a
-     * restart) reads the trace back. Once no event refers to it, pruning deletes it.
-     */
+    // Traces get read from the db so a restart loses nothing, a new logger on the same db (like after a restart) reads
+    // the trace back. Once no event points at it pruning deletes it
     @GameTest
     public static void tracesSurviveRestartAndArePruned(GameTestHelper helper) throws Exception {
         String trace = "com.example.Machine#tick:42 -> com.example.Machine#breakBlock:7";
         deleteDatabaseFiles(TraceTestLogger.NAME);
         helper.afterTest(() -> deleteDatabaseFiles(TraceTestLogger.NAME));
 
-        // Before the restart: a block change and its trace are written.
+        // Before the restart, a block change and its trace get written
         TraceTestLogger before = new TraceTestLogger();
         LoggerDatabase beforeDatabase = before.getDatabaseManager();
         beforeDatabase.genericConfig(throwawayConfig(helper));
@@ -117,7 +113,7 @@ public class StackTraceTests {
             beforeDatabase.shutdownDatabase();
         }
 
-        // After it: a new logger, with nothing in memory, reads the trace back from the database.
+        // After, a new logger with nothing in memory reads the trace back from the db
         TraceTestLogger after = new TraceTestLogger();
         LoggerDatabase afterDatabase = after.getDatabaseManager();
         afterDatabase.genericConfig(throwawayConfig(helper));
@@ -136,7 +132,7 @@ public class StackTraceTests {
                 ((BlockChangeEventInfo) events.get(0)).getStackTrace(),
                 "the trace after a restart");
 
-            // Once the event is gone, its trace goes too.
+            // Once the event's gone its trace goes too
             try (Statement st = conn.createStatement()) {
                 st.executeUpdate("DELETE FROM " + TraceTestLogger.NAME);
             }
@@ -153,7 +149,7 @@ public class StackTraceTests {
         helper.succeed();
     }
 
-    // A block change logger of its own, with its own database, for the restart test. Never registered.
+    // Block change logger with its own db for the restart test. Never registered
     public static class TraceTestLogger extends BlockChangeLogger {
 
         static final String NAME = "TemporaTestTraceLogger";
@@ -173,9 +169,9 @@ public class StackTraceTests {
         }
     }
 
-    // ---------- Helpers ----------
+    // Helpers
 
-    // The [Trace] in a chat line, wherever it is: as a sibling or a translation argument.
+    // The [Trace] in a chat line wherever it is, a sibling or a translation arg
     private static ChatComponentStackTrace findTrace(IChatComponent component) {
         if (component instanceof ChatComponentStackTrace trace) return trace;
         List<Object> children = new ArrayList<>(component.getSiblings());
@@ -191,7 +187,8 @@ public class StackTraceTests {
         return null;
     }
 
-    // Config for a logger the test makes: its defaults, never saved. Forge creates the file empty, so it is deleted.
+    // Config for a logger the test makes, defaults only and never saved. Forge creates the file empty so it gets
+    // deleted
     private static Configuration throwawayConfig(GameTestHelper helper) {
         File file = DatabaseUtils.databaseDir()
             .resolve("tempora_trace_test_" + helper.getOriginX() + "_" + helper.getOriginZ() + ".cfg")

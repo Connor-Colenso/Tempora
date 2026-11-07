@@ -5,7 +5,7 @@ import net.minecraftforge.client.ForgeHooksClient;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
-// Forge's current world render pass, so blocks rendered outside chunk rendering can be drawn as if in a given pass.
+// Forge's current world render pass, so blocks rendered outside chunk rendering can be drawn as if in a given pass
 @Mixin(value = ForgeHooksClient.class, remap = false)
 public interface ForgeHooksClientAccessor {
 

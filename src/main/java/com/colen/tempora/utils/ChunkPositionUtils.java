@@ -14,7 +14,7 @@ public class ChunkPositionUtils {
     private static final String POS_SEPARATOR = ";";
     private static final String COORD_SEPARATOR = ",";
 
-    /** Encode an entire collection of ChunkPositions into a single string */
+    // Encodes a whole collection of ChunkPositions into one string
     public static @NotNull String encodePositions(@NotNull Iterable<ChunkPosition> positions) {
         StringBuilder sb = new StringBuilder();
         for (ChunkPosition pos : positions) {
@@ -28,7 +28,7 @@ public class ChunkPositionUtils {
         return sb.toString();
     }
 
-    /** Decode a string back into a HashSet of ChunkPositions */
+    // Decodes a string back into a HashSet of ChunkPositions
     public static @NotNull HashSet<ChunkPosition> decodePositions(@Nullable String encoded) {
         HashSet<ChunkPosition> result = new HashSet<>();
         if (encoded == null || encoded.isEmpty() || encoded.equals(MISSING_STRING_DATA)) return result;
@@ -36,7 +36,7 @@ public class ChunkPositionUtils {
         String[] parts = encoded.split(POS_SEPARATOR);
         for (String part : parts) {
             String[] coords = part.split(COORD_SEPARATOR, 3);
-            if (coords.length != 3) continue; // skip malformed
+            if (coords.length != 3) continue; // Skip malformed
             try {
                 int x = Integer.parseInt(coords[0].trim());
                 int y = Integer.parseInt(coords[1].trim());

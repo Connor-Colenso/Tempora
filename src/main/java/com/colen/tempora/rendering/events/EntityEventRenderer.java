@@ -19,38 +19,38 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
 /**
- * Draws each event as the entity it is about, outlined, with a label above it. An entity this client cannot make (a
- * mod it does not have, or a renderer that throws) shows as an outlined box instead.
+ * Draws each event as its entity, outlined, with a label above. Entities this client can't make (mod it doesn't have,
+ * renderer that throws) show as an outlined box instead
  */
 @SideOnly(Side.CLIENT)
 public abstract class EntityEventRenderer<E extends PositionalEventInfo> implements EventRenderer<E> {
 
-    // About the size of a player, for entities that cannot be drawn.
+    // About player sized, for entities that can't be drawn
     private static final double FALLBACK_HALF_WIDTH = 0.3;
     private static final double FALLBACK_HEIGHT = 1.8;
 
     protected final Color colour;
 
-    // Made once per event rather than every frame. Null for events whose entity cannot be drawn. Weak, so each goes
-    // after ClientEventStore drops its event, but only once the map is next used, so it is also emptied as the world
-    // unloads: each entity keeps its world.
+    // Made once per event not every frame, null for events whose entity can't be drawn. Weak so each goes after
+    // ClientEventStore drops its event, but only once the map's next used, so it's also cleared on world unload since
+    // each entity holds its world
     private final Map<E, Entity> ghosts = new WeakHashMap<>();
 
     protected EntityEventRenderer(Color colour) {
         this.colour = colour;
     }
 
-    /** The name the entity is registered under in EntityList, e.g. "Zombie". */
+    /** EntityList name of the entity, e.g. "Zombie" */
     protected abstract @Nullable String entityName(E event);
 
     protected abstract float yaw(E event);
 
     protected abstract float pitch(E event);
 
-    /** The lines shown above the entity. */
+    /** Lines shown above the entity */
     protected abstract List<String> label(E event);
 
-    /** Adjusts a newly made entity before it is first drawn, e.g. to pose it. */
+    /** Tweaks a newly made entity before it's first drawn, e.g. to pose it */
     protected void prepareGhost(Entity entity, E event) {}
 
     @Override
@@ -109,7 +109,7 @@ public abstract class EntityEventRenderer<E extends PositionalEventInfo> impleme
 
         Entity ghost = null;
         try {
-            // Null for names this client does not know.
+            // Null for names this client doesn't know
             ghost = EntityList.createEntityByName(entityName(event), context.world);
             if (ghost != null) prepareGhost(ghost, event);
         } catch (RuntimeException | LinkageError e) {

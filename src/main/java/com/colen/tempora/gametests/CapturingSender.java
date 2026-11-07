@@ -9,10 +9,8 @@ import net.minecraft.util.ChunkCoordinates;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.world.World;
 
-/**
- * A command sender that keeps the chat it is sent, so tests can run lookups the way a player or the console would and
- * check what came back. Each test should use its own name, as Tempora allows one lookup at a time per sender.
- */
+// Command sender that keeps the chat it gets, so tests can run lookups like a player or the console would and check
+// what came back. Use a different name per test, Tempora only allows one lookup at a time per sender
 public class CapturingSender implements ICommandSender {
 
     private final String name;
@@ -28,7 +26,7 @@ public class CapturingSender implements ICommandSender {
         return messages;
     }
 
-    // Every message as plain text, one per line.
+    // Every message as plain text, one per line
     public String text() {
         StringBuilder text = new StringBuilder();
         for (IChatComponent message : messages) {

@@ -8,10 +8,8 @@ import net.minecraft.util.StatCollector;
 import com.colen.tempora.chat.clientclick.AbstractClickableChatComponent;
 import com.gtnewhorizon.gtnhlib.chat.AbstractChatComponentCustom;
 
-/**
- * [Trace] on a block change: carries the whole stack trace that made the change, and prints it in the clicking player's
- * own chat. Nothing is asked of the server, so it works however long ago the line arrived, even after a restart.
- */
+// [Trace] on a block change. Carries the whole stack trace and prints it in the clicking player's own chat. Doesn't ask
+// the server for anything so it works however old the line is, even after a restart
 public class ChatComponentStackTrace extends AbstractClickableChatComponent<ChatComponentStackTrace> {
 
     private String trace = "";
@@ -31,7 +29,7 @@ public class ChatComponentStackTrace extends AbstractClickableChatComponent<Chat
         return StatCollector.translateToLocal("tempora.trace.button");
     }
 
-    // Client side.
+    // Client side
     @Override
     protected void onClicked() {
         ClientStackTracePrinter.print(trace);

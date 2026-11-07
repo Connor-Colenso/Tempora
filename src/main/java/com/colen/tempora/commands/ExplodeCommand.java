@@ -9,11 +9,8 @@ import net.minecraft.world.World;
 
 import com.colen.tempora.commands.command_base.TemporaSubcommand;
 
-/**
- * /tempora explode <power>
- * Blows up the block the player is looking at, for testing explosion logging. Only registered in a development
- * environment, see TemporaCommand.
- */
+// /tempora explode <power>
+// Blows up the block you're looking at, for testing explosion logging. Dev env only, see TemporaCommand
 public class ExplodeCommand extends TemporaSubcommand {
 
     public ExplodeCommand() {
@@ -64,7 +61,6 @@ public class ExplodeCommand extends TemporaSubcommand {
         double y = hit.hitVec.yCoord;
         double z = hit.hitVec.zCoord;
 
-        // Create explosion
         world.newExplosion(
             player, // Explosion source
             x,
@@ -76,7 +72,7 @@ public class ExplodeCommand extends TemporaSubcommand {
         );
     }
 
-    // TNT's power, for scale.
+    // TNT's power, for scale
     @Override
     protected Object[] getArgumentArgs(int index) {
         return new Object[] { 4 };

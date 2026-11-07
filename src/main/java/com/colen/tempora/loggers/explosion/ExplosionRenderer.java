@@ -27,14 +27,14 @@ import com.gtnewhorizon.gtnhlib.util.numberformatting.NumberFormatUtil;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-/** Shows each explosion as a block of TNT at its centre, with a ray out to every block it destroyed. */
+// Each explosion as a TNT block at its centre with a ray to every block it destroyed
 @SideOnly(Side.CLIENT)
 public class ExplosionRenderer implements EventRenderer<ExplosionEventInfo> {
 
     private static final Color COLOUR = Color.MAGENTA;
 
-    // Decoded once per event rather than every frame, as a big explosion destroys thousands of blocks. Weak, so each
-    // goes once ClientEventStore drops its event.
+    // Decoded once per event not every frame, a big explosion can destroy thousands of blocks. Weak so each goes once
+    // ClientEventStore drops its event
     private final Map<ExplosionEventInfo, Set<ChunkPosition>> destroyedBlocks = new WeakHashMap<>();
 
     @Override
@@ -45,7 +45,7 @@ public class ExplosionRenderer implements EventRenderer<ExplosionEventInfo> {
     @Override
     public void renderWorld(List<ExplosionEventInfo> events, EventRenderContext context) {
         for (ExplosionEventInfo event : events) {
-            // The centre is not on a block grid, so centre the TNT on it.
+            // Centre isn't on the block grid so centre the TNT on it
             RenderUtils.renderBlockInWorld(
                 event.x - 0.5,
                 event.y - 0.5,
@@ -64,7 +64,7 @@ public class ExplosionRenderer implements EventRenderer<ExplosionEventInfo> {
         }
     }
 
-    // All of one explosion's rays in one draw.
+    // All of one explosion's rays in one draw
     private static void renderRays(ExplosionEventInfo event, Set<ChunkPosition> destroyed) {
         if (destroyed.isEmpty()) return;
 

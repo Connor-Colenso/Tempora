@@ -17,7 +17,7 @@ public class ChatComponentTimeRelative extends AbstractChatComponentNumber {
 
     public ChatComponentTimeRelative() {}
 
-    // Client side call.
+    // Client side
     @Override
     protected String formatNumber(Number value) {
         long pastTimestamp = value.longValue();

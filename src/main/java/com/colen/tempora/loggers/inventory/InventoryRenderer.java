@@ -21,23 +21,20 @@ import com.colen.tempora.rendering.events.EventRenderer;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-/**
- * Outlines each container, with the items moved in or out of it circling above it and a ledger of who moved what above
- * those.
- */
+// Outlines each container, with the items moved in or out circling above it and a ledger of who moved what above those
 @SideOnly(Side.CLIENT)
 public class InventoryRenderer implements EventRenderer<InventoryEventInfo> {
 
     private static final Color COLOUR = new Color(167, 32, 204);
 
-    // Radius of the circle the items move round, when there is more than one.
+    // Radius of the circle items go round when there's more than one
     private static final double ORBIT_RADIUS = 0.45;
-    // Radians per tick, about once round every ten seconds.
+    // Radians per tick, about once round every ten seconds
     private static final double ORBIT_SPEED = 0.03;
 
-    // Made once per event rather than every frame. Null for items this client does not have. Weak, so each goes after
-    // ClientEventStore drops its event, but only once the map is next used, so it is also emptied as the world
-    // unloads: each item keeps its world.
+    // Made once per event not every frame, null for items this client doesn't have. Weak so each goes after
+    // ClientEventStore drops its event, but only once the map's next used, so it also gets cleared on world unload
+    // since each item holds its world
     private final Map<InventoryEventInfo, EntityItem> items = new WeakHashMap<>();
 
     @Override
@@ -66,7 +63,7 @@ public class InventoryRenderer implements EventRenderer<InventoryEventInfo> {
                 EntityItem item = itemFor(here.get(i), context);
                 if (item == null) continue;
 
-                // RenderItem spins and bobs an item by its age.
+                // RenderItem spins and bobs an item by its age
                 item.age = (int) context.animationTicks;
 
                 double angle = 2 * Math.PI * i / here.size() + context.animationTicks * ORBIT_SPEED;
@@ -124,8 +121,8 @@ public class InventoryRenderer implements EventRenderer<InventoryEventInfo> {
         return item;
     }
 
-    // What to outline. Containers that are blocks are logged at the block's corner. Ones carried by a player
-    // (backpacks, wireless terminals) or that are entities (minecarts) are logged at that entity's feet.
+    // What to outline. Block containers are logged at the block's corner, ones carried by a player (backpacks, wireless
+    // terminals) or that are entities (minecarts) at the entity's feet
     private static final class Bounds {
 
         final double minX, minY, minZ, maxX, maxY, maxZ;

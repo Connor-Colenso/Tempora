@@ -24,8 +24,8 @@ public class FakeWorld implements IBlockAccess {
         }
     }
 
-    // Only at the block itself. Answering everywhere made renderers that join up with matching neighbours, such as AE2
-    // crafting CPUs, think they were surrounded by copies of themselves.
+    // Only at the block itself. Answering everywhere made connected texture stuff like AE2 crafting CPUs think they
+    // were surrounded by copies of themselves
     @Override
     public TileEntity getTileEntity(int x, int y, int z) {
         return x == this.x && y == this.y && z == this.z ? tileEntity : null;
@@ -50,9 +50,7 @@ public class FakeWorld implements IBlockAccess {
 
     @Override
     public boolean isAirBlock(int x, int y, int z) {
-        // Return false if this is the single real block coordinate (block is present)
         return x != this.x || y != this.y || z != this.z;
-        // Otherwise, treat as air
     }
 
     @Override

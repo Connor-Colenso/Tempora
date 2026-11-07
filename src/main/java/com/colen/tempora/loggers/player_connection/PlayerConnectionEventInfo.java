@@ -14,17 +14,17 @@ import com.colen.tempora.utils.CommandUtils;
 import com.colen.tempora.utils.PlayerUtils;
 import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 
-/** A player joining or leaving the server, and where they were at the time. */
+// Player joining or leaving and where they were at the time
 public class PlayerConnectionEventInfo extends GlobalEventInfo {
 
-    // A PlayerConnectionLogger.Action.
+    // A PlayerConnectionLogger.Action
     @Column
     public int action;
 
     @Column(type = ColumnType.PLAYER)
     public String playerUUID = PlayerUtils.UNKNOWN_PLAYER_NAME;
 
-    // Why a player left: a translation key such as disconnect.timeout, or the text of a kick message. Empty for joins.
+    // Why a player left, a translation key like disconnect.timeout or the kick message text. Empty for joins
     @Column
     public String reason = "";
 
@@ -61,7 +61,7 @@ public class PlayerConnectionEventInfo extends GlobalEventInfo {
             return EventChat.line(act.langKey(), when, who, where);
         }
 
-        // A kick message is shown as it is, rather than as a translation, so a % in it cannot break the line.
+        // Kick messages shown as is not as a translation, so a % in one can't break the line
         IChatComponent reasonText = StatCollector.canTranslate(reason) ? new ChatComponentTranslation(reason)
             : EventChat.text(reason, EnumChatFormatting.WHITE);
         reasonText.getChatStyle()

@@ -18,7 +18,7 @@ public class EntityDeathEventInfo extends PositionalEventInfo {
     @Column
     public String entityName = "";
 
-    // See DeathCause.
+    // See DeathCause
     @Column(type = ColumnType.PLAYER)
     public String killerPlayerUUID = PlayerUtils.UNKNOWN_PLAYER_NAME;
 

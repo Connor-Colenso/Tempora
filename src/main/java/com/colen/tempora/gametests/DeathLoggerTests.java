@@ -33,7 +33,7 @@ import com.gtnewhorizons.horizonqa.api.annotation.GameTestHolder;
 
 import cpw.mods.fml.common.eventhandler.EventBus;
 
-/** Player deaths go to the player death logger and mob deaths to the mob one, each with what killed them. */
+// Player deaths go to the player death logger and mob deaths to the mob one, each with what killed them
 @GameTestHolder(Tempora.MODID)
 public class DeathLoggerTests {
 
@@ -109,7 +109,7 @@ public class DeathLoggerTests {
             .thenSucceed();
     }
 
-    // p: on mob deaths goes by the player who killed the mob.
+    // p: on mob deaths goes by the player who killed the mob
     @GameTest(timeoutTicks = TIMEOUT_TICKS)
     public static void playerFilterFindsTheirKills(GameTestHelper helper) {
         FakePlayer alice = fakePlayer(helper, "kill_alice");
@@ -163,8 +163,8 @@ public class DeathLoggerTests {
             .thenSucceed();
     }
 
-    // The event a dying entity fires, as fake players cannot die and the test server removes animals. Posted on a bus
-    // of the death loggers' own, as other mods' handlers act on deaths (graves) or expect a logged-in player.
+    // The event a dying entity fires, since fake players can't die and the test server removes animals. Posted on the
+    // death loggers' own bus since other mods' handlers act on deaths (graves) or expect a logged in player
     private static void die(GameTestHelper helper, EntityLivingBase entity, DamageSource source) {
         EventBus bus = new EventBus();
         bus.register(TemporaEvents.entityDeathLogger);

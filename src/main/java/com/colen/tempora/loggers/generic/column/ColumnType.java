@@ -14,17 +14,17 @@ public enum ColumnType {
     TEXT("TEXT"),
 
     /**
-     * A player's UUID, on a String field, stored as the player's number from
-     * {@link com.colen.tempora.loggers.generic.PlayerIDs} rather than as text. The field starts as
-     * {@link com.colen.tempora.utils.PlayerUtils#UNKNOWN_PLAYER_NAME}, and reads back as the UUID. Never inferred, so
-     * player columns say so. Not for mobs' UUIDs, see PlayerIDs.
+     * Player UUID on a String field, stored as the player's number from
+     * {@link com.colen.tempora.loggers.generic.PlayerIDs} instead of text. Field starts as
+     * {@link com.colen.tempora.utils.PlayerUtils#UNKNOWN_PLAYER_NAME} and reads back as the UUID. Never inferred so
+     * player columns have to say so. Not for mob UUIDs, see PlayerIDs
      */
     PLAYER("INTEGER"),
 
     /**
      * NBT as {@link com.colen.tempora.utils.nbt.NBTUtils} encodes it, on a String field, stored as the compressed bytes
-     * rather than their Base64 text (a quarter smaller). Its markers (NO_NBT and the like) are stored as they are.
-     * Never inferred, so NBT columns say so.
+     * not the Base64 text (a quarter smaller). Markers like NO_NBT are stored as is. Never inferred so NBT columns have
+     * to say so
      */
     NBT("BLOB");
 

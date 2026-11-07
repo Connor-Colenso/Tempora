@@ -25,11 +25,11 @@ import com.gtnewhorizons.horizonqa.api.annotation.GameTestHolder;
 
 import cpw.mods.fml.common.gameevent.PlayerEvent;
 
-/** The global loggers, whose events belong to the whole server rather than a place. */
+// Global loggers, events belong to the whole server not a place
 @GameTestHolder(Tempora.MODID)
 public class GlobalLoggerTests {
 
-    // Rain takes a while to set in: the world counts as raining once its rain strength passes 0.2.
+    // Rain takes a while to set in, the world counts as raining once rain strength passes 0.2
     @GameTest(timeoutTicks = 300)
     public static void weatherChangeIsLogged(GameTestHelper helper) {
         int dim = helper.getWorld().provider.dimensionId;
@@ -37,7 +37,7 @@ public class GlobalLoggerTests {
         Probe<List<GenericEventInfo>> probe = new Probe<>(helper, "weatherChangeIsLogged");
 
         helper.startSequence()
-            // A tick of clear weather first, so the logger has seen it clear before it starts raining.
+            // A tick of clear weather first so the logger has seen it clear before it rains
             .thenExecute("clear", () -> helper.setWeather(Weather.CLEAR))
             .thenIdle(5)
             .thenExecute("start raining", () -> helper.setWeather(Weather.RAIN))
@@ -55,8 +55,8 @@ public class GlobalLoggerTests {
             .thenSucceed();
     }
 
-    // FML makes a player's connection before checking their mods, so a player turned away for missing mods still
-    // disconnects. They were never on the player list, so nothing is logged.
+    // FML makes the connection before checking mods, so a player kicked for missing mods still disconnects. They were
+    // never on the player list so nothing gets logged
     @GameTest(timeoutTicks = 200)
     public static void leaveWithoutJoiningIsNotLogged(GameTestHelper helper) {
         FakePlayer player = fakePlayer(helper, "never_joined");
@@ -70,7 +70,7 @@ public class GlobalLoggerTests {
                 "disconnect without joining",
                 () -> TemporaEvents.playerConnectionLogger
                     .onDisconnect(player, new ChatComponentTranslation("disconnect.endOfStream")))
-            // Long enough for the write, had there been one.
+            // Long enough for the write if there was one
             .thenIdle(60)
             .thenWaitUntil(
                 "nothing was logged",
@@ -92,8 +92,8 @@ public class GlobalLoggerTests {
 
         helper.startSequence()
             .thenExecute("disconnect while on the player list", () -> {
-                // On the list only for this call, so nothing else on the server thread sees it. A fake player has no
-                // connection for anything to send to.
+                // Only on the list for this call so nothing else on the server thread sees it. A fake player has no
+                // connection for anything to send to
                 @SuppressWarnings("unchecked")
                 List<EntityPlayerMP> online = MinecraftServer.getServer()
                     .getConfigurationManager().playerEntityList;

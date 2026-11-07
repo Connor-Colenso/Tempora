@@ -12,13 +12,13 @@ import com.colen.tempora.loggers.generic.PositionalEventInfo;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-/** What every event renderer needs about the frame being drawn. */
+/** What every event renderer needs about the frame being drawn */
 @SideOnly(Side.CLIENT)
 public final class EventRenderContext {
 
     public final float partialTicks;
 
-    // Where the camera is this frame, in world coordinates.
+    // Camera position this frame, world coords
     public final double cameraX;
     public final double cameraY;
     public final double cameraZ;
@@ -26,7 +26,7 @@ public final class EventRenderContext {
     public final World world;
     public final int dimension;
 
-    // A smoothly increasing tick count, for animations.
+    // Smoothly increasing tick count for animations
     public final float animationTicks;
 
     private EventRenderContext(float partialTicks, EntityLivingBase camera, World world) {
@@ -39,7 +39,7 @@ public final class EventRenderContext {
         this.animationTicks = camera.ticksExisted + partialTicks;
     }
 
-    /** Null while there is no world to draw in, e.g. on the main menu. */
+    /** Null while there's no world to draw in, e.g. on the main menu */
     static @Nullable EventRenderContext create(RenderWorldLastEvent event) {
         Minecraft mc = Minecraft.getMinecraft();
         if (mc.theWorld == null || mc.renderViewEntity == null) return null;
@@ -58,12 +58,12 @@ public final class EventRenderContext {
         return distanceSqToCamera(event.x, event.y, event.z);
     }
 
-    /** The yaw that makes something standing at x, z face the camera. */
+    /** Yaw that makes something standing at x, z face the camera */
     public float yawTowardsCamera(double x, double z) {
         return yawTowards(x, z, cameraX, cameraZ);
     }
 
-    /** The yaw that makes something standing at fromX, fromZ face toX, toZ. */
+    /** Yaw that makes something standing at fromX, fromZ face toX, toZ */
     public static float yawTowards(double fromX, double fromZ, double toX, double toZ) {
         return (float) Math.toDegrees(Math.atan2(-(toX - fromX), toZ - fromZ));
     }

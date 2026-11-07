@@ -21,7 +21,6 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
 public class ItemUseLogger extends GenericPositionalLogger<ItemUseEventInfo> {
 
-    // The player who used the item.
     @Override
     protected String playerColumn() {
         return "playerUUID";
@@ -50,7 +49,6 @@ public class ItemUseLogger extends GenericPositionalLogger<ItemUseEventInfo> {
     @SubscribeEvent(priority = EventPriority.LOWEST)
     @SuppressWarnings("unused")
     public void onItemInteract(final @NotNull PlayerInteractEvent event) {
-        // Server side only.
         if (!isEnabledByConfig) return;
         if (isClientSide()) return;
         if (event.isCanceled()) return;
@@ -71,7 +69,7 @@ public class ItemUseLogger extends GenericPositionalLogger<ItemUseEventInfo> {
         logItemUse(event.entityPlayer, event.entityPlayer.getCurrentEquippedItem());
     }
 
-    /** Logs a player using an item (or their empty hand), at the player's position. */
+    // Logs a player using an item (or empty hand) at their position
     public void logItemUse(final @NotNull EntityPlayer player, final @Nullable ItemStack usedItem) {
         if (!isEnabledByConfig) return;
 

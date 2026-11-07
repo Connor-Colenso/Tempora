@@ -35,11 +35,11 @@ import com.gtnewhorizon.gtnhlib.util.numberformatting.NumberFormatUtil;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-/** Small helpers shared by event renderers. */
+/** Small helpers shared by event renderers */
 @SideOnly(Side.CLIENT)
 public final class EventRenderHelpers {
 
-    // Height of one line of RenderUtils.renderFloatingText, in blocks.
+    // Height of one line of RenderUtils.renderFloatingText, in blocks
     public static final double TEXT_LINE_HEIGHT = 9 * 0.025;
 
     private EventRenderHelpers() {}
@@ -52,8 +52,8 @@ public final class EventRenderHelpers {
     }
 
     /**
-     * Keeps only the newest event at each block, in the order given. Several events at one block would draw on top of
-     * each other.
+     * Keeps only the newest event at each block, in the order given. Several at one block would draw on top of each
+     * other
      */
     public static <E extends PositionalEventInfo> List<E> latestPerBlock(List<E> events) {
         Map<ChunkPosition, E> newest = new HashMap<>();
@@ -69,8 +69,8 @@ public final class EventRenderHelpers {
     }
 
     /**
-     * Groups events by the given key, groups in the order their first event appears (so still farthest first), each
-     * group oldest first.
+     * Groups events by key. Groups in the order their first event shows up (so still farthest first), each group oldest
+     * first
      */
     public static <E extends PositionalEventInfo, K> List<List<E>> groupBy(List<E> events, Function<E, K> key) {
         Map<K, List<E>> groups = new LinkedHashMap<>();
@@ -86,20 +86,20 @@ public final class EventRenderHelpers {
         return result;
     }
 
-    /** Draws lines of text with their bottom edge at the given height, so they sit on top of what is below. */
+    /** Draws text with its bottom edge at the given height so it sits on top of whatever's below */
     public static void renderLabelAbove(List<String> lines, double x, double bottomY, double z) {
         RenderUtils.renderFloatingText(lines, x, bottomY + lines.size() * TEXT_LINE_HEIGHT / 2, z);
     }
 
     /**
-     * Draws an arrow from a point, {@code length} blocks long, pointing the way a player with this yaw and pitch (in
-     * degrees, as Minecraft stores them) was looking.
+     * Draws an arrow from a point, {@code length} blocks long, pointing the way a player with this yaw and pitch
+     * (degrees, as MC stores them) was looking
      */
     public static void renderLookArrow(double x, double y, double z, float yaw, float pitch, double length,
         Color colour) {
         double yawRad = Math.toRadians(yaw);
         double pitchRad = Math.toRadians(pitch);
-        // The same direction vanilla throws an item in, before its small upward nudge and random spread.
+        // Same direction vanilla throws an item, before its little upward nudge and random spread
         double dirX = -Math.sin(yawRad) * Math.cos(pitchRad);
         double dirY = -Math.sin(pitchRad);
         double dirZ = Math.cos(yawRad) * Math.cos(pitchRad);
@@ -108,7 +108,7 @@ public final class EventRenderHelpers {
         double tipY = y + dirY * length;
         double tipZ = z + dirZ * length;
 
-        // The head's two barbs go back from the tip and out to each side, level with the ground.
+        // The head's two barbs go back from the tip and out each side, level with the ground
         double back = 0.25;
         double side = 0.15;
         double sideX = Math.cos(yawRad);
@@ -161,7 +161,7 @@ public final class EventRenderHelpers {
             for (int i = 0; i <= last; i++) {
                 PositionalEventInfo event = oldestFirst.get(i);
                 tes.setColorRGBA_F(red, green, blue, 0.25f + 0.75f * i / last);
-                // Just above the ground, so it is not hidden in it.
+                // Just above the ground so it isn't hidden in it
                 tes.addVertex(event.x, event.y + 0.1, event.z);
             }
             tes.draw();
@@ -170,7 +170,7 @@ public final class EventRenderHelpers {
         }
     }
 
-    /** E.g. "5 minutes ago". */
+    /** E.g. "5 minutes ago" */
     public static String timeAgo(long timestamp) {
         TimeUtils.DurationParts parts = TimeUtils.relativeTimeAgoFormatter(timestamp);
         return StatCollector
@@ -178,8 +178,8 @@ public final class EventRenderHelpers {
     }
 
     /**
-     * A player's name from their UUID. Anything that is not a UUID (a cause such as "[EntityZombie]", or a translation
-     * key such as tempora.unknown.player) is shown as it is, translated if it can be.
+     * Player name from their UUID. Anything that isn't a UUID (a cause like "[EntityZombie]" or a key like
+     * tempora.unknown.player) is shown as is, translated if it can be
      */
     public static String playerName(@Nullable String uuidOrCause) {
         if (uuidOrCause == null) return "?";
@@ -191,7 +191,7 @@ public final class EventRenderHelpers {
             return StatCollector.translateToLocal(uuidOrCause);
         }
 
-        // Only filled in where the server runs, so in singleplayer.
+        // Only filled in where the server runs, so singleplayer
         String cached = UsernameCache.getLastKnownUsername(uuid);
         if (cached != null) return cached;
 
@@ -202,19 +202,20 @@ public final class EventRenderHelpers {
     }
 
     /**
-     * What killed something, from the death loggers' columns (see DeathCause): the player if one did, else the cause.
+     * What killed something, from the death loggers' columns (see DeathCause). The player if one did, otherwise the
+     * cause
      */
     public static String killerName(String killerPlayerUUID, String killedBy) {
         return PlayerUtils.isUUID(killerPlayerUUID) ? playerName(killerPlayerUUID) : playerName(killedBy);
     }
 
-    /** The player with this UUID if they are near enough for this client to see them, else null. */
+    /** Player with this UUID if they're close enough for this client to see, otherwise null */
     public static @Nullable EntityPlayer onlinePlayer(UUID uuid) {
         Minecraft mc = Minecraft.getMinecraft();
         return mc.theWorld == null ? null : mc.theWorld.func_152378_a(uuid);
     }
 
-    /** An entity's name from the name it is registered under in EntityList, e.g. "Cave Spider" for "CaveSpider". */
+    /** Entity name from its EntityList name, e.g. "Cave Spider" for "CaveSpider" */
     public static String entityName(@Nullable String entityListName) {
         if (entityListName == null) return "?";
 
@@ -231,7 +232,7 @@ public final class EventRenderHelpers {
         ItemStack stack = itemStack(itemID, metadata);
         if (stack == null) return itemID + ":" + metadata;
 
-        // Some mods' items throw for metadata they do not expect.
+        // Some mods' items throw for meta they don't expect
         try {
             return stack.getDisplayName();
         } catch (RuntimeException e) {

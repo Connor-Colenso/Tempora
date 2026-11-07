@@ -59,10 +59,10 @@ public class ExplosionEventInfo extends PositionalEventInfo {
         writeUTF8String(buf, affectedBlockCoordinates);
     }
 
-    // To bypass string encoding limits, for large quantities of affectedBlockCoordinates. Todo: review this
+    // Gets round the string length limit for big affectedBlockCoordinates lists. TODO review this
     public static void writeUTF8String(ByteBuf to, String string) {
         byte[] utf8Bytes = string.getBytes(Charsets.UTF_8);
-        // Allow up to 4 bytes for the length VarInt (~268 MB of data)
+        // Up to 4 bytes for the length VarInt (~268 MB)
         Validate.isTrue(varIntByteCount(utf8Bytes.length) <= 3, "The string is too long for this encoding.");
         writeVarInt(to, utf8Bytes.length, 3);
         to.writeBytes(utf8Bytes);
@@ -86,7 +86,7 @@ public class ExplosionEventInfo extends PositionalEventInfo {
                     .size()),
             EnumChatFormatting.WHITE);
 
-        // A player by UUID, anything else by its EntityList name.
+        // Player by UUID, anything else by EntityList name
         IChatComponent exploderText;
         if (exploder == null || UNKNOWN_CAUSE.equals(exploder)) {
             exploderText = new ChatComponentTranslation(UNKNOWN_CAUSE);
@@ -96,7 +96,7 @@ public class ExplosionEventInfo extends PositionalEventInfo {
             exploderText = PlayerUtils.isUUID(exploder) ? EventChat.player(exploder) : EventChat.entityName(exploder);
         }
 
-        // A negative distance means no player was in the world.
+        // Negative distance means no player was in the world
         if (closestPlayerDistance < 0) {
             return EventChat.line("tempora.event.explosion.no_player", when, exploderText, where, powerText, destroyed);
         }

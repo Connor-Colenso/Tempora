@@ -39,17 +39,14 @@ public abstract class RenderUtils {
 
     private static final boolean AE2_LOADED = Loader.isModLoaded("appliedenergistics2");
 
-    // Lightmap coordinates for full brightness, so what is drawn shows up at night and underground.
+    // Full bright lightmap coords so stuff shows up at night and underground
     private static final float FULL_BRIGHT = 240f;
 
-    // Blocks are drawn a little smaller than a full block, so one shows inside a block that is there now.
+    // Blocks drawn a bit smaller than full so one still shows inside a block that's there now
     private static final double GHOST_BLOCK_SCALE = 14.0 / 16.0;
 
-    /**
-     * Draws an entity at a position in world coordinates (the camera offset already applied), facing the given way, at
-     * full brightness. Also moves it there, so its bounding box can be outlined afterwards with
-     * {@link #renderEntityAABBInWorld}.
-     */
+    // Draws an entity at world coords (camera offset already applied) facing the given way, full bright. Also moves it
+    // there so its bounding box can be outlined after with renderEntityAABBInWorld
     public static void renderEntityInWorld(Entity entity, double x, double y, double z, float rotationYaw,
         float rotationPitch, float partialTicks) {
         entity.setPosition(x, y, z);
@@ -65,8 +62,8 @@ public abstract class RenderUtils {
             living.rotationYawHead = living.prevRotationYawHead = rotationYaw;
         }
 
-        // A cape trails towards where the player was last tick, which a player that never ticks never updates, so it
-        // would point back at wherever the player was made. Where it is now makes the cape hang straight down.
+        // Capes trail towards where the player was last tick, and a player that never ticks never updates that, so it'd
+        // point back at wherever it was made. Current position makes the cape hang straight down
         if (entity instanceof EntityPlayer player) {
             player.field_71091_bM = player.field_71094_bP = x;
             player.field_71096_bN = player.field_71095_bQ = y;
@@ -86,7 +83,7 @@ public abstract class RenderUtils {
 
             RenderManager.instance.renderEntityWithPosYaw(entity, 0.0D, 0.0D, 0.0D, rotationYaw, partialTicks);
         } finally {
-            // Also when the entity's renderer threw, so the rest of the frame is not drawn with its state.
+            // Also when the entity's renderer threw, so the rest of the frame isn't drawn with its state
             RenderHelper.disableStandardItemLighting();
             GL11.glColor4f(1, 1, 1, 1);
             GL13.glActiveTexture(GL13.GL_TEXTURE0);
@@ -98,29 +95,26 @@ public abstract class RenderUtils {
         }
     }
 
-    /** Outlines an entity's bounding box, where {@link #renderEntityInWorld} last put it, through walls. */
+    // Outlines an entity's bounding box where renderEntityInWorld last put it, through walls
     public static void renderEntityAABBInWorld(Entity entity, Color colour) {
         AxisAlignedBB aabb = entity.boundingBox;
         renderRegion(aabb.minX, aabb.minY, aabb.minZ, aabb.maxX, aabb.maxY, aabb.maxZ, colour);
     }
 
-    /**
-     * Draws a block at a block position in world coordinates (the camera offset already applied). A highlight colour
-     * also outlines it, blinking.
-     */
+    // Draws a block at a block position in world coords (camera offset already applied). A highlight colour outlines it
+    // too, blinking
     public static void renderBlockInWorld(double x, double y, double z, Block block, int metadata,
         @Nullable TileEntity tileEntity, @Nullable Color highlight, float partialTicks) {
         Minecraft mc = Minecraft.getMinecraft();
 
-        // Save state
         float prevBrightnessX = OpenGlHelper.lastBrightnessX;
         float prevBrightnessY = OpenGlHelper.lastBrightnessY;
 
         GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
         GL11.glPushMatrix();
         try {
-            // RenderBlocks bakes shading and tint (such as grass colour) into vertex colours. GL lighting left on by
-            // anything drawn earlier this frame ignores those and draws the block dark grey.
+            // RenderBlocks bakes shading and tint (grass colour etc) into vertex colours. GL lighting left on by
+            // something earlier this frame ignores those and draws the block dark grey
             GL11.glDisable(GL11.GL_LIGHTING);
 
             GL11.glColor4f(1, 1, 1, 1);
@@ -129,7 +123,7 @@ public abstract class RenderUtils {
             RenderBlocks rb = new RenderBlocks();
             rb.useInventoryTint = false;
 
-            // The block is rendered at the origin, so the fake world answers for the origin.
+            // Block is rendered at the origin so the fake world answers for the origin
             FakeWorld fakeWorld = new FakeWorld();
             fakeWorld.block = block;
             fakeWorld.tileEntity = tileEntity;
@@ -144,7 +138,7 @@ public abstract class RenderUtils {
 
             renderBlockPasses(rb, block);
 
-            // Some blocks, such as chests, are drawn by their tile entity rather than by RenderBlocks.
+            // Some blocks like chests are drawn by their TE not RenderBlocks
             if (tileEntity != null) {
                 TileEntitySpecialRenderer special = TileEntityRendererDispatcher.instance
                     .getSpecialRenderer(tileEntity);
@@ -160,10 +154,10 @@ public abstract class RenderUtils {
         } finally {
             GL11.glPopMatrix();
 
-            // === Absolutely necessary for correct vanilla/forge rendering: ===
-            GL11.glColor4f(1, 1, 1, 1); // Always restore color
-            GL13.glActiveTexture(GL13.GL_TEXTURE0); // Set the main texture unit (block textures)
-            mc.renderEngine.bindTexture(TextureMap.locationBlocksTexture); // Bind MC block atlas
+            // Put back what vanilla/Forge rendering expects
+            GL11.glColor4f(1, 1, 1, 1);
+            GL13.glActiveTexture(GL13.GL_TEXTURE0); // Block textures
+            mc.renderEngine.bindTexture(TextureMap.locationBlocksTexture);
             OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, prevBrightnessX, prevBrightnessY);
             GL11.glEnable(GL11.GL_LIGHTING); // Vanilla expects this on
 
@@ -171,8 +165,8 @@ public abstract class RenderUtils {
         }
     }
 
-    // Outside chunk rendering Forge's world render pass is -1, and some renderers (GregTech machines) only draw their
-    // textures in the pass they belong to, so walk the passes the way chunk rendering does.
+    // Outside chunk rendering Forge's render pass is -1, and some renderers (GT machines) only draw their textures in
+    // the pass they belong to, so walk the passes like chunk rendering does
     private static void renderBlockPasses(RenderBlocks rb, Block block) {
         Tessellator tes = Tessellator.instance;
         int prevRenderPass = ForgeHooksClient.getWorldRenderPass();
@@ -188,7 +182,7 @@ public abstract class RenderUtils {
                 try {
                     rb.renderBlockByRenderType(block, 0, 0, 0);
                 } finally {
-                    // Even when the block's renderer threw, or all later drawing fails with "Already tesselating!".
+                    // Even if the block's renderer threw, otherwise all later drawing fails with "Already tesselating!"
                     tes.draw();
                 }
             }
@@ -197,7 +191,7 @@ public abstract class RenderUtils {
         }
     }
 
-    // AE2's cable bus draws nothing unless told which pass it is in.
+    // AE2 cable bus draws nothing unless told which pass it's in
     private static void prepareAE2CableBus(Block block) {
         if (block instanceof BlockCableBus) {
             BusRenderHelper.instances.get()
@@ -221,8 +215,8 @@ public abstract class RenderUtils {
 
     public static void renderRegion(double startX, double startY, double startZ, double endX, double endY, double endZ,
         double red, double green, double blue) {
-        GL11.glPushAttrib(GL11.GL_ENABLE_BIT | GL11.GL_LINE_BIT | GL11.GL_COLOR_BUFFER_BIT); // Save lighting, texture,
-                                                                                             // blend, depth, etc.
+        GL11.glPushAttrib(GL11.GL_ENABLE_BIT | GL11.GL_LINE_BIT | GL11.GL_COLOR_BUFFER_BIT); // Lighting, texture,
+                                                                                             // blend, depth etc
         GL11.glPushMatrix();
 
         GL11.glDisable(GL11.GL_TEXTURE_2D);
@@ -237,21 +231,21 @@ public abstract class RenderUtils {
         RenderGlobal.drawOutlinedBoundingBox(bb, 0xFFFFFFFF);
 
         GL11.glPopMatrix();
-        GL11.glPopAttrib(); // Restore everything
+        GL11.glPopAttrib();
     }
 
     public static void renderFloatingText(List<String> textLines, double x, double y, double z) {
         renderFloatingText(textLines, x, y, z, 0xFFFFFF);
     }
 
-    /** Draws lines of text centred on a position, facing the camera, through walls. */
+    // Lines of text centred on a position, facing the camera, through walls
     public static void renderFloatingText(List<String> textLines, double x, double y, double z, int color) {
         RenderManager renderManager = RenderManager.instance;
         FontRenderer fontrenderer = Minecraft.getMinecraft().fontRenderer;
         if (fontrenderer == null || textLines.isEmpty()) return;
 
-        // Restores lighting, depth and blending as they were, rather than forcing them on or off afterwards. Leaving
-        // lighting on made blocks drawn after the text come out dark grey.
+        // Restores lighting, depth and blending to how they were instead of forcing them on or off after. Leaving
+        // lighting on made blocks drawn after the text come out dark grey
         GL11.glPushAttrib(GL11.GL_ENABLE_BIT | GL11.GL_COLOR_BUFFER_BIT | GL11.GL_CURRENT_BIT);
         GL11.glPushMatrix();
         GL11.glTranslated(x, y, z);
@@ -265,7 +259,7 @@ public abstract class RenderUtils {
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 
         int fontHeight = fontrenderer.FONT_HEIGHT;
-        // Start so that the overall text block is vertically centered
+        // Start so the whole block of text is vertically centred
         int totalHeight = textLines.size() * fontHeight;
         int yOffset = -totalHeight / 2;
 
@@ -274,7 +268,7 @@ public abstract class RenderUtils {
             halfWidth = Math.max(halfWidth, fontrenderer.getStringWidth(line) / 2);
         }
 
-        // A dark backing, like a name tag's, so the text can be read against bright blocks and sky.
+        // Dark backing like a name tag so text reads against bright blocks and sky
         GL11.glDisable(GL11.GL_TEXTURE_2D);
         Tessellator tes = Tessellator.instance;
         tes.startDrawingQuads();
@@ -306,13 +300,11 @@ public abstract class RenderUtils {
         GL11.glTranslated(-camX, -camY, -camZ);
     }
 
-    /**
-     * Assumes called from RenderWorldLastEvent and camera translation already applied.
-     */
+    // Called from RenderWorldLastEvent with the camera translation already applied
     public static void renderBoundingBox(double startX, double startY, double startZ, double endX, double endY,
         double endZ) {
 
-        // Normalize coords (allow start > end) & shrink slightly to prevent z-fighting.
+        // Allow start > end, shrink a bit to stop z-fighting
         final double minX = Math.min(startX, endX);
         final double minY = Math.min(startY, endY);
         final double minZ = Math.min(startZ, endZ);
@@ -320,11 +312,11 @@ public abstract class RenderUtils {
         final double maxY = Math.max(startY, endY);
         final double maxZ = Math.max(startZ, endZ);
 
-        // Fixed color (light grey)
+        // Light grey
         final float r = 0.75f;
         final float g = 0.75f;
         final float b = 0.75f;
-        final float a = 0.25f; // semi-transparent
+        final float a = 0.25f;
 
         GL11.glPushAttrib(GL11.GL_ENABLE_BIT | GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
 
@@ -335,7 +327,7 @@ public abstract class RenderUtils {
         GL11.glEnable(GL11.GL_BLEND);
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 
-        // Keep the depth test so it clips against terrain, but don't write to depth buffer (typical for translucent)
+        // Keep depth test so it clips against terrain but don't write depth (usual for translucent)
         GL11.glEnable(GL11.GL_DEPTH_TEST);
         GL11.glDepthMask(false);
 
@@ -381,7 +373,6 @@ public abstract class RenderUtils {
 
         t.draw();
 
-        // Restore state
         GL11.glDepthMask(true);
         GL11.glPopAttrib();
     }

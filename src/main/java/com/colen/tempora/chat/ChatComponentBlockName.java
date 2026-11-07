@@ -9,11 +9,8 @@ import net.minecraft.util.StatCollector;
 import com.gtnewhorizon.gtnhlib.chat.AbstractChatComponentCustom;
 import com.gtnewhorizon.gtnhlib.chat.customcomponents.AbstractChatComponentBuffer;
 
-/**
- * Display name of a block (or item) ID and meta, resolved on the client. Many modded items, such as GregTech machines,
- * name themselves through getItemStackDisplayName rather than a translation key, so a translation key alone can't
- * always be localised.
- */
+// Block (or item) name from ID and meta, resolved on the client. Loads of modded items like GT machines name themselves
+// through getItemStackDisplayName instead of a translation key, so a key alone can't always be localised
 public class ChatComponentBlockName extends AbstractChatComponentBuffer<ChatComponentBlockName> {
 
     private int id;
@@ -26,10 +23,10 @@ public class ChatComponentBlockName extends AbstractChatComponentBuffer<ChatComp
 
     public ChatComponentBlockName() {}
 
-    // Client side call.
+    // Client side
     @Override
     public String getUnformattedTextForChat() {
-        // 0 is hard‑wired vanilla Air
+        // 0 is always vanilla air
         if (id == 0) return StatCollector.translateToLocal("tempora.block.air");
 
         Item item = Item.getItemById(id);

@@ -7,7 +7,7 @@ import com.colen.tempora.rendering.events.BlockEventRenderer;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-/** Shows each changed block as it was before the change. */
+// Each changed block as it was before the change
 @SideOnly(Side.CLIENT)
 public class BlockChangeRenderer extends BlockEventRenderer<BlockChangeEventInfo> {
 

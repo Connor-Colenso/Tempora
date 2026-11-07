@@ -12,17 +12,17 @@ import com.colen.tempora.chat.EventChat;
 import com.colen.tempora.loggers.generic.GlobalEventInfo;
 import com.colen.tempora.loggers.generic.column.Column;
 
-/** The server's tick rate over one logging interval, ending at the event's timestamp. */
+// Server TPS over one logging interval, ending at the event's timestamp
 public class TPSEventInfo extends GlobalEventInfo {
 
-    // Worked out as /forge tps does, from the mean tick time, so at most 20.
+    // Same as /forge tps, from the mean tick time, so 20 max
     @Column
     public double tps;
 
     @Column
     public double meanTickMs;
 
-    // The slowest single tick, to show lag spikes the mean smooths over.
+    // Slowest single tick, shows lag spikes the mean smooths over
     @Column
     public double maxTickMs;
 

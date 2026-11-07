@@ -7,7 +7,7 @@ import com.colen.tempora.rendering.events.BlockEventRenderer;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-/** Shows each placed block where it was placed. */
+// Each placed block where it was placed
 @SideOnly(Side.CLIENT)
 public class PlayerBlockPlaceRenderer extends BlockEventRenderer<PlayerBlockPlaceEventInfo> {
 

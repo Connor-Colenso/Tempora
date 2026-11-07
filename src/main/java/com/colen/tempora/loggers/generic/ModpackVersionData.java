@@ -15,11 +15,8 @@ import net.minecraft.world.storage.MapStorage;
 import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.ModContainer;
 
-/**
- * World-global modpack/environment version registry.
- * Stores a stable mapping of environment-hash -> int ID.
- * Access CURRENT_VERSION after the world loads.
- */
+// World wide pack version registry, maps a hash of the mod list to an int ID. Read CURRENT_VERSION after the world
+// loads
 public final class ModpackVersionData extends WorldSavedData {
 
     public static final String DATA_NAME = "tempora_modpack_versions";
@@ -29,8 +26,6 @@ public final class ModpackVersionData extends WorldSavedData {
     private int nextId = 1;
     private final Map<Integer, String> versions = new HashMap<>();
 
-    /* ------------------------------------------------------------ */
-
     @SuppressWarnings("unused")
     public ModpackVersionData() {
         super(DATA_NAME);
@@ -39,8 +34,6 @@ public final class ModpackVersionData extends WorldSavedData {
     public ModpackVersionData(String name) {
         super(name);
     }
-
-    /* ------------------------------------------------------------ */
 
     public static void init() {
         World overworld = MinecraftServer.getServer()
@@ -57,14 +50,12 @@ public final class ModpackVersionData extends WorldSavedData {
 
         CURRENT_VERSION = data.getOrCreateId(getModListHash());
 
-        // Save a new ID now rather than at the next world save. Events stamped with it go straight to the
-        // database, so a crash before that save would let the ID be handed out again for a different mod list.
+        // Save a new ID now not at the next world save. Events stamped with it go straight to the db, so a crash before
+        // that save could hand the ID out again for a different mod list
         if (data.isDirty()) {
             storage.saveAllData();
         }
     }
-
-    /* ------------------------------------------------------------ */
 
     private int getOrCreateId(String hash) {
         for (Map.Entry<Integer, String> e : versions.entrySet()) {
@@ -79,8 +70,6 @@ public final class ModpackVersionData extends WorldSavedData {
         markDirty();
         return id;
     }
-
-    // Save and load NBT.
 
     @Override
     public void readFromNBT(NBTTagCompound nbt) {
@@ -115,10 +104,9 @@ public final class ModpackVersionData extends WorldSavedData {
             entries.add(mod.getModId() + ":" + mod.getVersion());
         }
 
-        // Ensure stable ordering regardless of load order
+        // Stable order whatever the load order
         Collections.sort(entries);
 
-        // Join with an unambiguous delimiter
         StringBuilder sb = new StringBuilder();
         for (String entry : entries) {
             sb.append(entry)

@@ -22,17 +22,17 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
 /**
- * Draws each event as a block, e.g. the block that was broken, outlined in a blinking colour. A block that cannot be
- * drawn shows as Tempora's rendering error block instead.
+ * Draws each event as a block, e.g. the block that was broken, outlined in a blinking colour. Blocks that can't be
+ * drawn show as Tempora's rendering error block instead
  */
 @SideOnly(Side.CLIENT)
 public abstract class BlockEventRenderer<E extends PositionalEventInfo> implements EventRenderer<E> {
 
     private final Color highlight;
 
-    // Made once per event rather than every frame, as decoding NBT and building a tile entity is not cheap. Weak, so
-    // each goes after ClientEventStore drops its event, but only once the map is next used, so it is also emptied as
-    // the world unloads: each tile entity keeps its world.
+    // Made once per event not every frame, decoding NBT and building a TE isn't cheap. Weak so each goes after
+    // ClientEventStore drops its event, but only once the map's next used, so it's also cleared on world unload since
+    // each TE holds its world
     private final Map<E, GhostBlock> ghosts = new WeakHashMap<>();
 
     protected BlockEventRenderer(Color highlight) {
@@ -43,7 +43,7 @@ public abstract class BlockEventRenderer<E extends PositionalEventInfo> implemen
 
     protected abstract int metadata(E event);
 
-    /** The block's tile entity NBT as NBTUtils encodes it, or one of its markers (see NBTUtils.hasStoredNBT). */
+    /** Block's TE NBT as NBTUtils encodes it, or one of its markers (see NBTUtils.hasStoredNBT) */
     protected abstract String encodedNBT(E event);
 
     @Override
@@ -53,7 +53,7 @@ public abstract class BlockEventRenderer<E extends PositionalEventInfo> implemen
 
     @Override
     public void renderWorld(List<E> events, EventRenderContext context) {
-        // Several changes to one block would draw on top of each other, so only the newest is shown.
+        // Several changes to one block would draw on top of each other, so only show the newest
         for (E event : EventRenderHelpers.latestPerBlock(events)) {
             GhostBlock ghost = ghosts.get(event);
             if (ghost == null) {
@@ -86,7 +86,7 @@ public abstract class BlockEventRenderer<E extends PositionalEventInfo> implemen
         if (!NBTUtils.hasStoredNBT(encodedNBT)) {
             tileEntity = defaultTileEntity(block, metadata);
         } else {
-            // Null for tile entities this client does not have.
+            // Null for TEs this client doesn't have
             tileEntity = TileEntity.createAndLoadEntity(NBTUtils.decodeFromString(encodedNBT));
         }
         if (tileEntity == null) return null;
@@ -94,7 +94,7 @@ public abstract class BlockEventRenderer<E extends PositionalEventInfo> implemen
         tileEntity.blockMetadata = metadata;
         tileEntity.blockType = block;
         tileEntity.setWorldObj(Minecraft.getMinecraft().theWorld);
-        // It is drawn at the origin.
+        // Drawn at the origin
         tileEntity.xCoord = 0;
         tileEntity.yCoord = 0;
         tileEntity.zCoord = 0;
@@ -102,8 +102,8 @@ public abstract class BlockEventRenderer<E extends PositionalEventInfo> implemen
         return tileEntity;
     }
 
-    // Without its NBT, a block with a tile entity still gets a fresh one, as some renderers (AE2 crafting units) draw
-    // nothing without it. One that cannot be made without a real world is left out, as before.
+    // Without its NBT a block with a TE still gets a fresh one, some renderers (AE2 crafting units) draw nothing
+    // without it. One that can't be made without a real world gets left out
     private static @Nullable TileEntity defaultTileEntity(Block block, int metadata) {
         if (!block.hasTileEntity(metadata)) return null;
         try {
@@ -118,7 +118,7 @@ public abstract class BlockEventRenderer<E extends PositionalEventInfo> implemen
         }
     }
 
-    // Once per event, as the event then shows as the error block rather than failing every frame.
+    // Once per event, it then shows as the error block instead of failing every frame
     private void logFailure(E event, Throwable e) {
         String encodedNBT = encodedNBT(event);
         String truncatedNBT = encodedNBT != null && !encodedNBT.isEmpty()

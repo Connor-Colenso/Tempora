@@ -16,7 +16,7 @@ import com.colen.tempora.rendering.events.PlayerGhostRenderer;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-/** Shows the player where they earned each achievement, holding its icon, with the achievements earned there above. */
+// Player where they earned each achievement holding its icon, with the achievements earned there above
 @SideOnly(Side.CLIENT)
 public class AchievementRenderer extends PlayerGhostRenderer<AchievementEventInfo> {
 

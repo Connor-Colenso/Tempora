@@ -17,7 +17,7 @@ import com.llamalad7.mixinextras.sugar.ref.LocalRef;
 
 import cpw.mods.fml.common.network.internal.FMLNetworkHandler;
 
-// Records which block a mod GUI was opened for, so the inventory logger knows where its container is.
+// Records which block a mod GUI was opened for so the inventory logger knows where its container is
 @Mixin(value = FMLNetworkHandler.class, remap = false)
 public abstract class MixinFMLNetworkHandler {
 
@@ -30,7 +30,7 @@ public abstract class MixinFMLNetworkHandler {
     @Inject(method = "openGui", at = @At("RETURN"))
     private static void tempora$afterOpenGui(EntityPlayer player, Object mod, int guiId, World world, int x, int y,
         int z, CallbackInfo ci, @Share("tempora$containerBefore") LocalRef<Container> containerBefore) {
-        // Names the container from the block's tile entity, which is mod code: it must never stop the GUI opening.
+        // Names the container from the block's TE, which is mod code, so it must never stop the GUI opening
         try {
             ContainerHosts.onGuiOpened(player, containerBefore.get(), world, x, y, z);
         } catch (RuntimeException | LinkageError e) {

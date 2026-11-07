@@ -17,28 +17,27 @@ import com.colen.tempora.utils.PlayerFilter;
 import com.colen.tempora.utils.TimeWindow;
 
 /**
- * A logger for events that happen at a place, such as a block breaking or a mob dying. Each event is stored with its
- * dimension and position, follows region rules, and is looked up around a position (/tempora lookup, the wand). Lookup
- * results are sent to the player's client, which draws them with the renderer registered for this logger in
- * {@link com.colen.tempora.rendering.events.EventRenderers}.
+ * Logger for events at a place, like a block breaking or a mob dying. Stored with dimension and position, follows
+ * region rules and gets looked up around a position (/tempora lookup, the wand). Results go to the player's client
+ * which draws them with this logger's renderer from {@link com.colen.tempora.rendering.events.EventRenderers}
  */
 @SuppressWarnings("SqlDialectInspection")
 public abstract class GenericPositionalLogger<EventInfo extends PositionalEventInfo> extends GenericLogger<EventInfo> {
 
     private boolean logByDefault;
 
-    // Default value of the logByDefault config option. Override to return false for loggers that would produce too
-    // much data to run everywhere, so they only log inside regions that turn them on.
+    // Default for the logByDefault config. Override to false for loggers that make too much data to run everywhere, so
+    // they only log inside regions that turn them on
     protected boolean defaultForLogByDefault() {
         return true;
     }
 
-    // Whether this logger records events where no region has a rule for it.
+    // Whether this logs where no region has a rule for it
     public boolean logsByDefault() {
         return logByDefault;
     }
 
-    // Where it records: everywhere unless a region turns it off, or only where a region turns it on.
+    // Everywhere unless a region turns it off, or only where a region turns it on
     @Override
     protected void addSettingsInfo(List<IChatComponent> lines) {
         super.addSettingsInfo(lines);
@@ -46,8 +45,8 @@ public abstract class GenericPositionalLogger<EventInfo extends PositionalEventI
             settingLine(logByDefault ? "tempora.logger.setting.everywhere" : "tempora.logger.setting.regions_only"));
     }
 
-    // The smallest region here with a rule for this logger decides, otherwise logByDefault does.
-    // See TemporaRegionRegistry for the full rules.
+    // Smallest region here with a rule for this logger decides, otherwise logByDefault does. Full rules in
+    // TemporaRegionRegistry
     public final boolean canLogHere(double x, double y, double z, int dimID) {
         TemporaWorldRegion region = TemporaRegionRegistry.findDecidingRegion(getLoggerName(), dimID, x, y, z);
         if (region == null) return logByDefault;
@@ -56,9 +55,8 @@ public abstract class GenericPositionalLogger<EventInfo extends PositionalEventI
     }
 
     /**
-     * Fills in what every event shares (id, time and place) and queues it. Each logger's own log methods build their
-     * event with this, whether they were triggered by Forge or reported by another mod through
-     * {@link com.colen.tempora.api.TemporaApi}.
+     * Fills in the shared bits (id, time and place) and queues it. Every log method builds its event through this,
+     * whether Forge triggered it or another mod reported it through {@link com.colen.tempora.api.TemporaApi}
      */
     protected final void logEvent(EventInfo eventInfo, int dimensionID, double x, double y, double z) {
         eventInfo.dimensionID = dimensionID;
@@ -66,8 +64,8 @@ public abstract class GenericPositionalLogger<EventInfo extends PositionalEventI
         eventInfo.y = y;
         eventInfo.z = z;
 
-        // A position that isn't a number (a mod's broken entity) can't be stored, as its column refuses it, nor found
-        // by place. Turned away here, as in a batch it would cost the events around it a retry one at a time.
+        // A position that isn't a number (some mod's broken entity) can't be stored or found by place. Turned away here
+        // since in a batch it'd make the events around it retry one at a time
         if (!Double.isFinite(x) || !Double.isFinite(y) || !Double.isFinite(z)) {
             if (!isActive()) return;
             eventInfo.timestamp = System.currentTimeMillis();
@@ -100,20 +98,19 @@ public abstract class GenericPositionalLogger<EventInfo extends PositionalEventI
     }
 
     /**
-     * Finds the latest events, up to {@code limit} of them, within a cube of blocks around a block, {@code radius}
-     * blocks out in each direction, on the query thread (see {@link TemporaQueries}). A radius of 0 means exactly that
-     * block. Showing them lists them in chat and draws them in the world, or says nothing if there are none, so callers
-     * checking many loggers can report that once.
+     * Latest events up to {@code limit} in a cube {@code radius} blocks out from a block, on the query thread (see
+     * {@link TemporaQueries}). Radius 0 is just that block. Showing them lists them in chat and draws them, silent if
+     * there are none so callers checking lots of loggers can say so once
      */
     public final FoundEvents<EventInfo> findEventsNear(int dimensionId, int centreX, int centreY, int centreZ,
         int radius, TimeWindow window, PlayerFilter players, int limit) {
 
-        // Without a player column, no event here can match a player filter.
+        // No player column means nothing here can match a player filter
         String playerColumn = playerColumn();
         if (!players.isAnyone() && playerColumn == null) return FoundEvents.none(this);
 
-        // Whole blocks: block n covers n <= x < n + 1, so a mob or player standing in it (x = n + 0.5) is found too.
-        // The + keeps SQLite off the player index, which would read every event the player has anywhere.
+        // Whole blocks, block n covers n <= x < n + 1 so a mob standing in it (x = n + 0.5) gets found too. The + keeps
+        // SQLite off the player index, which would read every event that player has anywhere
         String sql = String.format("""
             SELECT * FROM %s
             WHERE x >= ? AND x < ?
@@ -130,19 +127,15 @@ public abstract class GenericPositionalLogger<EventInfo extends PositionalEventI
             events = queryEvents(sql, ps -> {
                 long now = System.currentTimeMillis();
 
-                // X range
                 ps.setInt(1, centreX - radius);
                 ps.setInt(2, centreX + radius + 1);
 
-                // Y range
                 ps.setInt(3, centreY - radius);
                 ps.setInt(4, centreY + radius + 1);
 
-                // Z range
                 ps.setInt(5, centreZ - radius);
                 ps.setInt(6, centreZ + radius + 1);
 
-                // Dimension ID
                 ps.setInt(7, dimensionId);
 
                 ps.setLong(8, window.oldestMillis(now));
@@ -158,8 +151,8 @@ public abstract class GenericPositionalLogger<EventInfo extends PositionalEventI
         return FoundEvents.found(this, events, limit, TemporaCommand.LOOKUP.command("l:" + getShortName()));
     }
 
-    // Tells the client what to render in the world, if anything. Only events in the player's dimension, as the client
-    // only draws events in the dimension it is in, and they may have changed dimension since looking.
+    // Tells the client what to draw, if anything. Only events in the player's dimension since that's all the client
+    // draws, and they might've changed dimension since looking
     @Override
     final void drawInWorld(ICommandSender sender, List<EventInfo> events) {
         if (!(sender instanceof EntityPlayerMP player)) return;

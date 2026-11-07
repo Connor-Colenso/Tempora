@@ -9,7 +9,7 @@ import com.colen.tempora.loggers.inventory.InventoryTransactionTracker;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 
-// Containers closed by the server (walking away, opening another GUI) can still drop or return items.
+// Containers closed by the server (walking away, opening another GUI) can still drop or return items
 @Mixin(EntityPlayerMP.class)
 public abstract class MixinEntityPlayerMP {
 

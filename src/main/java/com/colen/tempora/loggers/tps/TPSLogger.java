@@ -15,17 +15,15 @@ import com.colen.tempora.loggers.generic.GenericGlobalLogger;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 
-/**
- * Logs the server's TPS at a fixed interval of real time. Each event covers every tick since the one before: their
- * mean and slowest tick time, and the TPS that mean works out to, the same way /forge tps does.
- */
+// Logs TPS every fixed interval of real time. Each event covers every tick since the last one, mean and slowest tick
+// time and the TPS from that mean, same as /forge tps
 public class TPSLogger extends GenericGlobalLogger<TPSEventInfo> {
 
     private static final double NANOS_PER_MILLI = 1_000_000;
 
     private int loggingIntervalSeconds;
 
-    // The interval being counted. Only touched on the server thread.
+    // Interval being counted, server thread only
     private long intervalStartMillis = -1;
     private int lastTickCounter;
     private int ticks;
@@ -79,14 +77,14 @@ public class TPSLogger extends GenericGlobalLogger<TPSEventInfo> {
         int tickCounter = server.getTickCounter();
         long now = System.currentTimeMillis();
 
-        // The tick counter starts from 0 for each server, so a singleplayer world opened after another starts afresh
-        // rather than mixing in the old world's ticks.
+        // Tick counter starts at 0 per server, so a singleplayer world opened after another starts fresh instead of
+        // mixing in the old world's ticks
         if (intervalStartMillis < 0 || tickCounter < lastTickCounter) {
             startInterval(now);
         }
         lastTickCounter = tickCounter;
 
-        // How long this tick took. The server records it just before this event fires.
+        // How long this tick took, the server records it just before this fires
         long tickNanos = server.tickTimeArray[tickCounter % server.tickTimeArray.length];
         ticks++;
         totalTickNanos += tickNanos;
@@ -105,7 +103,7 @@ public class TPSLogger extends GenericGlobalLogger<TPSEventInfo> {
         maxTickNanos = 0;
     }
 
-    /** Logs how long {@code ticks} ticks took, all together and the slowest of them. */
+    // Logs how long ticks ticks took, total and slowest
     public void logTickTimes(int ticks, long totalTickNanos, long maxTickNanos) {
         if (!isEnabledByConfig || ticks <= 0) return;
 

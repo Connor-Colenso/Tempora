@@ -25,20 +25,18 @@ import com.gtnewhorizons.horizonqa.api.TestPos;
 import com.gtnewhorizons.horizonqa.api.annotation.GameTest;
 import com.gtnewhorizons.horizonqa.api.annotation.GameTestHolder;
 
-/**
- * /tempora player, /tempora status and the n: limit, run as the console would, through {@link TemporaCommand} with a
- * {@link CapturingSender}.
- */
+// /tempora player, /tempora status and the n: limit, run like the console would through TemporaCommand with a
+// CapturingSender
 @GameTestHolder(Tempora.MODID)
 public class CommandTests {
 
     private static final int WRITE_TICKS = 100;
     private static final int TIMEOUT_TICKS = 250;
-    // Far outside the test's cell, so only a search by player rather than by place finds it.
+    // Way outside the test's cell so only a search by player finds it, not by place
     private static final int FAR_AWAY = 20_000;
 
-    // A player's events are found wherever they happened, and nobody else's are. Several players, and leaving one out
-    // with !, work as p: does in a lookup.
+    // A player's events are found wherever they happened and nobody else's are. Several players, and leaving one out
+    // with !, work like p: in a lookup
     @GameTest(timeoutTicks = TIMEOUT_TICKS)
     public static void playerSearchFindsTheirEventsAnywhere(GameTestHelper helper) {
         GenericLogger<?> logger = TemporaEvents.playerBlockBreakLogger;
@@ -81,8 +79,8 @@ public class CommandTests {
             .thenSucceed();
     }
 
-    // RCon runs commands on its own thread and replies before anything Tempora does on the server thread, so /tempora
-    // refuses it. The same command from the console still works, so the refusal isn't down to the command itself.
+    // RCon runs commands on its own thread and replies before anything we do on the server thread, so /tempora refuses
+    // it. Same command from the console still works so the refusal isn't the command itself
     @GameTest
     public static void rconIsRefused(GameTestHelper helper) {
         TemporaCommand command = new TemporaCommand();
@@ -103,7 +101,7 @@ public class CommandTests {
         helper.succeed();
     }
 
-    // /tempora region create over one block of the test, in its dimension.
+    // /tempora region create over one block of the test, in its dimension
     private static String[] regionCreate(GameTestHelper helper, String label) {
         TestPos at = helper.absolute(at(1, 1, 1));
         String x = String.valueOf(at.x()), y = String.valueOf(at.y()), z = String.valueOf(at.z());
@@ -116,7 +114,7 @@ public class CommandTests {
         breakBlock(helper, player, local);
     }
 
-    // A break far from the test, queued on the logger directly.
+    // A break far from the test, queued on the logger directly
     private static PlayerBlockBreakEventInfo farBreak(GameTestHelper helper, EntityPlayerMP player) {
         PlayerBlockBreakEventInfo event = new PlayerBlockBreakEventInfo();
         event.timestamp = System.currentTimeMillis();

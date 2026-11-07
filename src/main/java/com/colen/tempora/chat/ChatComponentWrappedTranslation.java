@@ -14,12 +14,9 @@ import com.gtnewhorizon.gtnhlib.chat.customcomponents.AbstractChatComponentBuffe
 
 import cpw.mods.fml.common.FMLCommonHandler;
 
-/**
- * A translation for a hover, translated on the client and wrapped there to three quarters of the screen's width, as
- * hover text doesn't wrap by itself: a long description would otherwise run off the screen. Each argument is a string,
- * a number, formatted on the client with formatNumber, or another of these, also translated on the client, e.g. a
- * duration inside "Keeps events for %s".
- */
+// Translation for a hover, translated and wrapped on the client to 3/4 of the screen width since hover text doesn't
+// wrap by itself and a long description runs off screen. Each arg is a string, a number (formatted on the client with
+// formatNumber) or another one of these also translated on the client, e.g. a duration inside "Keeps events for %s"
 public class ChatComponentWrappedTranslation extends AbstractChatComponentBuffer<ChatComponentWrappedTranslation> {
 
     private static final byte STRING_ARG = 0;
@@ -28,7 +25,7 @@ public class ChatComponentWrappedTranslation extends AbstractChatComponentBuffer
     private static final byte DOUBLE_ARG = 3;
 
     private String key;
-    // Each a String, a Long, a Double or a ChatComponentWrappedTranslation.
+    // Each a String, Long, Double or ChatComponentWrappedTranslation
     private List<Object> args;
 
     public ChatComponentWrappedTranslation(String key, Object... args) {
@@ -62,18 +59,18 @@ public class ChatComponentWrappedTranslation extends AbstractChatComponentBuffer
     @Override
     public String getUnformattedTextForChat() {
         String text = translate();
-        // Also called on a dedicated server, e.g. for the console, which has no font to measure with.
+        // Also called on a dedicated server (e.g. for the console) which has no font to measure with
         if (!FMLCommonHandler.instance()
             .getEffectiveSide()
             .isClient()) return text;
 
-        // A hover is drawn a line at a time, and this component's colour is only written before its first line, so
-        // it is written again at the start of each line the wrapping adds. Otherwise those lines come out white.
+        // Hovers get drawn a line at a time and this component's colour is only written before its first line, so write
+        // it again at the start of each line the wrapping adds or they come out white
         return ClientTextWrap.wrapToHoverWidth(text)
             .replace("\n", "\n" + getChatStyle().getFormattingCode());
     }
 
-    // Translated, with any translated arguments filled in, but not wrapped.
+    // Translated with translated args filled in, not wrapped
     private String translate() {
         Object[] filled = new Object[args.size()];
         for (int i = 0; i < filled.length; i++) {

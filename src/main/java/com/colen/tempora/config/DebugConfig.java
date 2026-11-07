@@ -3,7 +3,7 @@ package com.colen.tempora.config;
 import com.colen.tempora.Tempora;
 import com.gtnewhorizon.gtnhlib.config.Config;
 
-// config/tempora/client.cfg, shared with ClientConfig.
+// config/tempora/client.cfg, shared with ClientConfig
 @Config(
     modid = Tempora.MODID,
     category = "debug",

@@ -58,28 +58,24 @@ import com.gtnewhorizons.horizonqa.api.TestPos;
 import com.gtnewhorizons.horizonqa.api.annotation.GameTest;
 import com.gtnewhorizons.horizonqa.api.annotation.GameTestHolder;
 
-/**
- * What happens to the data already in a database: schema migration when a logger opens it, and pruning. Also how
- * players and mobs are stored, as numbers from Players.db and the Mobs table.
- */
+// What happens to data already in a db, schema migration when a logger opens it and pruning. Also how players and mobs
+// are stored, as numbers from Players.db and the Mobs table
 @GameTestHolder(Tempora.MODID)
 public class DatabaseTests {
 
-    // ---------- Migration ----------
+    // Migration
 
-    /**
-     * A database written by an older version of a logger opens without losing anything: a renamed column keeps its
-     * data, a new column is added with its default, and a column that changed type (eventID was TEXT before it became
-     * the rowid) makes the table be rebuilt, with fresh ids in time order. Events written afterwards get ids too,
-     * which they didn't when eventID was left as TEXT.
-     */
+    // A db written by an older version of a logger opens without losing anything. Renamed columns keep their data, new
+    // columns get their default, and a column that changed type (eventID was TEXT before it became the rowid) rebuilds
+    // the table with fresh ids in time order. Events written after get ids too, which they didn't while eventID was
+    // TEXT
     @GameTest
     public static void oldDatabaseIsMigratedWithoutLosingEvents(GameTestHelper helper) throws Exception {
         MigrationTestLogger logger = new MigrationTestLogger();
         deleteDatabaseFiles(logger.getLoggerName());
         helper.afterTest(() -> deleteDatabaseFiles(logger.getLoggerName()));
 
-        // Out of time order on purpose, to check the new ids follow time rather than insertion order.
+        // Out of time order on purpose, to check new ids follow time not insertion order
         try (Connection conn = DriverManager.getConnection(DatabaseUtils.jdbcUrl(logger.getLoggerName() + ".db"));
             Statement st = conn.createStatement()) {
             st.execute(
@@ -126,8 +122,8 @@ public class DatabaseTests {
                 }
             }
 
-            // Fresh ids in time order, renamed column kept, new column filled with its default, later event has an
-            // id of its own.
+            // Fresh ids in time order, renamed column kept, new column filled with its default, later event has its own
+            // id
             List<String> expected = new ArrayList<>();
             expected.add("1 100 first 10 7");
             expected.add("2 200 second 20 7");
@@ -141,7 +137,7 @@ public class DatabaseTests {
         helper.succeed();
     }
 
-    // A logger that only exists for the migration test. Never registered, so it never logs anything by itself.
+    // Logger that only exists for the migration test. Never registered so it never logs anything by itself
     public static class MigrationTestLogger extends GenericPositionalLogger<MigrationTestEvent> {
 
         @Override
@@ -165,7 +161,7 @@ public class DatabaseTests {
         }
     }
 
-    // As a logger's event looks after a few versions: one column renamed, one added since.
+    // What a logger's event looks like after a few versions, one column renamed and one added since
     public static class MigrationTestEvent extends PositionalEventInfo {
 
         @Column
@@ -188,9 +184,9 @@ public class DatabaseTests {
         }
     }
 
-    // ---------- Defaults ----------
+    // Defaults
 
-    // Every column is NOT NULL with its field's value in a new event as its default; the annotation adds nothing more.
+    // Every column is NOT NULL with its field's value in a new event as default, the annotation adds nothing else
     @GameTest
     public static void columnDefaultsComeFromJavaValues(GameTestHelper helper) {
         Map<String, String> conditions = new HashMap<>();
@@ -203,7 +199,7 @@ public class DatabaseTests {
         helper.succeed();
     }
 
-    // A logger with a column that starts as null is refused, naming the field, so its author finds out straight away.
+    // A logger with a column that starts null is refused, naming the field, so the author finds out straight away
     @GameTest
     public static void columnWithNullDefaultIsRefused(GameTestHelper helper) {
         IllegalStateException refused = helper.assertThrows(
@@ -256,12 +252,10 @@ public class DatabaseTests {
         }
     }
 
-    // ---------- One broken event ----------
+    // One broken event
 
-    /**
-     * An event whose chat line throws, e.g. from a bug in another mod's logger, shows as a placeholder, and the rest
-     * of the lookup is shown as normal.
-     */
+    // An event whose chat line throws (e.g. a bug in another mod's logger) shows as a placeholder and the rest of the
+    // lookup shows as normal
     @GameTest(timeoutTicks = 200)
     public static void brokenEventShowsPlaceholder(GameTestHelper helper) throws Exception {
         BrokenEventTestLogger logger = new BrokenEventTestLogger();
@@ -269,7 +263,7 @@ public class DatabaseTests {
         LoggerDatabase database = logger.getDatabaseManager();
         database.genericConfig(throwawayConfig(helper));
         database.initialiseDatabase();
-        // Its files stay: the query thread keeps a connection to it open until the server stops.
+        // Its files stay, the query thread keeps a connection open to it until the server stops
         helper.afterTest(() -> {
             try {
                 database.shutdownDatabase();
@@ -330,7 +324,7 @@ public class DatabaseTests {
             .thenSucceed();
     }
 
-    // The migration test's events, from a logger whose chat line throws for a note of "boom".
+    // Migration test's events, from a logger whose chat line throws for a note of "boom"
     public static class BrokenEventTestLogger extends MigrationTestLogger {
 
         @Override
@@ -363,8 +357,8 @@ public class DatabaseTests {
         }
     }
 
-    // Events SQLite refuses (here a NaN position, which its NOT NULL column refuses) cost only themselves, however
-    // many of them lead the batch.
+    // Events SQLite refuses (here a NaN position, which its NOT NULL column refuses) only cost themselves however many
+    // of them lead the batch
     @GameTest
     public static void refusedEventsDropOnlyThemselves(GameTestHelper helper) throws Exception {
         RefusedEventTestLogger logger = new RefusedEventTestLogger();
@@ -380,7 +374,7 @@ public class DatabaseTests {
             for (int i = 0; i < 8; i++) {
                 MigrationTestEvent event = new MigrationTestEvent();
                 event.timestamp = i + 1;
-                // The first three are refused.
+                // First three get refused
                 event.x = i < 3 ? Double.NaN : i;
                 event.note = "event " + i;
                 events.add(event);
@@ -416,9 +410,9 @@ public class DatabaseTests {
         }
     }
 
-    // ---------- Pruning ----------
+    // Pruning
 
-    // Events older than the logger's oldestDataCutoff are deleted, and newer ones kept.
+    // Events older than the logger's oldestDataCutoff get deleted, newer ones kept
     @GameTest(timeoutTicks = 300)
     public static void oldEventsArePruned(GameTestHelper helper) {
         GenericPositionalLogger<PlayerBlockBreakEventInfo> logger = TemporaEvents.playerBlockBreakLogger;
@@ -444,12 +438,10 @@ public class DatabaseTests {
             .thenSucceed();
     }
 
-    // ---------- Players ----------
+    // Players
 
-    /**
-     * A player column stores the player's number from Players.db rather than their UUID, the same number however the
-     * UUID is written, and reads back as the UUID. An event with no player stores the unknown player's 0.
-     */
+    // Player columns store the player's number from Players.db not their UUID, the same number however the UUID is
+    // written, and read back as the UUID. Events with no player store the unknown player's 0
     @GameTest
     public static void playerColumnsStoreNumbers(GameTestHelper helper) throws Exception {
         PlayerTestLogger logger = new PlayerTestLogger();
@@ -508,7 +500,7 @@ public class DatabaseTests {
                 "players read back as events");
         }
 
-        // Players.db explains the number, for anyone reading the databases outside the game.
+        // Players.db explains the number for anyone reading the dbs outside the game
         try (Connection conn = DriverManager.getConnection(DatabaseUtils.jdbcUrl(PlayerIDs.TABLE + ".db"));
             PreparedStatement ps = conn.prepareStatement("SELECT uuid FROM " + PlayerIDs.TABLE + " WHERE id = ?")) {
             ps.setInt(1, id);
@@ -526,7 +518,7 @@ public class DatabaseTests {
         helper.succeed();
     }
 
-    // /tempora sql matches players with player('<name or UUID>'), the number they are stored as.
+    // /tempora sql matches players with player('<name or UUID>'), the number they're stored as
     @GameTest
     public static void sqlPlayerFunctionGivesNumber(GameTestHelper helper) throws Exception {
         String uuid = UUID.randomUUID()
@@ -555,7 +547,7 @@ public class DatabaseTests {
         helper.succeed();
     }
 
-    // A logger whose p: filter column isn't a PLAYER column could never match a player, so it is refused.
+    // A logger whose p: column isn't a PLAYER column could never match a player, so it's refused
     @GameTest
     public static void textPlayerColumnIsRefused(GameTestHelper helper) {
         IllegalStateException refused = helper.assertThrows(
@@ -613,7 +605,7 @@ public class DatabaseTests {
         }
     }
 
-    // The migration test's logger, with its TEXT note column as the player column.
+    // Migration test's logger with its TEXT note column as the player column
     public static class TextPlayerColumnTestLogger extends MigrationTestLogger {
 
         @Override
@@ -622,10 +614,10 @@ public class DatabaseTests {
         }
     }
 
-    // ---------- Register-time checks ----------
+    // Register time checks
 
-    // Every logger's columns are checked as it registers, not only those with a player column, so a column Tempora
-    // can't store fails there rather than when a server starts.
+    // Every logger's columns get checked on register, not just ones with a player column, so a column Tempora can't
+    // store fails there not on server start
     @GameTest
     public static void validGlobalLoggerPassesRegisterCheck(GameTestHelper helper) {
         new CheckedTestLogger<>("TemporaTestValidGlobal", ValidColumnEvent::new).checkColumns();
@@ -642,7 +634,7 @@ public class DatabaseTests {
         assertRefusedAtRegister(helper, new CheckedTestLogger<>("TemporaTestKeywordColumn", KeywordColumnEvent::new));
     }
 
-    // SQLite column names ignore case, so this is a second timestamp column.
+    // SQLite column names ignore case, so this is a second timestamp column
     @GameTest
     public static void columnClashingWithBaseColumnIsRefusedAtRegister(GameTestHelper helper) {
         assertRefusedAtRegister(helper, new CheckedTestLogger<>("TemporaTestClashColumn", ClashColumnEvent::new));
@@ -656,7 +648,7 @@ public class DatabaseTests {
         helper.succeed();
     }
 
-    // A global logger, with no player column, that only exists to have its columns checked. Never registered.
+    // Global logger with no player column, only exists to have its columns checked. Never registered
     public static class CheckedTestLogger<E extends GlobalEventInfo> extends GenericGlobalLogger<E> {
 
         private final String name;
@@ -725,12 +717,10 @@ public class DatabaseTests {
         public long Timestamp;
     }
 
-    // ---------- Mobs ----------
+    // Mobs
 
-    /**
-     * Mob positions store each mob's UUID and name once, in the Mobs table, and events read back with them. A mob
-     * whose events have all aged out is pruned from Mobs, and stored again under a new number if it turns up later.
-     */
+    // Mob positions store each mob's UUID and name once in the Mobs table and events read back with them. A mob whose
+    // events have all aged out gets pruned from Mobs, and stored again under a new number if it turns up later
     @GameTest
     public static void mobPositionsStoreEachMobOnce(GameTestHelper helper) throws Exception {
         MobTestLogger logger = new MobTestLogger();
@@ -748,7 +738,7 @@ public class DatabaseTests {
         try {
             Connection conn = database.getDBConn();
 
-            // The cow is last seen long before the oldest events kept, so pruning will delete it.
+            // Cow was last seen long before the oldest kept events, so pruning will delete it
             database.insertBatch(
                 Arrays.asList(
                     mobEvent(zombie, "Zombie", now),
@@ -769,7 +759,7 @@ public class DatabaseTests {
             helper.assertEquals(events.get(1).mobID, events.get(2).mobID, "the zombie's two events share a number");
             long cowNumber = events.get(0).mobID;
 
-            // An hour later lastSeen is brought up to date.
+            // An hour later lastSeen gets updated
             database.insertBatch(Collections.singletonList(mobEvent(zombie, "Zombie", now + 3_600_001)));
             try (Statement st = conn.createStatement();
                 ResultSet rs = st.executeQuery("SELECT lastSeen FROM Mobs WHERE uuid = '" + zombie + "'")) {
@@ -784,14 +774,14 @@ public class DatabaseTests {
                 mobsStored(conn),
                 "mobs left after pruning");
 
-            // The cow turns up again: it is stored again, although the logger still has it cached.
+            // Cow turns up again and gets stored again, even though the logger still has it cached
             database.insertBatch(Collections.singletonList(mobEvent(cow, "Cow", now)));
             helper.assertIterableEquals(
                 Arrays.asList(zombie + " Zombie", cow + " Cow"),
                 mobsStored(conn),
                 "mobs once the cow is back");
             List<EntityPositionEventInfo> after = readMobEvents(logger, conn);
-            // The last stored. Not the newest by time: the zombie's event an hour on is later.
+            // Last stored. Not the newest by time, the zombie's event an hour on is later
             EntityPositionEventInfo newest = Collections.max(after, Comparator.comparingLong(event -> event.eventID));
             helper.assertEquals(cow, newest.entityUUID, "the cow's new event reads back as the cow");
             helper.assertTrue(newest.mobID != cowNumber, "the cow should have a new number, got " + newest.mobID);
@@ -818,7 +808,7 @@ public class DatabaseTests {
         return mobs;
     }
 
-    // Oldest first, with their UUIDs and names filled in from Mobs, as a lookup does.
+    // Oldest first with UUIDs and names filled in from Mobs, like a lookup does
     private static List<EntityPositionEventInfo> readMobEvents(MobTestLogger logger, Connection conn)
         throws SQLException {
         List<EntityPositionEventInfo> events;
@@ -830,7 +820,7 @@ public class DatabaseTests {
         return events;
     }
 
-    // A mob position logger of its own, with its own database. Never registered.
+    // Mob position logger with its own db. Never registered
     public static class MobTestLogger extends EntityPositionLogger {
 
         static final String NAME = "TemporaTestMobLogger";
@@ -850,7 +840,7 @@ public class DatabaseTests {
         }
     }
 
-    // ---------- Helpers ----------
+    // Helpers
 
     private static PlayerBlockBreakEventInfo breakEvent(GameTestHelper helper, TestPos pos, long timestamp) {
         PlayerBlockBreakEventInfo event = new PlayerBlockBreakEventInfo();
@@ -866,8 +856,8 @@ public class DatabaseTests {
         return event;
     }
 
-    // Config for a logger the test makes: its defaults, never saved. Forge creates the file empty, so it is deleted
-    // once the test ends.
+    // Config for a logger the test makes, defaults only and never saved. Forge creates the file empty so it gets
+    // deleted once the test ends
     private static Configuration throwawayConfig(GameTestHelper helper) {
         File file = DatabaseUtils.databaseDir()
             .resolve("tempora_test_" + helper.getOriginX() + "_" + helper.getOriginZ() + ".cfg")

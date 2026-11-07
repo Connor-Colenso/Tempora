@@ -15,8 +15,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import com.colen.tempora.TemporaEvents;
 
 @Mixin(Chunk.class)
-// Every Tempora call here is guarded, including against a LinkageError from another mod's code it calls (a pick block,
-// a tile entity's NBT), so a block write always goes ahead.
+// Every Tempora call here is guarded, including against a LinkageError from another mod's code it calls (pick block, TE
+// NBT), so the block write always goes ahead
 public abstract class MixinChunk {
 
     @Shadow
@@ -26,10 +26,8 @@ public abstract class MixinChunk {
     @Shadow
     public int zPosition;
 
-    /**
-     * Core block write entry point:
-     * boolean func_150807_a(int localX, int y, int localZ, Block newBlock, int newMeta)
-     */
+    // Main block write entry point
+    // boolean func_150807_a(int localX, int y, int localZ, Block newBlock, int newMeta)
     @Inject(method = "func_150807_a", at = @At("HEAD"), remap = false)
     private void tempora$blockWriteStart(int localX, int y, int localZ, Block newBlock, int newMeta,
         CallbackInfoReturnable<Boolean> cir) {
@@ -60,11 +58,9 @@ public abstract class MixinChunk {
         }
     }
 
-    /**
-     * Metadata-only write entry point:
-     * boolean setBlockMetadata(int localX, int y, int localZ, int newMeta)
-     * Unlike func_150807_a this has an MCP name, so it must be remapped: it is func_76589_b in production.
-     */
+    // Meta only write entry point
+    // boolean setBlockMetadata(int localX, int y, int localZ, int newMeta)
+    // Unlike func_150807_a this has an MCP name so it has to be remapped, it's func_76589_b in production
     @Inject(method = "setBlockMetadata", at = @At("HEAD"))
     private void tempora$metaWriteStart(int localX, int y, int localZ, int newMeta,
         CallbackInfoReturnable<Boolean> cir) {

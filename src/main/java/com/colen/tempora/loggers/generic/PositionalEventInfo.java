@@ -4,7 +4,7 @@ import com.colen.tempora.loggers.generic.column.Column;
 
 import io.netty.buffer.ByteBuf;
 
-/** An event that happened at a place, logged by a {@link GenericPositionalLogger}. */
+/** Event at a place, logged by a {@link GenericPositionalLogger} */
 public abstract class PositionalEventInfo extends GenericEventInfo {
 
     @Column
@@ -19,7 +19,7 @@ public abstract class PositionalEventInfo extends GenericEventInfo {
     @Column
     public double z;
 
-    // What the client is sent to draw this event. Subclasses add their own fields after these.
+    // What the client gets sent to draw this event, subclasses add their own fields after these
     public void fromBytes(ByteBuf buf) {
         x = buf.readDouble();
         y = buf.readDouble();
@@ -27,7 +27,7 @@ public abstract class PositionalEventInfo extends GenericEventInfo {
         dimensionID = buf.readInt();
         timestamp = buf.readLong();
         eventID = buf.readLong();
-        // versionID Not applicable for the client.
+        // versionID isn't needed on the client
     }
 
     public void toBytes(ByteBuf buf) {
@@ -37,6 +37,6 @@ public abstract class PositionalEventInfo extends GenericEventInfo {
         buf.writeInt(dimensionID);
         buf.writeLong(timestamp);
         buf.writeLong(eventID);
-        // versionID Not applicable for the client.
+        // versionID isn't needed on the client
     }
 }

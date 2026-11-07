@@ -28,14 +28,13 @@ public class ReflectionUtils {
 
     public static List<ColumnDef> getAllTableColumns(GenericLogger<?> logger) {
 
-        // Cache hit
         List<ColumnDef> cached = CACHED_COLUMN_DEFS_MAP.get(logger.getLoggerName());
         if (cached != null) {
             return cached;
         }
 
         List<ColumnDef> defs = new ArrayList<>();
-        // A new event: each field's value in it is that column's default.
+        // New event, each field's value in it is that column's default
         GenericEventInfo fresh = logger.newEventInfo();
 
         for (Field field : getColumnFieldsAlphabetically(logger)) {
@@ -51,7 +50,7 @@ public class ReflectionUtils {
 
             String constraints;
             if (isEventID(field)) {
-                // The rowid, filled in by SQLite, so it has no default.
+                // The rowid, SQLite fills it in so no default
                 constraints = "PRIMARY KEY";
             } else if (type == ColumnType.PLAYER) {
                 constraints = withDefault(playerDefault(field, accessor.get(fresh)));
@@ -62,7 +61,6 @@ public class ReflectionUtils {
             defs.add(new ColumnDef(name, type, constraints, Arrays.asList(col.renamedFrom()), accessor));
         }
 
-        // Freeze before caching
         List<ColumnDef> immutable = Collections.unmodifiableList(defs);
         CACHED_COLUMN_DEFS_MAP.put(logger.getLoggerName(), immutable);
 
@@ -96,7 +94,7 @@ public class ReflectionUtils {
                         + field.getName()
                         + " is a PLAYER column, so it must be a String.");
             }
-            // Null as the unknown player, rather than failing the batch the event is written with.
+            // Null as the unknown player instead of failing the batch the event goes out with
             binder = (ps, i, v) -> ps.setInt(i, v == null ? PlayerIDs.UNKNOWN_ID : PlayerIDs.idFor((String) v));
             reader = (rs, name) -> PlayerIDs.uuidFor(rs.getInt(name));
         } else if (columnType == ColumnType.NBT) {
@@ -130,7 +128,7 @@ public class ReflectionUtils {
             binder = (ps, i, v) -> ps.setInt(i, ((Boolean) v) ? 1 : 0);
             reader = (rs, name) -> rs.getInt(name) != 0;
         } else if (type == String.class) {
-            // Every column is NOT NULL, so a null (a mod naming its inventory null, say) is stored empty.
+            // Every column is NOT NULL so a null (a mod naming its inventory null say) is stored empty
             binder = (ps, i, v) -> ps.setString(i, v == null ? "" : (String) v);
             reader = ResultSet::getString;
         } else {
@@ -140,8 +138,8 @@ public class ReflectionUtils {
         return new ColumnDef.ColumnAccessor(getter, setter, binder, reader);
     }
 
-    // Real NBT as its bytes, a marker as its text. A value that isn't Base64 (never made by NBTUtils) is stored as
-    // unreadable rather than failing the batch.
+    // Real NBT as bytes, a marker as text. Anything that isn't Base64 (never made by NBTUtils) is stored as unreadable
+    // instead of failing the batch
     private static void bindNBT(PreparedStatement ps, int i, String encodedNBT) throws SQLException {
         if (!NBTUtils.hasStoredNBT(encodedNBT)) {
             ps.setString(i, encodedNBT == null ? NBTUtils.NO_NBT : encodedNBT);
@@ -158,23 +156,18 @@ public class ReflectionUtils {
         ps.setBytes(i, bytes);
     }
 
-    // Helpers.
-
     private static boolean isEventID(Field field) {
         return field.getDeclaringClass() == GenericEventInfo.class && field.getName()
             .equals("eventID");
     }
 
-    /**
-     * Every column is NOT NULL, with its field's value in a new event as its DEFAULT. When a later version adds a
-     * column, the events already stored get that default rather than NULL, which the event's code would then have to
-     * cope with.
-     */
+    // Every column is NOT NULL with its field's value in a new event as DEFAULT. When a later version adds a column,
+    // events already stored get that default instead of NULL, which the event code would then have to cope with
     private static String withDefault(String defaultValue) {
         return "NOT NULL DEFAULT " + defaultValue;
     }
 
-    // A field's value as an SQL literal. Null is refused: every column needs a real default.
+    // Field value as an SQL literal. Null is refused, every column needs a real default
     private static String sqlLiteral(Field field, Object value) {
         if (value == null) {
             throw new IllegalStateException(
@@ -198,10 +191,8 @@ public class ReflectionUtils {
         return value.toString();
     }
 
-    /**
-     * A player column's default is the unknown player, whose number is the same in every world. Any other start value
-     * would need a number from a world's Players.db, which isn't open when loggers register.
-     */
+    // A player column's default is the unknown player, whose number is the same in every world. Any other start value
+    // would need a number from a world's Players.db, which isn't open when loggers register
     private static String playerDefault(Field field, Object value) {
         if (!PlayerUtils.UNKNOWN_PLAYER_NAME.equals(value)) {
             throw new IllegalStateException(

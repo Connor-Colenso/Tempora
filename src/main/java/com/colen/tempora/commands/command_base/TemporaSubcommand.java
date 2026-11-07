@@ -20,17 +20,15 @@ import com.colen.tempora.commands.TemporaCommand;
 import com.colen.tempora.config.CommandsConfig;
 import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 
-/**
- * One subcommand of /tempora, e.g. "lookup" or "region set". Lang keys live under tempora.command.<path>, with the
- * path's spaces swapped for dots: .description for the help text and .arg0, .arg1, ... for each argument.
- */
+// One /tempora subcommand, e.g. "lookup" or "region set". Lang keys live under tempora.command.<path> with spaces
+// swapped for dots, .description for the help text and .arg0, .arg1 etc for each arg
 public abstract class TemporaSubcommand {
 
     private final String name;
     private final List<String> arguments;
     private String path;
 
-    // Each argument is how it shows in the usage line, e.g. "<name>" or "[dim_ID]".
+    // Each arg as it shows in the usage line, e.g. "<name>" or "[dim_ID]"
     protected TemporaSubcommand(String name, String... arguments) {
         this.name = name;
         this.path = name;
@@ -39,7 +37,7 @@ public abstract class TemporaSubcommand {
 
     public abstract void execute(ICommandSender sender, String[] args);
 
-    // Example arguments for the help page, e.g. "spawn change on".
+    // Example args for the help page, e.g. "spawn change on"
     public abstract String getExampleArgs();
 
     public List<String> tabComplete(ICommandSender sender, String[] args) {
@@ -50,8 +48,7 @@ public abstract class TemporaSubcommand {
         return false;
     }
 
-    // Hidden subcommands still run, but are left out of help and tab completion. For ones only meant to be clicked
-    // in chat.
+    // Hidden subcommands still run but aren't in help or tab completion. For ones only meant to be clicked in chat
     public boolean isHidden() {
         return false;
     }
@@ -60,7 +57,7 @@ public abstract class TemporaSubcommand {
         return name;
     }
 
-    // E.g. "region set".
+    // E.g. "region set"
     public final String getPath() {
         return path;
     }
@@ -77,20 +74,18 @@ public abstract class TemporaSubcommand {
         return new ChatComponentTranslation(getLangKey() + ".description", chatArgs(getDescriptionArgs()));
     }
 
-    /**
-     * What fills in the .description lang string's placeholders, e.g. its default count. Numbers are formatted for the
-     * reader, so none are written into lang strings. Each a number or a string.
-     */
+    // Fills in the .description lang string's placeholders, e.g. its default count. Numbers get formatted for the
+    // reader so none are written into lang strings. Each one a number or a string
     protected Object[] getDescriptionArgs() {
         return new Object[0];
     }
 
-    // What fills in the .argN lang string of argument index, as getDescriptionArgs does for the description.
+    // Fills in the .argN lang string for arg index, same as getDescriptionArgs for the description
     protected Object[] getArgumentArgs(int index) {
         return new Object[0];
     }
 
-    // Numbers as components that format them on the client, for a ChatComponentTranslation.
+    // Numbers as components that format them on the client, for a ChatComponentTranslation
     private static Object[] chatArgs(Object[] args) {
         Object[] chat = new Object[args.length];
         for (int i = 0; i < args.length; i++) {
@@ -99,7 +94,7 @@ public abstract class TemporaSubcommand {
         return chat;
     }
 
-    // The command as typed, e.g. "/tempora region set", plus any arguments given.
+    // Command as typed, e.g. "/tempora region set", plus any args given
     public final String command(Object... args) {
         StringBuilder command = new StringBuilder("/").append(TemporaCommand.NAME)
             .append(' ')
@@ -111,7 +106,7 @@ public abstract class TemporaSubcommand {
         return command.toString();
     }
 
-    // Built from raw formatting codes, as IChatComponent.getFormattedText() only exists on the client.
+    // Built from raw formatting codes since IChatComponent.getFormattedText() only exists on the client
     public String getUsage() {
         StringBuilder usage = new StringBuilder(command());
 
@@ -126,8 +121,8 @@ public abstract class TemporaSubcommand {
             .toString();
     }
 
-    // The usage line, clickable to fill the command into chat, with its description on hover, white rather than grey
-    // as it opens the hover (see EventChat.titledHover).
+    // Usage line, click to fill the command into chat, description on hover. White not grey since it opens a hover (see
+    // EventChat.titledHover)
     public IChatComponent getUsageChatComponent() {
         IChatComponent hover = getDescription();
         hover.getChatStyle()
@@ -139,7 +134,7 @@ public abstract class TemporaSubcommand {
         return usage;
     }
 
-    // E.g. "<name>: Name of the region." for each argument.
+    // E.g. "<name>: Name of the region." for each arg
     public List<IChatComponent> getArgumentDescriptions() {
         List<IChatComponent> descriptions = new ArrayList<>();
 
@@ -158,8 +153,8 @@ public abstract class TemporaSubcommand {
         return descriptions;
     }
 
-    // What a key:value filter does, from its .argN lang string, wrapped for a hover. Its argument is the one that
-    // starts with it in the usage line, e.g. "[r:<radius>]" for "r".
+    // What a key:value filter does from its .argN lang string, wrapped for a hover. Its arg is the one that starts with
+    // it in the usage line, e.g. "[r:<radius>]" for "r"
     public final IChatComponent getFilterDescription(String key) {
         for (int i = 0; i < arguments.size(); i++) {
             if (arguments.get(i)
@@ -170,7 +165,7 @@ public abstract class TemporaSubcommand {
         throw new IllegalArgumentException(path + " has no " + key + ": filter");
     }
 
-    // The full help page, shown by /tempora help <path> and by typing ? after the command.
+    // Full help page, shown by /tempora help <path> and by typing ? after the command
     public void sendHelp(ICommandSender sender) {
         // E.g. ----------- region set -----------
         sender.addChatMessage(createCenteredLine(path));
@@ -189,7 +184,7 @@ public abstract class TemporaSubcommand {
         }
     }
 
-    // E.g. "Usage: ..." with the label in yellow and the value in white.
+    // E.g. "Usage: ..." with the label yellow and the value white
     private static IChatComponent labelled(String labelKey, IChatComponent value) {
         value.getChatStyle()
             .setColor(EnumChatFormatting.WHITE);
@@ -209,7 +204,7 @@ public abstract class TemporaSubcommand {
         sendHelpHint(sender);
     }
 
-    // "See /tempora help lookup for details.", clickable to show it.
+    // "See /tempora help lookup for details.", click to show it
     final void sendHelpHint(ICommandSender sender) {
         String helpCommand = "/" + TemporaCommand.NAME + " help " + path;
         IChatComponent hint = new ChatComponentTranslation("tempora.command.usage.hint", helpCommand);
@@ -223,15 +218,13 @@ public abstract class TemporaSubcommand {
         sender.addChatMessage(hint);
     }
 
-    /**
-     * An n: filter's count of events per logger, at least 1. One over {@link CommandsConfig#maxResultsPerLogger} is
-     * lowered to it, and the sender told so in red.
-     */
+    // n: filter's count per logger, at least 1. Anything over CommandsConfig.maxResultsPerLogger gets lowered to it and
+    // the sender told in red
     protected static int parseCountPerLogger(ICommandSender sender, String typed) {
         return parseCount(sender, typed, "tempora.command.count_capped");
     }
 
-    // An n: filter's count, as for parseCountPerLogger, as sorted by: per logger, or in all with s:time.
+    // n: filter's count like parseCountPerLogger, per logger or in total with s:time
     protected static int parseCount(ICommandSender sender, String typed, SortOrder order) {
         return order == SortOrder.TIME ? parseCount(sender, typed, "tempora.command.count_capped.total")
             : parseCountPerLogger(sender, typed);
@@ -267,7 +260,7 @@ public abstract class TemporaSubcommand {
         EnumChatFormatting.AQUA,
         EnumChatFormatting.LIGHT_PURPLE);
 
-    // Loop the colours if you reach the end.
+    // Loop the colours if we run off the end
     private static EnumChatFormatting getColourAtIndex(int index) {
         return ARGS_COLOUR_LIST.get(index % ARGS_COLOUR_LIST.size());
     }

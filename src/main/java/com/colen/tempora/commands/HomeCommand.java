@@ -34,30 +34,27 @@ import com.colen.tempora.utils.GenericUtils;
 import com.colen.tempora.utils.PlayerUtils;
 import com.colen.tempora.utils.TimeWindow;
 
-/**
- * /tempora home <player> [t:<time>] [dim:<id>] [n:<count>]
- * Lists the places a player has spent the most time, from their position history, busiest first. Useful for finding
- * their base, and for telling it apart from an AFK farm or spawn.
- * <p>
- * Positions are logged at a fixed interval, so the number logged in a chunk is how long the player spent there. Each
- * place is the 3x3 chunks around its busiest chunk, so a base over a chunk border counts once. Places are picked
- * busiest first, skipping any too close to one already picked, until there are enough or the rest are only places the
- * player passed through.
- */
+// /tempora home <player> [t:<time>] [dim:<id>] [n:<count>]
+// Places a player spends the most time from their position history, busiest first. Good for finding their base and
+// telling it apart from an AFK farm or spawn
+//
+// Positions get logged at a fixed interval so the count in a chunk is how long they spent there. Each place is the 3x3
+// chunks around its busiest chunk so a base over a chunk border counts once. Places get picked busiest first, skipping
+// any too close to one already picked, until there are enough or whatever's left is just places they passed through
 public class HomeCommand extends TemporaSubcommand {
 
     public static final int DEFAULT_COUNT = 3;
     private static final int MAX_COUNT = 10;
 
-    // Chunks either side of a place's busiest chunk that count as the same place.
+    // Chunks either side of a place's busiest chunk that count as the same place
     static final int AREA_RADIUS = 1;
-    // A chunk this many chunks or fewer from a place already listed can't be another one.
+    // A chunk this close or closer to a place already listed can't be another one
     static final int SEPARATION = 4;
-    // Less of the player's time than this is passing through rather than a place they spend time.
+    // Less of their time than this is just passing through
     static final double MIN_SHARE = 0.01;
 
-    // The chunk a coordinate is in. Rounded down: SQLite turns a REAL into an INTEGER by rounding towards zero, which
-    // would put x = -16.5 in chunk -1 rather than -2.
+    // Chunk a coord is in, rounded down. SQLite's REAL -> INTEGER rounds towards zero, which would put x = -16.5 in
+    // chunk -1 not -2
     private static final String CHUNK_X = "((CAST(x AS INTEGER) - (x < CAST(x AS INTEGER))) >> 4)";
     private static final String CHUNK_Z = "((CAST(z AS INTEGER) - (z < CAST(z AS INTEGER))) >> 4)";
 
@@ -112,10 +109,8 @@ public class HomeCommand extends TemporaSubcommand {
         });
     }
 
-    /**
-     * The places a player spent the most time, busiest first, at most {@code count}. On the query thread. Empty if
-     * they have no positions matching the filters.
-     */
+    // Places a player spent the most time, busiest first, up to count. Query thread. Empty if they have no positions
+    // matching the filters
     public static List<HotSpot> findHotSpots(String uuid, TimeWindow window, @Nullable Integer dimension, int count)
         throws SQLException {
         PlayerPositionLogger logger = TemporaEvents.playerPositionLogger;
@@ -132,7 +127,7 @@ public class HomeCommand extends TemporaSubcommand {
         List<ChunkHits> chunks = new ArrayList<>();
         try (PreparedStatement stmt = TemporaQueries.connection(logger)
             .prepareStatement(sql)) {
-            // The position table holds the player's number rather than their UUID.
+            // Position table holds the player's number not their UUID
             stmt.setInt(1, PlayerIDs.lookupID(uuid));
             stmt.setLong(2, window.oldestMillis(now));
             stmt.setLong(3, window.newestMillis(now));
@@ -140,7 +135,7 @@ public class HomeCommand extends TemporaSubcommand {
 
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
-                    // Next to MAX(), SQLite fills x, y and z from the row it picked: the player's last position here.
+                    // Next to MAX() SQLite fills x, y and z from the row it picked, the player's last position here
                     chunks.add(
                         new ChunkHits(
                             rs.getInt("dimensionID"),
@@ -161,7 +156,7 @@ public class HomeCommand extends TemporaSubcommand {
         return pickHotSpots(chunks, count);
     }
 
-    /** Picks the busiest places from the time spent in each chunk. See the class comment for how. */
+    // Picks the busiest places from the time spent in each chunk, see the class comment
     public static List<HotSpot> pickHotSpots(List<ChunkHits> chunks, int count) {
         long total = 0;
         Map<Integer, Map<Long, ChunkHits>> byDimension = new HashMap<>();
@@ -172,7 +167,7 @@ public class HomeCommand extends TemporaSubcommand {
         }
         if (total == 0) return new ArrayList<>();
 
-        // Every chunk as the middle of a place, with the time spent in the chunks around it.
+        // Every chunk as the middle of a place, with the time spent in the chunks around it
         List<HotSpot> candidates = new ArrayList<>();
         for (ChunkHits chunk : chunks) {
             Map<Long, ChunkHits> dimension = byDimension.get(chunk.dimension);
@@ -189,7 +184,7 @@ public class HomeCommand extends TemporaSubcommand {
             candidates.add(new HotSpot(chunk, hits, (double) hits / total, latest));
         }
 
-        // Ties go to the place seen last, then by position, so the same history always gives the same answer.
+        // Ties go to the place seen last then by position, so the same history always gives the same answer
         candidates.sort(
             Comparator.comparingLong((HotSpot spot) -> spot.hits)
                 .thenComparingLong(spot -> spot.lastSeen)
@@ -211,7 +206,7 @@ public class HomeCommand extends TemporaSubcommand {
         return ((long) chunkX << 32) | (chunkZ & 0xFFFFFFFFL);
     }
 
-    // E.g. "1. 52% in Overworld at [x y z], last there 2h ago".
+    // E.g. "1. 52% in Overworld at [x y z], last there 2h ago"
     public static IChatComponent spotLine(int rank, HotSpot spot) {
         return EventChat.line(
             "tempora.command.home.spot",
@@ -222,7 +217,7 @@ public class HomeCommand extends TemporaSubcommand {
             EventChat.time(spot.lastSeen));
     }
 
-    /** How many of a player's positions were logged in one chunk, and their last one there. */
+    // How many of a player's positions were logged in one chunk, and their last one there
     public static final class ChunkHits {
 
         final int dimension, chunkX, chunkZ;
@@ -242,10 +237,8 @@ public class HomeCommand extends TemporaSubcommand {
         }
     }
 
-    /**
-     * A place a player spent time: the chunks around {@code chunkX, chunkZ}. {@code x, y, z} is where they last stood
-     * there, which is somewhere a teleport is safe, unlike the middle of the chunk.
-     */
+    // A place a player spent time, the chunks around chunkX, chunkZ. x, y, z is where they last stood there, which is
+    // safe to teleport to unlike the middle of the chunk
     public static final class HotSpot {
 
         public final int dimension, chunkX, chunkZ;

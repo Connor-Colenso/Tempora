@@ -34,23 +34,20 @@ public class TemporaWorldRegion {
     private final double minX, minY, minZ;
     private final double maxX, maxY, maxZ;
 
-    private long renderStartTimeMs; // when this object should start rendering
-    private long regionOriginTimeMs; // when the region itself was defined
+    private long renderStartTimeMs; // When this object should start rendering
+    private long regionOriginTimeMs; // When the region itself was defined
     private String regionUUID;
     private String playerAuthorUUID;
     private Color color;
     private RegionRenderMode renderMode;
     private String label;
 
-    // Keyed by logger name rather than the logger itself, so a rule for a logger that is disabled or no longer
-    // exists survives a save/load instead of being dropped. Sorted so rules always display in the same order, and
-    // concurrent because loggers read it from whichever thread fired the event.
+    // Keyed by logger name not the logger, so a rule for a disabled or removed logger survives save/load instead of
+    // being dropped. Sorted so rules always show in the same order, concurrent since loggers read it from whatever
+    // thread fired the event
     private final Map<String, LogRule> loggerRules = new ConcurrentSkipListMap<>();
 
-    /**
-     * Constructor: defines the bounding box coordinates only (x1,y1,z1 -> x2,y2,z2).
-     * The rest should be set via setters.
-     */
+    // Only sets the box (x1,y1,z1 -> x2,y2,z2), the rest goes through setters
     public TemporaWorldRegion(int dimID, double x1, double y1, double z1, double x2, double y2, double z2) {
         this.dimID = dimID;
         this.minX = Math.min(x1, x2);
@@ -60,11 +57,9 @@ public class TemporaWorldRegion {
         this.maxY = Math.max(y1, y2);
         this.maxZ = Math.max(z1, z2);
 
-        // Random hue, but always vivid so the region stands out when rendered.
+        // Random hue but always vivid so it stands out when rendered
         this.color = Color.getHSBColor(RANDOM.nextFloat(), 0.9f, 1.0f);
     }
-
-    /* ---------- Getters / Setters ---------- */
 
     public int getDimID() {
         return dimID;
@@ -162,8 +157,6 @@ public class TemporaWorldRegion {
         this.label = label;
     }
 
-    /* ---------- Logger rules ---------- */
-
     public @Nullable LogRule getRule(String loggerName) {
         return loggerRules.get(loggerName);
     }
@@ -172,7 +165,7 @@ public class TemporaWorldRegion {
         return Collections.unmodifiableMap(loggerRules);
     }
 
-    // Use TemporaRegionRegistry.setRule/clearRule for regions in the registry, so the change is saved.
+    // Use TemporaRegionRegistry.setRule/clearRule for regions in the registry so the change gets saved
     void putRule(String loggerName, LogRule rule) {
         loggerRules.put(loggerName, rule);
     }
@@ -181,13 +174,11 @@ public class TemporaWorldRegion {
         return loggerRules.remove(loggerName) != null;
     }
 
-    /* ---------- Helpers ---------- */
-
     public double getVolume() {
         return (maxX - minX) * (maxY - minY) * (maxZ - minZ);
     }
 
-    // Max bounds are exclusive, so a region covering blocks 0 to 4 has maxX = 5.
+    // Max bounds are exclusive, so a region over blocks 0 to 4 has maxX = 5
     public final boolean contains(int dim, double x, double y, double z) {
         return this.dimID == dim && x >= minX && x < maxX && y >= minY && y < maxY && z >= minZ && z < maxZ;
     }
@@ -195,15 +186,11 @@ public class TemporaWorldRegion {
     public boolean intersectsWith(int dim, AxisAlignedBB box) {
         if (this.dimID != dim) return false;
 
-        // Create an AABB representing this region
         AxisAlignedBB regionAABB = AxisAlignedBB
             .getBoundingBox(this.minX, this.minY, this.minZ, this.maxX, this.maxY, this.maxZ);
 
-        // Use Minecraft's built-in intersect check
         return regionAABB.intersectsWith(box);
     }
-
-    /* ---------- NBT Serialization ---------- */
 
     public NBTTagCompound writeNBT() {
         NBTTagCompound tag = new NBTTagCompound();
@@ -248,7 +235,7 @@ public class TemporaWorldRegion {
         region.regionOriginTimeMs = tag.getLong("regionOriginTimeMs");
         region.regionUUID = tag.getString("regionUUID");
         region.playerAuthorUUID = tag.getString("playerAuthorUUID");
-        // Only real regions are saved, wand highlights are client side only.
+        // Only real regions get saved, wand highlights are client only
         region.renderMode = RegionRenderMode.REGION;
 
         int colorRed = tag.getInteger("colorRed");
@@ -267,9 +254,7 @@ public class TemporaWorldRegion {
         return region;
     }
 
-    /* ---------- Chat ---------- */
-
-    // Clickable corner blocks, matching the inclusive coordinates typed into /tempora region create.
+    // Clickable corner blocks, matching the inclusive coords typed into /tempora region create
     public IChatComponent getMinCornerChatComponent() {
         return teleportChatComponent(minX, minY, minZ, dimID, CommandUtils.TeleportType.BLOCK);
     }
@@ -298,7 +283,7 @@ public class TemporaWorldRegion {
         return line;
     }
 
-    // E.g. "Rules: block ON, death OFF".
+    // E.g. "Rules: block ON, death OFF"
     public IChatComponent getRulesChatComponent() {
         if (loggerRules.isEmpty()) {
             IChatComponent none = new ChatComponentTranslation("tempora.region.rules.none");

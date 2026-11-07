@@ -20,15 +20,15 @@ import com.colen.tempora.loggers.inventory.ContainerHost;
 import com.colen.tempora.utils.GenericUtils;
 
 /**
- * Lets other mods report things Tempora cannot see by itself, so they are logged and looked up like everything else.
- * Typical cases: items moved in or out of storage without a GUI (drawers, barrels), blocks broken or placed without
- * Forge's events firing, explosions that are not vanilla ones, and blocks written straight into chunk storage.
+ * For other mods to report stuff Tempora can't see by itself, so it gets logged and looked up like everything else.
+ * Things like items going in/out of storage without a GUI (Storage Drawers, AE2 interfaces), blocks broken or placed
+ * without Forge events firing, explosions that aren't vanilla ones and blocks written straight into chunk storage
  * <p>
- * Each method feeds the logger that records that kind of event, and follows that logger's config and region rules just
- * like the events Tempora picks up itself. A call does nothing if that logger is turned off, if Tempora is not running
- * (on a client, say), or if it is not made on the server thread, so it is safe to call on every action.
+ * Each call goes through the matching logger's config and region rules, same as anything Tempora picks up itself. Does
+ * nothing if that logger is off, Tempora isn't running (client side) or it's called off the server thread, so it's fine
+ * to call on every action
  * <p>
- * Tempora is optional for most mods: compile against its {@code api} jar and only call this when it is loaded, e.g.
+ * Tempora is optional, compile against the {@code api} jar and only call this when it's loaded
  *
  * <pre>
  * {@code
@@ -44,13 +44,11 @@ public final class TemporaApi {
 
     private TemporaApi() {}
 
-    // ---------------------------------------------------------------------------------------------------------------
     // Inventories
-    // ---------------------------------------------------------------------------------------------------------------
 
     /**
-     * A player put items into a block's storage, e.g. by clicking a drawer. {@code amount} is how many went in; the
-     * stack's own size is ignored, only its item, metadata and NBT are used.
+     * Player put items into a block's storage, like clicking a drawer. {@code amount} is how many went in, the stack's
+     * own size is ignored and only its item, meta and NBT are used
      */
     public static void logItemsAdded(EntityPlayer player, ItemStack item, long amount, TileEntity container) {
         if (player == null || item == null || amount <= 0 || container == null) return;
@@ -60,8 +58,7 @@ public final class TemporaApi {
     }
 
     /**
-     * A player took items out of a block's storage. See
-     * {@link #logItemsAdded(EntityPlayer, ItemStack, long, TileEntity)}.
+     * Player took items out of a block's storage, see {@link #logItemsAdded(EntityPlayer, ItemStack, long, TileEntity)}
      */
     public static void logItemsRemoved(EntityPlayer player, ItemStack item, long amount, TileEntity container) {
         if (player == null || item == null || amount <= 0 || container == null) return;
@@ -70,7 +67,7 @@ public final class TemporaApi {
         TemporaEvents.inventoryLogger.logReportedChange(player, item, -amount, ContainerHost.tileEntity(container));
     }
 
-    /** As {@link #logItemsAdded(EntityPlayer, ItemStack, long, TileEntity)}, for storage with no block entity. */
+    /** Same as {@link #logItemsAdded(EntityPlayer, ItemStack, long, TileEntity)} for storage without a tile entity */
     public static void logItemsAdded(EntityPlayer player, ItemStack item, long amount, World world, int x, int y,
         int z) {
         if (player == null || item == null || amount <= 0) return;
@@ -79,7 +76,7 @@ public final class TemporaApi {
         TemporaEvents.inventoryLogger.logReportedChange(player, item, amount, ContainerHost.block(world, x, y, z));
     }
 
-    /** As {@link #logItemsRemoved(EntityPlayer, ItemStack, long, TileEntity)}, for storage with no block entity. */
+    /** Same as {@link #logItemsRemoved(EntityPlayer, ItemStack, long, TileEntity)} for storage without a tile entity */
     public static void logItemsRemoved(EntityPlayer player, ItemStack item, long amount, World world, int x, int y,
         int z) {
         if (player == null || item == null || amount <= 0) return;
@@ -88,13 +85,11 @@ public final class TemporaApi {
         TemporaEvents.inventoryLogger.logReportedChange(player, item, -amount, ContainerHost.block(world, x, y, z));
     }
 
-    // ---------------------------------------------------------------------------------------------------------------
     // Blocks
-    // ---------------------------------------------------------------------------------------------------------------
 
     /**
-     * A block is about to be broken. Call this before removing it, so the block and its tile entity can still be read.
-     * {@code player} may be null when nobody in particular broke it.
+     * Block is about to be broken. Call before removing it so the block and its TE can still be read. {@code player}
+     * can be null if nobody in particular broke it
      */
     public static void logBlockBreak(@Nullable EntityPlayer player, World world, int x, int y, int z) {
         if (!onServer(world)) return;
@@ -106,10 +101,7 @@ public final class TemporaApi {
             .logBlockBreak(player, world, x, y, z, block, world.getBlockMetadata(x, y, z));
     }
 
-    /**
-     * A block was placed. Call this after it is in the world. {@code player} may be null when nobody in particular
-     * placed it.
-     */
+    /** Block was placed, call after it's in the world. {@code player} can be null if nobody in particular placed it */
     public static void logBlockPlace(@Nullable EntityPlayer player, World world, int x, int y, int z) {
         if (!onServer(world)) return;
 
@@ -120,9 +112,9 @@ public final class TemporaApi {
     }
 
     /**
-     * A block changed without going through {@code Chunk.func_150807_a}, which Tempora watches for every other block
-     * change, e.g. it was written straight into the chunk's storage. Call this after the change, with what was there
-     * before: the old block, its metadata, and its tile entity's NBT if it had one.
+     * Block changed without going through {@code Chunk.func_150807_a}, which is what Tempora hooks for everything else,
+     * e.g. written straight into chunk storage. Call after the change with what was there before (old block, meta and
+     * TE NBT if it had one)
      */
     public static void logBlockChange(World world, int x, int y, int z, Block before, int beforeMetadata,
         @Nullable NBTTagCompound beforeTileEntityNBT) {
@@ -132,10 +124,10 @@ public final class TemporaApi {
     }
 
     /**
-     * An explosion that did not fire Forge's {@code ExplosionEvent}, e.g. one that is not a vanilla {@code Explosion}.
-     * {@code exploder} is whatever is responsible, if known: a player is stored by UUID, anything else by its
-     * EntityList name. {@code destroyedBlocks} are the positions it destroyed, if known, leaving out any that were
-     * already air.
+     * Explosion that didn't fire Forge's {@code ExplosionEvent}, e.g. one that isn't a vanilla {@code Explosion}.
+     * {@code exploder} is
+     * whatever caused it if known, players are stored by UUID and anything else by its EntityList name.
+     * {@code destroyedBlocks} are the positions it destroyed if known, minus any that were already air
      */
     public static void logExplosion(World world, double x, double y, double z, float power, @Nullable Entity exploder,
         @Nullable List<ChunkPosition> destroyedBlocks) {
@@ -144,36 +136,32 @@ public final class TemporaApi {
         TemporaEvents.explosionLogger.logExplosion(world, x, y, z, power, exploder, destroyedBlocks);
     }
 
-    // ---------------------------------------------------------------------------------------------------------------
     // Players
-    // ---------------------------------------------------------------------------------------------------------------
 
-    /** A player used an item, or their empty hand if {@code item} is null. */
+    /** Player used an item, or their empty hand if {@code item} is null */
     public static void logItemUse(EntityPlayer player, @Nullable ItemStack item) {
         if (player == null || !onServer(player.worldObj)) return;
 
         TemporaEvents.itemUseLogger.logItemUse(player, item);
     }
 
-    /** A player ran a command that did not go through Forge's {@code CommandEvent}. */
+    /** Player ran a command that didn't go through Forge's {@code CommandEvent} */
     public static void logCommand(EntityPlayer player, String command, String... arguments) {
         if (player == null || command == null || !onServer(player.worldObj)) return;
 
         TemporaEvents.commandLogger.logCommand(player, command, arguments == null ? new String[0] : arguments);
     }
 
-    /** Where a player is right now, e.g. straight after a mod teleported them. */
+    /** Where a player is right now, e.g. straight after a mod teleported them */
     public static void logPlayerPosition(EntityPlayer player) {
         if (player == null || !onServer(player.worldObj)) return;
 
         TemporaEvents.playerPositionLogger.logPlayerPosition(player);
     }
 
-    // ---------------------------------------------------------------------------------------------------------------
     // Entities
-    // ---------------------------------------------------------------------------------------------------------------
 
-    /** An entity appeared in the world. Each entity is only logged once, however often this is called for it. */
+    /** Entity appeared in the world. Only logged once per entity however often this gets called */
     public static void logEntitySpawn(Entity entity) {
         if (entity == null || !onServer(entity.worldObj)) return;
 
@@ -181,8 +169,8 @@ public final class TemporaApi {
     }
 
     /**
-     * A mob died without Forge's {@code LivingDeathEvent} firing, e.g. it was removed with {@code setDead()}.
-     * {@code source} says what killed it, if known.
+     * Mob died without Forge's {@code LivingDeathEvent} firing, e.g. removed with {@code setDead()}. {@code source} is
+     * what killed it if known
      */
     public static void logEntityDeath(EntityLivingBase entity, @Nullable DamageSource source) {
         if (entity == null || !onServer(entity.worldObj)) return;
@@ -190,15 +178,15 @@ public final class TemporaApi {
         TemporaEvents.entityDeathLogger.logEntityDeath(entity, source);
     }
 
-    /** Where an entity is right now. */
+    /** Where an entity is right now */
     public static void logEntityPosition(Entity entity) {
         if (entity == null || !onServer(entity.worldObj)) return;
 
         TemporaEvents.entityPositionLogger.logEntityPosition(entity);
     }
 
-    // Loggers read the world when building an event, so only ever on the server thread. Nothing at all while Tempora
-    // is switched off, so a mod calling this on every action costs nothing in a pack that doesn't use Tempora.
+    // Loggers read the world when building an event so server thread only. Does nothing while Tempora is switched off,
+    // so mods calling this on every action cost nothing in packs that don't use it
     private static boolean onServer(@Nullable World world) {
         return GenericUtils.shouldTemporaRun() && world != null && !world.isRemote && GenericUtils.isServerSide();
     }

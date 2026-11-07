@@ -6,8 +6,8 @@ import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 
-// Debug block for stress testing the database write path. Placing it churns a 16x16x16 cube of random blocks above it
-// every tick (4096 block changes/tick). Break it to stop.
+// Debug block for stress testing the db write path. Churns a 16x16x16 cube of random blocks above it every tick (4096
+// block changes a tick), break it to stop
 public class StressTestBlock extends BlockContainer {
 
     public StressTestBlock() {

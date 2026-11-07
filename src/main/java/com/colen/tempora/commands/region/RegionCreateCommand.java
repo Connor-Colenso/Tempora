@@ -31,11 +31,9 @@ import com.colen.tempora.regions.TemporaWorldRegion;
 import com.colen.tempora.rendering.regions.RegionRenderMode;
 import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 
-/**
- * /tempora region create <name> <x1> <y1> <z1> <x2> <y2> <z2> [dim_ID]
- * Creates a box between two corner blocks, both included. Coordinates can be relative to the player, e.g. ~-50. A new
- * region has no rules, so it changes nothing until /tempora region set gives it some.
- */
+// /tempora region create <name> <x1> <y1> <z1> <x2> <y2> <z2> [dim_ID]
+// Box between two corner blocks, both included. Coords can be relative to the player, e.g. ~-50. New regions have no
+// rules so they change nothing until /tempora region set gives them some
 public class RegionCreateCommand extends TemporaSubcommand {
 
     public RegionCreateCommand() {
@@ -44,7 +42,7 @@ public class RegionCreateCommand extends TemporaSubcommand {
 
     @Override
     public void execute(ICommandSender sender, String[] args) {
-        // name + 6 coords + optional dimID
+        // Name + 6 coords + optional dim ID
         if (args.length != 7 && args.length != 8) {
             sendUsageError(sender);
             return;
@@ -71,8 +69,8 @@ public class RegionCreateCommand extends TemporaSubcommand {
             return;
         }
 
-        // Both corners are inclusive, like /fill, so "0 0 0 4 4 4" covers a 5x5x5 cube. Internally the max bounds
-        // are exclusive, hence the + 1.
+        // Both corners inclusive like /fill, so "0 0 0 4 4 4" is a 5x5x5 cube. Max bounds are exclusive internally,
+        // hence the + 1
         TemporaWorldRegion region = new TemporaWorldRegion(
             dimID,
             Math.min(coords[0], coords[3]),
@@ -105,7 +103,7 @@ public class RegionCreateCommand extends TemporaSubcommand {
             .setColor(EnumChatFormatting.GREEN);
         sender.addChatMessage(created);
 
-        // The most common reason to make a region is to log block changes in it, so offer that.
+        // Most regions get made to log block changes in them, so offer that
         GenericLogger<?> blockLogger = TemporaLoggerManager.getLogger(TemporaEvents.BLOCK_CHANGE);
         String blockLoggingCommand = TemporaCommand.REGION_SET.command(name, blockLogger.getShortName(), "on");
         IChatComponent suggestion = new ChatComponentTranslation("tempora.command.region.create.suggest_block_logging");
@@ -127,8 +125,8 @@ public class RegionCreateCommand extends TemporaSubcommand {
         }
     }
 
-    // A block coordinate, or one relative to the player's block such as "~" or "~-50". Axis 0, 1, 2 is x, y, z. Null,
-    // after telling the sender, if a relative coordinate is used without a player.
+    // Block coord, or one relative to the player's block like "~" or "~-50". Axis 0, 1, 2 is x, y, z. Returns null
+    // after telling the sender if a relative coord is used without a player
     private static @Nullable Integer parseCoordinate(ICommandSender sender, @Nullable EntityPlayerMP player, int axis,
         String arg) {
         if (!arg.startsWith("~")) return CommandBase.parseInt(sender, arg);
@@ -145,7 +143,7 @@ public class RegionCreateCommand extends TemporaSubcommand {
 
     @Override
     public List<String> tabComplete(ICommandSender sender, String[] args) {
-        // Offer "~" for the coordinates, to show relative ones work.
+        // Offer "~" for coords to show relative ones work
         if (args.length >= 2 && args.length <= 7 && args[args.length - 1].isEmpty()) {
             return Collections.singletonList("~");
         }

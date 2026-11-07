@@ -29,7 +29,7 @@ public final class RenderRegionsInWorld {
         int curDim = Minecraft.getMinecraft().thePlayer.dimension;
 
         GL11.glPushMatrix();
-        // Popped even if drawing a region throws, or every frame after would push one more matrix.
+        // Popped even if drawing a region throws, or every frame after would push one more matrix
         try {
             correctForCamera(e);
 
@@ -62,7 +62,6 @@ public final class RenderRegionsInWorld {
                         rgb[1],
                         rgb[2]);
 
-                    // Render text info in region.
                     List<String> renderText = new ArrayList<>();
                     renderText.add(r.getLabel());
                     renderText.add(

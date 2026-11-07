@@ -5,7 +5,7 @@ import java.util.Map;
 
 import javax.annotation.Nullable;
 
-/** Item amounts keyed by {@link ItemKey}, used to compare what an inventory held before and after an action. */
+// Item amounts keyed by ItemKey, for comparing what an inventory held before and after
 public final class ItemCounts {
 
     private final Map<ItemKey, Long> counts = new LinkedHashMap<>();
@@ -23,9 +23,7 @@ public final class ItemCounts {
         return counts;
     }
 
-    /**
-     * Per item, how much more {@code after} holds than {@code before}. Items whose amount did not change are left out.
-     */
+    // Per item, how much more after has than before. Unchanged items are left out
     public static Map<ItemKey, Long> difference(ItemCounts before, ItemCounts after) {
         Map<ItemKey, Long> result = new LinkedHashMap<>();
 

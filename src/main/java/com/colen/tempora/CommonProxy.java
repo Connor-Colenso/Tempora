@@ -32,7 +32,7 @@ import cpw.mods.fml.relauncher.Side;
 public class CommonProxy {
 
     public void preInit(FMLPreInitializationEvent event) {
-        // First, so Config.enabled is known from preInit on.
+        // First so Config.enabled is known from preInit on
         Config.load(event.getModConfigurationDirectory());
         ConfigurationManager.registerConfig(CommandsConfig.class);
         GameRegistry.registerItem(Tempora.temporaWand, "admin_wand");
@@ -63,7 +63,7 @@ public class CommonProxy {
 
         TemporaEvents.registerAll();
 
-        // Each logger handles their own config settings. Loggers other mods register later read theirs as they do.
+        // Each logger loads its own config. Loggers other mods register later read theirs when they register
         TemporaLoggerManager.loadConfig();
 
         MinecraftForge.EVENT_BUS.register(new OnWorldLoad());

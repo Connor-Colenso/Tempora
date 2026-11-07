@@ -23,18 +23,18 @@ public class PlayerDeathEventInfo extends PositionalEventInfo {
     @Column(type = ColumnType.PLAYER)
     public String playerUUID = PlayerUtils.UNKNOWN_PLAYER_NAME;
 
-    // See DeathCause.
+    // See DeathCause
     @Column(type = ColumnType.PLAYER)
     public String killerPlayerUUID = PlayerUtils.UNKNOWN_PLAYER_NAME;
 
     @Column
     public String killedBy = PlayerUtils.UNKNOWN_CAUSE;
 
-    // The XP level they had, which dying loses unless keepInventory is on.
+    // XP level they had, dying loses it unless keepInventory is on
     @Column
     public int xpLevel;
 
-    // The keepInventory game rule, which decides whether they dropped everything.
+    // keepInventory gamerule, decides whether they dropped everything
     @Column
     public boolean keepInventory;
 

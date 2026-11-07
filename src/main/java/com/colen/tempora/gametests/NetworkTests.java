@@ -25,15 +25,13 @@ import com.mojang.authlib.GameProfile;
 import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.relauncher.Side;
 
-/**
- * A packet FML can't send, to a player with no connection such as a machine's fake player, doesn't throw where it is
- * sent: FML keeps the error in Tempora's shared server channel and throws it at the next packet any player's client
- * sends Tempora, disconnecting that player. So nothing may send to a player without a connection.
- */
+// A packet FML can't send, to a player with no connection like a machine's fake player, doesn't throw where it's sent.
+// FML parks the error in our shared server channel and throws it at the next packet any client sends us, disconnecting
+// that player. So nothing can send to a player without a connection
 @GameTestHolder(Tempora.MODID)
 public class NetworkTests {
 
-    // A block breaker or activator holding a wand.
+    // A block breaker or activator holding a wand
     @GameTest
     public static void wandUsedByMachineLeavesNetworkWorking(GameTestHelper helper) {
         String name = "tempora_wand_machine";
@@ -84,7 +82,7 @@ public class NetworkTests {
         helper.succeed();
     }
 
-    // Throws, and clears, whatever error the channel is keeping for the next inbound packet.
+    // Throws and clears whatever error the channel is holding for the next inbound packet
     private static void assertNetworkWorking(GameTestHelper helper) {
         try {
             NetworkRegistry.INSTANCE.getChannel(Tempora.MODID, Side.SERVER)

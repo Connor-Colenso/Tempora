@@ -15,14 +15,12 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.relauncher.Side;
 
-/**
- * Logs each dimension's weather changing between clear, rain and thunder, whatever changed it: the weather cycle,
- * /weather, or another mod. Dimensions without a sky, like the Nether, are skipped as they never have weather.
- */
+// Logs each dimension's weather changing between clear, rain and thunder, whatever changed it (weather cycle, /weather,
+// another mod). Dims without a sky like the Nether are skipped, they never have weather
 public class WeatherLogger extends GenericGlobalLogger<WeatherEventInfo> {
 
-    // Each world's weather when it was last checked. A world seen for the first time is only noted, as there is no
-    // change to log yet. Weak, so unloaded worlds are let go, and a world loaded again starts afresh.
+    // Each world's weather when last checked. A world seen for the first time is only noted since there's no change
+    // yet. Weak so unloaded worlds get let go and a reloaded world starts fresh
     private final Map<World, Weather> lastWeather = new WeakHashMap<>();
 
     @Override
@@ -59,7 +57,7 @@ public class WeatherLogger extends GenericGlobalLogger<WeatherEventInfo> {
         logWeatherChange(event.world.provider.dimensionId, previous, weather);
     }
 
-    /** Logs a dimension's weather changing. */
+    // Logs a dimension's weather changing
     public void logWeatherChange(int dimensionID, Weather previous, Weather weather) {
         if (!isEnabledByConfig) return;
 

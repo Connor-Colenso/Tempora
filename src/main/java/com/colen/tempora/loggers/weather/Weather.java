@@ -8,29 +8,29 @@ import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.world.World;
 
-/** The weather players see in a world. Stored in the database by name. */
+// Weather players see in a world, stored by name
 public enum Weather {
 
     CLEAR(EnumChatFormatting.GOLD),
     RAIN(EnumChatFormatting.BLUE),
     THUNDER(EnumChatFormatting.DARK_PURPLE);
 
-    // How it is coloured in chat.
+    // Chat colour
     private final EnumChatFormatting colour;
 
     Weather(EnumChatFormatting colour) {
         this.colour = colour;
     }
 
-    // What the world shows right now, rather than the target its weather is moving towards. This is what players see,
-    // and also catches dimensions whose mods run their own weather.
+    // What the world shows right now, not where its weather is heading. That's what players see, and it catches dims
+    // whose mods run their own weather
     public static Weather of(World world) {
         if (world.isThundering()) return THUNDER;
         if (world.isRaining()) return RAIN;
         return CLEAR;
     }
 
-    // A stored name, translated. Shown as stored if it is not one of these, e.g. written by a newer version.
+    // Stored name translated, shown as is if it's not one of these (e.g. written by a newer version)
     public static IChatComponent chatComponent(String storedName) {
         for (Weather weather : values()) {
             if (weather.name()

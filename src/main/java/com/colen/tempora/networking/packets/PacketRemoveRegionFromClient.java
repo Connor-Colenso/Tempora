@@ -8,7 +8,7 @@ public class PacketRemoveRegionFromClient implements IMessage {
 
     private String uuid;
 
-    // Required empty constructor
+    // Needs an empty constructor
     public PacketRemoveRegionFromClient() {}
 
     public PacketRemoveRegionFromClient(String uuid) {

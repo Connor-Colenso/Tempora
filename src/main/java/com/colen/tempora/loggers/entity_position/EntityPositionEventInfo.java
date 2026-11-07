@@ -13,12 +13,13 @@ import io.netty.buffer.ByteBuf;
 
 public class EntityPositionEventInfo extends PositionalEventInfo {
 
-    // The mob's number in this logger's Mobs table, which holds its UUID and name once however often it is logged.
-    // Given by the logger as the event is stored, see EntityPositionLogger.
+    // Mob's number in this logger's Mobs table, which holds its UUID and name once however often it's logged. Set by
+    // the logger as the event is stored
     @Column
     public long mobID;
 
-    // Not columns: stored in the Mobs table. Set as the mob is logged, and filled in again as events are read back.
+    // Not columns, they live in the Mobs table. Set when the mob is logged and filled in again when events are read
+    // back
     public String entityName = "";
     public String entityUUID = "";
 

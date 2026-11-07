@@ -19,7 +19,7 @@ import io.netty.buffer.ByteBuf;
 
 public class CommandEventInfo extends PositionalEventInfo {
 
-    // Commands longer than this are cut short in chat.
+    // Commands longer than this get cut short in chat
     private static final int MAX_SHOWN_LENGTH = 40;
 
     @Column(type = ColumnType.PLAYER)
@@ -51,7 +51,7 @@ public class CommandEventInfo extends PositionalEventInfo {
     public IChatComponent localiseText() {
         String command = "/" + commandName + (arguments.isEmpty() ? "" : " " + arguments);
 
-        // Long commands are cut short so the line fits, the whole of it is on hover. Clicking puts it in the chat box.
+        // Cut long commands so the line fits, the full thing is on hover. Clicking puts it in the chat box
         boolean cut = command.length() > MAX_SHOWN_LENGTH;
         IChatComponent shown = EventChat
             .text(cut ? command.substring(0, MAX_SHOWN_LENGTH - 3) + "..." : command, EnumChatFormatting.WHITE);

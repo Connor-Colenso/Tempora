@@ -18,22 +18,22 @@ import com.colen.tempora.loggers.generic.PositionalEventInfo;
 
 public class NBTUtils {
 
-    // Stored in place of NBT, so kept to a character at most: almost every block and item event has one. None of them
-    // can be Base64, so real NBT is never mistaken for one.
+    // Stored in place of NBT so kept to a char at most, nearly every block and item event has one. None of them can be
+    // Base64 so real NBT never gets mistaken for one
     public static final String NO_NBT = "";
-    // There was NBT, but logging NBT is off.
+    // There was NBT but NBT logging is off
     public static final String NBT_DISABLED = "-";
-    // The tile entity or item threw while saving its NBT (another mod's bug), so there is none to store.
+    // TE or item threw while saving its NBT (another mod's bug), nothing to store
     public static final String NBT_UNREADABLE = "!";
 
-    // Whether this is real encoded NBT, rather than null or one of the markers above.
+    // Whether this is real encoded NBT, not null or one of the markers above
     public static boolean hasStoredNBT(String encodedNBT) {
         return encodedNBT != null && !NO_NBT.equals(encodedNBT)
             && !NBT_DISABLED.equals(encodedNBT)
             && !NBT_UNREADABLE.equals(encodedNBT);
     }
 
-    // Encode NBTTagCompound to Base64 String
+    // NBTTagCompound to Base64
     public static String encodeToString(NBTTagCompound tagCompound) {
         try {
             return Base64.getEncoder()
@@ -43,7 +43,7 @@ public class NBTUtils {
         }
     }
 
-    // Decode it back out again.
+    // And back again
     public static NBTTagCompound decodeFromString(String encodedString) {
         try {
             byte[] data = Base64.getDecoder()
@@ -55,10 +55,10 @@ public class NBTUtils {
         }
     }
 
-    // Tile entity types already warned about, see getEncodedTileEntityNBT.
+    // TE types already warned about, see getEncodedTileEntityNBT
     private static final Set<Class<?>> UNSAVABLE_TILE_ENTITIES = ConcurrentHashMap.newKeySet();
 
-    // Realise this seems a bit silly but reduces code duplication elsewhere for handling identical logic.
+    // Seems a bit silly but saves duplicating the same logic elsewhere
     public static String getEncodedTileEntityNBT(World world, int x, int y, int z, boolean nbtLoggingEnabled) {
         if (world == null) return NO_NBT;
 
@@ -73,8 +73,8 @@ public class NBTUtils {
                 tileEntity.writeToNBT(tag);
                 return encodeToString(tag);
             } catch (RuntimeException | LinkageError e) {
-                // Another mod's tile entity that can't save itself. Logging must never stop the block being broken or
-                // changed, so the event is stored without its NBT.
+                // Another mod's TE that can't save itself. Logging must never stop a block being broken or changed, so
+                // the event gets stored without its NBT
                 if (UNSAVABLE_TILE_ENTITIES.add(tileEntity.getClass())) {
                     LOG.warn(
                         "{} at {}, {}, {} in dimension {} threw while saving its NBT, so Tempora stores its events without "
@@ -94,19 +94,16 @@ public class NBTUtils {
         }
     }
 
-    // ByteBufUtils.writeUTF8String takes at most this many bytes, and encoded NBT is Base64, so one byte per character.
+    // ByteBufUtils.writeUTF8String takes at most this many bytes, and encoded NBT is Base64 so one byte per char
     private static final int MAX_CLIENT_NBT_LENGTH = 16383;
 
-    // Events already warned about, so each is logged once rather than on every lookup that sends it (and twice per
-    // send, as RenderEventPacket.sendSafely writes it once to check it first).
+    // Events already warned about, so each gets logged once instead of on every lookup that sends it (and twice per
+    // send since RenderEventPacket.sendSafely writes it once to check it first)
     private static final int MAX_WARNED_EVENTS = 1_000;
     private static final Set<String> WARNED_EVENTS = ConcurrentHashMap.newKeySet();
 
-    /**
-     * Encoded NBT as sent to the client to draw an event: as stored, unless it is too long for a packet string,
-     * when the client is told only that there was some. It then draws the block with a fresh tile
-     * entity.
-     */
+    // Encoded NBT as sent to the client to draw an event. As stored, unless it's too long for a packet string, then the
+    // client only gets told there was some and draws the block with a fresh TE
     public static String forClient(String encodedNBT, PositionalEventInfo event) {
         if (encodedNBT == null || encodedNBT.length() <= MAX_CLIENT_NBT_LENGTH) return encodedNBT;
 
@@ -128,11 +125,11 @@ public class NBTUtils {
         return NBT_DISABLED;
     }
 
-    // Items already warned about, see getEncodedItemNBT.
+    // Items already warned about, see getEncodedItemNBT
     private static final Set<Item> UNSAVABLE_ITEMS = ConcurrentHashMap.newKeySet();
 
-    // An item's NBT as the item loggers store it: NO_NBT when it has none, NBT_DISABLED when it has some but logging
-    // NBT is off, NBT_UNREADABLE when it can't be encoded.
+    // Item NBT as the item loggers store it. NO_NBT if none, NBT_DISABLED if it has some but NBT logging is off,
+    // NBT_UNREADABLE if it can't be encoded
     public static String getEncodedItemNBT(Item item, NBTTagCompound tag, boolean nbtLoggingEnabled) {
         if (tag == null) return NO_NBT;
         if (!nbtLoggingEnabled) return NBT_DISABLED;
@@ -140,8 +137,8 @@ public class NBTUtils {
         try {
             return encodeToString(tag);
         } catch (RuntimeException e) {
-            // A tag another mod filled with something NBT can't write, e.g. a null string. The event is still stored,
-            // without the NBT.
+            // A tag another mod filled with something NBT can't write (e.g. a null string). Event still gets stored
+            // without the NBT
             if (UNSAVABLE_ITEMS.add(item)) {
                 LOG.warn(
                     "The NBT of a {} could not be encoded, so Tempora stores its events without NBT. Logged once per item.",
@@ -152,7 +149,7 @@ public class NBTUtils {
         }
     }
 
-    // Undoes getEncodedItemNBT. Null when there was no NBT, it was not logged, or it cannot be read.
+    // Undoes getEncodedItemNBT. Null if there was no NBT, it wasn't logged or it can't be read
     public static NBTTagCompound decodeItemNBT(String encodedNBT) {
         if (!hasStoredNBT(encodedNBT)) return null;
 

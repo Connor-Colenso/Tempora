@@ -18,10 +18,8 @@ import org.jetbrains.annotations.Nullable;
 
 import com.colen.tempora.utils.CommandUtils;
 
-/**
- * A subcommand that only holds other subcommands, e.g. "region" holds "region create", "region list", ...
- * Run on its own, it lists them.
- */
+// Subcommand that only holds other subcommands, e.g. "region" holds "region create", "region list" etc. On its own it
+// lists them
 public class TemporaSubcommandGroup extends TemporaSubcommand {
 
     private final Map<String, TemporaSubcommand> children = new LinkedHashMap<>();
@@ -59,7 +57,7 @@ public class TemporaSubcommandGroup extends TemporaSubcommand {
         TemporaSubcommand child = children.get(args[0].toLowerCase(Locale.ROOT));
         String[] childArgs = Arrays.copyOfRange(args, 1, args.length);
 
-        // "/tempora lookup ?" shows the help page, from the console too.
+        // "/tempora lookup ?" shows the help page, console too
         if (child != null && !(child instanceof TemporaSubcommandGroup)
             && !child.isHidden()
             && isHelpRequest(childArgs)) {
@@ -100,7 +98,7 @@ public class TemporaSubcommandGroup extends TemporaSubcommand {
         return child.tabComplete(sender, Arrays.copyOfRange(args, 1, args.length));
     }
 
-    // Follows names down through nested groups, e.g. ["region", "set"]. Null if there is no such subcommand.
+    // Follows names down through nested groups, e.g. ["region", "set"]. Null if there's no such subcommand
     public @Nullable TemporaSubcommand find(String[] names) {
         TemporaSubcommand found = this;
         for (String name : names) {
@@ -119,7 +117,7 @@ public class TemporaSubcommandGroup extends TemporaSubcommand {
         return names;
     }
 
-    // Every runnable, non hidden subcommand under this group, including those inside nested groups.
+    // Every runnable non hidden subcommand under this group, nested groups included
     public List<TemporaSubcommand> getVisibleCommands() {
         List<TemporaSubcommand> commands = new ArrayList<>();
         for (TemporaSubcommand child : children.values()) {
@@ -134,7 +132,7 @@ public class TemporaSubcommandGroup extends TemporaSubcommand {
         return commands;
     }
 
-    // One clickable usage line per subcommand, hover for what it does.
+    // One clickable usage line per subcommand, hover for what it does
     public void sendCommandList(ICommandSender sender) {
         IChatComponent header = new ChatComponentTranslation("tempora.command.list.header");
         header.getChatStyle()

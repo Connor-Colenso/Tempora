@@ -1,5 +1,7 @@
 package com.colen.tempora.utils;
 
+import static com.colen.tempora.Tempora.LOG;
+
 import java.util.List;
 
 import net.minecraft.command.CommandBase;
@@ -23,19 +25,35 @@ public class CommandUtils {
 
     public static final int OP_ONLY = 2;
 
-    /**
-     * Whether this player may use /tempora, and so the wand, teleport clicks and Tempora's warnings to admins. Asked of
-     * the server's list of commands the player may use, which is what permission mods change (ServerUtilities applies
-     * its ranks there), so this always agrees with /tempora itself. Without such a mod it is /tempora's op check.
-     */
+    // Whether this player can use /tempora, and so the wand, teleport clicks and our admin warnings. Asks the server's
+    // list of commands the player can use, which is what permission mods change (ServerUtilities ranks go there), so it
+    // always agrees with /tempora itself. Without one it's just /tempora's op check
+    //
+    // Building that list runs every mod's permission check, and those can throw (WarpTheory NPEs on a player who isn't
+    // in the player list). This gets called from the server tick, so one bad check can't take it down. Falls back to
+    // the op check, so someone only allowed through a rank loses access while a check is throwing
     public static boolean mayUseTempora(EntityPlayerMP player) {
         ICommandManager commands = player.mcServer.getCommandManager();
         Object tempora = commands.getCommands()
             .get(TemporaCommand.NAME);
         if (tempora == null) return player.canCommandSenderUseCommand(OP_ONLY, TemporaCommand.NAME);
-        return commands.getPossibleCommands(player)
-            .contains(tempora);
+        try {
+            return commands.getPossibleCommands(player)
+                .contains(tempora);
+        } catch (RuntimeException e) {
+            if (!warnedAboutCommandCheck) {
+                warnedAboutCommandCheck = true;
+                LOG.warn(
+                    "Another mod's command permission check threw for {}, so /tempora access is using the op check.",
+                    player.getCommandSenderName(),
+                    e);
+            }
+            return player.canCommandSenderUseCommand(OP_ONLY, TemporaCommand.NAME);
+        }
     }
+
+    // Only the first, this runs on every tab complete and could fail every time
+    private static boolean warnedAboutCommandCheck;
 
     @NotNull
     public static List<String> completeLoggerNames(String[] args) {
@@ -45,7 +63,7 @@ public class CommandUtils {
                 .toArray(new String[0]));
     }
 
-    // Note this is not localised, because it may be called from terminal, which has no localisation functionality.
+    // Not localised since the console can call it and it has no localisation
     public static final String ONLY_IN_GAME = "This command may only be executed by a player in-game.";
 
     public static IChatComponent playerOnly() {
@@ -70,7 +88,7 @@ public class CommandUtils {
     public static @NotNull IChatComponent teleportChatComponent(double x, double y, double z, final int dimID,
         final TeleportType teleportType) {
 
-        // Titled in the coordinates' colour, as the GTNH pack's tooltips draw a grey first line white.
+        // Titled in the coords' colour since GTNH tooltips draw a grey first line white
         IChatComponent title = new ChatComponentTranslation("tempora.teleport.hover");
         title.getChatStyle()
             .setColor(EnumChatFormatting.AQUA);
@@ -88,8 +106,7 @@ public class CommandUtils {
                 new ChatComponentNumber(z)))
             : EventChat.titledHover(title, dimension);
 
-        // Offset the teleport to put the player in the middle of the block. Still shown as that block, as the display
-        // rounds down.
+        // Offset to put the player in the middle of the block. Still shown as that block since the display rounds down
         if (teleportType == TeleportType.BLOCK) {
             x += 0.5;
             y += 0.5;

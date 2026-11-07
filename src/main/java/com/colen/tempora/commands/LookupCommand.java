@@ -32,22 +32,20 @@ import com.colen.tempora.utils.PlayerUtils;
 import com.colen.tempora.utils.TimeUtils;
 import com.colen.tempora.utils.TimeWindow;
 
-/**
- * /tempora lookup [r:<radius>] [t:<time>] [l:<logger,...>] [p:<player,...>] [n:<count>] [s:<sort>]
- * Shows the latest events around the player, from every positional logger unless narrowed down with l:, and by anyone
- * unless narrowed down with p:. They are listed under each logger, or with s:time all together in the order they
- * happened. Global loggers, which have no position, are looked up with /tempora global instead.
- */
+// /tempora lookup [r:<radius>] [t:<time>] [l:<logger,...>] [p:<player,...>] [n:<count>] [s:<sort>]
+// Latest events around the player from every positional logger unless narrowed with l:, by anyone unless narrowed with
+// p:. Listed under each logger, or with s:time all together in the order they happened. Global loggers have no position
+// so they use /tempora global instead
 public class LookupCommand extends TemporaSubcommand {
 
     private static final String DEFAULT_RADIUS = "10";
     private static final String DEFAULT_TIME = "3d";
     static final long DAY_SECONDS = 86_400;
-    // Per logger. Each event is also drawn in the world, so this stays well below /tempora global's.
+    // Per logger. Each event gets drawn in the world too so keep this well below /tempora global's
     public static final int DEFAULT_COUNT = 5;
-    // In all, with s:time, which shares them between every logger.
+    // In total with s:time, shared between every logger
     public static final int DEFAULT_COUNT_BY_TIME = 10;
-    // Only so the search box can't overflow an int: centre (at most 30 million out, the world border) + radius + 1.
+    // Only so the search box can't overflow an int, centre (30 million out at most, the world border) + radius + 1
     private static final int MAX_RADIUS = 2_000_000_000;
 
     public LookupCommand() {
@@ -90,7 +88,7 @@ public class LookupCommand extends TemporaSubcommand {
         showEvents(
             player,
             loggers,
-            // The block the player stands in. Rounding would pick the next block over once past its middle.
+            // Block the player stands in, rounding would pick the next block over once past its middle
             MathHelper.floor_double(player.posX),
             MathHelper.floor_double(player.posY),
             MathHelper.floor_double(player.posZ),
@@ -103,7 +101,7 @@ public class LookupCommand extends TemporaSubcommand {
             summary.line(false));
     }
 
-    // Every filter, as typed or its default, for the line under the results.
+    // Every filter as typed or its default, for the line under the results
     private SearchSummary summarise(CommandFilters filters, SortOrder order) {
         return new SearchSummary(this, filters).add("r", DEFAULT_RADIUS)
             .add("t", DEFAULT_TIME)
@@ -113,13 +111,13 @@ public class LookupCommand extends TemporaSubcommand {
             .add("s", SortOrder.DEFAULT);
     }
 
-    // n:'s default: per logger, or in all with s:time.
+    // n: default, per logger or in total with s:time
     public static int defaultCount(SortOrder order) {
         return order == SortOrder.TIME ? DEFAULT_COUNT_BY_TIME : DEFAULT_COUNT;
     }
 
-    // Comma separated positional logger names, or every positional logger if null. Null, after telling the sender,
-    // if a name is unknown or a global logger.
+    // Comma separated positional logger names, or every positional logger if null. Returns null after telling the
+    // sender if a name is unknown or global
     public static @Nullable List<GenericPositionalLogger<?>> parseLoggers(ICommandSender sender,
         @Nullable String names) {
         if (names == null) return TemporaLoggerManager.getPositionalLoggers();
@@ -148,10 +146,9 @@ public class LookupCommand extends TemporaSubcommand {
         sendError(sender, "tempora.command.unknown_logger", name, String.join(", ", choices));
     }
 
-    // Looks up each logger's latest events near a position in the player's dimension, up to count of each, on the query
-    // thread, then shows them followed by afterResults, if any, or just nothingFound if none of them had any. Sorted by
-    // time, count is of all of them together. A radius of 0 means exactly that block. Loggers whose events have no
-    // player are left out when filtering by player.
+    // Looks up each logger's latest events near a position in the player's dimension, up to count each, on the query
+    // thread. Then shows them followed by afterResults if any, or just nothingFound if nothing had any. Sorted by time,
+    // count is the total. Radius 0 is just that block. Loggers with no player get left out when filtering by player
     public static void showEvents(EntityPlayerMP player, Collection<GenericPositionalLogger<?>> loggers, int x, int y,
         int z, int radius, TimeWindow window, PlayerFilter players, int count, SortOrder order,
         @Nullable IChatComponent afterResults, IChatComponent nothingFound) {
@@ -160,7 +157,7 @@ public class LookupCommand extends TemporaSubcommand {
         TemporaQueries.submit(player, () -> {
             List<FoundEvents<?>> found = new ArrayList<>();
             for (GenericPositionalLogger<?> logger : loggers) {
-                // A logger that is disabled, or failed to start, has no database to read.
+                // Disabled or failed to start, no db to read
                 if (logger.notStarted()) continue;
 
                 found.add(logger.findEventsNear(dimension, x, y, z, radius, window, players, count));
@@ -179,8 +176,8 @@ public class LookupCommand extends TemporaSubcommand {
         });
     }
 
-    // Shows what each logger found, under each logger, or all together by time up to count in all. Returns how many
-    // were shown.
+    // Shows what each logger found, under each logger or all together by time up to count total. Returns how many were
+    // shown
     public static int show(ICommandSender sender, List<FoundEvents<?>> found, int count, SortOrder order) {
         if (order == SortOrder.TIME) return FoundEvents.showByTime(sender, found, count);
 

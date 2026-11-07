@@ -17,15 +17,13 @@ import com.colen.tempora.rendering.events.PlayerGhostRenderer;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-/**
- * Shows the player where they picked up or dropped items, facing the way they looked and holding the newest, with what
- * they picked up (green) or dropped (red) there above them. Items thrown out get an arrow the way they were thrown.
- */
+// Player where they picked up or dropped items, facing the way they looked and holding the newest, with what they
+// picked up (green) or dropped (red) above them. Thrown items get an arrow the way they were thrown
 @SideOnly(Side.CLIENT)
 public class ItemPickupDropRenderer extends PlayerGhostRenderer<ItemPickupDropEventInfo> {
 
     private static final Color DROP_ARROW_COLOUR = new Color(231, 76, 60);
-    // Vanilla throws items from just below the player's eyes.
+    // Vanilla throws items from just below the eyes
     private static final double THROW_HEIGHT = 1.62 - 0.3;
     private static final double DROP_ARROW_LENGTH = 1.5;
 
@@ -52,7 +50,7 @@ public class ItemPickupDropRenderer extends PlayerGhostRenderer<ItemPickupDropEv
     public void renderWorld(List<ItemPickupDropEventInfo> events, EventRenderContext context) {
         super.renderWorld(events, context);
 
-        // Only items thrown out (Q, or dragged out of a GUI) go the way the player looked. Death drops scatter.
+        // Only thrown items (Q or dragged out of a GUI) go the way the player looked, death drops scatter
         for (ItemPickupDropEventInfo event : events) {
             if (ItemPickupDropLogger.Action.fromDbId(event.action) != ItemPickupDropLogger.Action.DROP) continue;
             EventRenderHelpers.renderLookArrow(

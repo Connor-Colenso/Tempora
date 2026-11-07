@@ -12,8 +12,8 @@ import com.colen.tempora.loggers.inventory.InventoryTransactionTracker;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 
-// Every packet a player sends, mod packets included, is handled here on the server thread. Wrapping each one lets the
-// inventory logger compare a player's items before and after whatever the packet did.
+// Every packet a player sends, mod packets included, gets handled here on the server thread. Wrapping each one lets the
+// inventory logger compare items before and after whatever the packet did
 @Mixin(NetworkManager.class)
 public abstract class MixinNetworkManager {
 

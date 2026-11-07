@@ -10,10 +10,8 @@ import net.minecraft.util.IChatComponent;
 import com.colen.tempora.Tempora;
 import com.colen.tempora.commands.command_base.TemporaSubcommand;
 
-/**
- * /tempora wand
- * Gives the player a Tempora wand, which shows a block's history when clicked.
- */
+// /tempora wand
+// Gives the player a Tempora wand, click a block to see its history
 public class WandCommand extends TemporaSubcommand {
 
     public WandCommand() {
@@ -31,7 +29,7 @@ public class WandCommand extends TemporaSubcommand {
 
         ItemStack wand = new ItemStack(Tempora.temporaWand);
         if (!player.inventory.addItemStackToInventory(wand)) {
-            // Inventory full, so drop it at their feet instead.
+            // Inventory full, drop it at their feet
             player.dropPlayerItemWithRandomChoice(wand, false);
         }
         player.inventoryContainer.detectAndSendChanges();

@@ -7,28 +7,27 @@ import com.colen.tempora.commands.TemporaCommand;
 import com.colen.tempora.utils.TimeWindow;
 
 /**
- * A logger for events that belong to the whole server rather than a place, such as the weather changing or the
- * server's TPS. Its events have no position, so region rules never apply to them and they are never drawn in the
- * world. They are looked up from anywhere with /tempora global, including the server console.
+ * Logger for server wide events with no place, like weather changing or TPS. No position so region rules don't apply
+ * and nothing gets drawn in the world. Looked up from anywhere with /tempora global, console included
  * <p>
- * Registered and fed events just like a {@link GenericPositionalLogger}: subclass this and {@link GlobalEventInfo},
- * register it with {@link com.colen.tempora.TemporaLoggerManager#register}, and build each event in your own log
- * methods with {@link #logEvent}.
+ * Registered and fed the same as a {@link GenericPositionalLogger}. Subclass this and {@link GlobalEventInfo}, register
+ * with {@link com.colen.tempora.TemporaLoggerManager#register} and build events in your own log methods with
+ * {@link #logEvent}
  */
 @SuppressWarnings("SqlDialectInspection")
 public abstract class GenericGlobalLogger<EventInfo extends GlobalEventInfo> extends GenericLogger<EventInfo> {
 
     /**
-     * Fills in what every event shares (id and time) and queues it. Each logger's own log methods build their event
-     * with this, whether they were triggered by Forge or reported by another mod.
+     * Fills in the shared bits (id and time) and queues it. Every log method builds its event through this, whether
+     * Forge triggered it or another mod reported it
      */
     protected final void logEvent(EventInfo eventInfo) {
         logNewEvent(eventInfo);
     }
 
     /**
-     * Finds the latest events, up to {@code limit} of them, on the query thread (see {@link TemporaQueries}). Showing
-     * them says nothing if there are none, so callers checking many loggers can report that once.
+     * Latest events up to {@code limit}, on the query thread (see {@link TemporaQueries}). Showing them is silent if
+     * there are none so callers checking lots of loggers can say so once
      */
     public final FoundEvents<EventInfo> findLatestEvents(TimeWindow window, int limit) {
         String sql = String.format("""

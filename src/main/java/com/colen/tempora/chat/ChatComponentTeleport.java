@@ -14,10 +14,8 @@ import com.colen.tempora.networking.packets.PacketTeleportRequest;
 import com.gtnewhorizon.gtnhlib.chat.AbstractChatComponentCustom;
 import com.gtnewhorizon.gtnhlib.util.numberformatting.NumberFormatConfig;
 
-/**
- * Clickable coordinates: carries a position, and asks the server to teleport the clicking player there. The server
- * decides whether they may, so a click from a player who can't use /tempora does nothing but tell them so.
- */
+// Clickable coords, carries a position and asks the server to teleport the clicking player there. Server decides if
+// they're allowed, so a click from someone who can't use /tempora just tells them so
 public class ChatComponentTeleport extends AbstractClickableChatComponent<ChatComponentTeleport> {
 
     private double x;
@@ -34,8 +32,8 @@ public class ChatComponentTeleport extends AbstractClickableChatComponent<ChatCo
 
     public ChatComponentTeleport() {}
 
-    // Shown as the block it is in, like the F3 screen, as that is all a lookup needs and it keeps lines short.
-    // Formatted here, on the client, so in the player's own number format.
+    // Shown as the block it's in like F3, that's all a lookup needs and it keeps lines short. Formatted here on the
+    // client so it's in the player's own number format
     @Override
     public String getUnformattedTextForChat() {
         String separator = coordinateSeparator();
@@ -46,22 +44,19 @@ public class ChatComponentTeleport extends AbstractClickableChatComponent<ChatCo
         return StatCollector.translateToLocalFormatted("tempora.teleport.display", position);
     }
 
-    /**
-     * A space between coordinates, unless the player's number format groups digits with spaces (1 000), when
-     * "1 000 64 1 000" would be unreadable. These are whole numbers, so grouping is the only character that can clash.
-     * Checked against every JDK locale on Java 8, 17 and 25: the others group with commas, full stops, apostrophes or
-     * Arabic separators.
-     */
+    // Space between coords, unless the player's number format groups digits with spaces (1 000) where "1 000 64 1 000"
+    // would be unreadable. Whole numbers so grouping is the only thing that can clash. Checked against every JDK locale
+    // on Java 8, 17 and 25, the rest group with commas, full stops, apostrophes or Arabic separators
     private static String coordinateSeparator() {
-        // With formatting off, GTNHLib prints raw numbers, which have no grouping at all.
+        // With formatting off GTNHLib prints raw numbers, no grouping at all
         if (NumberFormatConfig.disableFormattedNotation) return " ";
         char grouping = DecimalFormatSymbols.getInstance(NumberFormatConfig.getActiveLocale())
             .getGroupingSeparator();
-        // isSpaceChar, not isWhitespace, as that skips the no-break spaces French and others group with.
+        // isSpaceChar not isWhitespace, the latter skips the no break spaces French and others group with
         return Character.isSpaceChar(grouping) ? ", " : " ";
     }
 
-    // Client side.
+    // Client side
     @Override
     protected void onClicked() {
         Tempora.NETWORK.sendToServer(new PacketTeleportRequest(x, y, z, dimID));

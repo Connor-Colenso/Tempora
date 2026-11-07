@@ -15,8 +15,8 @@ import com.colen.tempora.chat.clientclick.ClientClickEvent;
 
 /**
  * Runs a {@link ClientClickEvent} when its chat text is left clicked, before vanilla handles the click. Finds the
- * clicked text the same way vanilla's mouseClicked does. Self-contained apart from the event, so it can move to
- * GTNHLib with it.
+ * clicked text the same way vanilla's mouseClicked does. Self contained apart from the event so it can move to GTNHLib
+ * with it
  */
 @Mixin(GuiChat.class)
 public abstract class MixinGuiChat extends GuiScreen {

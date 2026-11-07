@@ -11,11 +11,11 @@ import com.colen.tempora.loggers.generic.PositionalEventInfo;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-/** Which renderer draws each positional logger's events on the client. */
+/** Which renderer draws each positional logger's events on the client */
 @SideOnly(Side.CLIENT)
 public final class EventRenderers {
 
-    // Keyed by logger name, which is what the server sends with each event.
+    // Keyed by logger name, which is what the server sends with each event
     private static final Map<String, EventRenderer<?>> RENDERERS = new HashMap<>();
 
     private static final EventRenderer<PositionalEventInfo> FALLBACK = new DefaultEventRenderer();
@@ -23,8 +23,8 @@ public final class EventRenderers {
     private EventRenderers() {}
 
     /**
-     * Sets how a logger's events are drawn. Call this from your client proxy while mods load, after registering the
-     * logger itself with {@link TemporaLoggerManager#register}. A logger without a renderer gets a plain box and label.
+     * Sets how a logger's events are drawn. Call from your client proxy during mod loading, after registering the
+     * logger with {@link TemporaLoggerManager#register}. Loggers without a renderer get a plain box and label
      */
     public static <E extends PositionalEventInfo> void register(GenericPositionalLogger<E> logger,
         EventRenderer<? super E> renderer) {
@@ -42,7 +42,7 @@ public final class EventRenderers {
         }
     }
 
-    /** Empties every renderer's caches, as the client world unloads. */
+    // Clears every renderer's caches on client world unload
     static void clearCaches() {
         for (EventRenderer<?> renderer : RENDERERS.values()) {
             renderer.clearCaches();
@@ -50,10 +50,8 @@ public final class EventRenderers {
         FALLBACK.clearCaches();
     }
 
-    /**
-     * The renderer for the named logger, or the plain fallback. Typed by the caller: a logger's renderer only ever gets
-     * that logger's events.
-     */
+    // Renderer for the named logger, or the plain fallback. Caller picks the type, a logger's renderer only ever gets
+    // that logger's events
     @SuppressWarnings("unchecked")
     static EventRenderer<PositionalEventInfo> get(String loggerName) {
         EventRenderer<?> renderer = RENDERERS.get(loggerName);

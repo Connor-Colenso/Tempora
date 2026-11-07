@@ -12,7 +12,7 @@ public class DatabaseUtils {
     public static final String MISSING_STRING_DATA = "MISSING_DATA";
 
     public static Path databaseDir() {
-        // Works for both dedicated and integrated servers.
+        // Works for dedicated and integrated servers
         File worldDir = DimensionManager.getCurrentSaveRootDirectory();
         if (worldDir == null) throw new NullPointerException("worldDir is null");
         Path dir = worldDir.toPath()
@@ -27,7 +27,7 @@ public class DatabaseUtils {
         return dir;
     }
 
-    /** Absolute JDBC URL for the given database file (e.g. "blocks.db"). */
+    // Absolute JDBC URL for a db file (e.g. "blocks.db")
     public static String jdbcUrl(String fileName) {
         return "jdbc:sqlite:" + databaseDir().resolve(fileName)
             .toAbsolutePath();

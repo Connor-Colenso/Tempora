@@ -53,27 +53,24 @@ import com.gtnewhorizons.horizonqa.api.annotation.MethodSource;
 
 import cpw.mods.fml.common.Loader;
 
-/**
- * World generation is not a block change anyone made, nor a mob spawning, so the block change and entity spawn
- * loggers leave it out in every dimension, whichever generator or mod places the blocks or mobs. What the block
- * updates it leaves behind do later is the world ticking and may be logged (gravel falling into a lava lake), except a
- * generated fluid or fire playing itself out (see WorldGenTicks). The generation tests turn both loggers on over new
- * chunks, generate them, then change a block and spawn a mob there by hand, which must be the only events stored up
- * to then.
- */
+// World gen isn't a block change anyone made or a mob spawning, so the block change and entity spawn loggers leave it
+// out in every dimension whatever generator or mod places the blocks or mobs. What the block updates it leaves behind
+// do later is the world ticking and can be logged (gravel falling into a lava lake), except a generated fluid or fire
+// playing itself out (see WorldGenTicks). The tests turn both loggers on over new chunks, generate them, then change a
+// block and spawn a mob there by hand, which have to be the only events stored up to then
 @GameTestHolder(Tempora.MODID)
 public class WorldGenTests {
 
     private static final int NETHER = -1;
 
-    // Loading a square of chunks populates all but its last row and column: a chunk is populated once the chunks
-    // next to it on the +x and +z sides are there.
+    // Loading a square of chunks populates all but its last row and column, a chunk gets populated once its +x and +z
+    // neighbours are there
     private static final int AREA_CHUNKS = 4;
 
-    // Rounds of pending block updates a test runs straight away, each round running all that are queued.
+    // Rounds of pending block updates a test runs straight away, each round runs everything queued
     private static final int UPDATE_ROUNDS = 40;
 
-    // NewHorizonsCoreMod, which only the GTNH pack has.
+    // NewHorizonsCoreMod, only in the GTNH pack
     private static final String GTNH_CORE_MOD = "dreamcraft";
 
     @GameTest(timeoutTicks = 300)
@@ -87,12 +84,12 @@ public class WorldGenTests {
                 area.changeByHand();
             })
             .thenWaitUntil("the hand's change and spawn are stored", 100, area::assertHandChangesStored)
-            // Events are written in the order they were logged, so anything logged before them is stored by now.
+            // Events are written in the order they were logged, so anything logged before them is stored by now
             .thenWaitUntil("nothing from generation is stored", 100, area::assertOnlyHandChangesStored)
             .thenSucceed();
     }
 
-    // Pre-generated chunks unload before the updates generation left run, so their marks are saved and read back.
+    // Pregenerated chunks unload before the updates generation left get to run, so their marks get saved and read back
     @GameTest(timeoutTicks = 300)
     public static void worldGenMarksSurviveReload(GameTestHelper helper) {
         Area area = new Area(helper, "worldGenMarksSurviveReload", NETHER);
@@ -100,7 +97,7 @@ public class WorldGenTests {
         helper.startSequence()
             .thenExecute("generate nether chunks, then save and read back their updates", () -> {
                 area.generate();
-                // The nether's population leaves updates: fire ageing, lava still to flow.
+                // Nether population leaves updates, fire ageing and lava still to flow
                 int marked = area.markedUpdates();
                 helper.assertTrue(marked > 0, "generation left no world gen updates");
                 area.saveAndReadBackUpdates();
@@ -109,13 +106,13 @@ public class WorldGenTests {
             .thenSucceed();
     }
 
-    // ---------- Updates world gen left, reaching blocks someone placed ----------
+    // Updates world gen left reaching blocks someone placed
 
-    // In a batch of their own, as they run every pending update of the test world.
+    // Own batch since they run every pending update in the test world
     private static final String TICKS_BATCH = "tempora.worldgen_ticks";
 
-    // Generated fire in a box of placed planks: the fire ageing and spreading into the air around it is world gen, the
-    // planks burning are not.
+    // Generated fire in a box of placed planks. The fire ageing and spreading into the air around it is world gen, the
+    // planks burning isn't
     @GameTest(batch = TICKS_BATCH, timeoutTicks = 300)
     public static void generatedFireBurningPlacedPlanksIsLogged(GameTestHelper helper) {
         TestPos fire = at(2, 2, 2);
@@ -154,8 +151,8 @@ public class WorldGenTests {
             .thenSucceed();
     }
 
-    // A generated spring in a walled basin with a placed torch next to it: the water flowing into air is world gen,
-    // washing the torch away is not.
+    // Generated spring in a walled basin with a placed torch next to it. Water flowing into air is world gen, washing
+    // the torch away isn't
     @GameTest(batch = TICKS_BATCH, timeoutTicks = 300)
     public static void generatedSpringFlowingOverPlacedTorchIsLogged(GameTestHelper helper) {
         TestPos spring = at(2, 1, 2);
@@ -170,7 +167,7 @@ public class WorldGenTests {
                         if (x == 0 || x == 4 || z == 0 || z == 4) helper.setBlock(at(x, 1, z), Blocks.stone);
                     }
                 }
-                // Standing on the floor.
+                // Standing on the floor
                 helper.setBlock(torch, Blocks.torch, 5);
                 cell.generate(spring, Blocks.flowing_water);
                 cell.runPendingUpdates();
@@ -202,11 +199,11 @@ public class WorldGenTests {
             .thenSucceed();
     }
 
-    /** A test's own cell in the test world, with the block change logger on over it. */
+    // A test's own cell in the test world with the block change logger on over it
     private static final class Cell {
 
-        // The last change of each test, set by hand. Events are written in the order they were logged, so once it is
-        // stored, everything before it is too.
+        // Last change of each test, set by hand. Events are written in the order they were logged so once it's stored
+        // everything before it is too
         private static final TestPos HAND = at(4, 4, 4);
 
         private final GameTestHelper helper;
@@ -216,12 +213,12 @@ public class WorldGenTests {
 
         Cell(GameTestHelper helper, String testName) {
             this.helper = helper;
-            // Above the cell too, as fire spreads up to 4 blocks up.
+            // Above the cell too, fire spreads up to 4 blocks up
             region(helper, testName, at(0, 0, 0), at(4, 8, 4), TemporaEvents.BLOCK_CHANGE, LogRule.ON);
             handEvents = new Probe<>(helper, testName + ".hand");
             cellEvents = new Probe<>(helper, testName + ".cell");
 
-            // Hodgepodge puts a fluid's update off until the chunks within 6 blocks of it are loaded.
+            // Hodgepodge delays fluid updates until the chunks within 6 blocks are loaded
             TestPos min = helper.absolute(at(0, 0, 0));
             TestPos max = helper.absolute(at(4, 0, 4));
             ChunkProviderServer provider = helper.getWorld().theChunkProviderServer;
@@ -232,7 +229,7 @@ public class WorldGenTests {
             }
         }
 
-        // Places a block as world generation does, so the updates it schedules on being placed are world gen.
+        // Places a block like world gen does, so the updates it schedules on being placed are world gen
         void generate(TestPos pos, Block block) {
             WorldGenPhaseTracker.enter();
             try {
@@ -256,7 +253,7 @@ public class WorldGenTests {
             helper.assertTrue(marked, "the generated block left no world gen update");
         }
 
-        // Runs the test world's pending updates straight away, rather than waiting for their time.
+        // Runs the test world's pending updates straight away instead of waiting for their time
         void runPendingUpdates() {
             for (int i = 0; i < UPDATE_ROUNDS; i++) {
                 helper.getWorld()
@@ -270,7 +267,7 @@ public class WorldGenTests {
                 .getBlock(at.x(), at.y(), at.z());
         }
 
-        // The blocks of one layer of the cell, z by z, for a failure message.
+        // Blocks of one layer of the cell, z by z, for a failure message
         String describeRow(int y) {
             StringBuilder row = new StringBuilder();
             for (int z = 0; z < 5; z++) {
@@ -299,7 +296,7 @@ public class WorldGenTests {
                 "the block set by hand was not stored");
         }
 
-        // Every change stored in and around the cell.
+        // Every change stored in and around the cell
         List<BlockChangeEventInfo> storedChanges() {
             List<BlockChangeEventInfo> changes = new ArrayList<>();
             for (PositionalEventInfo event : cellEvents
@@ -314,18 +311,18 @@ public class WorldGenTests {
         }
     }
 
-    // ---------- Generation in the overworld and the dimensions of the GTNH pack ----------
+    // Generation in the overworld and the GTNH dimensions
 
-    // Generates many areas, one or two a tick.
+    // Generates lots of areas, one or two a tick
     private static final String WORLDGEN_BATCH = "tempora.worldgen";
 
-    // Areas tried per dimension each run, each somewhere new.
+    // Areas tried per dimension each run, each somewhere new
     private static final int AREAS_PER_DIMENSION = 3;
 
     private static final int OVERWORLD = 0;
 
-    // The overworld generated as a normal one would be, see asNormalOverworld: vanilla's terrain, biomes and
-    // features, and every mod's overworld generation.
+    // Overworld generated like a normal one would be, see asNormalOverworld. Vanilla terrain, biomes and features plus
+    // every mod's overworld gen
     @GameTest(batch = WORLDGEN_BATCH, timeoutTicks = 300)
     @MethodSource("overworldAreas")
     public static void overworldGenerationIsNotLogged(GameTestHelper helper, Integer index) {
@@ -339,7 +336,7 @@ public class WorldGenTests {
         return rows;
     }
 
-    // A structure: the start of the stronghold nearest the origin, which population builds from many pieces.
+    // A structure, the start of the stronghold nearest the origin, which population builds from lots of pieces
     @GameTest(batch = WORLDGEN_BATCH, timeoutTicks = 300)
     public static void overworldStrongholdIsNotLogged(GameTestHelper helper) {
         WorldServer world = MinecraftServer.getServer()
@@ -352,7 +349,7 @@ public class WorldGenTests {
                 && !((AnvilChunkLoader) world.theChunkProviderServer.currentChunkLoader)
                     .chunkExists(world, startChunkX, startChunkZ),
             "the stronghold was generated in this world before");
-        // Its start chunk is in the middle of the populated ones.
+        // Its start chunk is in the middle of the populated ones
         Area area = new Area(helper, "overworldStrongholdIsNotLogged", OVERWORLD, startChunkX - 1, startChunkZ - 1)
             .asNormalOverworld();
 
@@ -367,12 +364,10 @@ public class WorldGenTests {
             .thenSucceed();
     }
 
-    /**
-     * Each dimension of the GTNH pack, by the name the pack gives it: their generators and the mods' world gen in them
-     * are what the overworld and nether can't show. Skipped outside the full pack (runFullPackServerTests); in the
-     * pack, a dimension missing from it fails, so this list follows the pack. One whose chunks came out empty (a gas
-     * giant) is skipped too, as there was nothing to leave out.
-     */
+    // Each GTNH dimension by the name the pack gives it, their generators and mod world gen in them are what the
+    // overworld and nether can't show. Skipped outside the full pack (runFullPackServerTests). In the pack a missing
+    // dimension fails, so this list has to follow the pack. Dims whose chunks came out empty (gas giants) are skipped
+    // too since there was nothing to leave out
     @GameTest(batch = WORLDGEN_BATCH, timeoutTicks = 600)
     @MethodSource("gtnhDimensions")
     public static void gtnhGenerationIsNotLogged(GameTestHelper helper, String dimensionName, Integer index) {
@@ -382,10 +377,10 @@ public class WorldGenTests {
         generationIsNotLogged(helper, new Area(helper, "gtnhGenerationIsNotLogged." + index, dimension), index);
     }
 
-    // Generates the area, then changes a block and spawns a mob there by hand, which must be all that is stored.
+    // Generates the area then changes a block and spawns a mob there by hand, which has to be all that's stored
     private static void generationIsNotLogged(GameTestHelper helper, Area area, int index) {
         helper.startSequence()
-            // One area a tick, rather than all of them in the first.
+            // One area a tick instead of all of them in the first
             .thenIdle(1 + index)
             .thenExecute("generate chunks, then change a block and spawn a mob there", () -> {
                 area.generate();
@@ -397,8 +392,8 @@ public class WorldGenTests {
             .thenSucceed();
     }
 
-    // The dimensions a full pack server lists, except the overworld and the nether (tested above), the End (void away
-    // from its island) and personal worlds (made per player).
+    // Dims a full pack server lists, minus the overworld and nether (tested above), the End (void away from its island)
+    // and personal worlds (made per player)
     private static final String[] GTNH_DIMENSIONS = { "Twilight Forest", "SpectreWorld", "Moon", "Mars", "Asteroids",
         "Makemake", "α Centauri Bb", "Barnarda C", "Barnarda E", "Barnarda F", "Kuiper Belt", "Europa", "Io", "Mercury",
         "Phobos", "Venus", "Deimos", "Enceladus", "Ceres", "Ganymede", "Titan", "Callisto", "Oberon", "Proteus",
@@ -420,10 +415,8 @@ public class WorldGenTests {
         return rows;
     }
 
-    /**
-     * Runs {@code generation} with the overworld generating as a normal one would: the default world type, its biomes
-     * and its generator, in place of Horizon-QA's void ones. Mods' generators see the overworld as in any world.
-     */
+    // Runs generation with the overworld generating like a normal one, default world type, biomes and generator instead
+    // of Horizon-QA's void ones. Mod generators see the overworld like in any world
     private static <T> T asNormalOverworld(WorldServer world, Supplier<T> generation) {
         WorldInfo info = world.getWorldInfo();
         WorldType worldType = info.getTerrainType();
@@ -445,7 +438,7 @@ public class WorldGenTests {
 
     private static Map<String, Integer> dimensionsByName;
 
-    // Every registered dimension by its name. Server thread only.
+    // Every registered dimension by name, server thread only
     private static Map<String, Integer> dimensionsByName() {
         if (dimensionsByName != null) return dimensionsByName;
 
@@ -463,7 +456,7 @@ public class WorldGenTests {
         return dimensionsByName = byName;
     }
 
-    /** A square of new chunks in one dimension, with the block change and entity spawn loggers on over it. */
+    // A square of new chunks in one dimension with the block change and entity spawn loggers on over it
     private static final class Area {
 
         private final GameTestHelper helper;
@@ -478,14 +471,14 @@ public class WorldGenTests {
         private final Probe<List<PositionalEventInfo>> areaSpawnEvents;
         private boolean normalOverworld;
 
-        // Blocks the dimension's generator made for the chunks to be populated, other than air.
+        // Non air blocks the dim's generator made for the chunks to be populated
         int terrainBlocks;
 
-        // Blocks population and its spill from the next chunks changed in the populated chunks, against the terrain
-        // the dimension's generator made for them.
+        // Blocks that population (and its spill from the next chunks) changed in the populated chunks, against the
+        // terrain the generator made for them
         int populationChanges;
 
-        // Far out and random, so the chunks are new even in a world the tests ran in before.
+        // Far out and random so the chunks are new even in a world the tests ran in before
         Area(GameTestHelper helper, String testName, int dimension) {
             this(
                 helper,
@@ -500,7 +493,7 @@ public class WorldGenTests {
             this.dimension = dimension;
             this.chunkX = chunkX;
             this.chunkZ = chunkZ;
-            // High up, e.g. above the nether's bedrock roof. It's stored as a change whatever was there.
+            // High up, e.g. above the nether's bedrock roof. Stored as a change whatever was there
             handX = (chunkX << 4) + AREA_CHUNKS * 8;
             handY = 200;
             handZ = (chunkZ << 4) + AREA_CHUNKS * 8;
@@ -510,7 +503,7 @@ public class WorldGenTests {
             areaSpawnEvents = new Probe<>(helper, testName + ".areaSpawn");
         }
 
-        // Generates the overworld as a normal one, see WorldGenTests.asNormalOverworld.
+        // Generates the overworld like a normal one, see WorldGenTests.asNormalOverworld
         Area asNormalOverworld() {
             normalOverworld = true;
             return this;
@@ -535,7 +528,7 @@ public class WorldGenTests {
 
         private void generate(WorldServer world) {
             int minX = chunkX << 4, minZ = chunkZ << 4, size = AREA_CHUNKS << 4;
-            // Population reaches up to 8 blocks into the next chunks, so the region does too.
+            // Population reaches up to 8 blocks into the next chunks so the region does too
             TemporaWorldRegion region = region(
                 helper,
                 "test_worldgen_" + dimension + "_" + chunkX + "_" + chunkZ,
@@ -560,8 +553,8 @@ public class WorldGenTests {
                 }
             }
 
-            // The terrain of the chunks to be populated, before population, straight from the generator. A copy:
-            // the chunks the world gets are made again when they load.
+            // Terrain of the chunks to be populated before population, straight from the generator. A copy, the chunks
+            // the world gets are made again when they load
             Map<Long, int[]> terrain = new HashMap<>();
             WorldGenPhaseTracker.enter();
             try {
@@ -591,11 +584,9 @@ public class WorldGenTests {
             }
         }
 
-        /**
-         * Saves the chunks, drops their pending updates from memory, then reads the updates back from the save, as a
-         * chunk unloaded and loaded again would. The chunks themselves stay loaded: Hodgepodge keeps chunks next to
-         * unpopulated ones from unloading for a while, so this goes through the chunk loader as Forge's chunk IO does.
-         */
+        // Saves the chunks, drops their pending updates from memory, then reads them back from the save like a chunk
+        // unloading and loading would. The chunks stay loaded, Hodgepodge stops chunks next to unpopulated ones
+        // unloading for a while, so this goes through the chunk loader like Forge's chunk IO does
         void saveAndReadBackUpdates() {
             WorldServer world = world();
             AnvilChunkLoader loader = (AnvilChunkLoader) world.theChunkProviderServer.currentChunkLoader;
@@ -613,8 +604,8 @@ public class WorldGenTests {
                     for (int z = chunkZ; z < chunkZ + AREA_CHUNKS; z++) {
                         Object[] saved = loader.loadChunk__Async(world, x, z);
                         helper.assertTrue(saved != null, "chunk " + x + ", " + z + " was not saved");
-                        // As Forge's chunk IO loads a chunk. Only Tempora's handler hears the load event, as the
-                        // chunk read back is a copy of one that stays loaded, which other mods needn't see.
+                        // Like Forge's chunk IO loads a chunk. Only our handler hears the load event since the chunk
+                        // read back is a copy of one that stays loaded, other mods don't need to see it
                         Chunk copy = (Chunk) saved[0];
                         NBTTagCompound data = (NBTTagCompound) saved[1];
                         loader.loadEntities(world, data.getCompoundTag("Level"), copy);
@@ -627,8 +618,7 @@ public class WorldGenTests {
             helper.assertTrue(pendingUpdates() > 0, "no block updates were read back from the save");
         }
 
-        // In the same tick as generation, so what is logged before them is generation's, and after them the world
-        // ticking on.
+        // Same tick as generation, so what's logged before them is generation's and after them the world ticking on
         void changeByHand() {
             WorldServer world = world();
             world.setBlock(handX, handY, handZ, Blocks.gold_block);
@@ -648,7 +638,7 @@ public class WorldGenTests {
                 "the mob spawned by hand was not stored");
         }
 
-        // The hand's change and spawn are the only events stored up to them, see changeByHand.
+        // The hand's change and spawn have to be the only events stored up to them, see changeByHand
         void assertOnlyHandChangesStored() {
             assertOnlyHandStored(blockLogger, handEvents, areaEvents, "block changes");
             assertOnlyHandStored(spawnLogger, handSpawnEvents, areaSpawnEvents, "entity spawns");
@@ -659,11 +649,11 @@ public class WorldGenTests {
             long handEventID = hand.latest()
                 .get(0).eventID;
             List<PositionalEventInfo> events = new ArrayList<>();
-            // Covers the whole height and more than the region on every side.
+            // Covers the whole height and more than the region on every side
             for (PositionalEventInfo event : area.poll(() -> eventsNear(logger, dimension, handX, 128, handZ, 128))) {
                 if (event.eventID <= handEventID) events.add(event);
             }
-            // The hand's own, which is in the area too.
+            // The hand's own, which is in the area too
             if (events.size() == 1) return;
 
             StringBuilder found = new StringBuilder();
@@ -684,7 +674,7 @@ public class WorldGenTests {
             helper.fail(events.size() + " " + what + " stored up to the hand's, expected only it:" + found);
         }
 
-        // How many of a block the populated chunks hold.
+        // How many of a block the populated chunks hold
         int populatedBlocks(Block block) {
             WorldServer world = world();
             int count = 0;
@@ -699,7 +689,7 @@ public class WorldGenTests {
             return count;
         }
 
-        // The area's pending updates that count as world gen.
+        // The area's pending updates that count as world gen
         int markedUpdates() {
             WorldServer world = world();
             int count = 0;
@@ -727,7 +717,7 @@ public class WorldGenTests {
         }
     }
 
-    // Every block of a chunk as id and metadata.
+    // Every block in a chunk as id and meta
     private static int[] blocks(Chunk chunk) {
         int[] blocks = new int[16 * 16 * 256];
         int i = 0;

@@ -12,13 +12,13 @@ import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 
-// Every world's chunks are generated through its ChunkProviderServer, whatever the dimension or generator, so world
-// gen is marked here rather than in each generator.
+// Every world's chunks get generated through its ChunkProviderServer whatever the dimension or generator, so world gen
+// is marked here instead of in each generator
 @Mixin(ChunkProviderServer.class)
 public abstract class MixinChunkProviderServer {
 
-    // Population: the dimension's own generator (ores, plants, lakes, structures), then every mod's IWorldGenerator
-    // through GameRegistry.generateWorld, GT ore veins included. Chunks it loads or generates on the way are inside.
+    // Population, the dim's own generator (ores, plants, lakes, structures) then every mod's IWorldGenerator through
+    // GameRegistry.generateWorld, GT ore veins included. Chunks it loads or generates along the way count too
     @WrapMethod(method = "populate")
     private void tempora$populateIsWorldGen(IChunkProvider provider, int chunkX, int chunkZ, Operation<Void> original) {
         WorldGenPhaseTracker.enter();
@@ -29,7 +29,7 @@ public abstract class MixinChunkProviderServer {
         }
     }
 
-    // A new chunk's terrain. Vanilla fills the chunk's arrays directly, but a mod's generator may set blocks.
+    // A new chunk's terrain. Vanilla fills the chunk arrays directly but a mod's generator might set blocks
     @WrapOperation(
         method = "originalLoadChunk",
         remap = false,

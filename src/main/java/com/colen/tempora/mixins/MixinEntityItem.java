@@ -13,9 +13,9 @@ import com.colen.tempora.loggers.item_pickup_drop.ItemPickupDropLogger;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 
-// Whatever a player touching an item on the ground takes from it, including what mods' pickup handlers (backpacks)
-// take, is a pickup. See ItemPickupDropLogger.logPickup. Called every tick for each item a player stands on, so only
-// the stack size is noted until something is taken.
+// Whatever a player touching an item on the ground takes from it is a pickup, including what mods' pickup handlers
+// (backpacks) take. See ItemPickupDropLogger.logPickup. Runs every tick for each item a player stands on, so only the
+// stack size gets noted until something's taken
 @Mixin(EntityItem.class)
 public abstract class MixinEntityItem {
 
@@ -34,7 +34,7 @@ public abstract class MixinEntityItem {
         original.call(player);
 
         if (amountBefore <= 0) return;
-        // Logging must never crash the entity's tick, e.g. on an item whose NBT can't be encoded.
+        // Logging must never crash the entity tick, e.g. on an item whose NBT can't be encoded
         try {
             logger.logPickup(player, self, stack, amountBefore);
         } catch (RuntimeException | LinkageError e) {

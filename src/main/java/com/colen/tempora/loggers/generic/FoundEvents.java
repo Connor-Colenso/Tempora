@@ -15,19 +15,16 @@ import net.minecraft.util.IChatComponent;
 
 import org.jetbrains.annotations.Nullable;
 
-/**
- * One logger's part of a lookup: found on the query thread (see {@link TemporaQueries}), then shown on the server
- * thread, either under the logger's own header with {@link #show}, or merged with other loggers' in the order they
- * happened with {@link #showByTime}.
- */
+// One logger's part of a lookup. Found on the query thread (see TemporaQueries) then shown on the server thread, either
+// under the logger's own header with show or merged with other loggers by time with showByTime
 public final class FoundEvents<EventInfo extends GenericEventInfo> {
 
     private final GenericLogger<EventInfo> logger;
-    // Newest first, as queried. Empty if the query failed.
+    // Newest first like it was queried, empty if the query failed
     private final List<EventInfo> newestFirst;
-    // How many the query was limited to, so the header can say when there may be more.
+    // Query limit so the header can say there might be more
     private final int limit;
-    // Clicking the logger's name fills this in, to search this logger alone.
+    // Clicking the logger name fills this in to search just this logger
     private final String narrowCommand;
     private final @Nullable SQLException failure;
 
@@ -45,7 +42,7 @@ public final class FoundEvents<EventInfo extends GenericEventInfo> {
         return new FoundEvents<>(logger, newestFirst, limit, narrowCommand, null);
     }
 
-    // A lookup that can't find anything in this logger, e.g. filtering by player in a logger with no player.
+    // For lookups that can't match anything here, e.g. a player filter on a logger with no player
     static <E extends GenericEventInfo> FoundEvents<E> none(GenericLogger<E> logger) {
         return new FoundEvents<>(logger, Collections.emptyList(), 0, "", null);
     }
@@ -54,17 +51,15 @@ public final class FoundEvents<EventInfo extends GenericEventInfo> {
         return new FoundEvents<>(logger, Collections.emptyList(), 0, "", e);
     }
 
-    /**
-     * Sends them to the sender under this logger's header and draws those in the sender's dimension. Says nothing if
-     * there are none, so callers checking many loggers can report that once. Returns how many were shown.
-     */
+    // Sends them under this logger's header and draws the ones in the sender's dimension. Silent if there are none so
+    // callers checking lots of loggers can say so once. Returns how many were shown
     public int show(ICommandSender sender) {
         if (failure != null) {
             logger.sendQueryFailed(sender, failure);
             return 0;
         }
 
-        // So one broken logger doesn't stop the others' results being shown.
+        // One broken logger shouldn't stop the others' results showing
         try {
             logger.sendEventsInChat(sender, newestFirst, limit, narrowCommand);
             logger.drawInWorld(sender, newestFirst);
@@ -75,11 +70,9 @@ public final class FoundEvents<EventInfo extends GenericEventInfo> {
         }
     }
 
-    /**
-     * Shows the newest {@code limit} events of all of them together under one header, in the order they happened with
-     * the newest at the bottom, each tagged with its logger, and draws those in the sender's dimension. Failed queries
-     * are reported first. Says nothing else if there are none. Returns how many were shown.
-     */
+    // Newest limit events of all of them under one header in the order they happened, newest at the bottom and tagged
+    // with their logger. Draws the ones in the sender's dimension. Failed queries get reported first, otherwise silent
+    // if empty. Returns how many were shown
     public static int showByTime(ICommandSender sender, List<FoundEvents<?>> found, int limit) {
         for (FoundEvents<?> events : found) {
             if (events.failure != null) events.logger.sendQueryFailed(sender, events.failure);
@@ -91,7 +84,7 @@ public final class FoundEvents<EventInfo extends GenericEventInfo> {
         int[] kept = new int[found.size()];
         for (int i : sources) kept[i]++;
 
-        // E.g. "Events by time (latest 10)".
+        // E.g. "Events by time (latest 10)"
         IChatComponent name = new ChatComponentTranslation("tempora.command.lookup.timeline");
         name.getChatStyle()
             .setColor(EnumChatFormatting.GOLD);
@@ -111,8 +104,8 @@ public final class FoundEvents<EventInfo extends GenericEventInfo> {
                 .tag();
         }
 
-        // Newest at the bottom, where chat is read from. Walking back through the picks, each logger's come out oldest
-        // first, so a logger's next event is at one less than its count.
+        // Newest at the bottom where chat gets read. Walking back through the picks each logger's come out oldest
+        // first, so a logger's next event is one less than its count
         int[] next = kept.clone();
         for (int p = sources.size() - 1; p >= 0; p--) {
             int i = sources.get(p);
@@ -132,7 +125,7 @@ public final class FoundEvents<EventInfo extends GenericEventInfo> {
         return sources.size();
     }
 
-    /** The events {@link #showByTime} shows, newest first. */
+    // What showByTime shows, newest first
     public static List<GenericEventInfo> newestAcross(List<FoundEvents<?>> found, int limit) {
         int[] next = new int[found.size()];
         List<GenericEventInfo> events = new ArrayList<>();
@@ -142,11 +135,9 @@ public final class FoundEvents<EventInfo extends GenericEventInfo> {
         return events;
     }
 
-    /**
-     * Which logger, by its index in found, each of the newest limit events of all of them together comes from, newest
-     * first. Each logger's events are newest first, so taking the newest of the loggers' next events each time takes
-     * the first few of each, in order. Ties go to the logger listed first.
-     */
+    // For each of the newest limit events across all of them, the index in found of the logger it came from, newest
+    // first. Each logger's list is already newest first so just keep taking the newest of their next events. Ties go to
+    // whichever logger is listed first
     private static List<Integer> pickNewest(List<FoundEvents<?>> found, int limit) {
         int[] taken = new int[found.size()];
         List<Integer> sources = new ArrayList<>();
@@ -164,13 +155,13 @@ public final class FoundEvents<EventInfo extends GenericEventInfo> {
         return sources;
     }
 
-    // The timestamp of the event at index, newest first, of logger i.
+    // Timestamp of logger i's event at index (newest first)
     private static long timestamp(List<FoundEvents<?>> found, int i, int index) {
         return found.get(i).newestFirst.get(index).timestamp;
     }
 
-    // This logger's tag before each of its events, or just its short name in brackets if another mod's logger throws
-    // making it, so its events still show.
+    // Logger's tag before each of its events. Falls back to the short name in brackets if another mod's logger throws
+    // building it, so its events still show
     private IChatComponent tag() {
         try {
             return logger.timelineTag(narrowCommand);

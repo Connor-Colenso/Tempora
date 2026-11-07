@@ -9,11 +9,9 @@ import net.minecraft.util.IChatComponent;
 import com.colen.tempora.chat.ChatComponentWrappedTranslation;
 import com.colen.tempora.chat.EventChat;
 
-/**
- * The line under a lookup's results saying what was searched, e.g. "Searched r:10 t:3d l:all p:anyone n:5", so the
- * filters left out aren't a mystery. Filters left at their default are grey and the ones typed green. Hovering over a
- * filter shows what it does, and either that it is the default or which default it overrides.
- */
+// Line under a lookup's results saying what was searched, e.g. "Searched r:10 t:3d l:all p:anyone n:5", so filters left
+// out aren't a mystery. Defaults are grey and typed ones green. Hovering a filter shows what it does and either that
+// it's the default or which default it overrides
 public final class SearchSummary {
 
     private final TemporaSubcommand command;
@@ -25,14 +23,14 @@ public final class SearchSummary {
         this.filters = filters;
     }
 
-    // A filter as typed, or with shownDefault, e.g. "10" or "all", if it was left out.
+    // A filter as typed, or with shownDefault (e.g. "10" or "all") if it was left out
     public SearchSummary add(String key, String shownDefault) {
         String typed = filters.get(key);
-        // Typing the default, e.g. s:logger, still leaves it at the default rather than overriding it.
+        // Typing the default (e.g. s:logger) still counts as default, not an override
         boolean isDefault = typed == null || typed.equalsIgnoreCase(shownDefault);
 
-        // Under the filter, whether it was left at its default, in red, or what it was given instead, in green like
-        // the filter, then what it does.
+        // Under the filter, whether it was left at default (red) or what it was given instead (green like the filter),
+        // then what it does
         String shown = key + ":" + (isDefault ? shownDefault : typed);
         EnumChatFormatting valueColour = isDefault ? EnumChatFormatting.RED : EnumChatFormatting.GREEN;
         IChatComponent value = isDefault
@@ -56,7 +54,7 @@ public final class SearchSummary {
         return this;
     }
 
-    // A whole number, e.g. "1000", as a number to format on the client, anything else, e.g. "3d", as it is.
+    // Whole numbers (e.g. "1000") as a number to format on the client, anything else (e.g. "3d") as is
     private static Object numberOrText(String value) {
         try {
             return Long.parseLong(value);
@@ -65,7 +63,7 @@ public final class SearchSummary {
         }
     }
 
-    // "Searched ..." to go under the results, or "Nothing found ..." if there were none.
+    // "Searched ..." under the results, or "Nothing found ..." if there were none
     public IChatComponent line(boolean foundAny) {
         IChatComponent line = new ChatComponentTranslation(
             foundAny ? "tempora.command.search.searched" : "tempora.command.search.nothing_found",

@@ -44,7 +44,7 @@ public class ItemUseEventInfo extends PositionalEventInfo {
     public IChatComponent localiseText() {
         IChatComponent where = EventChat.where(this, CommandUtils.TeleportType.EXACT);
 
-        // Item 0 is an empty hand, e.g. right clicking a block to open it.
+        // Item 0 is an empty hand, e.g. right clicking a block to open it
         if (itemID == 0) {
             return EventChat.line(
                 "tempora.event.item_use.empty_hand",

@@ -57,18 +57,18 @@ public class BlockChangeEventInfo extends PositionalEventInfo {
     @Column(type = ColumnType.NBT)
     public String afterEncodedNBT = NBTUtils.NO_NBT;
 
-    // The trace's number in the trace table, filled in as the event is written (see BlockChangeLogger.writeExtras),
-    // or 0 if it has none. Not sent to the client.
+    // Trace's number in the trace table, set as the event is written (see BlockChangeLogger.writeExtras), 0 if none.
+    // Not sent to the client
     @Column
     public long stackTraceID;
 
-    // The trace's hash (StackTraceUtils.getID), from which writeExtras finds its number. Not stored.
+    // Trace hash (StackTraceUtils.getID) that writeExtras uses to find its number. Not stored
     public long stackTraceHash;
 
     @Column(type = ColumnType.PLAYER)
     public String closestPlayerUUID = PlayerUtils.UNKNOWN_PLAYER_NAME;
 
-    // In whole blocks, as a whole number takes a few bytes where any other double takes eight.
+    // Whole blocks, a whole number takes a few bytes where any other double takes eight
     @Column
     public double closestPlayerDistance;
 
@@ -82,22 +82,22 @@ public class BlockChangeEventInfo extends PositionalEventInfo {
         IChatComponent where = EventChat.where(this, CommandUtils.TeleportType.BLOCK);
         IChatComponent trace = traceComponent();
 
-        // A negative distance means no player was in the world.
+        // Negative distance means no player was in the world
         if (closestPlayerDistance < 0) {
             return EventChat.line("tempora.event.block_change.no_player", when, before, after, where, trace);
         }
 
-        // Only the nearest player, not necessarily who did it, so how near they were is on hover.
+        // Only the nearest player not necessarily who did it, so how near they were goes on hover
         IChatComponent closestPlayer = EventChat.closestPlayer(closestPlayerUUID, closestPlayerDistance);
 
         return EventChat.line("tempora.event.block_change", when, before, after, where, closestPlayer, trace);
     }
 
-    // [Trace]: the end of the stack trace that changed the block on hover, and all of it printed in chat on click. The
-    // whole trace travels with the line, so the click works however long ago it arrived.
+    // [Trace] shows the end of the trace on hover and prints all of it on click. Whole trace travels with the line so
+    // the click still works however old the line is
     private IChatComponent traceComponent() {
         if (stackTrace == null) {
-            // Its trace was never stored or has been pruned.
+            // Never stored or already pruned
             IChatComponent missing = new ChatComponentTranslation("tempora.trace.missing");
             missing.getChatStyle()
                 .setColor(EnumChatFormatting.DARK_GRAY);
@@ -106,7 +106,7 @@ public class BlockChangeEventInfo extends PositionalEventInfo {
 
         List<IChatComponent> stackTraceComponents = StackTraceUtils.toChatLines(stackTrace);
 
-        // Build hover text with truncation
+        // Hover text, truncated
         int maxLines = 7;
         List<IChatComponent> hoverLines = new ArrayList<>();
         int totalLines = stackTraceComponents.size();
@@ -127,7 +127,7 @@ public class BlockChangeEventInfo extends PositionalEventInfo {
             hoverLines.add(stackTraceTooLongMsg);
         }
 
-        // Titled in the [Trace] button's colour, so the first line of the trace isn't drawn as a white title.
+        // Title in the [Trace] button colour so the first trace line isn't drawn as a white title
         IChatComponent title = new ChatComponentTranslation("tempora.trace.hover.title");
         title.getChatStyle()
             .setColor(EnumChatFormatting.AQUA);
@@ -140,12 +140,12 @@ public class BlockChangeEventInfo extends PositionalEventInfo {
         return stackTraceComponent;
     }
 
-    // The stack trace that changed the block, read from the logger's trace table along with the event.
+    // Trace that changed the block, read from the trace table along with the event
     void setStackTrace(String stackTrace) {
         this.stackTrace = stackTrace;
     }
 
-    /** The stack trace that changed the block, once read back with the event, or null if it isn't stored. */
+    // Trace that changed the block once read back, null if it isn't stored
     public @Nullable String getStackTrace() {
         return stackTrace;
     }

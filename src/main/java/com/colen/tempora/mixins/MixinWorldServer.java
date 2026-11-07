@@ -21,7 +21,7 @@ import com.llamalad7.mixinextras.sugar.Local;
 @Mixin(WorldServer.class)
 public abstract class MixinWorldServer {
 
-    // The bonus chest is generated next to spawn when a new world is created, outside chunk population.
+    // Bonus chest gets generated next to spawn on world creation, outside chunk population
     @WrapMethod(method = "createBonusChest")
     private void tempora$bonusChestIsWorldGen(Operation<Void> original) {
         WorldGenPhaseTracker.enter();
@@ -32,7 +32,7 @@ public abstract class MixinWorldServer {
         }
     }
 
-    // ---------- Scheduled block updates world gen left behind, see WorldGenTicks ----------
+    // Scheduled block updates world gen left behind, see WorldGenTicks
 
     @ModifyExpressionValue(
         method = "scheduleBlockUpdateWithPriority",

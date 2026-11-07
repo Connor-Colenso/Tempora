@@ -16,10 +16,8 @@ import cpw.mods.fml.relauncher.Side;
 
 public class GenericUtils {
 
-    /**
-     * A dimension's name, or "Dimension <id>" for one that no longer exists (its mod was removed) or can't be named.
-     * Events and regions outlive the dimensions they were in, so this must never throw.
-     */
+    // Dimension name, or "Dimension <id>" for one that's gone (mod removed) or can't be named. Events and regions
+    // outlive their dimensions so this must never throw
     public static String getDimensionName(int dimID) {
         try {
             WorldServer loaded = DimensionManager.getWorld(dimID);
@@ -34,10 +32,8 @@ public class GenericUtils {
         }
     }
 
-    /**
-     * The name an entity is registered under in EntityList, e.g. "CaveSpider", which chat translates into its name and
-     * the client turns back into the entity to draw it. Falls back to the class name for entities no mod registered.
-     */
+    // EntityList name of an entity, e.g. "CaveSpider", which chat translates and the client turns back into the entity
+    // to draw it. Falls back to the class name for entities no mod registered
     public static String entityRegistryName(Entity entity) {
         String name = EntityList.getEntityString(entity);
         return name != null ? name
@@ -54,7 +50,7 @@ public class GenericUtils {
         return !isClientSide();
     }
 
-    // True when launched from the development workspace (runClient, runServer), false in full pack.
+    // True when launched from the dev workspace (runClient, runServer), false in the full pack
     public static boolean isDevEnvironment() {
         return Boolean.TRUE.equals(Launch.blackboard.get("fml.deobfuscatedEnvironment"));
     }

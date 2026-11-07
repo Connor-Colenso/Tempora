@@ -12,11 +12,8 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 
-/**
- * What an open container belongs to, so changes that cannot be pinned to a specific inventory slot (AE2 networks,
- * ModularUI machine slots, crafting grids...) are logged against it. A block, an entity, or an item the player is
- * holding, in which case the change is logged at the player's position.
- */
+// What an open container belongs to, so changes that can't be pinned to a slot (AE2 networks, ModularUI machine slots,
+// crafting grids etc) get logged against it. A block, an entity or a held item, in which case it's logged at the player
 public final class ContainerHost {
 
     private enum Kind {
@@ -46,12 +43,12 @@ public final class ContainerHost {
         return new ContainerHost(Kind.BLOCK, world, x, y, z, null, null);
     }
 
-    /** A block, but named by the caller, e.g. an AE2 terminal rather than the cable bus it sits on. */
+    // A block but named by the caller, e.g. an AE2 terminal instead of the cable bus it's on
     public static ContainerHost block(World world, int x, int y, int z, @Nullable String name) {
         return new ContainerHost(Kind.BLOCK, world, x, y, z, null, name);
     }
 
-    /** A block entity, named after a custom inventory name (e.g. a renamed chest) when it has one. */
+    // A TE, named after its custom inventory name (renamed chest) if it has one
     public static ContainerHost tileEntity(TileEntity tileEntity) {
         World world = tileEntity.getWorldObj();
         int x = tileEntity.xCoord, y = tileEntity.yCoord, z = tileEntity.zCoord;
@@ -63,12 +60,12 @@ public final class ContainerHost {
         return new ContainerHost(Kind.ENTITY, null, 0, 0, 0, entity, null);
     }
 
-    /** A container opened from an item, e.g. a wireless terminal or a backpack. */
+    // Container opened from an item, e.g. a wireless terminal or backpack
     public static ContainerHost item(ItemStack stack) {
         return new ContainerHost(Kind.PLAYER, null, 0, 0, 0, null, stack.getDisplayName());
     }
 
-    /** Nothing better is known, so the change is logged at the player under the container's class name. */
+    // Nothing better known, logged at the player under the container's class name
     public static ContainerHost unknown(String name) {
         return new ContainerHost(Kind.PLAYER, null, 0, 0, 0, null, name);
     }
@@ -116,10 +113,7 @@ public final class ContainerHost {
         };
     }
 
-    /**
-     * The name to show for a block: an inventory's custom name (e.g. a renamed chest), otherwise the name of the
-     * block's item.
-     */
+    // Name to show for a block, the inventory's custom name (renamed chest) otherwise the block's item name
     public static String blockName(World world, int x, int y, int z, @Nullable IInventory inventory) {
         if (inventory != null && inventory.hasCustomInventoryName()) {
             return inventory.getInventoryName();
@@ -130,7 +124,7 @@ public final class ContainerHost {
             ItemStack pickStack = getPickBlockSafe(block, world, x, y, z);
             if (pickStack != null) return pickStack.getDisplayName();
         } catch (RuntimeException ignored) {
-            // Some blocks cannot work out their item away from the client, fall through to the block's own name.
+            // Some blocks can't work out their item off the client, fall through to the block's own name
         }
         return block.getLocalizedName();
     }

@@ -14,7 +14,7 @@ import io.netty.buffer.Unpooled;
 
 public class RenderEventPacket implements IMessage {
 
-    // Null on the client when the event could not be read, see fromBytes.
+    // Null on the client if the event couldn't be read, see fromBytes
     public PositionalEventInfo eventInfo;
 
     public RenderEventPacket() {}
@@ -23,10 +23,8 @@ public class RenderEventPacket implements IMessage {
         this.eventInfo = eventInfo;
     }
 
-    /**
-     * Sends a player an event to draw, unless writing it throws, e.g. a bug in another mod's event, which is logged
-     * instead. It is written once first, so a broken event is caught here rather than part way through sending.
-     */
+    // Sends a player an event to draw, unless writing it throws (e.g. a bug in another mod's event) which gets logged
+    // instead. Written once up front so a broken event gets caught here and not halfway through sending
     public static void sendSafely(PositionalEventInfo event, EntityPlayerMP player) {
         RenderEventPacket packet = new RenderEventPacket(event);
         try {
@@ -38,21 +36,21 @@ public class RenderEventPacket implements IMessage {
         PlayerPackets.sendTo(packet, player);
     }
 
-    // Events are sent with their logger's name rather than a numeric id, so the two sides agree even when the server
-    // has loggers (from other mods) that the client does not.
+    // Sent by logger name not a numeric id, so both sides agree even when the server has loggers from other mods the
+    // client doesn't
     @Override
     public void toBytes(ByteBuf buf) {
         ByteBufUtils.writeUTF8String(buf, eventInfo.getLoggerName());
         eventInfo.toBytes(buf);
     }
 
-    // Any exception thrown while reading a packet disconnects the player, so an event that cannot be read is dropped.
+    // Any exception reading a packet disconnects the player, so an event that can't be read just gets dropped
     @Override
     public void fromBytes(ByteBuf buf) {
         String loggerName = ByteBufUtils.readUTF8String(buf);
 
-        // A logger only the server has, e.g. from a server-side mod. Nothing to draw. Only positional events are sent,
-        // so one that is not positional here means the two sides have different versions of its mod.
+        // Logger only the server has, e.g. from a server side mod, nothing to draw. Only positional events get sent, so
+        // one that isn't positional here means the two sides have different versions of its mod
         if (!(TemporaLoggerManager.createEventInfo(loggerName) instanceof PositionalEventInfo event)) return;
 
         try {

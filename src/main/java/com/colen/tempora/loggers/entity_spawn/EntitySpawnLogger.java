@@ -52,10 +52,8 @@ public class EntitySpawnLogger extends GenericPositionalLogger<EntitySpawnEventI
         logEntitySpawn(event.entity);
     }
 
-    /**
-     * Logs an entity appearing in the world. Each entity is only ever logged once, so calling this for one that was
-     * already logged does nothing. Players, dropped items and XP orbs are not logged.
-     */
+    // Logs an entity appearing in the world. Each entity is only ever logged once, so calling this again does nothing.
+    // Not players, dropped items or XP orbs
     public void logEntitySpawn(Entity entity) {
         if (!isEnabledByConfig) return;
         if (entity instanceof EntityPlayerMP) return;
@@ -65,11 +63,11 @@ public class EntitySpawnLogger extends GenericPositionalLogger<EntitySpawnEventI
         IEntityMixin entityMixin = (IEntityMixin) entity;
         if (entityMixin.getTempora$HasBeenLogged()) return;
 
-        // Mark as logged, this is persistent with nbt.
+        // Mark as logged, saved to NBT
         entityMixin.setTempora$HasBeenLogged(true);
 
-        // Placed by world generation, e.g. a new chunk's animals. Marked all the same, so it isn't logged when its
-        // chunk loads again either.
+        // Placed by world gen, e.g. a new chunk's animals. Still marked so it doesn't get logged when the chunk loads
+        // again
         if (WorldGenPhaseTracker.isWorldGen()) return;
 
         EntitySpawnEventInfo eventInfo = new EntitySpawnEventInfo();

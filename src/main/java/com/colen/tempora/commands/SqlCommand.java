@@ -28,10 +28,8 @@ import com.colen.tempora.loggers.generic.column.ColumnDef;
 import com.colen.tempora.utils.CommandUtils;
 import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 
-/**
- * /tempora sql <SELECT ...>
- * Runs a read-only query against a logger's database, for investigations /tempora lookup can't express.
- */
+// /tempora sql <SELECT ...>
+// Read only query against a logger's db, for digging into stuff /tempora lookup can't express
 public class SqlCommand extends TemporaSubcommand {
 
     public SqlCommand() {
@@ -52,7 +50,6 @@ public class SqlCommand extends TemporaSubcommand {
 
         String rawQuery = String.join(" ", args);
 
-        // Find logger by name.
         GenericLogger<?> targetLogger = null;
         for (GenericLogger<?> logger : TemporaLoggerManager.getLoggerList()) {
             if (rawQuery.contains(logger.getLoggerName())) {
@@ -80,7 +77,7 @@ public class SqlCommand extends TemporaSubcommand {
             return;
         }
 
-        // Ensure the user has all the columns needed
+        // Make sure the query selects every column we need
         List<ColumnDef> columns = getAllTableColumns(targetLogger);
 
         List<String> missing = findMissingColumns(rawQuery, columns);
@@ -101,7 +98,7 @@ public class SqlCommand extends TemporaSubcommand {
             return;
         }
 
-        // A logger that is disabled, or failed to start, has no database to read.
+        // Disabled or failed to start, no db to read
         if (targetLogger.notStarted()) {
             sendError(sender, "tempora.command.sql.logger_off", targetLogger.getLoggerName());
             return;
@@ -109,8 +106,8 @@ public class SqlCommand extends TemporaSubcommand {
 
         GenericLogger<?> logger = targetLogger;
 
-        // Execute the query read-only, on the query thread. A mistake in the query is the sender's to fix, so it is
-        // shown to them rather than failing the lookup.
+        // Read only, on the query thread. A mistake in the query is the sender's problem so show it to them instead of
+        // failing the lookup
         TemporaQueries.submit(sender, () -> {
             try {
                 return new SqlOutcome(executeReadOnlyQuery(logger, rawQuery), null);
@@ -134,12 +131,12 @@ public class SqlCommand extends TemporaSubcommand {
 
         List<? extends GenericEventInfo> output = outcome.events;
 
-        // We do this first, to not bury the info below, in case of a long response.
+        // First so a long response doesn't bury the info below
         for (GenericEventInfo eventData : output) {
             sender.addChatMessage(GenericLogger.chatLineOrPlaceholder(eventData));
 
-            // Render info. Global events have no position to draw.
-            // Only events in the player's dimension, as the client draws nothing else.
+            // Render info. Global events have no position, and only ones in the player's dimension since the client
+            // draws nothing else
             if (eventData instanceof PositionalEventInfo positionalEvent && sender instanceof EntityPlayerMP player
                 && positionalEvent.dimensionID == player.dimension) {
                 RenderEventPacket.sendSafely(positionalEvent, player);
@@ -171,7 +168,7 @@ public class SqlCommand extends TemporaSubcommand {
         }
     }
 
-    // What the query thread found: the events, or the error SQLite gave.
+    // What the query thread found, the events or the error SQLite gave
     private static final class SqlOutcome {
 
         final List<? extends GenericEventInfo> events;
@@ -183,11 +180,11 @@ public class SqlCommand extends TemporaSubcommand {
         }
     }
 
-    // "select *", with any spacing, or "select t.*".
+    // "select *" with any spacing, or "select t.*"
     private static final Pattern SELECT_STAR = Pattern.compile("\\bselect\\s+(\\w+\\.)?\\*");
 
     private static List<String> findMissingColumns(String sql, List<ColumnDef> required) {
-        // If the query explicitly selects every column with *, accept it.
+        // SELECT * is fine
         String lowered = sql.toLowerCase(Locale.ROOT);
         if (SELECT_STAR.matcher(lowered)
             .find()) return Collections.emptyList();
@@ -206,20 +203,19 @@ public class SqlCommand extends TemporaSubcommand {
     }
 
     private static boolean isSelectQuery(String sqlQuery) {
-        // Simple check that it starts with SELECT ignoring whitespace & case
+        // Simple check that it starts with SELECT ignoring whitespace and case
         return sqlQuery.trim()
             .toLowerCase(Locale.ROOT)
             .startsWith("select");
     }
 
-    // On the query thread. The connection is read-only, and the lookup time limit stops a query that runs too long.
+    // Query thread. Connection is read only and the lookup time limit stops anything that runs too long
     private static List<? extends GenericEventInfo> executeReadOnlyQuery(GenericLogger<?> logger, String sql)
         throws SQLException {
 
         try (PreparedStatement stmt = TemporaQueries.connection(logger)
             .prepareStatement(sql)) {
 
-            // Limit number of rows returned
             stmt.setMaxRows(CommandsConfig.sqlMaxResults);
 
             List<? extends GenericEventInfo> events;
@@ -231,7 +227,7 @@ public class SqlCommand extends TemporaSubcommand {
         }
     }
 
-    // Table names are the full logger names.
+    // Table names are the full logger names
     @Override
     public List<String> tabComplete(ICommandSender sender, String[] args) {
         return CommandUtils.completeLoggerNames(args);
@@ -239,7 +235,7 @@ public class SqlCommand extends TemporaSubcommand {
 
     @Override
     public String getExampleArgs() {
-        // Player columns hold each player's number, which player() gives from a name or UUID.
+        // Player columns hold each player's number, player() gives it from a name or UUID
         return "SELECT * FROM PlayerPositionLogger WHERE playerUUID = player('Notch') AND y > 80";
     }
 

@@ -6,7 +6,7 @@ import net.minecraft.inventory.InventoryLargeChest;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
-// The two chests behind a double chest, so its slots can be logged against the half they belong to.
+// The two chests behind a double chest, so slots get logged against the half they belong to
 @Mixin(InventoryLargeChest.class)
 public interface InventoryLargeChestAccessor {
 

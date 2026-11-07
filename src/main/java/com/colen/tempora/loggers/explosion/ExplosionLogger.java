@@ -30,7 +30,7 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
 public class ExplosionLogger extends GenericPositionalLogger<ExplosionEventInfo> {
 
-    // The closest player, as the exploder is often not a player.
+    // Closest player, the exploder often isn't one
     @Override
     protected String playerColumn() {
         return "closestPlayerUUID";
@@ -64,7 +64,7 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionEventInfo>
         if (event.isCanceled()) return;
 
         Explosion explosion = event.explosion;
-        // Whoever lit the TNT, or the creeper itself, rather than the TNT entity.
+        // Whoever lit the TNT or the creeper itself, not the TNT entity
         Entity exploder = explosion.getExplosivePlacedBy() != null ? explosion.getExplosivePlacedBy()
             : explosion.exploder;
 
@@ -73,21 +73,18 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionEventInfo>
             explosion.explosionX,
             explosion.explosionY,
             explosion.explosionZ,
-            // Explosion.doExplosionA doubles explosionSize while it hurts entities, and fires this event in between,
-            // so a creeper (3) would be logged as 6.
+            // doExplosionA doubles explosionSize while it hurts entities and fires this in between, so a creeper (3)
+            // would log as 6
             explosion.explosionSize / 2f,
             exploder,
-            // An explosion that does not break blocks (isSmoking false, e.g. creepers, ghasts and withers with
-            // mobGriefing off) still reports every position it reached, but vanilla leaves them all standing.
+            // Explosions that don't break blocks (isSmoking false, e.g. creepers, ghasts and withers with mobGriefing
+            // off) still report every position reached, but vanilla leaves them all standing
             explosion.isSmoking ? destroyedBlocks(event.world, explosion.affectedBlockPositions)
                 : Collections.emptyList());
     }
 
-    /**
-     * Logs an explosion. {@code exploder} is whatever is responsible, if known: a player is stored by UUID, anything
-     * else by its EntityList name, e.g. Creeper, so chat can name it. {@code affectedBlocks} are the positions it
-     * destroyed, if known.
-     */
+    // Logs an explosion. exploder is whatever caused it if known, players stored by UUID and anything else by
+    // EntityList name (e.g. Creeper) so chat can name it. affectedBlocks are the positions it destroyed if known
     public void logExplosion(World world, double x, double y, double z, float power, @Nullable Entity exploder,
         @Nullable List<ChunkPosition> affectedBlocks) {
         if (!isEnabledByConfig) return;
@@ -107,7 +104,7 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionEventInfo>
         EntityPlayer closestPlayer = world.getClosestPlayer(x, y, z, -1);
         eventInfo.closestPlayerUUID = closestPlayer != null ? closestPlayer.getUniqueID()
             .toString() : UNKNOWN_PLAYER_NAME;
-        // Whole blocks, as for block changes.
+        // Whole blocks, same as block changes
         eventInfo.closestPlayerDistance = closestPlayer != null ? Math.round(closestPlayer.getDistance(x, y, z)) : -1;
 
         eventInfo.affectedBlockCoordinates = ChunkPositionUtils
@@ -116,9 +113,9 @@ public class ExplosionLogger extends GenericPositionalLogger<ExplosionEventInfo>
         logEvent(eventInfo, world.provider.dimensionId, x, y, z);
     }
 
-    // Vanilla's affected positions are every position the blast reached, air included, so a creeper in the open would
-    // count dozens of blocks it never touched. Detonate fires before the explosion removes anything, so what is there
-    // now is what it destroys.
+    // Vanilla's affected positions are everything the blast reached air included, so a creeper in the open would count
+    // dozens of blocks it never touched. Detonate fires before anything gets removed, so whatever's there now is what
+    // it destroys
     private static List<ChunkPosition> destroyedBlocks(World world, List<ChunkPosition> affectedBlocks) {
         List<ChunkPosition> destroyed = new ArrayList<>();
         for (ChunkPosition pos : affectedBlocks) {

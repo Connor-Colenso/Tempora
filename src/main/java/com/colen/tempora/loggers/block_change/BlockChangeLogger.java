@@ -52,7 +52,7 @@ import com.colen.tempora.utils.WorldGenTicks;
 
 public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventInfo> {
 
-    // Block changes don't know who caused them, so the closest player stands in.
+    // Block changes don't know who did them, so the closest player stands in
     @Override
     protected String playerColumn() {
         return "closestPlayerUUID";
@@ -68,8 +68,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
         return "change";
     }
 
-    // Every setBlock call in the world is far too much data to log everywhere, so by default this only logs inside
-    // regions that turn it on.
+    // Every setBlock is way too much data to log everywhere, so by default only inside regions that turn it on
     @Override
     protected boolean defaultForLogByDefault() {
         return false;
@@ -110,26 +109,23 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
         return new BlockChangeEventInfo();
     }
 
-    // Not convinced multithreaded safety is needed here.
+    // Not convinced this needs to be thread safe
     private static final ThreadLocal<Deque<BlockChangeEventInfo>> BLOCK_STACK = ThreadLocal
         .withInitial(ArrayDeque::new);
 
-    // --------------------------------------
-    // Stack traces
-    // --------------------------------------
-    // Each distinct stack trace is stored once, in this table beside the events, under a number of its own. Events
-    // refer to it by that number (stackTraceID), which takes a byte or two where its hash would take eight. The hash
-    // (see StackTraceUtils.getID) finds a trace's row.
+    // Stack traces. Each distinct trace is stored once in this table next to the events with its own number. Events
+    // point at it by that number (stackTraceID), a byte or two instead of eight for the hash. The hash
+    // (StackTraceUtils.getID) finds a trace's row
 
     static final String TRACE_TABLE = "StackTraces";
 
-    // Traces met since the database opened that may not be stored yet: hash -> text. Written with the next batch.
+    // Traces seen since the db opened that might not be stored yet, hash -> text. Written with the next batch
     private final Map<Long, String> unsavedTraces = new ConcurrentHashMap<>();
-    // Hash -> number of the traces known to be stored, so each is looked up once per session. Only added to once the
-    // batch that stored it commits: a rolled back number may be given to another trace.
+    // Hash -> number for traces known to be stored, so each gets looked up once per session. Only added once the batch
+    // that stored it commits, a rolled back number can go to another trace
     private final Map<Long, Long> traceNumbers = new ConcurrentHashMap<>();
 
-    /** The hash to give an event for this trace. Queues the trace to be written with the event if it is new. */
+    // Hash to give an event for this trace, queues the trace to be written with it if new
     public long traceHash(String trace) {
         long hash = StackTraceUtils.getID(trace);
         if (!traceNumbers.containsKey(hash)) unsavedTraces.putIfAbsent(hash, trace);
@@ -138,15 +134,15 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
 
     @Override
     protected void createExtraTables(Connection conn) throws SQLException {
-        // A new database (another world, in singleplayer) has none of them yet.
+        // New db (another world in singleplayer) doesn't have any of them yet
         unsavedTraces.clear();
         traceNumbers.clear();
         try (Statement st = conn.createStatement()) {
-            // AUTOINCREMENT, so a pruned trace's number is never given to another.
+            // AUTOINCREMENT so a pruned trace's number never gets reused
             st.execute(
                 "CREATE TABLE IF NOT EXISTS " + TRACE_TABLE
                     + " (id INTEGER PRIMARY KEY AUTOINCREMENT, hash INTEGER NOT NULL UNIQUE, trace TEXT NOT NULL)");
-            // For pruning, which looks up whether any event still refers to each trace.
+            // For pruning, which checks if any event still points at each trace
             st.execute(
                 "CREATE INDEX IF NOT EXISTS idx_" + getLoggerName()
                     + "_stackTraceID ON "
@@ -155,8 +151,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
         }
     }
 
-    // Gives each event its trace's number, storing traces met for the first time. In the batch's transaction, before
-    // the events' columns are read.
+    // Gives each event its trace number, storing new traces. In the batch transaction, before columns get read
     @Override
     protected @Nullable Runnable writeExtras(List<? extends GenericEventInfo> events, Connection conn)
         throws SQLException {
@@ -174,7 +169,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
                     number = findTraceNumber(find, hash);
                     if (number == null) {
                         String trace = unsavedTraces.get(hash);
-                        // Its text went with the database it was met in (singleplayer switched worlds).
+                        // Its text went with the db it was seen in (singleplayer switched worlds)
                         number = trace == null ? 0 : insertTrace(insert, hash, trace);
                     }
                     numbered.put(hash, number);
@@ -235,10 +230,8 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
         }
     }
 
-    /**
-     * Deletes traces no stored event refers to, except those numbered since the database opened: an event that refers
-     * to one may still be waiting in the queue, and a number this logger has handed out must stay stored.
-     */
+    // Deletes traces no stored event points at, except ones numbered since the db opened. An event pointing at one
+    // might still be in the queue, and any number we've handed out has to stay stored
     @Override
     protected void pruneExtras(Connection conn) throws SQLException {
         List<Long> unreferenced = new ArrayList<>();
@@ -264,23 +257,23 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
         }
     }
 
-    // Pushed in place of a real event for block changes that won't be logged, so HEAD and RETURN stay paired
-    // without paying for a stack trace and NBT capture that would be thrown away.
+    // Pushed instead of a real event for changes that won't be logged, so HEAD and RETURN stay paired without paying
+    // for a stack trace and NBT we'd throw away
     private static final BlockChangeEventInfo SKIPPED = new BlockChangeEventInfo();
 
-    // newBlock is the block being set, or null for a metadata change.
+    // newBlock is the block being set, null for a meta change
     public void onSetBlockHead(int x, int y, int z, World world, @Nullable Block newBlock) {
-        // Not isActive(): its worker can stop between HEAD and RETURN, which would unpair them. These two only change
-        // with the config, so both calls of a pair always agree.
+        // Not isActive(), the worker can stop between HEAD and RETURN and unpair them. These two only change with the
+        // config so both calls of a pair always agree
         if (!isEnabledByConfig || !GenericUtils.shouldTemporaRun()) return;
 
-        // Pushed before anything that could throw, so this call's RETURN always pops its own entry rather than the
-        // one of the setBlock call around it. Replaced below if the change is logged.
+        // Pushed before anything that can throw, so this call's RETURN always pops its own entry and not the outer
+        // setBlock's. Replaced below if the change gets logged
         Deque<BlockChangeEventInfo> stack = BLOCK_STACK.get();
         stack.push(SKIPPED);
         int dimensionID = world.provider.dimensionId;
 
-        // todo log world gen separately?
+        // TODO log world gen separately?
         if (WorldGenPhaseTracker.isWorldGen() || !canLogHere(x, y, z, dimensionID)) return;
 
         Block before = world.getBlock(x, y, z);
@@ -298,7 +291,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
         e.z = z;
         e.dimensionID = dimensionID;
 
-        // BEFORE state
+        // Before state
         e.beforeBlockID = Block.getIdFromBlock(before);
         e.beforeMetadata = world.getBlockMetadata(x, y, z);
 
@@ -326,7 +319,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
 
         BlockChangeEventInfo e = stack.pop();
 
-        // Not logged here, or the placement failed.
+        // Not logged here, or placement failed
         if (e == SKIPPED || !cir.getReturnValue()) {
             return;
         }
@@ -335,11 +328,8 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
         recordSetBlock(x, y, z, e, world);
     }
 
-    /**
-     * Logs a block change that did not go through {@code Chunk.func_150807_a}, so the mixin never saw it, e.g. a block
-     * written straight into the chunk's storage. Call this after the change, with what was there before: the old block,
-     * its metadata, and its tile entity's NBT if it had one.
-     */
+    // Logs a block change that didn't go through Chunk.func_150807_a so the mixin never saw it, e.g. written straight
+    // into chunk storage. Call after the change with what was there before (old block, meta and TE NBT if it had one)
     public void logBlockChange(World world, int x, int y, int z, Block before, int beforeMetadata,
         @Nullable NBTTagCompound beforeTileEntityNBT) {
         if (!isEnabledByConfig) return;
@@ -357,8 +347,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
         e.z = z;
         e.dimensionID = dimensionID;
 
-        // BEFORE state, as reported. The world already holds the new block, so the pick block can only come from the
-        // metadata rather than from the block in the world.
+        // Before state as reported. The world already has the new block so the pick block can only come from the meta
         e.beforeBlockID = Block.getIdFromBlock(before);
         e.beforeMetadata = beforeMetadata;
 
@@ -412,9 +401,9 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
             .toString() : UNKNOWN_PLAYER_NAME;
         eventInfo.closestPlayerDistance = closestDistance;
 
-        // Mods often set up a new block's tile entity just after placing it: GT gives a machine its type, owner and
-        // facing, vanilla a skull its type. Until then it reads as a blank block, so a block with a tile entity is
-        // read again at the end of the tick.
+        // Mods often set up a new block's TE right after placing it, GT gives a machine its type, owner and facing,
+        // vanilla a skull its type. Until then it reads as a blank block, so anything with a TE gets read again at the
+        // end of the tick
         if (Block.getBlockById(eventInfo.afterBlockID)
             .hasTileEntity(eventInfo.afterMetadata)) {
             pendingChanges.add(new PendingChange(eventInfo, world, x, y, z));
@@ -423,9 +412,7 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
         }
     }
 
-    // --------------------------------------
     // Changes waiting for the end of the tick
-    // --------------------------------------
 
     private final Queue<PendingChange> pendingChanges = new ConcurrentLinkedQueue<>();
 
@@ -444,17 +431,15 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
         }
     }
 
-    /**
-     * Reads the blocks with a tile entity changed this tick again, now that whoever placed them has set them up, and
-     * queues their events. At the end of every server tick, and as the server stops.
-     */
+    // Reads blocks with a TE that changed this tick again, now whoever placed them has set them up, and queues their
+    // events. End of every server tick and on server stop
     public void onTickEnd() {
         PendingChange change;
         while ((change = pendingChanges.poll()) != null) {
             try {
                 rereadAfterState(change);
             } catch (RuntimeException | LinkageError e) {
-                // Another mod's block or tile entity. The event keeps what was read as it changed.
+                // Another mod's block or TE, the event keeps what was read when it changed
                 LOG.error("Tempora could not read a changed block again at the end of the tick.", e);
             }
             queueEventInfo(change.event);
@@ -466,10 +451,10 @@ public class BlockChangeLogger extends GenericPositionalLogger<BlockChangeEventI
         World world = change.world;
         int x = change.x, y = change.y, z = change.z;
 
-        // Not in a world or chunk that has unloaded since, which reading would load again.
+        // Skip if the world or chunk has unloaded since, reading would load it again
         if (DimensionManager.getWorld(e.dimensionID) != world || !world.blockExists(x, y, z)) return;
-        // Only while it is still the block this change made. If it changed again this tick, that change is an event of
-        // its own, and this one keeps what was read at the time.
+        // Only while it's still the block this change made. If it changed again this tick that's its own event, and
+        // this one keeps what was read at the time
         if (Block.getIdFromBlock(world.getBlock(x, y, z)) != e.afterBlockID
             || world.getBlockMetadata(x, y, z) != e.afterMetadata) return;
 

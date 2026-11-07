@@ -35,23 +35,19 @@ import com.mojang.authlib.GameProfile;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 
-/** What Tempora's tests share: reading events back, and checks every logged event should pass. */
+// Stuff the tests share, reading events back and checks every logged event should pass
 final class TestSupport {
 
     private TestSupport() {}
 
-    /**
-     * A fake player of its own for one test, standing at the test's origin. Fake players are shared by name, so tests
-     * running side by side must not use the same one.
-     */
+    // Fake player for one test standing at the test's origin. Fake players are shared by name so tests running side by
+    // side can't use the same one
     static FakePlayer fakePlayer(GameTestHelper helper, String testName) {
         return helper.spawnFakePlayer("tempora_" + testName);
     }
 
-    /**
-     * A player of its own for one test who is not a fake player, standing at the test's origin, for loggers that leave
-     * fake players out as those are machines. Never added to the world or the player list, and has no connection.
-     */
+    // Non fake player for one test standing at the test's origin, for loggers that skip fake players since those are
+    // machines. Never added to the world or player list, no connection
     static EntityPlayerMP player(GameTestHelper helper, String testName) {
         WorldServer world = helper.getWorld();
         String profileName = "tempora_" + testName;
@@ -68,10 +64,8 @@ final class TestSupport {
         return player;
     }
 
-    /**
-     * Adds a region over blocks of the test, from {@code from} to {@code to} inclusive (test-local), with one logger
-     * rule, and removes it once the test ends. Keep it inside the test's own cell, as other tests run beside it.
-     */
+    // Adds a region over blocks of the test from from to to inclusive (test local) with one logger rule, removed when
+    // the test ends. Keep it inside the test's own cell, other tests run next to it
     static TemporaWorldRegion region(GameTestHelper helper, String label, TestPos from, TestPos to, String loggerName,
         LogRule rule) {
         TestPos min = helper.absolute(from);
@@ -90,10 +84,8 @@ final class TestSupport {
             rule);
     }
 
-    /**
-     * Adds a region in any dimension, in absolute block coordinates with the max corner exclusive, with one logger
-     * rule, and removes it once the test ends.
-     */
+    // Adds a region in any dimension, absolute block coords with the max corner exclusive, with one logger rule,
+    // removed when the test ends
     static TemporaWorldRegion region(GameTestHelper helper, String label, int dimension, int minX, int minY, int minZ,
         int maxX, int maxY, int maxZ, String loggerName, LogRule rule) {
         TemporaWorldRegion region = new TemporaWorldRegion(dimension, minX, minY, minZ, maxX, maxY, maxZ);
@@ -110,12 +102,10 @@ final class TestSupport {
         return region;
     }
 
-    // ---------- Reading events back, on the query thread ----------
+    // Reading events back on the query thread
 
-    /**
-     * Every event a positional logger has stored within {@code radius} of a position (a cube, inclusive), oldest
-     * first. On the query thread, inside a {@link Probe}.
-     */
+    // Every event a positional logger has stored within radius of a position (a cube, inclusive), oldest first. Query
+    // thread, inside a Probe
     static List<PositionalEventInfo> eventsNear(GenericPositionalLogger<?> logger, int dimension, double x, double y,
         double z, double radius) throws SQLException {
         String sql = "SELECT * FROM " + logger.getLoggerName()
@@ -138,19 +128,19 @@ final class TestSupport {
                     events.add((PositionalEventInfo) event);
                 }
             }
-            // As a lookup does, e.g. the block change logger's stack traces.
+            // Same as a lookup, e.g. the block change logger's stack traces
             logger.loadExtras(events, TemporaQueries.connection(logger));
             return events;
         }
     }
 
-    // Events stored around a block of the test, from its corner. See eventsNear.
+    // Events stored around a block of the test, from its corner. See eventsNear
     static List<PositionalEventInfo> eventsNear(GameTestHelper helper, GenericPositionalLogger<?> logger, TestPos pos,
         double radius) throws SQLException {
         return eventsNear(logger, helper.getWorld().provider.dimensionId, pos.x(), pos.y(), pos.z(), radius);
     }
 
-    /** A global logger's events since {@code sinceMillis}, oldest first. On the query thread, inside a Probe. */
+    // A global logger's events since sinceMillis, oldest first. Query thread, inside a Probe
     static List<GenericEventInfo> eventsSince(GenericGlobalLogger<?> logger, long sinceMillis) throws SQLException {
         String sql = "SELECT * FROM " + logger.getLoggerName() + " WHERE timestamp >= ? ORDER BY eventID";
 
@@ -163,12 +153,10 @@ final class TestSupport {
         }
     }
 
-    // ---------- Checks every stored event should pass ----------
+    // Checks every stored event should pass
 
-    /**
-     * Checks events read back from the database: each has an id from the database, unique within its logger, and a
-     * positional event's render packet reads back exactly as it was written.
-     */
+    // Checks events read back from the db. Each has an id from the db unique within its logger, and a positional
+    // event's render packet reads back exactly as written
     static void assertWellFormed(GameTestHelper helper, GenericLogger<?> logger,
         List<? extends GenericEventInfo> events) {
         Set<Long> ids = new HashSet<>();
@@ -185,11 +173,9 @@ final class TestSupport {
         }
     }
 
-    /**
-     * Checks the packet that tells a client to draw an event: it reads back what was written, all of it and nothing
-     * more, so a field written but not read (or the other way round) is caught here rather than as a garbled event on
-     * someone's screen.
-     */
+    // Checks the packet that tells a client to draw an event reads back what was written, all of it and nothing more.
+    // Catches a field written but not read (or the other way round) here instead of as a garbled event on someone's
+    // screen
     static void assertPacketRoundTrips(GameTestHelper helper, PositionalEventInfo event, String context) {
         ByteBuf written = Unpooled.buffer();
         new RenderEventPacket(event).toBytes(written);

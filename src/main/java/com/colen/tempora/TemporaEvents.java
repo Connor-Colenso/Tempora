@@ -37,7 +37,7 @@ import com.colen.tempora.loggers.weather.WeatherLogger;
 
 public class TemporaEvents {
 
-    // We keep these references as mixins and the API (com.colen.tempora.api.TemporaApi) log through them.
+    // Kept around since mixins and TemporaApi log through them
     public static AchievementLogger achievementLogger = new AchievementLogger();
     public static BlockChangeLogger blockChangeLogger = new BlockChangeLogger();
     public static CommandLogger commandLogger = new CommandLogger();
@@ -53,12 +53,12 @@ public class TemporaEvents {
     public static PlayerDeathLogger playerDeathLogger = new PlayerDeathLogger();
     public static PlayerPositionLogger playerPositionLogger = new PlayerPositionLogger();
 
-    // Global loggers, for events with no position.
+    // Global loggers, no position
     public static PlayerConnectionLogger playerConnectionLogger = new PlayerConnectionLogger();
     public static TPSLogger tpsLogger = new TPSLogger();
     public static WeatherLogger weatherLogger = new WeatherLogger();
 
-    // Logger names. DO NOT RENAME IT. This WILL break all past data.
+    // Logger names, DO NOT RENAME. Breaks all past data
     public static final String ACHIEVEMENT = "AchievementLogger";
     public static final String BLOCK_CHANGE = "BlockChangeLogger";
     public static final String COMMAND = "CommandLogger";

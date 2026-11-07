@@ -10,7 +10,7 @@ public class ColumnDef {
 
     public final String name;
     public final ColumnType columnType;
-    public final String type; // columnType's SQL type
+    public final String type; // SQL type of columnType
     public final String extraCondition;
     public final List<String> renamedFrom;
     public final ColumnAccessor columnAccessor;
@@ -29,14 +29,11 @@ public class ColumnDef {
         return name;
     }
 
-    // An INTEGER PRIMARY KEY is the table's rowid, which SQLite fills in itself on insert.
+    // INTEGER PRIMARY KEY is the rowid, SQLite fills it in on insert
     public boolean isAssignedByDatabase() {
         return "INTEGER".equals(type) && "PRIMARY KEY".equalsIgnoreCase(extraCondition);
     }
 
-    // --------------------------------------
-    // Accessor (read + write)
-    // --------------------------------------
     public static final class ColumnAccessor {
 
         private final MethodHandle getter;

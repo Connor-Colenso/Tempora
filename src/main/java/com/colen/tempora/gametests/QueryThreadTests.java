@@ -20,21 +20,19 @@ import com.gtnewhorizons.horizonqa.api.annotation.BeforeBatch;
 import com.gtnewhorizons.horizonqa.api.annotation.GameTest;
 import com.gtnewhorizons.horizonqa.api.annotation.GameTestHolder;
 
-/**
- * How lookups behave when they go wrong: too slow, failing, or sent again before the last one finished. Runs in a
- * batch of its own with a short time limit, as a slow query holds up the one query thread every lookup shares.
- */
+// How lookups behave when they go wrong, too slow, failing or sent again before the last one finished. Own batch with a
+// short time limit since a slow query holds up the one query thread every lookup shares
 @GameTestHolder(Tempora.MODID)
 public class QueryThreadTests {
 
     private static final String BATCH = "tempora.queries";
     private static final int TIME_LIMIT_SECONDS = 2;
 
-    // Counts up forever, so it only ends when the time limit stops it.
+    // Counts up forever so only the time limit stops it
     private static final String ENDLESS_SQL = "WITH RECURSIVE n(x) AS (SELECT 1 UNION ALL SELECT x + 1 FROM n)"
         + " SELECT max(x) FROM n";
 
-    // The configured limit, put back after the batch. Only changed in memory, never saved.
+    // Configured limit, put back after the batch. Only changed in memory, never saved
     private static int configuredTimeLimitSeconds;
 
     @BeforeBatch(BATCH)
@@ -48,10 +46,8 @@ public class QueryThreadTests {
         CommandsConfig.queryTimeLimitSeconds = configuredTimeLimitSeconds;
     }
 
-    /**
-     * A query that runs too long is stopped at the time limit, and the sender is told it is still searching and then
-     * that it was stopped. While it runs, the sender can't start another; once it is stopped, they can.
-     */
+    // A query that runs too long gets stopped at the time limit, and the sender is told it's still searching then that
+    // it was stopped. While it runs the sender can't start another, once stopped they can
     @GameTest(batch = BATCH, timeoutTicks = 300)
     public static void slowLookupIsStoppedAtTimeLimit(GameTestHelper helper) {
         CapturingSender sender = new CapturingSender("slowLookupIsStoppedAtTimeLimit", helper.getWorld());
@@ -72,8 +68,8 @@ public class QueryThreadTests {
                     keys(sender),
                     "the second lookup should be refused");
             })
-            // The notice goes by wall time, and after a slow tick (a batch before this one generating chunks) the
-            // server runs up to 40 ticks back to back to catch up, so wait past those.
+            // The notice goes by wall time, and after a slow tick (an earlier batch generating chunks) the server runs
+            // up to 40 ticks back to back to catch up, so wait past those
             .thenWaitUntil(
                 "the sender is told it is still searching",
                 100,
@@ -98,7 +94,7 @@ public class QueryThreadTests {
             .thenSucceed();
     }
 
-    // A query that fails tells the sender why, and leaves them free to look up again.
+    // A failing query tells the sender why and leaves them free to look up again
     @GameTest(batch = BATCH, timeoutTicks = 300)
     public static void failedLookupTellsSender(GameTestHelper helper) {
         CapturingSender sender = new CapturingSender("failedLookupTellsSender", helper.getWorld());
@@ -127,7 +123,7 @@ public class QueryThreadTests {
             .thenSucceed();
     }
 
-    // Reading the databases is for the query thread only, so no lookup can run SQL on the server thread by mistake.
+    // Reading the dbs is query thread only so no lookup can run SQL on the server thread by mistake
     @GameTest(batch = BATCH)
     public static void connectionsAreRefusedOffQueryThread(GameTestHelper helper) {
         helper.assertThrows(IllegalStateException.class, () -> {
@@ -140,9 +136,9 @@ public class QueryThreadTests {
         helper.succeed();
     }
 
-    // ---------- Helpers ----------
+    // Helpers
 
-    // On the query thread. Reports the time limit stopping it the same way Tempora's own lookups do.
+    // Query thread. Reports the time limit stopping it the same way our own lookups do
     private static long runEndlessQuery() throws SQLException {
         try (Statement st = TemporaQueries.connection(TemporaEvents.playerBlockBreakLogger)
             .createStatement(); ResultSet rs = st.executeQuery(ENDLESS_SQL)) {
@@ -154,7 +150,7 @@ public class QueryThreadTests {
         }
     }
 
-    // The translation keys of everything sent to the sender, in order.
+    // Translation keys of everything sent to the sender, in order
     private static List<String> keys(CapturingSender sender) {
         List<String> keys = new ArrayList<>();
         for (IChatComponent message : sender.getMessages()) {

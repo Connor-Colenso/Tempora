@@ -40,40 +40,38 @@ import com.colen.tempora.utils.TimeWindow;
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
-/**
- * Left click a block to see its history, right click a face to see the history of the space in front of it, where a
- * block placed on that face would go. Either way the block checked is outlined.
- */
+// Left click a block to see its history, right click a face to see the history of the space in front of it (where a
+// block placed on that face would go). Either way the checked block gets outlined
 public class TemporaWand extends Item {
 
-    // Holding a mouse button repeats the click, every few ticks, on the server too. Only a click on another block, or
-    // one after a pause, checks again, so holding it does not fill chat with the same lookup.
+    // Holding a mouse button repeats the click every few ticks, server side too. Only a click on another block or after
+    // a pause checks again, so holding it doesn't spam chat with the same lookup
     private static final long REPEAT_CLICK_MILLIS = 1000;
     private static final Map<EntityPlayer, LastCheck> lastChecks = new WeakHashMap<>();
 
     public TemporaWand() {
         this.setMaxStackSize(1);
-        // In no creative tab, so creative players who may not use /tempora never pick it up. /tempora wand gives one.
+        // No creative tab so creative players who can't use /tempora never pick it up, /tempora wand gives one
         this.setCreativeTab(null);
         this.setUnlocalizedName("tempora_wand");
         this.setTextureName("tempora:tempora_wand");
     }
 
-    // Left click, on the Forge event bus. Only the server hears of it in 1.7.10, as the client fires no event for
-    // hitting a block, so the server outlines the block for the client.
+    // Left click, on the Forge bus. In 1.7.10 only the server hears about it since the client fires no event for
+    // hitting a block, so the server outlines the block for the client
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     @SuppressWarnings("unused")
     public void onLeftClickBlock(PlayerInteractEvent event) {
         if (event.action != PlayerInteractEvent.Action.LEFT_CLICK_BLOCK) return;
         if (!(event.entityPlayer instanceof EntityPlayerMP player)) return;
-        // A machine holding a wand (a block breaker or activator) can't read what it shows.
+        // A machine holding a wand (block breaker, activator) can't read what it shows
         if (player instanceof FakePlayer) return;
 
         ItemStack held = player.getHeldItem();
         if (held == null || held.getItem() != this) return;
 
-        // Hitting the block must not start breaking it. The server also resends the block, in case the client broke
-        // it already.
+        // Hitting the block mustn't start breaking it. The server also resends the block in case the client already
+        // broke it
         event.setCanceled(true);
 
         if (isRepeatClick(player, event.x, event.y, event.z)) return;
@@ -84,30 +82,30 @@ public class TemporaWand extends Item {
         checkSpot(player, event.x, event.y, event.z);
     }
 
-    // Survival mining would otherwise crack the block on the client while the button is held.
+    // Otherwise survival mining cracks the block on the client while the button's held
     @Override
     public float getDigSpeed(ItemStack stack, Block block, int metadata) {
         return 0;
     }
 
-    // In case a block is broken anyway, e.g. one that breaks instantly in creative.
+    // In case a block breaks anyway, e.g. instant break in creative
     @Override
     public boolean onBlockStartBreak(ItemStack stack, int x, int y, int z, EntityPlayer player) {
         return true;
     }
 
-    // Right click.
+    // Right click
     @Override
     public boolean onItemUse(ItemStack stack, EntityPlayer player, World world, int x, int y, int z, int side,
         float hitX, float hitY, float hitZ) {
-        // A machine holding a wand can't read what it shows, and would alert admins as an unauthorised user.
+        // A machine holding a wand can't read what it shows, and would alert admins as an unauthorised user
         if (player instanceof FakePlayer) return false;
 
         int px = x + Facing.offsetsXForSide[side];
         int py = y + Facing.offsetsYForSide[side];
         int pz = z + Facing.offsetsZForSide[side];
 
-        // The client outlines the space itself, and the server checks it.
+        // Client outlines the space itself, server does the check
         if (!(player instanceof EntityPlayerMP entityPlayerMP)) {
             ClientRegionStore.add(outline(player.dimension, px, py, pz));
             return false;
@@ -138,7 +136,7 @@ public class TemporaWand extends Item {
         boolean repeat = last != null && last.isAt(player.dimension, x, y, z)
             && now - last.millis < REPEAT_CLICK_MILLIS;
 
-        // A held button keeps pushing the time on, so it never checks again until let go.
+        // A held button keeps pushing the time on, so it never checks again until let go
         lastChecks.put(player, new LastCheck(player.dimension, x, y, z, now));
         return repeat;
     }
@@ -146,7 +144,7 @@ public class TemporaWand extends Item {
     private static void checkSpot(EntityPlayerMP player, int x, int y, int z) {
         if (TemporaCommand.isDisabled(player)) return;
 
-        // The same check as /tempora itself, so whoever may run lookups may use the wand, and nobody else.
+        // Same check as /tempora itself, so whoever can run lookups can use the wand and nobody else
         if (!CommandUtils.mayUseTempora(player)) {
             IChatComponent alert = new ChatComponentTranslation("tempora.wand.alert");
             alert.getChatStyle()

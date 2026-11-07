@@ -39,12 +39,12 @@ public class InventoryEventInfo extends PositionalEventInfo {
     @Column
     public int amount;
 
-    // NBTUtils.NO_NBT when the item had none, NBTUtils.NBT_DISABLED when it had some but logNBT was off.
+    // NBTUtils.NO_NBT if the item had none, NBTUtils.NBT_DISABLED if it had some but logNBT was off
     @Column(type = ColumnType.NBT)
     public String encodedNBT = NBTUtils.NO_NBT;
 
-    // encodedNBT is deliberately not sent: the client only uses these events to draw boxes, and item NBT can be far
-    // larger than a packet string allows.
+    // encodedNBT isn't sent on purpose, the client only draws boxes from these and item NBT can be way bigger than a
+    // packet string allows
     @Override
     public void fromBytes(ByteBuf buf) {
         super.fromBytes(buf);
@@ -79,16 +79,16 @@ public class InventoryEventInfo extends PositionalEventInfo {
             return invalid;
         }
 
-        // Green for items put in, red for items taken out.
+        // Green for put in, red for taken out
         boolean added = dir.isAddition();
         IChatComponent count = EventChat
             .text(formatNumber(amount), added ? EnumChatFormatting.GREEN : EnumChatFormatting.RED);
 
-        // Text, as the container's name was already worked out on the server, and a renamed chest can hold a %.
+        // Plain text, the name was already worked out on the server and a renamed chest can have a % in it
         IChatComponent container = EventChat.text(containerName, EnumChatFormatting.WHITE);
 
-        // Containers carried by a player (backpacks, wireless terminals) are logged at the player, which is still the
-        // block worth teleporting to.
+        // Containers carried by a player (backpacks, wireless terminals) are logged at the player, still the right
+        // place to teleport to
         return EventChat.line(
             added ? "tempora.event.inventory.added" : "tempora.event.inventory.removed",
             EventChat.time(timestamp),

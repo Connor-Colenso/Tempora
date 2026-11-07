@@ -13,7 +13,7 @@ import com.colen.tempora.rendering.events.EventRenderHelpers;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-/** Shows each entity where it spawned. */
+// Each entity where it spawned
 @SideOnly(Side.CLIENT)
 public class EntitySpawnRenderer extends EntityEventRenderer<EntitySpawnEventInfo> {
 

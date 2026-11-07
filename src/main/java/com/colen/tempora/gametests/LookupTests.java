@@ -32,11 +32,9 @@ import com.gtnewhorizons.horizonqa.api.TestPos;
 import com.gtnewhorizons.horizonqa.api.annotation.GameTest;
 import com.gtnewhorizons.horizonqa.api.annotation.GameTestHolder;
 
-/**
- * What /tempora lookup and the wand find: the radius, time and logger filters, and how many events they show. Runs
- * {@link GenericPositionalLogger#findEventsNear} on the query thread and shows the result to a {@link CapturingSender},
- * as the command does for a player.
- */
+// What /tempora lookup and the wand find, the radius, time and logger filters and how many events they show. Runs
+// GenericPositionalLogger.findEventsNear on the query thread and shows the result to a CapturingSender like the command
+// does for a player
 @GameTestHolder(Tempora.MODID)
 public class LookupTests {
 
@@ -145,7 +143,7 @@ public class LookupTests {
             .thenSucceed();
     }
 
-    // t:3d-1d finds only what happened between 3 days and 1 day ago, whichever way round the range is written.
+    // t:3d-1d only finds what happened between 3 days and 1 day ago, whichever way round the range is written
     @GameTest(timeoutTicks = TIMEOUT_TICKS)
     public static void timeRangeLimitsWhatIsFound(GameTestHelper helper) {
         GenericPositionalLogger<PlayerBlockBreakEventInfo> logger = TemporaEvents.playerBlockBreakLogger;
@@ -215,7 +213,7 @@ public class LookupTests {
             .thenSucceed();
     }
 
-    // n: sets how many of the latest events are shown, and the header says "latest" only when there may be more.
+    // n: sets how many of the latest events show, and the header only says "latest" when there might be more
     @GameTest(timeoutTicks = TIMEOUT_TICKS)
     public static void countLimitsWhatIsShown(GameTestHelper helper) {
         GenericPositionalLogger<?> logger = TemporaEvents.playerBlockBreakLogger;
@@ -270,7 +268,7 @@ public class LookupTests {
             .thenSucceed();
     }
 
-    // p: shows only the named players' events, or with a ! everyone's but theirs, and can list several of either.
+    // p: shows only the named players' events, or with ! everyone's but theirs, and can list several of either
     @GameTest(timeoutTicks = TIMEOUT_TICKS)
     public static void playerFilterLimitsWhatIsFound(GameTestHelper helper) {
         GenericPositionalLogger<?> logger = TemporaEvents.playerBlockBreakLogger;
@@ -382,7 +380,7 @@ public class LookupTests {
             .thenSucceed();
     }
 
-    // s:time takes the newest n of every logger's events together, rather than the newest n of each.
+    // s:time takes the newest n of every logger's events together, not the newest n of each
     @GameTest(timeoutTicks = TIMEOUT_TICKS)
     public static void timeSortTakesNewestAcrossLoggers(GameTestHelper helper) {
         EntityPlayerMP player = player(helper, "lookup_by_time");
@@ -455,7 +453,7 @@ public class LookupTests {
             .thenSucceed();
     }
 
-    // s: takes logger or time in any case, and refuses anything else with a message.
+    // s: takes logger or time in any case and refuses anything else with a message
     @GameTest
     public static void sortFilterParses(GameTestHelper helper) {
         CapturingSender sender = new CapturingSender("sortFilterParses", helper.getWorld());
@@ -473,7 +471,7 @@ public class LookupTests {
         helper.succeed();
     }
 
-    // The t: filter's forms, a range either way round.
+    // t: filter forms, range either way round
     @GameTest
     public static void timeWindowParses(GameTestHelper helper) {
         long now = System.currentTimeMillis();
@@ -486,14 +484,14 @@ public class LookupTests {
                 .newestMillis(now),
             "6h runs up to now");
 
-        // The command system shows the exception's message to the sender.
+        // The command system shows the exception's message to the sender
         for (String bad : new String[] { "3d-", "-1d", "3d-1d-1h", "soon" }) {
             helper.assertThrows(CommandException.class, () -> TimeWindow.parse(bad), "t:" + bad + " was accepted");
         }
         helper.succeed();
     }
 
-    // l: takes short or full names, ignores repeats, and refuses unknown and global loggers with a message.
+    // l: takes short or full names, ignores repeats and refuses unknown and global loggers with a message
     @GameTest
     public static void loggerFilterParsesNames(GameTestHelper helper) {
         CapturingSender sender = new CapturingSender("loggerFilterParsesNames", helper.getWorld());
@@ -523,10 +521,8 @@ public class LookupTests {
         helper.succeed();
     }
 
-    /**
-     * A radius of 0 searches exactly one block: a mob standing in it (x = n + 0.5) is found, and one standing in the
-     * next block along is not. Events of mobs and players have positions within a block, not on its corner.
-     */
+    // Radius 0 searches exactly one block. A mob standing in it (x = n + 0.5) is found and one in the next block along
+    // isn't. Mob and player events have positions inside a block, not on its corner
     @GameTest(timeoutTicks = TIMEOUT_TICKS)
     public static void radiusZeroFindsMobInBlock(GameTestHelper helper) {
         GenericPositionalLogger<?> logger = TemporaEvents.entitySpawnLogger;
@@ -568,15 +564,15 @@ public class LookupTests {
             .thenSucceed();
     }
 
-    // ---------- Helpers ----------
+    // Helpers
 
-    // Puts a block there and breaks it as a player, logging a break.
+    // Puts a block there and breaks it as a player, logging a break
     private static void breakNew(GameTestHelper helper, EntityPlayerMP player, TestPos local) {
         helper.setBlock(local, Blocks.stone);
         breakBlock(helper, player, local);
     }
 
-    // A break event from some time ago, to queue on the logger directly as logging always stamps the current time.
+    // A break event from a while ago, queued on the logger directly since logging always stamps the current time
     private static PlayerBlockBreakEventInfo oldBreak(GameTestHelper helper, EntityPlayerMP player, TestPos pos,
         long secondsAgo) {
         PlayerBlockBreakEventInfo event = new PlayerBlockBreakEventInfo();
@@ -592,7 +588,7 @@ public class LookupTests {
         return event;
     }
 
-    // A place event from some time ago, as oldBreak.
+    // A place event from a while ago, same as oldBreak
     private static PlayerBlockPlaceEventInfo oldPlace(GameTestHelper helper, EntityPlayerMP player, TestPos pos,
         long secondsAgo) {
         PlayerBlockPlaceEventInfo event = new PlayerBlockPlaceEventInfo();
@@ -608,7 +604,7 @@ public class LookupTests {
         return event;
     }
 
-    // Shows a lookup's result to a throwaway sender, and checks how many events it showed.
+    // Shows a lookup's result to a throwaway sender and checks how many events it showed
     static void assertShown(GameTestHelper helper, FoundEvents<?> found, int expected) {
         CapturingSender chat = new CapturingSender("assertShown", helper.getWorld());
         helper.assertEquals((long) expected, found.show(chat), "events shown, chat was:\n" + chat.text());

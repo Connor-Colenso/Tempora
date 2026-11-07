@@ -13,7 +13,7 @@ import com.colen.tempora.rendering.events.EventRenderHelpers;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-/** Shows each entity where it was, with a trail joining one entity's positions in the order it was at them. */
+// Each entity where it was, with a trail joining its positions in order
 @SideOnly(Side.CLIENT)
 public class EntityPositionRenderer extends EntityEventRenderer<EntityPositionEventInfo> {
 

@@ -19,8 +19,8 @@ public class OnPlayerLogin {
         warnIfRegionsUnreadable(event.player);
     }
 
-    // The region file was set aside on server start, so every region is gone until someone fixes it. Only the log says
-    // so otherwise, so each player who may use /tempora is told as they join.
+    // Region file got set aside on server start so every region is gone until someone fixes it. Otherwise only the log
+    // says so, so tell each player who can use /tempora when they join
     public static void warnIfRegionsUnreadable(EntityPlayer player) {
         String fileName = TemporaRegionRegistry.getUnreadableFileName();
         if (fileName == null) return;

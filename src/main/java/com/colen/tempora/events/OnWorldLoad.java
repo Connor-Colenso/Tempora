@@ -13,7 +13,7 @@ public class OnWorldLoad {
     public void onWorldLoad(WorldEvent.Load e) {
         if (e.world.isRemote) return;
         if (e.world.provider.dimensionId != 0) return;
-        // It is saved with the world, so a world Tempora never ran in is left without it.
+        // Saved with the world, so worlds Tempora never ran in don't get it
         if (!GenericUtils.shouldTemporaRun()) return;
 
         ModpackVersionData.init();

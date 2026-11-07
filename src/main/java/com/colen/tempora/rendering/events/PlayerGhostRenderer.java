@@ -24,21 +24,21 @@ import cpw.mods.fml.relauncher.SideOnly;
 
 /**
  * Draws a player where they were for each event, e.g. where a command was typed, with a label above their name tag.
- * Several events by one player at one spot (commands typed without moving) share one player and one label.
+ * Several events by one player at one spot (commands typed without moving) share one player and label
  */
 @SideOnly(Side.CLIENT)
 public abstract class PlayerGhostRenderer<E extends PositionalEventInfo> implements EventRenderer<E> {
 
     private static final double PLAYER_HALF_WIDTH = 0.3;
     private static final double PLAYER_HEIGHT = 1.8;
-    // Just above the player's name tag.
+    // Just above the name tag
     private static final double LABEL_HEIGHT = 2.55;
 
     protected final Color colour;
 
-    // Made once per event rather than every frame, keyed by the newest event at each spot. Null when the player cannot
-    // be drawn. Weak, so each goes after ClientEventStore drops its event, but only once the map is next used, so it
-    // is also emptied as the world unloads: each player keeps its world.
+    // Made once per event not every frame, keyed by the newest event at each spot. Null if the player can't be drawn.
+    // Weak so each goes after ClientEventStore drops its event, but only once the map's next used, so it's also cleared
+    // on world unload since each player holds its world
     private final Map<E, EntityOtherPlayerMP> ghosts = new WeakHashMap<>();
 
     protected PlayerGhostRenderer(Color colour) {
@@ -47,25 +47,25 @@ public abstract class PlayerGhostRenderer<E extends PositionalEventInfo> impleme
 
     protected abstract String playerUUID(E event);
 
-    /** The lines shown above the player, for the events at one spot, oldest first. */
+    /** Lines shown above the player for the events at one spot, oldest first */
     protected abstract List<String> label(List<E> eventsHere);
 
-    /** What the player is shown holding. */
+    /** What the player is shown holding */
     protected @Nullable ItemStack heldItem(E event) {
         return null;
     }
 
-    /** Which way the player faces. Towards the camera unless a renderer knows better. */
+    /** Which way the player faces, towards the camera unless a renderer knows better */
     protected float yaw(E event, EventRenderContext context) {
         return context.yawTowardsCamera(event.x, event.z);
     }
 
-    /** How far the player's head is tilted, in degrees, down being positive. Level unless a renderer knows better. */
+    /** Head tilt in degrees, down is positive. Level unless a renderer knows better */
     protected float pitch(E event) {
         return 0;
     }
 
-    /** Changes the player once, as it is made, e.g. to draw them dying. */
+    /** Changes the player once when it's made, e.g. to draw them dying */
     protected void prepareGhost(EntityOtherPlayerMP ghost, E event) {}
 
     @Override
@@ -142,14 +142,14 @@ public abstract class PlayerGhostRenderer<E extends PositionalEventInfo> impleme
         return ghost;
     }
 
-    // The real player's profile while they are near enough to be seen, so the ghost wears their skin. Otherwise a
-    // default skin, under their name.
+    // Real player's profile while they're close enough to see so the ghost wears their skin, otherwise a default skin
+    // under their name
     private static GameProfile profileOf(String playerUUID) {
         UUID uuid = null;
         try {
             uuid = UUID.fromString(playerUUID);
         } catch (IllegalArgumentException | NullPointerException notAUUID) {
-            // Shown under whatever was stored instead.
+            // Shown under whatever was stored instead
         }
 
         if (uuid != null) {

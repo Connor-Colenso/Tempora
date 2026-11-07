@@ -4,7 +4,7 @@ import java.util.Locale;
 
 import org.jetbrains.annotations.Nullable;
 
-// A region's rule for a single logger. A region with no rule for a logger has no say over it.
+// A region's rule for one logger. A region with no rule for a logger has no say over it
 public enum LogRule {
 
     ON,

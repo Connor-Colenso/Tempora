@@ -37,18 +37,16 @@ import com.gtnewhorizons.horizonqa.api.annotation.GameTestHolder;
 
 import cpw.mods.fml.common.eventhandler.EventBus;
 
-/**
- * The item pickup and drop logger, through the vanilla code a player picking up or throwing out an item runs, and the
- * event Forge fires for a player's death drops.
- */
+// Item pickup and drop logger, through the vanilla code a player picking up or throwing an item runs, plus the event
+// Forge fires for death drops
 @GameTestHolder(Tempora.MODID)
 public class ItemPickupDropLoggerTests {
 
     private static final int WRITE_TICKS = 100;
     private static final int TIMEOUT_TICKS = 200;
 
-    // A whole stack, then only what fits of another: 3 of the 5 on the ground, the rest stays there. Vanilla skips
-    // FML's pickup event for the second, though the items still move.
+    // A whole stack, then only what fits of another (3 of the 5 on the ground, rest stays). Vanilla skips FML's pickup
+    // event for the second even though the items still move
     @GameTest(timeoutTicks = TIMEOUT_TICKS)
     public static void pickedUpItemsAreLogged(GameTestHelper helper) {
         ItemPickupDropLogger logger = TemporaEvents.itemPickupDropLogger;
@@ -57,8 +55,8 @@ public class ItemPickupDropLoggerTests {
 
         helper.startSequence()
             .thenExecute("pick up 2 sticks, then 5 cobblestone with room for 3", () -> {
-                // Slot 1 is the only empty one. Not the last slot: Backhand adds an offhand slot to the end of the
-                // main inventory, which pickups skip.
+                // Slot 1 is the only empty one. Not the last slot, Backhand adds an offhand slot at the end of the main
+                // inventory which pickups skip
                 ItemStack[] slots = player.inventory.mainInventory;
                 slots[0] = new ItemStack(Blocks.cobblestone, 61);
                 slots[1] = null;
@@ -66,7 +64,7 @@ public class ItemPickupDropLoggerTests {
 
                 EntityItem sticks = itemOnGround(helper, player, new ItemStack(Items.stick, 2));
                 EntityItem cobblestone = itemOnGround(helper, player, new ItemStack(Blocks.cobblestone, 5));
-                // What a player walking into an item does each tick.
+                // What a player walking into an item does each tick
                 sticks.onCollideWithPlayer(player);
                 cobblestone.onCollideWithPlayer(player);
 
@@ -99,7 +97,7 @@ public class ItemPickupDropLoggerTests {
             .thenSucceed();
     }
 
-    // Throwing out the whole held stack, as Ctrl+Q does, with its NBT and the way the player looked.
+    // Throwing the whole held stack like Ctrl+Q, with its NBT and the way the player looked
     @GameTest(timeoutTicks = TIMEOUT_TICKS)
     public static void droppedItemsAreLogged(GameTestHelper helper) {
         ItemPickupDropLogger logger = TemporaEvents.itemPickupDropLogger;
@@ -145,7 +143,7 @@ public class ItemPickupDropLoggerTests {
             .thenSucceed();
     }
 
-    // Death drops are logged once per kind of item, however many stacks of it there were.
+    // Death drops get logged once per kind of item however many stacks there were
     @GameTest(timeoutTicks = TIMEOUT_TICKS)
     public static void deathDropsAreLogged(GameTestHelper helper) {
         ItemPickupDropLogger logger = TemporaEvents.itemPickupDropLogger;
@@ -154,8 +152,8 @@ public class ItemPickupDropLoggerTests {
 
         helper.startSequence()
             .thenExecute("die holding two stacks of cobblestone and a diamond", () -> {
-                // The event a dying player fires, as fake players cannot die. Posted on a bus of the logger's own, as
-                // other mods' handlers expect a logged-in player (Galacticraft's NPEs) or act on the death (graves).
+                // The event a dying player fires, since fake players can't die. Posted on the logger's own bus since
+                // other mods' handlers expect a logged in player (Galacticraft NPEs) or act on the death (graves)
                 ArrayList<EntityItem> drops = new ArrayList<>();
                 drops.add(dropAtPlayer(helper, player, new ItemStack(Blocks.cobblestone, 64)));
                 drops.add(dropAtPlayer(helper, player, new ItemStack(Items.diamond, 1)));
@@ -191,7 +189,7 @@ public class ItemPickupDropLoggerTests {
             .thenSucceed();
     }
 
-    // p: on a lookup finds only the named players' pickups and drops.
+    // p: on a lookup only finds the named players' pickups and drops
     @GameTest(timeoutTicks = TIMEOUT_TICKS)
     public static void playerFilterFindsTheirItems(GameTestHelper helper) {
         ItemPickupDropLogger logger = TemporaEvents.itemPickupDropLogger;
@@ -234,7 +232,7 @@ public class ItemPickupDropLoggerTests {
             .thenSucceed();
     }
 
-    // An item at the player's feet that can be picked up straight away. Not spawned, so nothing else can touch it.
+    // Item at the player's feet that can be picked up straight away. Not spawned so nothing else can touch it
     private static EntityItem itemOnGround(GameTestHelper helper, FakePlayer player, ItemStack stack) {
         EntityItem item = dropAtPlayer(helper, player, stack);
         item.delayBeforeCanPickup = 0;

@@ -22,7 +22,7 @@ import org.jetbrains.annotations.Nullable;
 public class PlayerUtils {
 
     public static final String UNKNOWN_PLAYER_NAME = "tempora.unknown.player";
-    public static final String UNKNOWN_CAUSE = "tempora.unknown.cause"; // todo use
+    public static final String UNKNOWN_CAUSE = "tempora.unknown.cause"; // TODO use
     public static final String ERROR = "tempora.unknown.error";
 
     public static String UUIDToName(String UUIDString) {
@@ -34,53 +34,41 @@ public class PlayerUtils {
         return userName;
     }
 
-    /**
-     * Generates a chat component showing the player's name,
-     * with a hover showing the UUID. Invalid UUIDs will return a relevant translation code.
-     */
+    // Chat component with the player's name and their UUID on hover. Invalid UUIDs return a matching translation key
     public static IChatComponent playerNameFromUUID(String uuid) {
         if (uuid == null) {
             return new ChatComponentTranslation(ERROR);
         } else if (uuid.equals(UNKNOWN_PLAYER_NAME) || uuid.equals(UNKNOWN_CAUSE)) {
             return new ChatComponentTranslation(uuid);
         } else if (!isUUID(uuid)) {
-            // Something else that caused the event, e.g. "[EntityZombie]", which has no UUID to show.
+            // Something else caused the event, e.g. "[EntityZombie]", no UUID to show
             return new ChatComponentText(uuid);
         }
 
-        // Use UUIDToName for consistency
         String playerName = UUIDToName(uuid);
 
-        // A UUID this server has never seen join is still shown as unknown, with the UUID on hover.
+        // A UUID this server's never seen join still shows as unknown, with the UUID on hover
         IChatComponent nameComponent = UNKNOWN_PLAYER_NAME.equals(playerName)
             ? new ChatComponentTranslation(UNKNOWN_PLAYER_NAME)
             : new ChatComponentText(playerName);
 
-        // Hover text showing the UUID
         IChatComponent hoverComponent = new ChatComponentTranslation("tempora.uuid.display", uuid);
         hoverComponent.getChatStyle()
             .setColor(EnumChatFormatting.GRAY);
 
-        // Attach hover event
         nameComponent.getChatStyle()
             .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hoverComponent));
 
         return nameComponent;
     }
 
-    /**
-     * Sends a translated chat message to every online player who may use /tempora (see
-     * {@link CommandUtils#mayUseTempora}). This is structured in this manner so that ServerUtilities permissions that
-     * are granted for Tempora also notify you of these messages.
-     *
-     * @param translationKey the translation key in the language file
-     * @param params         optional arguments that will be substituted into the translation
-     */
+    // Sends a translated chat message to every online player who can use /tempora (see CommandUtils.mayUseTempora).
+    // Done this way so ServerUtilities permissions granted for Tempora also get these messages
     public static void sendMessageToAuthorisedTemporaUsers(String translationKey, Object... params) {
         sendMessageToAuthorisedTemporaUsers(new ChatComponentTranslation(translationKey, params));
     }
 
-    /** Sends a chat message to every online player who may use /tempora (see {@link CommandUtils#mayUseTempora}). */
+    // Sends a chat message to every online player who can use /tempora (see CommandUtils.mayUseTempora)
     public static void sendMessageToAuthorisedTemporaUsers(IChatComponent message) {
         MinecraftServer server = MinecraftServer.getServer();
         if (server == null) return;
@@ -95,7 +83,7 @@ public class PlayerUtils {
         }
     }
 
-    // Warning! This is tab completion for every player who has ever been on the server, not just those online!
+    // Careful, this tab completes every player who's ever been on the server, not just online ones
     public static List<String> getTabCompletionForPlayerNames(String prefix) {
         List<String> completions = new ArrayList<>();
         if (prefix == null) prefix = "";
@@ -113,7 +101,7 @@ public class PlayerUtils {
         return completions;
     }
 
-    // Accepts a UUID, or the name of anyone who has ever joined the server, ignoring case. Null if unknown.
+    // Takes a UUID or the name of anyone who's ever joined, ignoring case. Null if unknown
     public static @Nullable String uuidFromName(String nameOrUUID) {
         if (isUUID(nameOrUUID)) return nameOrUUID;
 
@@ -128,7 +116,6 @@ public class PlayerUtils {
         return null;
     }
 
-    // Utils
     private static final Pattern UUID_PATTERN = Pattern
         .compile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$");
 

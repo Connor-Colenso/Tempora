@@ -16,16 +16,13 @@ import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
-/**
- * Logs players earning achievements, where they stood.
- * <p>
- * Forge fires AchievementEvent every time an achievement is triggered, before vanilla checks anything: picking up a
- * log fires "Getting Wood" again for a player who has had it for years, and for one who has not yet opened their
- * inventory, whom vanilla will not give it to. Only the times vanilla actually gives it are logged.
- */
+// Logs players earning achievements, at where they stood
+//
+// Forge fires AchievementEvent every time one is triggered, before vanilla checks anything. Picking up a log fires
+// "Getting Wood" again for someone who's had it for years, and for someone who hasn't opened their inventory yet so
+// vanilla won't give it. Only log when vanilla actually gives it
 public class AchievementLogger extends GenericPositionalLogger<AchievementEventInfo> {
 
-    // The player who earned it.
     @Override
     protected String playerColumn() {
         return "playerUUID";
@@ -54,13 +51,12 @@ public class AchievementLogger extends GenericPositionalLogger<AchievementEventI
     @SubscribeEvent(priority = EventPriority.LOWEST)
     @SuppressWarnings("unused")
     public void onAchievement(final AchievementEvent event) {
-        // Server side only.
         if (!isEnabledByConfig) return;
         if (isClientSide()) return;
         if (event.isCanceled()) return;
         if (!(event.entityPlayer instanceof EntityPlayerMP player)) return;
 
-        // The event comes before the achievement is saved, so these say whether this is the time it is given.
+        // Event fires before the achievement is saved, so these tell us if this is the time it's given
         StatisticsFile stats = player.func_147099_x();
         Achievement achievement = event.achievement;
         if (stats.hasAchievementUnlocked(achievement)) return;

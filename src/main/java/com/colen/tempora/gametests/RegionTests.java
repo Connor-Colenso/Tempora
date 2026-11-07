@@ -18,11 +18,9 @@ import com.gtnewhorizons.horizonqa.api.TestPos;
 import com.gtnewhorizons.horizonqa.api.annotation.GameTest;
 import com.gtnewhorizons.horizonqa.api.annotation.GameTestHolder;
 
-/**
- * Region rules decide where a logger records: the smallest region with a rule for the logger decides, ON wins a tie
- * between regions of the same size, and the logger's logByDefault applies where no region has a say. Uses the block
- * change logger, which is off by default, and the break logger, which is on.
- */
+// Region rules decide where a logger records. Smallest region with a rule for the logger decides, ON wins a tie between
+// same size regions, and logByDefault applies where no region has a say. Uses the block change logger (off by default)
+// and the break logger (on)
 @GameTestHolder(Tempora.MODID)
 public class RegionTests {
 
@@ -76,8 +74,8 @@ public class RegionTests {
         helper.succeed();
     }
 
-    // End to end: with a region turning it on, the block change logger stores a block set inside it, and not one set
-    // just outside.
+    // End to end, with a region turning it on the block change logger stores a block set inside it and not one set just
+    // outside
     @GameTest(timeoutTicks = 200)
     public static void blockChangesAreStoredInsideRegionOnly(GameTestHelper helper) {
         GenericPositionalLogger<?> logger = TemporaEvents.blockChangeLogger;
@@ -101,8 +99,8 @@ public class RegionTests {
                     !insideEvents.poll(() -> eventsNear(helper, logger, helper.absolute(inside), 0))
                         .isEmpty(),
                     "no block change stored inside the region"))
-            // Region rules are checked when the event is logged, so nothing from outside was ever queued. Once the
-            // later change inside is stored, the one outside would have been too.
+            // Region rules are checked when the event is logged so nothing from outside was ever queued. Once the later
+            // change inside is stored the outside one would have been too
             .thenWaitUntil(
                 "nothing is stored outside",
                 100,

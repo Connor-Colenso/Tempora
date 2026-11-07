@@ -20,40 +20,34 @@ import net.minecraft.world.storage.ISaveHandler;
 
 import org.jetbrains.annotations.Nullable;
 
-/**
- * Server side store of every region, saved to the world folder.
- * <p>
- * Regions decide where loggers record events. Each region can hold an ON or OFF rule per logger. For a given
- * position, the smallest region containing it that has a rule for the logger decides. If equally sized regions
- * disagree, ON wins, since a missing record is worse than an extra one. If no region has a rule, the logger's
- * logByDefault config option applies.
- */
+// Server side store of every region, saved to the world folder
+//
+// Regions decide where loggers record. Each region can hold an ON or OFF rule per logger. For a position, the smallest
+// region containing it with a rule for that logger decides. If same size regions disagree ON wins, a missing record is
+// worse than an extra one. If no region has a rule the logger's logByDefault config applies
 public final class TemporaRegionRegistry {
 
     private static final String DIR_NAME = "tempora";
     private static final String FILE_NAME = "regions.dat";
 
-    // Swapped out on server start/stop, so one world's regions never leak into another (e.g. in singleplayer).
+    // Swapped on server start/stop so one world's regions never leak into another (singleplayer)
     private static volatile TemporaRegionRegistry instance = new TemporaRegionRegistry();
 
-    // Copy-on-write: loggers read these on every event, possibly off the server thread, while commands rarely
-    // change them.
+    // Copy on write, loggers read these on every event (maybe off the server thread) and commands rarely change them
     private final Map<Integer, List<TemporaWorldRegion>> byDim = new ConcurrentHashMap<>();
 
-    // Loggers that at least one region has a rule for. Every other logger skips the region lookup entirely.
+    // Loggers with a rule in at least one region, every other logger skips the region lookup
     private volatile Set<String> loggersWithRules = Collections.emptySet();
 
     private boolean dirty = false;
 
-    // Set when the region file could not be read on server start, so ops can be told as they join. The name it has
-    // now: moved aside if that worked, else its own.
+    // Set when the region file couldn't be read on server start so ops get told when they join. Its current name, moved
+    // aside if that worked otherwise its own
     private static volatile @Nullable String unreadableFileName;
 
     private TemporaRegionRegistry() {}
 
-    /* ---------- Lifecycle ---------- */
-
-    // Call on server start, before any logger can query regions.
+    // Server start, before any logger can query regions
     public static void load() {
         TemporaRegionRegistry registry = new TemporaRegionRegistry();
         unreadableFileName = null;
@@ -63,8 +57,8 @@ public final class TemporaRegionRegistry {
             try {
                 registry.readFromNBT(CompressedStreamTools.read(file));
             } catch (Exception e) {
-                // A file that can't be read must not stop the server starting. It is kept beside the new one, so the
-                // regions in it can still be recovered by hand.
+                // An unreadable file can't stop the server starting. Kept next to the new one so the regions in it can
+                // be recovered by hand
                 File kept = new File(
                     file.getParentFile(),
                     file.getName() + ".unreadable-" + System.currentTimeMillis());
@@ -83,7 +77,7 @@ public final class TemporaRegionRegistry {
         instance = registry;
     }
 
-    // Call on server stop.
+    // Server stop
     public static void unload() {
         TemporaRegionRegistry registry = instance;
         if (registry.dirty) {
@@ -93,12 +87,10 @@ public final class TemporaRegionRegistry {
         unreadableFileName = null;
     }
 
-    // The region file this server could not read when it started, or null if it read fine (or there was none).
+    // Region file this server couldn't read on start, null if it was fine (or there wasn't one)
     public static @Nullable String getUnreadableFileName() {
         return unreadableFileName;
     }
-
-    /* ---------- Editing ---------- */
 
     public static void add(TemporaWorldRegion region) {
         TemporaRegionRegistry registry = instance;
@@ -121,7 +113,7 @@ public final class TemporaRegionRegistry {
         instance.changed();
     }
 
-    // Several loggers at once, saving the file once rather than for each.
+    // Several loggers at once, saves the file once instead of per logger
     public static void setRules(TemporaWorldRegion region, Iterable<String> loggerNames, LogRule rule) {
         for (String loggerName : loggerNames) region.putRule(loggerName, rule);
         instance.changed();
@@ -134,9 +126,7 @@ public final class TemporaRegionRegistry {
         return true;
     }
 
-    /* ---------- Lookup ---------- */
-
-    // Labels are unique, ignoring case.
+    // Labels are unique, ignoring case
     public static @Nullable TemporaWorldRegion getByLabel(String label) {
         for (List<TemporaWorldRegion> regions : instance.byDim.values()) {
             for (TemporaWorldRegion region : regions) {
@@ -157,7 +147,7 @@ public final class TemporaRegionRegistry {
         return labels;
     }
 
-    // A fresh list, safe to sort or filter.
+    // Fresh list, safe to sort or filter
     public static List<TemporaWorldRegion> getAll() {
         List<TemporaWorldRegion> all = new ArrayList<>();
         for (List<TemporaWorldRegion> regions : instance.byDim.values()) {
@@ -179,10 +169,8 @@ public final class TemporaRegionRegistry {
         return containing;
     }
 
-    /**
-     * Finds the region whose rule decides whether the logger records an event at this position, or null if no
-     * region has a say and the logger's own default applies. See the class comment for how the region is chosen.
-     */
+    // Region whose rule decides if the logger records at this position, null if no region has a say and the logger's
+    // default applies. See the class comment for how it's picked
     public static @Nullable TemporaWorldRegion findDecidingRegion(String loggerName, int dimID, double x, double y,
         double z) {
         TemporaRegionRegistry registry = instance;
@@ -211,13 +199,11 @@ public final class TemporaRegionRegistry {
         return deciding;
     }
 
-    /* ---------- Internals ---------- */
-
     private void changed() {
         rebuildRuleIndex();
         dirty = true;
-        // Regions change rarely and the file is small, so save straight away rather than risk losing edits to a
-        // crash. If this fails, the registry stays dirty and saving is retried on server stop.
+        // Regions change rarely and the file's small, so save straight away instead of risking edits on a crash. If it
+        // fails the registry stays dirty and saving gets retried on server stop
         save();
     }
 
@@ -241,7 +227,7 @@ public final class TemporaRegionRegistry {
 
             NBTTagCompound root = new NBTTagCompound();
             writeToNBT(root);
-            // To a temporary file first, then moved over the old one, so a crash part way through leaves the old file.
+            // Temp file first then moved over the old one, so a crash part way through leaves the old file alone
             CompressedStreamTools.safeWrite(root, file);
 
             dirty = false;

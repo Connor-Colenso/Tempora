@@ -18,12 +18,9 @@ import net.minecraft.util.StatCollector;
 import com.colen.tempora.chat.EventChat;
 import com.colen.tempora.utils.PlayerUtils;
 
-/**
- * What killed a mob or a player, as the death loggers store it. A player killer is kept in a player column of its own,
- * so /tempora player and p: find what they killed. {@code killedBy} is anything else in brackets: a mob by its
- * EntityList name, e.g. [Zombie], or a damage type such as [fall] or [inFire]. For a player kill it is how they did it,
- * e.g. [player] or [arrow].
- */
+// What killed a mob or player, as the death loggers store it. A player killer goes in its own player column so /tempora
+// player and p: find what they killed. killedBy is anything else in brackets, a mob by EntityList name like [Zombie] or
+// a damage type like [fall] or [inFire]. For player kills it's how they did it, e.g. [player] or [arrow]
 public final class DeathCause {
 
     public final String killerPlayerUUID;
@@ -48,7 +45,7 @@ public final class DeathCause {
         return new DeathCause(UNKNOWN_PLAYER_NAME, "[" + source.damageType + "]");
     }
 
-    /** Who killed it, a player or a mob, or null if neither did. */
+    // Who killed it (player or mob), null if neither
     public static @Nullable IChatComponent killer(String killerPlayerUUID, String killedBy) {
         if (PlayerUtils.isUUID(killerPlayerUUID)) return EventChat.player(killerPlayerUUID);
 
@@ -56,12 +53,12 @@ public final class DeathCause {
         return cause != null && isEntity(cause) ? EventChat.entityName(cause) : null;
     }
 
-    /** What it died of when nobody killed it, e.g. "in fire", or null if that is not known. */
+    // What it died of when nobody killed it, e.g. "in fire", null if not known
     public static @Nullable IChatComponent damage(String killedBy) {
         String cause = unbracketed(killedBy);
         if (cause == null) return null;
 
-        // inFire -> in fire.
+        // inFire -> in fire
         String damage = cause.replaceAll("([a-z])([A-Z])", "$1 $2")
             .toLowerCase(Locale.ROOT);
         return EventChat.text(damage, EnumChatFormatting.WHITE);
@@ -74,7 +71,7 @@ public final class DeathCause {
         return killedBy.substring(1, killedBy.length() - 1);
     }
 
-    // Vanilla's damage types start lower case and have no translated entity name, mobs do one or the other.
+    // Vanilla damage types start lower case and have no translated entity name, mobs have one or the other
     private static boolean isEntity(String cause) {
         return Character.isUpperCase(cause.charAt(0)) || StatCollector.canTranslate("entity." + cause + ".name");
     }

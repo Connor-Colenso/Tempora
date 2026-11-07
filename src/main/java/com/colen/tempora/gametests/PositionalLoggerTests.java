@@ -53,15 +53,12 @@ import com.gtnewhorizons.horizonqa.api.TestPos;
 import com.gtnewhorizons.horizonqa.api.annotation.GameTest;
 import com.gtnewhorizons.horizonqa.api.annotation.GameTestHolder;
 
-/**
- * Each positional logger records what it listens for, through the same Forge event a real player or mob would fire,
- * and the event reads back from the database intact: its fields, chat line and render packet. See
- * {@link TestSupport#assertWellFormed}.
- */
+// Each positional logger records what it listens for through the same Forge event a real player or mob would fire, and
+// the event reads back from the db intact (fields, chat line and render packet). See TestSupport.assertWellFormed
 @GameTestHolder(Tempora.MODID)
 public class PositionalLoggerTests {
 
-    // How long to wait for the logger's worker to write an event.
+    // How long to wait for the logger's worker to write an event
     private static final int WRITE_TICKS = 100;
     private static final int TIMEOUT_TICKS = 200;
 
@@ -106,7 +103,7 @@ public class PositionalLoggerTests {
                 helper.setBlock(at(BLOCK.x(), BLOCK.y() - 1, BLOCK.z()), Blocks.stone);
                 ItemStack bricks = new ItemStack(Blocks.brick_block);
                 player.inventory.mainInventory[player.inventory.currentItem] = bricks;
-                // Through ItemStack, as a player's right click is, which is what fires Forge's place event.
+                // Through ItemStack like a player's right click is, which is what fires Forge's place event
                 helper.assertTrue(
                     bricks.tryPlaceItemIntoWorld(
                         player,
@@ -135,9 +132,8 @@ public class PositionalLoggerTests {
             .thenSucceed();
     }
 
-    // Machines asking whether they may break or place a block are not logged as a player breaking or placing it: GT
-    // miners and pumps ask as fake players, and AE2 annihilation planes ask as their owner about the air or liquid in
-    // front of them.
+    // Machines asking if they can break or place a block aren't logged as a player doing it. GT miners and pumps ask as
+    // fake players, AE2 annihilation planes ask as their owner about the air or liquid in front of them
     @GameTest(timeoutTicks = TIMEOUT_TICKS)
     public static void machineProbesAreNotLogged(GameTestHelper helper) {
         GenericPositionalLogger<?> breaks = TemporaEvents.playerBlockBreakLogger;
@@ -158,7 +154,7 @@ public class PositionalLoggerTests {
                 postPlace(helper, machine, at(1, 1, 2), Blocks.cobblestone);
                 postBreak(helper, owner, at(2, 1, 2), Blocks.air);
                 postBreak(helper, owner, at(3, 1, 2), Blocks.water);
-                // After the asks, so once these are stored the asks would have been too.
+                // After the asks, so once these are stored the asks would have been too
                 helper.setBlock(real, Blocks.stone);
                 breakBlock(helper, owner, real);
                 helper.setBlock(real, Blocks.brick_block);
@@ -221,7 +217,7 @@ public class PositionalLoggerTests {
                 helper.assertEquals(1.5, event.power, 0.001, "power");
                 helper.assertEquals(PlayerUtils.UNKNOWN_CAUSE, event.exploder, "exploder");
 
-                // Vanilla also reports the air the blast passed through, which was not destroyed.
+                // Vanilla also reports the air the blast passed through, which wasn't destroyed
                 Set<ChunkPosition> destroyed = ChunkPositionUtils.decodePositions(event.affectedBlockCoordinates);
                 helper.assertTrue(
                     destroyed.contains(new ChunkPosition(pos.x(), pos.y() - 1, pos.z())),
@@ -234,8 +230,8 @@ public class PositionalLoggerTests {
             .thenSucceed();
     }
 
-    // Creepers, ghasts and withers with mobGriefing off, and mod blasts made not to break blocks: the explosion is
-    // still logged, with no destroyed blocks, as vanilla leaves them all standing.
+    // Creepers, ghasts and withers with mobGriefing off, and mod blasts set not to break blocks. Still logged but with
+    // no destroyed blocks since vanilla leaves them all standing
     @GameTest(timeoutTicks = TIMEOUT_TICKS)
     public static void nonDamagingExplosionLogsNoBlocks(GameTestHelper helper) {
         GenericPositionalLogger<?> logger = TemporaEvents.explosionLogger;
@@ -309,7 +305,7 @@ public class PositionalLoggerTests {
             .thenExecute("a player kills a pig", () -> {
                 EntityPig pig = helper
                     .spawnEntity(new EntityPig(helper.getWorld()), BLOCK.x() + 0.5, BLOCK.y(), BLOCK.z() + 0.5);
-                // Straight away: the test server doesn't allow animals, and removes them on their first update.
+                // Straight away, the test server doesn't allow animals and removes them on their first update
                 pig.attackEntityFrom(DamageSource.causePlayerDamage(player), 1000f);
                 helper.assertTrue(pig.isDead || pig.getHealth() <= 0, "the pig did not die");
             })
@@ -369,8 +365,8 @@ public class PositionalLoggerTests {
 
         helper.startSequence()
             .thenExecute("a player runs /time query daytime", () -> {
-                // The event the command handler fires before running a command. Fake players may not run commands
-                // themselves, as they have no permissions.
+                // The event the command handler fires before running a command. Fake players can't run commands
+                // themselves, they have no permissions
                 ICommand time = MinecraftServer.getServer()
                     .getCommandManager()
                     .getCommands()
@@ -401,15 +397,15 @@ public class PositionalLoggerTests {
 
         helper.startSequence()
             .thenExecute("a player who has opened their inventory triggers three achievements", () -> {
-                // Fake players ignore addStat, so the events are fired as addStat would, and the one the player
-                // already has is given straight to their stats.
+                // Fake players ignore addStat, so fire the events like addStat would and give the one the player
+                // already has straight to their stats
                 StatisticsFile stats = player.func_147099_x();
                 stats.func_150873_a(player, AchievementList.openInventory, 1);
 
-                // Had already, and one whose parent (Getting Wood) the player does not have: neither is given.
+                // Already had, and one whose parent (Getting Wood) the player doesn't have, neither gets given
                 MinecraftForge.EVENT_BUS.post(new AchievementEvent(player, AchievementList.openInventory));
                 MinecraftForge.EVENT_BUS.post(new AchievementEvent(player, AchievementList.buildWorkBench));
-                // Given. Logged after the other two, so had they been logged they would be stored by now too.
+                // Given. Logged after the other two so if they'd been logged they'd be stored by now too
                 MinecraftForge.EVENT_BUS.post(new AchievementEvent(player, AchievementList.mineWood));
             })
             .thenWaitUntil(
@@ -426,13 +422,10 @@ public class PositionalLoggerTests {
             .thenSucceed();
     }
 
-    // ---------- Helpers ----------
+    // Helpers
 
-    /**
-     * Fires the event a player breaking a block does, then removes the block. Not through
-     * ItemInWorldManager.tryHarvestBlock, which sends the player a packet, and test players have no connection to send
-     * it on.
-     */
+    // Fires the event a player breaking a block does, then removes the block. Not through
+    // ItemInWorldManager.tryHarvestBlock since that sends the player a packet and test players have no connection
     static void breakBlock(GameTestHelper helper, EntityPlayerMP player, TestPos local) {
         TestPos pos = helper.absolute(local);
         Block block = helper.getWorld()
@@ -452,17 +445,15 @@ public class PositionalLoggerTests {
             .setBlockToAir(pos.x(), pos.y(), pos.z());
     }
 
-    // Fires the event a player breaking the given block does, whatever is there, and leaves the world as it is.
+    // Fires the event a player breaking the given block does whatever's there, leaves the world alone
     static void postBreak(GameTestHelper helper, EntityPlayerMP player, TestPos local, Block block) {
         TestPos pos = helper.absolute(local);
         MinecraftForge.EVENT_BUS
             .post(new BlockEvent.BreakEvent(pos.x(), pos.y(), pos.z(), helper.getWorld(), block, 0, player));
     }
 
-    /**
-     * Fires Forge's place event with the given block as the snapshot, and leaves the world as it is. The event names
-     * the block there now.
-     */
+    // Fires Forge's place event with the given block as the snapshot, leaves the world alone. The event names the block
+    // there now
     static void postPlace(GameTestHelper helper, EntityPlayerMP player, TestPos local, Block snapshot) {
         TestPos pos = helper.absolute(local);
         ForgeEventFactory.onPlayerBlockPlace(
@@ -471,7 +462,7 @@ public class PositionalLoggerTests {
             ForgeDirection.UNKNOWN);
     }
 
-    // Events logged where a fake player stands, for loggers that log at the player.
+    // Events logged where a fake player stands, for loggers that log at the player
     static List<PositionalEventInfo> eventsAtPlayer(GameTestHelper helper, GenericPositionalLogger<?> logger,
         FakePlayer player) throws Exception {
         return eventsNear(logger, helper.getWorld().provider.dimensionId, player.posX, player.posY, player.posZ, 0.01);

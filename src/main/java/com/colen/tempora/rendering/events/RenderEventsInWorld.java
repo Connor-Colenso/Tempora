@@ -19,12 +19,12 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-/** Draws the events in {@link ClientEventStore}, each logger's with its {@link EventRenderer}. */
+// Draws the events in ClientEventStore, each logger's with its EventRenderer
 @SideOnly(Side.CLIENT)
 public final class RenderEventsInWorld {
 
-    // Loggers whose rendering threw. They are skipped from then on, as Forge rethrows anything this handler throws,
-    // which would crash the game every frame, and keep the loggers after the broken one from drawing.
+    // Loggers whose rendering threw, skipped from then on. Forge rethrows anything this handler throws, which would
+    // crash the game every frame and stop loggers after the broken one drawing
     private final Set<String> brokenLoggers = new HashSet<>();
 
     @SuppressWarnings("unused")
@@ -47,10 +47,11 @@ public final class RenderEventsInWorld {
 
         GL11.glPushMatrix();
         try {
-            // Renderers draw in world coordinates.
+            // Renderers draw in world coords
             GL11.glTranslated(-context.cameraX, -context.cameraY, -context.cameraZ);
 
-            // Text is drawn through walls, so it goes after every logger's blocks and entities, which would cover it.
+            // Text is drawn through walls so it goes after every logger's blocks and entities, which would cover it
+            // otherwise
             forEachWorkingRenderer(visible, (renderer, events) -> renderer.renderWorld(events, context));
             forEachWorkingRenderer(visible, (renderer, events) -> renderer.renderText(events, context));
         } finally {
@@ -58,8 +59,8 @@ public final class RenderEventsInWorld {
         }
     }
 
-    // Leaving a server, or changing dimension. The events kept are the old world's, so nothing to draw is lost, and the
-    // renderers' ghosts would otherwise keep that whole world in memory.
+    // Leaving a server or changing dimension. Kept events are the old world's so nothing's lost, and the renderers'
+    // ghosts would otherwise keep that whole world in memory
     @SuppressWarnings("unused")
     @SubscribeEvent
     public void onWorldUnload(WorldEvent.Unload e) {

@@ -21,7 +21,7 @@ import io.netty.buffer.ByteBuf;
 
 public class ItemPickupDropEventInfo extends PositionalEventInfo {
 
-    // An ItemPickupDropLogger.Action.
+    // An ItemPickupDropLogger.Action
     @Column
     public int action;
 
@@ -37,19 +37,19 @@ public class ItemPickupDropEventInfo extends PositionalEventInfo {
     @Column
     public int amount;
 
-    // NBTUtils.NO_NBT when the item had none, NBTUtils.NBT_DISABLED when it had some but logNBT was off.
+    // NBTUtils.NO_NBT if the item had none, NBTUtils.NBT_DISABLED if it had some but logNBT was off
     @Column(type = ColumnType.NBT)
     public String encodedNBT = NBTUtils.NO_NBT;
 
-    // Which way the player was looking, in degrees as Minecraft stores it. A thrown item sets off this way.
+    // Which way the player was looking in degrees like MC stores it, a thrown item heads off this way
     @Column
     public float rotationYaw;
 
     @Column
     public float rotationPitch;
 
-    // encodedNBT is deliberately not sent, as for the inventory logger: the client only draws these events, and item
-    // NBT can be far larger than a packet string allows.
+    // encodedNBT isn't sent on purpose, same as the inventory logger. The client only draws these and item NBT can be
+    // way bigger than a packet string allows
     @Override
     public void fromBytes(ByteBuf buf) {
         super.fromBytes(buf);
@@ -86,7 +86,7 @@ public class ItemPickupDropEventInfo extends PositionalEventInfo {
             return invalid;
         }
 
-        // Green for items the player gained, red for items they lost.
+        // Green for gained, red for lost
         IChatComponent count = EventChat.text(
             formatNumber(amount),
             act == ItemPickupDropLogger.Action.PICKUP ? EnumChatFormatting.GREEN : EnumChatFormatting.RED);

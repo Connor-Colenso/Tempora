@@ -25,11 +25,9 @@ import com.colen.tempora.regions.TemporaWorldRegion;
 import com.colen.tempora.utils.CommandUtils;
 import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 
-/**
- * /tempora region check [logger]
- * Shows, for each positional logger, whether it logs at the player's position and what decided that. Global loggers
- * have no position, so regions never affect them.
- */
+// /tempora region check [logger]
+// For each positional logger, whether it logs where the player is and what decided that. Global loggers have no
+// position so regions never affect them
 public class RegionCheckCommand extends TemporaSubcommand {
 
     public RegionCheckCommand() {
@@ -86,7 +84,7 @@ public class RegionCheckCommand extends TemporaSubcommand {
         }
     }
 
-    // Mirrors GenericPositionalLogger.canLogHere, but keeps track of why.
+    // Mirrors GenericPositionalLogger.canLogHere but keeps track of why
     private static IChatComponent explain(GenericPositionalLogger<?> logger, int dimID, double x, double y, double z) {
         String loggerName = logger.getLoggerName();
 
@@ -125,7 +123,7 @@ public class RegionCheckCommand extends TemporaSubcommand {
             reason);
     }
 
-    // An equally sized region here with the opposite rule, which the deciding region won against.
+    // Same size region here with the opposite rule, which the deciding region won against
     private static TemporaWorldRegion findTie(TemporaWorldRegion deciding, String loggerName, int dimID, double x,
         double y, double z) {
         LogRule decidingRule = deciding.getRule(loggerName);

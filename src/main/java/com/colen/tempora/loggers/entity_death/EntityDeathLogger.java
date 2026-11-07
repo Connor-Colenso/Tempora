@@ -21,7 +21,7 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
 public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathEventInfo> {
 
-    // The player who killed it, if one did.
+    // The player that killed it, if any
     @Override
     protected String playerColumn() {
         return "killerPlayerUUID";
@@ -57,7 +57,7 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathEventI
         logEntityDeath(event.entityLiving, event.source);
     }
 
-    /** Logs a mob dying, and what killed it. Players are not logged here, they have the PlayerDeathLogger. */
+    // Logs a mob dying and what killed it. Players go in PlayerDeathLogger
     public void logEntityDeath(EntityLivingBase entity, @Nullable DamageSource source) {
         if (!isEnabledByConfig) return;
         if (entity instanceof EntityPlayerMP) return;

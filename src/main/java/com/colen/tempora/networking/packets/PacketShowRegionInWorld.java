@@ -39,7 +39,7 @@ public final class PacketShowRegionInWorld {
             buf.writeDouble(region.getMaxY());
             buf.writeDouble(region.getMaxZ());
 
-            // Timing. Render start is stamped on arrival, as the server and client clocks can differ.
+            // Timing. Render start is stamped on arrival since server and client clocks can differ
             buf.writeLong(region.getRegionOriginTimeMs());
 
             // Metadata
@@ -80,7 +80,6 @@ public final class PacketShowRegionInWorld {
             RegionRenderMode renderMode = RegionRenderMode.valueOf(ByteBufUtils.readUTF8String(buf));
             String label = ByteBufUtils.readUTF8String(buf);
 
-            // Build region
             region = new TemporaWorldRegion(dim, minX, minY, minZ, maxX, maxY, maxZ);
             region.setRegionOriginTimeMs(regionOriginTime);
             region.setRegionUUID(regionUUID);

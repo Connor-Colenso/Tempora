@@ -32,17 +32,17 @@ public class LoggerDatabase {
     private static final String OLDEST_DATA_DEFAULT = "4months";
     private static final int CACHE_SIZE_MEGABYTES_DEFAULT = 16;
 
-    // Old events are deleted this many at a time, so pruning never holds up writing new events for long.
+    // Old events get deleted this many at a time so pruning never holds up writes for long
     private static final int PRUNE_BATCH_SIZE = 5_000;
 
     private String oldestDataCutoff;
-    private long oldestDataMilliseconds; // Parsed from oldestDataCutoff when the database opens.
+    private long oldestDataMilliseconds; // From oldestDataCutoff when the db opens
     private int cacheSizeMegabytes;
 
     private Connection dbConnection;
     private final GenericLogger<?> logger;
-    private PreparedStatement addDataInjectionStatement; // Pre made injection statement
-    private List<ColumnDef> insertedColumns; // Instantiate upon first database insertion.
+    private PreparedStatement addDataInjectionStatement;
+    private List<ColumnDef> insertedColumns; // Made on first insert
 
     public LoggerDatabase(GenericLogger<?> logger) {
         this.logger = logger;
@@ -59,7 +59,7 @@ public class LoggerDatabase {
 
         initTable();
 
-        // Cheap when they already exist, and adds any index a newer version of the logger needs.
+        // Cheap if they already exist, adds any index a newer version of the logger needs
         createIndexes();
         logger.createExtraTables(dbConnection);
 
@@ -70,14 +70,14 @@ public class LoggerDatabase {
         String dbUrl = jdbcUrl(logger.getLoggerName() + ".db");
 
         SQLiteConfig config = new SQLiteConfig();
-        // WAL lets lookups read while events are being written, and with synchronous=NORMAL a commit doesn't wait for
-        // the disk. A server crash loses nothing that was committed, a power cut at most the last few commits, and
-        // neither can corrupt the database.
+        // WAL lets lookups read while events are written, and with synchronous=NORMAL a commit doesn't wait for the
+        // disk. A server crash loses nothing committed, a power cut at most the last few commits, neither corrupts the
+        // db
         config.setJournalMode(SQLiteConfig.JournalMode.WAL);
         config.setSynchronous(SQLiteConfig.SynchronousMode.NORMAL);
-        // Negative means KiB rather than pages.
+        // Negative means KiB not pages
         config.setCacheSize(-cacheSizeMegabytes * 1024);
-        // Otherwise the -wal file keeps the size of the biggest burst ever written (e.g. a table rebuild).
+        // Otherwise the -wal file stays the size of the biggest burst ever written (e.g. a table rebuild)
         config.setJournalSizeLimit(64 * 1024 * 1024);
 
         dbConnection = DriverManager.getConnection(dbUrl, config.toProperties());
@@ -99,7 +99,7 @@ public class LoggerDatabase {
     public void closeDbConnection() throws SQLException {
         dbConnection.close();
         dbConnection = null;
-        // Belonged to the closed connection, so it is made again for the next world opened.
+        // Belonged to the closed connection, remade for the next world
         addDataInjectionStatement = null;
     }
 
@@ -107,12 +107,11 @@ public class LoggerDatabase {
         String tableName = logger.getLoggerName();
         List<ColumnDef> columns = getAllTableColumns(logger);
 
-        // Create the table if it doesn't exist.
         try (PreparedStatement stmt = dbConnection.prepareStatement(createTableSQL(tableName, columns))) {
             stmt.execute();
         }
 
-        // Step 2: Read existing columns and their declared SQL types.
+        // Existing columns and their declared types
         Map<String, String> existingColumnTypes = new HashMap<>();
         try (PreparedStatement stmt = dbConnection.prepareStatement("PRAGMA table_info(" + tableName + ");")) {
             ResultSet rs = stmt.executeQuery();
@@ -122,8 +121,8 @@ public class LoggerDatabase {
             }
         }
 
-        // Step 3: rename columns that were renamed in code, preserving their data, instead of
-        // letting them fall through to "add as new" below and silently orphaning the old column.
+        // Rename columns that got renamed in code and keep their data, instead of them falling through to "add as new"
+        // and orphaning the old column
         for (ColumnDef col : columns) {
             if (existingColumnTypes.containsKey(col.name)) continue;
 
@@ -145,7 +144,7 @@ public class LoggerDatabase {
             }
         }
 
-        // Step 4: ALTER TABLE to add columns that are genuinely new (no matching old column found above).
+        // Add columns that are actually new (no old column matched above)
         for (ColumnDef col : columns) {
             if (!existingColumnTypes.containsKey(col.name)) {
                 StringBuilder alterSQL = new StringBuilder("ALTER TABLE ").append(tableName)
@@ -167,9 +166,9 @@ public class LoggerDatabase {
             }
         }
 
-        // Step 5: SQLite cannot change a column's type in place, so a table with any column whose type no longer
-        // matches the code is rebuilt. E.g. eventID was TEXT before it became the rowid: left as it was, SQLite never
-        // fills it in, and every new event reads back with the same eventID of 0.
+        // SQLite can't change a column's type in place, so any table with a column whose type no longer matches gets
+        // rebuilt. E.g. eventID was TEXT before it became the rowid, left alone SQLite never fills it in and every new
+        // event reads back as eventID 0
         List<String> drifted = columns.stream()
             .filter(col -> !col.type.equalsIgnoreCase(existingColumnTypes.get(col.name)))
             .map(col -> col.name + " (" + existingColumnTypes.get(col.name) + " -> " + col.type + ")")
@@ -193,11 +192,9 @@ public class LoggerDatabase {
         return "CREATE TABLE IF NOT EXISTS " + tableName + " (" + columnsSQL + ");";
     }
 
-    /**
-     * Remakes the table with the code's column types, keeping every event. Columns SQLite assigns (the eventID) are
-     * not copied, so each event gets a new one. Indexes go with the old table and are made again by createIndexes.
-     * Runs inside the opening transaction, so a failure leaves the old table as it was.
-     */
+    // Remakes the table with the code's column types keeping every event. Columns SQLite assigns (eventID) aren't
+    // copied so each event gets a new one. Indexes go with the old table and createIndexes remakes them. Inside the
+    // opening transaction so a failure leaves the old table alone
     private void rebuildTable(List<ColumnDef> columns, Set<String> existingColumns, List<String> drifted)
         throws SQLException {
         String tableName = logger.getLoggerName();
@@ -216,7 +213,7 @@ public class LoggerDatabase {
         try (Statement st = dbConnection.createStatement()) {
             st.execute("DROP TABLE IF EXISTS " + rebuiltName + ";");
             st.execute(createTableSQL(rebuiltName, columns));
-            // Oldest first, so the new eventIDs count up in time order like those of events logged from now on.
+            // Oldest first so new eventIDs count up in time order like ones logged from now on
             int copied = st.executeUpdate(
                 "INSERT INTO " + rebuiltName
                     + " ("
@@ -245,11 +242,9 @@ public class LoggerDatabase {
         }
     }
 
-    /**
-     * Deletes up to {@link #PRUNE_BATCH_SIZE} of the oldest events older than oldestDataCutoff, and returns whether
-     * there may be more to delete. Run by the logger's worker thread between writes, so it never holds up the server.
-     * The freed space is reused for new events, so the file stops growing once it holds oldestDataCutoff's worth.
-     */
+    // Deletes up to PRUNE_BATCH_SIZE of the oldest events past oldestDataCutoff, returns whether there might be more.
+    // Run by the worker between writes so it never holds up the server. SQLite reuses the freed space, so the file
+    // stops growing once it holds oldestDataCutoff's worth
     boolean pruneOldData() {
         String tableName = logger.getLoggerName();
         String sql = "DELETE FROM " + tableName
@@ -262,13 +257,13 @@ public class LoggerDatabase {
             ps.setInt(2, PRUNE_BATCH_SIZE);
 
             int deleted = ps.executeUpdate();
-            // Whatever only the deleted events referred to. Only when something was deleted, as it checks every row.
+            // Whatever only the deleted events pointed at. Only if something got deleted since it checks every row
             if (deleted > 0) logger.pruneExtras(dbConnection);
             dbConnection.commit();
             return deleted == PRUNE_BATCH_SIZE;
         } catch (SQLException | RuntimeException e) {
-            // Caught here, RuntimeExceptions too (e.g. from a logger's pruneExtras), so the worker carries on. Rolled
-            // back either way, so a half done prune isn't committed with the next batch of events.
+            // Caught here, RuntimeExceptions too (e.g. a logger's pruneExtras), so the worker carries on. Rolled back
+            // either way so a half done prune doesn't get committed with the next batch
             LOG.error("Could not delete old data from {}, will try again later.", tableName, e);
             try {
                 dbConnection.rollback();
@@ -283,7 +278,7 @@ public class LoggerDatabase {
         return dbConnection;
     }
 
-    // Only TemporaQueries opens these, one per logger for its query thread, so lookups never read on the server thread.
+    // Only TemporaQueries opens these, one per logger for its query thread, so lookups never read on the server thread
     @NotNull
     Connection getReadOnlyConnection() {
         try {
@@ -295,11 +290,11 @@ public class LoggerDatabase {
             Connection conn = DriverManager.getConnection(dbUrl, config.toProperties());
             conn.setReadOnly(true);
 
-            // Make timeout longer, helps prevent errors.
+            // Longer timeout, helps avoid busy errors
             try (Statement st = conn.createStatement()) {
                 st.execute("PRAGMA busy_timeout = 5000;");
             }
-            // For /tempora sql, which matches players by their number.
+            // For /tempora sql, which matches players by number
             PlayerIDs.addSqlFunction(conn);
 
             return conn;
@@ -336,11 +331,9 @@ public class LoggerDatabase {
             .collect(Collectors.toList());
     }
 
-    /**
-     * Makes this logger's table and indexes in an empty in-memory database, and prepares its insert, so SQL that
-     * SQLite refuses (a column named after an SQL keyword, two columns with one name) fails as the logger registers,
-     * not when a server starts. Skipped if SQLite can't load here: then no logger can start, and that is reported then.
-     */
+    // Makes the table and indexes in an empty in-memory db and prepares the insert, so SQL that SQLite refuses (column
+    // named after a keyword, duplicate names) fails at registration not on server start. Skipped if SQLite can't load
+    // here, then no logger can start and that gets reported anyway
     void checkSql() {
         Connection memory;
         try {
@@ -377,7 +370,7 @@ public class LoggerDatabase {
         }
     }
 
-    // How long events are kept, from oldestDataCutoff. Known once the database has opened.
+    // How long events are kept, from oldestDataCutoff. Known once the db has opened
     public long getOldestDataMilliseconds() {
         return oldestDataMilliseconds;
     }
@@ -398,7 +391,7 @@ public class LoggerDatabase {
             "The most memory (in MB) SQLite may use to cache this logger's database. A bigger cache makes writing to a large database faster. Only used as the database grows into it.");
     }
 
-    // Every column but those SQLite fills in itself, i.e. the eventID.
+    // Every column except ones SQLite fills in itself (eventID)
     private List<ColumnDef> getInsertedColumns() {
         return getAllTableColumns(logger).stream()
             .filter(col -> !col.isAssignedByDatabase())
@@ -408,12 +401,10 @@ public class LoggerDatabase {
     public String generateInsertSQL() {
         List<ColumnDef> columns = getInsertedColumns();
 
-        // Join the column names for the INSERT clause
         String columnList = columns.stream()
             .map(ColumnDef::getName)
             .collect(Collectors.joining(", "));
 
-        // Generate a placeholder for each column
         String placeholders = columns.stream()
             .map(c -> "?")
             .collect(Collectors.joining(", "));
@@ -421,12 +412,9 @@ public class LoggerDatabase {
         return "INSERT INTO " + logger.getLoggerName() + " (" + columnList + ") VALUES (" + placeholders + ")";
     }
 
-    /**
-     * Writes a batch of events in one transaction. If SQLite refuses an event in it, e.g. a NaN in a NOT NULL column,
-     * the events are written again one at a time, so only the ones it refuses are lost, each noted in the server log
-     * and to admins. Throws if the database itself is failing (disk full, I/O error, locked...), as then every event
-     * would fail the same way.
-     */
+    // Writes a batch in one transaction. If SQLite refuses an event (e.g. NaN in a NOT NULL column) they're written
+    // again one at a time so only the refused ones are lost, each noted in the log and to admins. Throws if the db
+    // itself is failing (disk full, I/O error, locked etc) since every event would fail the same way
     public <EventInfo extends GenericEventInfo> void insertBatch(List<EventInfo> eventInfoQueue) throws SQLException {
         try {
             insertInOneTransaction(eventInfoQueue);
@@ -439,7 +427,7 @@ public class LoggerDatabase {
                     insertInOneTransaction(Collections.singletonList(event));
                     written++;
                 } catch (SQLException | RuntimeException eventFailure) {
-                    // The database started failing part way through.
+                    // Db started failing part way through
                     if (!isRefusedEvent(eventFailure)) throw eventFailure;
                     dropped++;
                     logger.noteDroppedEvent(event, String.valueOf(eventFailure.getMessage()));
@@ -455,10 +443,8 @@ public class LoggerDatabase {
         }
     }
 
-    /**
-     * Whether a failed insert was SQLite refusing an event, rather than the database failing: a constraint (e.g. NOT
-     * NULL refusing a NaN), a value too big or of the wrong type, or one Tempora couldn't bind.
-     */
+    // Whether a failed insert was SQLite refusing the event rather than the db failing. A constraint (NOT NULL refusing
+    // a NaN), a value too big or the wrong type, or one Tempora couldn't bind
     private static boolean isRefusedEvent(Exception failure) {
         if (failure instanceof RuntimeException) return true;
         int code = ((SQLException) failure).getErrorCode();
@@ -467,8 +453,7 @@ public class LoggerDatabase {
             || code == SQLiteErrorCode.SQLITE_RANGE.code;
     }
 
-    // This is responsible for saving the actual events to a database. It seems rather convoluted,
-    // but is trying to optimise and minimise the impact of heavy reflection usage.
+    // Saves the actual events. Looks convoluted but it's keeping the reflection cost down
     private <EventInfo extends GenericEventInfo> void insertInOneTransaction(List<EventInfo> eventInfoQueue)
         throws SQLException {
         if (dbConnection == null) throw new SQLException("Database connection is null for " + logger.getLoggerName());
@@ -485,8 +470,8 @@ public class LoggerDatabase {
 
         Runnable afterCommit;
         try {
-            // First, so nothing the events refer to is missing once they are stored, and so references it fills in
-            // (e.g. a mob's number) are in the events before their columns are read.
+            // First, so nothing the events refer to is missing once they're stored, and references it fills in (e.g. a
+            // mob's number) are set before columns get read
             afterCommit = logger.writeExtras(eventInfoQueue, dbConnection);
 
             for (EventInfo eventInfo : eventInfoQueue) {
@@ -504,10 +489,8 @@ public class LoggerDatabase {
             addDataInjectionStatement.executeBatch();
             dbConnection.commit();
         } catch (SQLException | RuntimeException e) {
-            // Includes a value that couldn't be bound, so the events bound before it don't stay in the statement and
-            // go out with the next batch.
-            // Leave the connection/statement usable for the next batch instead of abandoning them
-            // half-committed.
+            // Includes a value that couldn't be bound, so events bound before it don't linger in the statement and go
+            // out with the next batch. Keeps the connection/statement usable instead of leaving them half committed
             try {
                 addDataInjectionStatement.clearBatch();
                 dbConnection.rollback();
@@ -519,7 +502,7 @@ public class LoggerDatabase {
             }
             throw e;
         }
-        // The events are stored by now, so a failure here must not be reported as the batch failing.
+        // Events are stored by now so a failure here isn't the batch failing
         if (afterCommit != null) {
             try {
                 afterCommit.run();

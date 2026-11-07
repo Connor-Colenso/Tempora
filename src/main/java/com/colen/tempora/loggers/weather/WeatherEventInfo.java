@@ -15,11 +15,11 @@ import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 
 public class WeatherEventInfo extends GlobalEventInfo {
 
-    // Weather is per dimension, though most dimensions follow the overworld's.
+    // Weather is per dimension, though most follow the overworld
     @Column
     public int dimensionID;
 
-    // Weather names: CLEAR, RAIN or THUNDER.
+    // CLEAR, RAIN or THUNDER
     @Column
     public String weather = "";
 

@@ -16,12 +16,12 @@ import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 
 public class StackTraceUtils {
 
-    // Enough to see which mod made a change, and small enough for the whole trace to travel in one chat line.
+    // Enough to see which mod made a change, small enough for the whole trace to fit in one chat line
     private static final int STACK_TRACE_DEPTH = 64;
 
-    // Trace text -> its ID, so each distinct trace is hashed once. Thread safe, as blocks change on other mods'
-    // threads too. Emptied if it grows this large, which costs only re-hashing.
-    // Keys are whole traces, a few KB each, so this stays small.
+    // Trace text -> ID so each distinct trace gets hashed once. Thread safe since blocks change on other mods' threads
+    // too. Cleared if it gets this big, which only costs re-hashing. Keys are whole traces, a few KB each, so it stays
+    // small
     private static final int MAX_CACHED_IDS = 1_000;
     private static final ConcurrentHashMap<String, Long> IDS = new ConcurrentHashMap<>();
 
@@ -44,10 +44,8 @@ public class StackTraceUtils {
         return String.join(" -> ", classNames);
     }
 
-    /**
-     * A trace's ID: the first 8 bytes of its SHA-256. The same trace always gets the same ID, across restarts and on
-     * any server, so an ID stored with an event always means the same trace.
-     */
+    // Trace ID, the first 8 bytes of its SHA-256. Same trace always gets the same ID across restarts and servers, so a
+    // stored ID always means the same trace
     public static long getID(String callingClassChain) {
         Long cached = IDS.get(callingClassChain);
         if (cached != null) return cached;
@@ -58,22 +56,19 @@ public class StackTraceUtils {
         return id;
     }
 
-    /**
-     * A trace as chat lines, most recent call first, e.g. "0. Chunk#func_150807_a:640", each with its line number in
-     * the trace. Used for the hover on the server and for printing the whole trace on the client.
-     */
+    // Trace as chat lines, most recent call first, e.g. "0. Chunk#func_150807_a:640", each with its line number in the
+    // trace. Used for the hover on the server and printing the whole trace on the client
     public static List<IChatComponent> toChatLines(String stackTrace) {
         String[] lines = stackTrace.split("->");
         List<IChatComponent> components = new ArrayList<>();
 
         int index = 0;
 
-        // Iterate in reverse (most recent first)
+        // Reverse, most recent first
         for (int i = lines.length - 1; i >= 0; i--) {
             String trimmed = lines[i].trim();
 
-            // Extract class, method, line
-            // Format: fully.qualified.Class#method:line
+            // Format is fully.qualified.Class#method:line
             String className = trimmed;
             String methodName = "";
             String lineNumber = "?";
@@ -91,21 +86,18 @@ public class StackTraceUtils {
                 lineNumber = rawLine.equals("-1") ? "?" : rawLine;
             }
 
-            // Strip package → keep simple class name
+            // Strip the package, keep the simple class name
             int lastDot = className.lastIndexOf('.');
             if (lastDot != -1 && lastDot + 1 < className.length()) {
                 className = className.substring(lastDot + 1);
             }
 
-            // Build simple display with 1 space
             String finalText = className + "#" + methodName + ":" + lineNumber;
 
-            // Index component
             IChatComponent lineNumberComp = new ChatComponentTranslation("%s. ", new ChatComponentNumber(index));
             lineNumberComp.getChatStyle()
                 .setColor(EnumChatFormatting.YELLOW);
 
-            // Text component
             IChatComponent lineText = new ChatComponentText(finalText);
             lineText.getChatStyle()
                 .setColor(EnumChatFormatting.GRAY);

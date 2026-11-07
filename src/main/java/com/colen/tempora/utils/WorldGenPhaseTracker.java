@@ -1,13 +1,11 @@
 package com.colen.tempora.utils;
 
-/**
- * Whether this thread is generating the world, so block changes it makes are not logged. Set around chunk population
- * and terrain generation in MixinChunkProviderServer, and around the bonus chest in MixinWorldServer. The block updates
- * world gen leaves behind count only in part, see {@link WorldGenTicks}.
- */
+// Whether this thread is generating the world, so its block changes don't get logged. Set around chunk population and
+// terrain gen in MixinChunkProviderServer and around the bonus chest in MixinWorldServer. Block updates world gen
+// leaves behind only partly count, see WorldGenTicks
 public final class WorldGenPhaseTracker {
 
-    // Per-thread nesting depth
+    // Nesting depth per thread
     private static final ThreadLocal<Integer> DEPTH = ThreadLocal.withInitial(() -> 0);
 
     private WorldGenPhaseTracker() {}

@@ -12,11 +12,11 @@ import com.colen.tempora.rendering.events.PlayerGhostRenderer;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-/** Shows the player where they typed each command, with the commands typed there above them. */
+// Player where they typed each command, with the commands typed there above them
 @SideOnly(Side.CLIENT)
 public class CommandRenderer extends PlayerGhostRenderer<CommandEventInfo> {
 
-    // Longer commands are cut short, so one long command does not make a label wider than the screen.
+    // Cut long commands so one doesn't make a label wider than the screen
     private static final int MAX_COMMAND_LENGTH = 64;
 
     public CommandRenderer() {

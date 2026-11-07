@@ -15,11 +15,9 @@ import appeng.container.AEBaseContainer;
 import appeng.container.ContainerOpenContext;
 import appeng.container.implementations.ContainerMEMonitorable;
 
-/**
- * Names AE2 containers properly. Generic tracking already places them, but a terminal on a cable would otherwise be
- * named after the cable bus, and a wireless terminal after whatever block happened to be clicked. Only touch this class
- * when AE2 is loaded.
- */
+// Names AE2 containers properly. Generic tracking already places them, but a terminal on a cable would otherwise be
+// named after the cable bus and a wireless terminal after whatever block got clicked. Only touch this class when AE2 is
+// loaded
 public final class AE2ContainerHosts {
 
     private AE2ContainerHosts() {}
@@ -30,7 +28,7 @@ public final class AE2ContainerHosts {
         try {
             return resolve(aeContainer);
         } catch (RuntimeException e) {
-            // A half-built open context or an odd part; the generic tracking still places the container.
+            // Half built open context or an odd part, generic tracking still places the container
             return null;
         }
     }
@@ -56,11 +54,11 @@ public final class AE2ContainerHosts {
             return ContainerHost.item(itemObject.getItemStack());
         }
 
-        // Block entities (ME chest, interface, drive...) are placed and named fine by the generic tracking.
+        // TEs (ME chest, interface, drive etc) get placed and named fine by the generic tracking
         return null;
     }
 
-    /** Terminals show the network's contents without slots, so items can come and go with no slot changing. */
+    // Terminals show the network's contents without slots, so items can come and go with no slot changing
     public static boolean hasHiddenStorage(Container container) {
         return container instanceof ContainerMEMonitorable;
     }

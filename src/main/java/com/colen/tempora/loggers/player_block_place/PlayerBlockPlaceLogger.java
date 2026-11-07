@@ -34,7 +34,6 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
 public class PlayerBlockPlaceLogger extends GenericPositionalLogger<PlayerBlockPlaceEventInfo> {
 
-    // The player who placed the block.
     @Override
     protected String playerColumn() {
         return "playerUUID";
@@ -85,16 +84,15 @@ public class PlayerBlockPlaceLogger extends GenericPositionalLogger<PlayerBlockP
     @SuppressWarnings("unused")
     public void onBlockPlace(final @NotNull PlaceEvent event) {
         if (!isEnabledByConfig) return;
-        if (isClientSide()) return; // Server side only
+        if (isClientSide()) return;
         if (event.isCanceled()) return;
-        // Machines such as GT miners and pumps post this event as a fake player under their owner's name, to ask
-        // whether they may place a block, before placing it or without placing it at all, so it names the block that
-        // was already there. Only a player's own placements are kept. What machines really change is in the change
-        // logger.
+        // GT miners, pumps etc post this as a fake player under the owner's name to ask if they can place a block,
+        // before placing or without placing at all, so it names whatever block was already there. Only keep a player's
+        // own placements, what machines actually change ends up in the block change logger
         if (event.player instanceof FakePlayer) return;
 
-        // A door, bed or mod multi-block item places several blocks at once, one snapshot each. The event's own
-        // position is only the first of them.
+        // A door, bed or GT/mod multiblock item places several blocks at once, one snapshot each. The event's own
+        // position is only the first
         if (event instanceof MultiPlaceEvent multi) {
             for (BlockSnapshot replaced : multi.getReplacedBlockSnapshots()) {
                 logBlockPlace(
@@ -111,32 +109,28 @@ public class PlayerBlockPlaceLogger extends GenericPositionalLogger<PlayerBlockP
         logBlockPlace(event.player, event.world, event.x, event.y, event.z, event.block);
     }
 
-    /**
-     * Logs a block being placed. Call this after it is in the world, so its metadata and tile entity can be read.
-     * {@code player} may be null when nobody in particular placed it.
-     */
+    // Logs a block being placed. Call after it's in the world so the meta and TE can be read. player can be null if
+    // nobody in particular placed it
     public void logBlockPlace(@Nullable EntityPlayer player, World world, int x, int y, int z, Block block) {
         if (!isEnabledByConfig) return;
-        // Forge reports every block an item use changed, and some (AE2 cable parts) leave one of them as air, which
-        // was never placed.
+        // Forge reports every block an item use changed and some (AE2 cable parts) leave one as air, which was never
+        // placed
         if (block == Blocks.air) return;
 
         PlayerBlockPlaceEventInfo eventInfo = new PlayerBlockPlaceEventInfo();
         eventInfo.blockID = Block.getIdFromBlock(block);
         eventInfo.metadata = world.getBlockMetadata(x, y, z);
 
-        // Calculate pickBlockID and pickBlockMeta using getPickBlock
         ItemStack pickStack = getPickBlockSafe(block, world, x, y, z);
         if (pickStack != null && pickStack.getItem() != null) {
             eventInfo.pickBlockID = Item.getIdFromItem(pickStack.getItem());
             eventInfo.pickBlockMeta = pickStack.getItemDamage();
         } else {
-            // Fallback to raw values if pickBlock is null
+            // Fall back to raw values if there's no pick block
             eventInfo.pickBlockID = eventInfo.blockID;
             eventInfo.pickBlockMeta = eventInfo.metadata;
         }
 
-        // Log NBT.
         eventInfo.encodedNBT = getEncodedTileEntityNBT(world, x, y, z, logNBT);
 
         if (player instanceof EntityPlayerMP) {

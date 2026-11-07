@@ -53,11 +53,11 @@ public class ClientProxy extends CommonProxy {
         MinecraftForge.EVENT_BUS.register(new RenderRegionsInWorld());
         MinecraftForge.EVENT_BUS.register(new HudRenderRegionsInWorld());
 
-        // Debug only.
+        // Debug only
         MinecraftForge.EVENT_BUS.register(new RenderIDsInWorld());
     }
 
-    // How each of Tempora's positional loggers draws its events. Registered after the loggers, in CommonProxy.init.
+    // How each of our positional loggers draws its events. Runs after the loggers are registered in CommonProxy.init
     private static void registerEventRenderers() {
         EventRenderers.register(TemporaEvents.achievementLogger, new AchievementRenderer());
         EventRenderers.register(TemporaEvents.blockChangeLogger, new BlockChangeRenderer());
@@ -78,7 +78,7 @@ public class ClientProxy extends CommonProxy {
     @Override
     public void postInit(FMLPostInitializationEvent event) {
         super.postInit(event);
-        // NEI is optional: without it, there is no item list to hide the block from.
+        // NEI is optional, without it there's no item list to hide the block from
         if (Loader.isModLoaded("NotEnoughItems")) {
             API.hideItem(new ItemStack(Tempora.renderingErrorBlock));
         }

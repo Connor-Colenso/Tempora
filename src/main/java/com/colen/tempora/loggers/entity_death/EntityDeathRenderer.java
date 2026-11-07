@@ -15,7 +15,7 @@ import com.colen.tempora.rendering.events.EventRenderHelpers;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-/** Shows each mob lying where it died, tinted red, with what killed it. */
+// Each mob lying where it died, tinted red, with what killed it
 @SideOnly(Side.CLIENT)
 public class EntityDeathRenderer extends EntityEventRenderer<EntityDeathEventInfo> {
 
@@ -38,7 +38,7 @@ public class EntityDeathRenderer extends EntityEventRenderer<EntityDeathEventInf
         return event.rotationPitch;
     }
 
-    // Vanilla draws a dying mob tinted red and tipping onto its side, all the way over after 20 ticks of dying.
+    // Vanilla tints a dying mob red and tips it onto its side, all the way over after 20 ticks
     @Override
     protected void prepareGhost(Entity entity, EntityDeathEventInfo event) {
         if (entity instanceof EntityLivingBase living) living.deathTime = 20;

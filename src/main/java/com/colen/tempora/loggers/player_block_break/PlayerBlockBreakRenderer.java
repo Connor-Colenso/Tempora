@@ -7,7 +7,7 @@ import com.colen.tempora.rendering.events.BlockEventRenderer;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-/** Shows each broken block where it was. */
+// Each broken block where it was
 @SideOnly(Side.CLIENT)
 public class PlayerBlockBreakRenderer extends BlockEventRenderer<PlayerBlockBreakEventInfo> {
 

@@ -5,8 +5,13 @@ import static com.gtnewhorizons.horizonqa.api.TestPos.at;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
+import net.minecraft.command.CommandBase;
+import net.minecraft.command.CommandHandler;
+import net.minecraft.command.ICommand;
+import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.network.NetHandlerPlayServer;
 import net.minecraft.network.NetworkManager;
@@ -20,17 +25,17 @@ import net.minecraft.world.WorldServer;
 import com.colen.tempora.Tempora;
 import com.colen.tempora.networking.handlers.TeleportRequestHandler;
 import com.colen.tempora.networking.packets.PacketTeleportRequest;
+import com.colen.tempora.utils.CommandUtils;
 import com.gtnewhorizons.horizonqa.api.GameTestHelper;
 import com.gtnewhorizons.horizonqa.api.TestPos;
 import com.gtnewhorizons.horizonqa.api.annotation.GameTest;
 import com.gtnewhorizons.horizonqa.api.annotation.GameTestHolder;
 import com.mojang.authlib.GameProfile;
 
-/**
- * Clicking coordinates in chat sends the server a teleport request, which it carries out only for players who may use
- * /tempora. The click itself is client side, so these check the coordinates reach the client intact and the server's
- * checks, not the click.
- */
+import cpw.mods.fml.relauncher.ReflectionHelper;
+
+// Clicking coords in chat sends the server a teleport request, which it only does for players who can use /tempora. The
+// click itself is client side, so these check the coords reach the client intact and the server's checks, not the click
 @GameTestHolder(Tempora.MODID)
 public class TeleportTests {
 
@@ -49,7 +54,52 @@ public class TeleportTests {
         helper.succeed();
     }
 
-    // Any client can send the packet, so one from a player who can't use /tempora is refused.
+    // Asking who can use /tempora runs every mod's permission check, a mod's check that throws can't reach the caller.
+    // The command is only in the list during this method, and tests run on the server thread so nothing else sees it
+    @GameTest
+    public static void throwingPermissionCheckFallsBackToOpCheck(GameTestHelper helper) {
+        CommandHandler commands = (CommandHandler) MinecraftServer.getServer()
+            .getCommandManager();
+        ICommand throwing = new CommandBase() {
+
+            @Override
+            public String getCommandName() {
+                return "tempora_test_throwing_check";
+            }
+
+            @Override
+            public String getCommandUsage(ICommandSender sender) {
+                return "";
+            }
+
+            @Override
+            public void processCommand(ICommandSender sender, String[] args) {}
+
+            @Override
+            public boolean canCommandSenderUseCommand(ICommandSender sender) {
+                throw new IllegalStateException("A deliberately broken permission check");
+            }
+        };
+
+        commands.registerCommand(throwing);
+        try {
+            helper.assertTrue(
+                CommandUtils.mayUseTempora(testPlayer(helper, "throwing_check_op", true)),
+                "an op keeps access");
+            helper.assertFalse(
+                CommandUtils.mayUseTempora(testPlayer(helper, "throwing_check_not_op", false)),
+                "a non op doesn't get access");
+        } finally {
+            commands.getCommands()
+                .remove(throwing.getCommandName());
+            Set<ICommand> commandSet = ReflectionHelper
+                .getPrivateValue(CommandHandler.class, commands, "commandSet", "field_71561_b");
+            commandSet.remove(throwing);
+        }
+        helper.succeed();
+    }
+
+    // Any client can send the packet, so one from a player who can't use /tempora gets refused
     @GameTest
     public static void notOpIsRefused(GameTestHelper helper) {
         TestPlayer player = testPlayer(helper, "tp_not_op", false);
@@ -81,7 +131,7 @@ public class TeleportTests {
         helper.succeed();
     }
 
-    // A NaN or infinite position, which only a modified client could send, is ignored.
+    // NaN or infinite position (only a modified client could send it) gets ignored
     @GameTest
     public static void nonFinitePositionIsIgnored(GameTestHelper helper) {
         TestPlayer player = testPlayer(helper, "tp_nan", true);
@@ -97,7 +147,7 @@ public class TeleportTests {
         helper.succeed();
     }
 
-    // ---------- Helpers ----------
+    // Helpers
 
     private static void assertOnlyError(GameTestHelper helper, TestPlayer player, String key) {
         helper.assertEquals(1L, player.messages.size(), "messages");
@@ -113,11 +163,9 @@ public class TeleportTests {
             "colour");
     }
 
-    /**
-     * A player with a net handler, as a teleport sends them their new position. Its connection goes nowhere, so what is
-     * sent is queued and dropped. Never added to the world or the player list. Whether it may use /tempora is set
-     * here when it should, as making a real op would rewrite ops.json; one that may not gets the server's own check.
-     */
+    // A player with a net handler, since a teleport sends them their new position. Its connection goes nowhere so
+    // whatever's sent is queued and dropped. Never added to the world or player list. Whether it can use /tempora is
+    // set here when it should, making a real op would rewrite ops.json. One that can't gets the server's own check
     private static TestPlayer testPlayer(GameTestHelper helper, String name, boolean mayUseTempora) {
         WorldServer world = helper.getWorld();
         String profileName = "tempora_" + name;

@@ -15,14 +15,12 @@ import com.colen.tempora.rendering.events.PlayerGhostRenderer;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-/**
- * Shows the player at each place they were recorded, with a trail joining one player's places in the order they were
- * at them. Each player faces the next place they went to.
- */
+// Player at each place they were recorded, with a trail joining their places in order. Each one faces the next place
+// they went
 @SideOnly(Side.CLIENT)
 public class PlayerPositionRenderer extends PlayerGhostRenderer<PlayerPositionEventInfo> {
 
-    // Where each event's player went next, for this frame.
+    // Where each event's player went next, for this frame
     private final Map<PlayerPositionEventInfo, PlayerPositionEventInfo> nextPlace = new IdentityHashMap<>();
 
     public PlayerPositionRenderer() {
@@ -45,7 +43,7 @@ public class PlayerPositionRenderer extends PlayerGhostRenderer<PlayerPositionEv
     @Override
     protected float yaw(PlayerPositionEventInfo event, EventRenderContext context) {
         PlayerPositionEventInfo next = nextPlace.get(event);
-        // Facing straight up or down a ladder has no direction, so face the camera then too.
+        // Straight up or down a ladder has no direction, so face the camera then too
         if (next == null || (next.x == event.x && next.z == event.z)) return super.yaw(event, context);
 
         return EventRenderContext.yawTowards(event.x, event.z, next.x, next.z);

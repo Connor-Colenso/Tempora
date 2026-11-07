@@ -26,13 +26,10 @@ import com.colen.tempora.utils.nbt.NBTUtils;
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
-/**
- * Logs items players pick up off the ground (see {@link #logPickup}), throw out (Q, or dragging out of a GUI), and drop
- * when they die, each at the player. Items moved into and out of containers are the inventory logger's.
- */
+// Logs items players pick up off the ground (see logPickup), throw out (Q or dragging out of a GUI) and drop on death,
+// each at the player. Items moving in and out of containers belong to the inventory logger
 public class ItemPickupDropLogger extends GenericPositionalLogger<ItemPickupDropEventInfo> {
 
-    // The player who picked up or dropped the items.
     @Override
     protected String playerColumn() {
         return "playerUUID";
@@ -60,12 +57,10 @@ public class ItemPickupDropLogger extends GenericPositionalLogger<ItemPickupDrop
         return LoggerEventType.ForgeEvent;
     }
 
-    /**
-     * Logs what a player just took from an item entity on the ground. {@code stack} is the entity's stack from before
-     * they touched it, which a pickup shrinks but leaves the item, meta and NBT of. Called by MixinEntityItem around
-     * every pickup: neither pickup event can be relied on for this, as Forge's comes before the items move and FML's is
-     * skipped when only part of the stack fits.
-     */
+    // Logs what a player just took from an item entity on the ground. stack is the entity's stack from before they
+    // touched it, a pickup shrinks it but keeps the item, meta and NBT. Called by MixinEntityItem around every pickup
+    // since neither pickup event can be relied on, Forge's fires before the items move and FML's is skipped when only
+    // part of the stack fits
     public void logPickup(EntityPlayer player, EntityItem entityItem, ItemStack stack, int amountBefore) {
         if (!isEnabledByConfig) return;
 
@@ -73,7 +68,7 @@ public class ItemPickupDropLogger extends GenericPositionalLogger<ItemPickupDrop
         int amountAfter = after == null || entityItem.isDead ? 0 : after.stackSize;
         if (amountAfter >= amountBefore) return;
 
-        // A stack of one, as an emptied stack has no key.
+        // Stack of one, an emptied stack has no key
         ItemStack one = stack.copy();
         one.stackSize = 1;
         logItems(player, Action.PICKUP, ItemKey.of(one), amountBefore - amountAfter);
@@ -90,7 +85,7 @@ public class ItemPickupDropLogger extends GenericPositionalLogger<ItemPickupDrop
         logItems(event.player, Action.DROP, ItemKey.of(stack), stack == null ? 0 : stack.stackSize);
     }
 
-    // Cancelled when a mod keeps the items some other way (e.g. a grave), so nothing reached the ground.
+    // Cancelled when a mod keeps the items some other way (e.g. a grave) so nothing reached the ground
     @SubscribeEvent(priority = EventPriority.LOWEST)
     @SuppressWarnings("unused")
     public void onPlayerDrops(final @NotNull PlayerDropsEvent event) {
@@ -98,7 +93,7 @@ public class ItemPickupDropLogger extends GenericPositionalLogger<ItemPickupDrop
         if (isClientSide()) return;
         if (event.isCanceled()) return;
 
-        // One event per kind of item, rather than one per stack.
+        // One event per kind of item, not one per stack
         ItemCounts dropped = new ItemCounts();
         for (EntityItem entityItem : event.drops) {
             ItemStack stack = entityItem.getEntityItem();
@@ -111,7 +106,7 @@ public class ItemPickupDropLogger extends GenericPositionalLogger<ItemPickupDrop
         }
     }
 
-    /** Logs {@code amount} of an item picked up or dropped by a player, at the player, with which way they faced. */
+    // Logs amount of an item picked up or dropped, at the player, with which way they faced
     public void logItems(EntityPlayer player, Action action, ItemKey item, long amount) {
         if (!isEnabledByConfig) return;
         if (item == null || amount <= 0) return;
@@ -148,7 +143,7 @@ public class ItemPickupDropLogger extends GenericPositionalLogger<ItemPickupDrop
                 """);
     }
 
-    // Never change the values here.
+    // Never change these values
     public enum Action {
 
         PICKUP(0, "tempora.event.item_pickup_drop.pickup"),

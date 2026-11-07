@@ -1,4 +1,3 @@
-// MixinEntity.java
 package com.colen.tempora.mixins;
 
 import net.minecraft.entity.Entity;
@@ -12,8 +11,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import com.colen.tempora.mixin_interfaces.IEntityMixin;
 
-// We use this class to keep track of if a mob spawning has been logged by tempora already. Since otherwise reloading
-// chunks will relog the same entity.
+// Tracks whether a mob spawn was already logged, otherwise reloading chunks logs the same entity again
 @Mixin(Entity.class)
 public abstract class MixinEntity implements IEntityMixin {
 

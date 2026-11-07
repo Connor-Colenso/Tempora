@@ -55,20 +55,17 @@ public class EntityPositionLogger extends GenericPositionalLogger<EntityPosition
 
     private static int entityMovementLoggingInterval;
 
-    // --------------------------------------
-    // Mobs
-    // --------------------------------------
-    // A mob is logged every few seconds for as long as it lives, so its UUID and name are stored once, in this table
-    // beside the events, under a number of its own. Events refer to it by mobID.
+    // Mobs. A mob gets logged every few seconds for as long as it lives, so its UUID and name are stored once in this
+    // table with its own number. Events point at it by mobID
 
     static final String MOB_TABLE = "Mobs";
 
-    // How far behind a mob's lastSeen may be. Bringing it up to date for every event would be a write each time.
+    // How far behind a mob's lastSeen can be, updating it on every event would be a write each time
     private static final long LAST_SEEN_INTERVAL_MILLISECONDS = TimeUnit.HOURS.toMillis(1);
-    // Recently logged mobs, so most events need no lookup. Mobs never stop coming, so only this many are kept.
+    // Recently logged mobs so most events skip the lookup. Mobs never stop coming so only keep this many
     private static final int CACHED_MOBS = 20_000;
 
-    // UUID -> the mob as stored. Worker thread only, apart from being emptied as the database opens.
+    // UUID -> stored mob. Worker thread only, except being cleared when the db opens
     private final Map<String, StoredMob> cachedMobs = new LinkedHashMap<>(1024, 0.75f, true) {
 
         @Override
@@ -77,7 +74,7 @@ public class EntityPositionLogger extends GenericPositionalLogger<EntityPosition
         }
     };
 
-    // A mob's row in the Mobs table: its number, and the lastSeen stored with it.
+    // A mob's row in the Mobs table, its number and stored lastSeen
     private static final class StoredMob {
 
         final long id;
@@ -91,29 +88,26 @@ public class EntityPositionLogger extends GenericPositionalLogger<EntityPosition
 
     @Override
     protected void createExtraTables(Connection conn) throws SQLException {
-        // A new database (another world, in singleplayer) has none of them.
+        // New db (another world in singleplayer) has none of them
         cachedMobs.clear();
         try (Statement st = conn.createStatement()) {
-            // AUTOINCREMENT, so a pruned mob's number is never given to another mob. Without it SQLite reuses the
-            // highest number when that mob is deleted, and its old events, if not all pruned yet, would read back as
-            // the new mob.
+            // AUTOINCREMENT so a pruned mob's number never gets reused. Without it SQLite reuses the highest number
+            // when that mob is deleted, and any of its old events not pruned yet would read back as the new mob
             st.execute(
                 "CREATE TABLE IF NOT EXISTS " + MOB_TABLE
                     + " (id INTEGER PRIMARY KEY AUTOINCREMENT, uuid TEXT NOT NULL UNIQUE, name TEXT NOT NULL,"
                     + " lastSeen INTEGER NOT NULL)");
-            // For pruning, which deletes mobs by when they were last seen.
+            // For pruning, which deletes mobs by when they were last seen
             st.execute("CREATE INDEX IF NOT EXISTS idx_" + MOB_TABLE + "_lastSeen ON " + MOB_TABLE + " (lastSeen)");
         }
     }
 
-    /**
-     * Gives each event its mob's number, storing mobs seen for the first time, and bringing lastSeen up to date for
-     * mobs whose lastSeen is more than LAST_SEEN_INTERVAL_MILLISECONDS behind.
-     */
+    // Gives each event its mob's number, stores new mobs and bumps lastSeen for mobs more than
+    // LAST_SEEN_INTERVAL_MILLISECONDS behind
     @Override
     protected @Nullable Runnable writeExtras(List<? extends GenericEventInfo> events, Connection conn)
         throws SQLException {
-        // Only cached once the batch commits: if it fails, the rows written here are rolled back with it.
+        // Only cached once the batch commits, if it fails the rows written here roll back with it
         Map<String, StoredMob> written = new HashMap<>();
 
         try (
@@ -135,7 +129,7 @@ public class EntityPositionLogger extends GenericPositionalLogger<EntityPosition
                 if (stored != null && mob.timestamp - stored.lastSeen > LAST_SEEN_INTERVAL_MILLISECONDS) {
                     touch.setLong(1, mob.timestamp);
                     touch.setLong(2, stored.id);
-                    // None if pruning deleted the mob since it was cached, so it is stored again below.
+                    // None if pruning deleted the mob since it was cached, then it gets stored again below
                     stored = touch.executeUpdate() == 1 ? new StoredMob(stored.id, mob.timestamp) : null;
                     if (stored != null) written.put(mob.entityUUID, stored);
                 }
@@ -192,11 +186,9 @@ public class EntityPositionLogger extends GenericPositionalLogger<EntityPosition
         }
     }
 
-    /**
-     * Deletes mobs last seen before the oldest events kept, allowing for lastSeen being up to
-     * LAST_SEEN_INTERVAL_MILLISECONDS behind, so no event kept refers to them. Each is stored again, under a new
-     * number, if it turns up later.
-     */
+    // Deletes mobs last seen before the oldest kept events, allowing for lastSeen lagging up to
+    // LAST_SEEN_INTERVAL_MILLISECONDS, so no kept event points at them. They get stored again under a new number if
+    // they turn up later
     @Override
     protected void pruneExtras(Connection conn) throws SQLException {
         try (PreparedStatement ps = conn.prepareStatement("DELETE FROM " + MOB_TABLE + " WHERE lastSeen < ?")) {
@@ -236,16 +228,12 @@ public class EntityPositionLogger extends GenericPositionalLogger<EntityPosition
         if (!isEnabledByConfig) return;
         if (isClientSide()) return;
         if (event.isCanceled()) return;
-        if (event.entityLiving.ticksExisted % entityMovementLoggingInterval != 0) return; // As an example, track every
-                                                                                          // 20 seconds.
+        if (event.entityLiving.ticksExisted % entityMovementLoggingInterval != 0) return;
 
         logEntityPosition(event.entityLiving);
     }
 
-    /**
-     * Logs where an entity is right now. Players are not logged here (see PlayerPositionLogger), nor are dropped items
-     * and XP orbs.
-     */
+    // Logs where an entity is right now. Not players (see PlayerPositionLogger), dropped items or XP orbs
     public void logEntityPosition(Entity entity) {
         if (!isEnabledByConfig) return;
         if (entity instanceof EntityPlayerMP) return;

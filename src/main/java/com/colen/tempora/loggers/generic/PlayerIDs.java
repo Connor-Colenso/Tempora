@@ -17,38 +17,35 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.sqlite.Function;
 import org.sqlite.SQLiteConfig;
 
-import com.colen.tempora.loggers.generic.column.ColumnType;
 import com.colen.tempora.utils.PlayerUtils;
 
-/**
- * Gives each player a number, which player columns ({@link ColumnType#PLAYER}) store in place of their UUID. A number
- * takes 1 to 3 bytes in a row, against 36 for the UUID's text, which adds up in tables such as player positions. Each
- * UUID is stored once, in Players.db beside the loggers' databases, so a player has the same number in every logger's
- * table. The whole table is also kept in memory, as a server has at most a few thousand players.
- * <p>
- * Mobs' UUIDs are not stored this way: there is no end to them, and most mobs are seen only once or twice. The mob
- * position logger, which logs each mob many times, keeps a table of its own mobs, see EntityPositionLogger.
- */
+// Gives each player a number which player columns (ColumnType.PLAYER) store instead of their UUID. 1 to 3 bytes a row
+// against 36 for the UUID text, which adds up in tables like player positions. Each UUID is stored once in Players.db
+// next to the logger dbs so a player has the same number everywhere. Whole table is kept in memory too, a server only
+// has a few thousand players at most
+//
+// Mob UUIDs aren't stored like this, there's no end to them and most mobs get seen once or twice. The mob position
+// logger logs each mob loads of times so it keeps its own table, see EntityPositionLogger
 @SuppressWarnings("SqlDialectInspection")
 public final class PlayerIDs {
 
     public static final String TABLE = "Players";
-    // PlayerUtils.UNKNOWN_PLAYER_NAME, for events with no player. Every player column's default.
+    // PlayerUtils.UNKNOWN_PLAYER_NAME, for events with no player. Default for every player column
     public static final int UNKNOWN_ID = 0;
-    // What a lookup matches for a player who has never been stored, so no event has it.
+    // What a lookup matches for a player that was never stored, so no event has it
     private static final int NEVER_STORED_ID = -1;
 
     private static final Map<String, Integer> IDS = new ConcurrentHashMap<>();
     private static final Map<Integer, String> UUIDS = new ConcurrentHashMap<>();
 
-    // Open while a server runs. Written under the class lock, as every logger's worker may store new players.
+    // Open while a server runs. Written under the class lock since every logger's worker can store new players
     private static Connection connection;
     private static PreparedStatement insert;
     private static int nextID;
 
     private PlayerIDs() {}
 
-    // As the server starts, before any logger. Loads every player stored so far.
+    // Server start, before any logger. Loads every player stored so far
     static synchronized void open() throws SQLException {
         close();
 
@@ -60,7 +57,7 @@ public final class PlayerIDs {
         try (Statement st = connection.createStatement()) {
             st.execute("CREATE TABLE IF NOT EXISTS " + TABLE + " (id INTEGER PRIMARY KEY, uuid TEXT NOT NULL UNIQUE)");
         }
-        // Stored too, so the table explains every number in the loggers' tables.
+        // Stored too so the table explains every number in the logger tables
         try (PreparedStatement ps = connection
             .prepareStatement("INSERT OR IGNORE INTO " + TABLE + " (id, uuid) VALUES (?, ?)")) {
             ps.setInt(1, UNKNOWN_ID);
@@ -82,7 +79,7 @@ public final class PlayerIDs {
         LOG.info("Loaded {} players from {}.db.", UUIDS.size() - 1, TABLE);
     }
 
-    // As the server stops, once the loggers and lookups have. A singleplayer world opened next has its own players.
+    // Server stop, after the loggers and lookups. A singleplayer world opened next has its own players
     static synchronized void close() {
         try {
             if (connection != null) connection.close();
@@ -95,11 +92,8 @@ public final class PlayerIDs {
         UUIDS.clear();
     }
 
-    /**
-     * The number to store for a player, from their UUID. A player seen for the first time is stored in Players.db
-     * before this returns, so an event is never stored with a number Players.db doesn't have. On the loggers' worker
-     * threads.
-     */
+    // Number to store for a player's UUID. New players get written to Players.db before this returns, so an event never
+    // has a number Players.db doesn't. Loggers' worker threads
     public static int idFor(String uuid) throws SQLException {
         if (uuid == null) throw new SQLException("A player column was null. Use PlayerUtils.UNKNOWN_PLAYER_NAME.");
         String key = normalise(uuid);
@@ -108,7 +102,7 @@ public final class PlayerIDs {
     }
 
     private static synchronized int store(String key) throws SQLException {
-        // Another worker may have stored them while this one waited.
+        // Another worker might have stored them while this one waited
         Integer stored = IDS.get(key);
         if (stored != null) return stored;
         if (insert == null) throw new SQLException(TABLE + ".db is not open, so no player can be stored.");
@@ -122,24 +116,19 @@ public final class PlayerIDs {
         return id;
     }
 
-    // The UUID a stored number stands for, as events read back. UNKNOWN_PLAYER_NAME for a number Tempora doesn't know.
+    // UUID behind a stored number as events read back, UNKNOWN_PLAYER_NAME for a number Tempora doesn't know
     public static String uuidFor(int id) {
         return UUIDS.getOrDefault(id, UNKNOWN_PLAYER_NAME);
     }
 
-    /**
-     * A player's number, for matching them in a query, without storing them. For a player never stored, a number no
-     * event has, so they match nothing.
-     */
+    // Player's number for matching in a query, without storing them. Players never stored get a number no event has so
+    // they match nothing
     public static int lookupID(String uuid) {
         return IDS.getOrDefault(normalise(uuid), NEVER_STORED_ID);
     }
 
-    /**
-     * Adds {@code player('<name or UUID>')} to a connection's SQL: the number a player is stored as, so /tempora sql
-     * can
-     * match them, e.g. {@code WHERE playerUUID = player('Notch')}. An error for anyone who has never joined.
-     */
+    // Adds player('<name or UUID>') to a connection's SQL, the number a player is stored as, so /tempora sql can match
+    // them, e.g. WHERE playerUUID = player('Notch'). Errors for anyone who's never joined
     public static void addSqlFunction(Connection conn) throws SQLException {
         Function.create(conn, "player", new Function() {
 
@@ -161,7 +150,7 @@ public final class PlayerIDs {
         UUIDS.put(id, uuid);
     }
 
-    // UUIDs typed by a person may be in upper case. Players' own are always lower case.
+    // UUIDs typed by a person might be upper case, players' own are always lower
     private static String normalise(String uuid) {
         return PlayerUtils.isUUID(uuid) ? uuid.toLowerCase(Locale.ROOT) : uuid;
     }

@@ -23,11 +23,9 @@ import com.colen.tempora.loggers.generic.TemporaQueries;
 import com.colen.tempora.utils.TimeUtils;
 import com.colen.tempora.utils.TimeWindow;
 
-/**
- * /tempora global [t:<time>] [l:<logger,...>] [n:<count>]
- * Shows the latest events from the global loggers, the ones not tied to a place such as weather and TPS, from every
- * global logger unless narrowed down with l:. Works from anywhere, including the server console.
- */
+// /tempora global [t:<time>] [l:<logger,...>] [n:<count>]
+// Latest events from the global loggers (no place, like weather and TPS), all of them unless narrowed with l:. Works
+// from anywhere, console too
 public class GlobalCommand extends TemporaSubcommand {
 
     private static final String DEFAULT_TIME = "3d";
@@ -55,7 +53,7 @@ public class GlobalCommand extends TemporaSubcommand {
         TemporaQueries.submit(sender, () -> {
             List<FoundEvents<?>> found = new ArrayList<>();
             for (GenericGlobalLogger<?> logger : loggers) {
-                // A logger that is disabled, or failed to start, has no database to read.
+                // Disabled or failed to start, no db to read
                 if (logger.notStarted()) continue;
 
                 found.add(logger.findLatestEvents(window, count));
@@ -71,8 +69,8 @@ public class GlobalCommand extends TemporaSubcommand {
         });
     }
 
-    // Comma separated global logger names, or every global logger if null. Null, after telling the sender, if a name
-    // is unknown or a positional logger.
+    // Comma separated global logger names, or every global logger if null. Returns null after telling the sender if a
+    // name is unknown or positional
     private static @Nullable List<GenericGlobalLogger<?>> parseLoggers(ICommandSender sender, @Nullable String names) {
         if (names == null) return TemporaLoggerManager.getGlobalLoggers();
 

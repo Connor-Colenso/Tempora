@@ -20,14 +20,10 @@ import com.colen.tempora.utils.nbt.NBTUtils;
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
-/**
- * Logs items players move into and out of containers. The tracking itself lives in {@link InventoryTransaction}, which
- * runs around every relevant packet (see {@link InventoryTransactionTracker}), so vanilla, ModularUI and AE2 GUIs all
- * go through the same code.
- */
+// Logs items players move in and out of containers. The tracking lives in InventoryTransaction, which wraps every
+// relevant packet (see InventoryTransactionTracker), so vanilla, ModularUI and AE2 GUIs all go through the same code
 public class InventoryLogger extends GenericPositionalLogger<InventoryEventInfo> {
 
-    // The player who moved the items.
     @Override
     protected String playerColumn() {
         return "playerUUID";
@@ -55,8 +51,8 @@ public class InventoryLogger extends GenericPositionalLogger<InventoryEventInfo>
         return LoggerEventType.ForgeEvent;
     }
 
-    // Items dropped or thrown out while a container is open have to be told apart from items that went into it.
-    // Highest priority and receiving cancelled events, so an item merged away by another mod is still counted.
+    // Items dropped or thrown out while a container is open need telling apart from items that went into it. Highest
+    // priority and receives cancelled events so an item another mod merges away still counts
     @SubscribeEvent(priority = EventPriority.HIGHEST, receiveCanceled = true)
     @SuppressWarnings("unused")
     public void onEntityJoinWorld(EntityJoinWorldEvent event) {
@@ -66,14 +62,12 @@ public class InventoryLogger extends GenericPositionalLogger<InventoryEventInfo>
         }
     }
 
-    /**
-     * Logs that {@code change} of an item went into (positive) or came out of (negative) a container that Tempora
-     * cannot see by itself, e.g. a drawer or barrel clicked in the world rather than through a GUI.
-     */
+    // Logs change of an item going into (positive) or out of (negative) a container we can't see ourselves, e.g. a
+    // drawer clicked in the world instead of through a GUI
     public void logReportedChange(EntityPlayer player, ItemStack item, long change, ContainerHost container) {
         if (!isEnabledByConfig) return;
 
-        // Copied, as a transaction may hold on to it until the packet being handled is done.
+        // Copy, a transaction might hold onto it until the current packet is done
         ItemKey key = ItemKey.snapshotOf(item);
         if (key == null || change == 0) return;
 
@@ -87,11 +81,11 @@ public class InventoryLogger extends GenericPositionalLogger<InventoryEventInfo>
             key,
             change);
 
-        // If this happened while a GUI packet is being tracked, that packet must not log the same items again.
+        // If a GUI packet is being tracked right now it mustn't log the same items again
         InventoryTransactionTracker.onReportedChange(player, key, change);
     }
 
-    /** Logs that {@code change} of an item went into (positive) or came out of (negative) a container. */
+    // Logs change of an item going into (positive) or out of (negative) a container
     void logChange(EntityPlayer player, String containerName, int dimension, double x, double y, double z, ItemKey item,
         long change) {
         if (change == 0) return;
@@ -129,7 +123,7 @@ public class InventoryLogger extends GenericPositionalLogger<InventoryEventInfo>
                 """);
     }
 
-    // Never change the values here.
+    // Never change these values
     public enum Direction {
 
         IN_TO_CONTAINER(0, true),

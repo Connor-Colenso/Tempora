@@ -10,8 +10,8 @@ public class StressTestTileEntity extends TileEntity {
 
     public static final int SIZE = 16;
 
-    // Solid, non-gravity, non-tile-entity blocks with no update behaviour of their own, so every change is a plain
-    // block swap. Each entry is {block, maxMeta}; a random meta in [0, maxMeta] is picked.
+    // Solid, no gravity, no TE, no update behaviour of their own, so every change is a plain block swap. Each entry is
+    // {block, maxMeta} and a random meta in [0, maxMeta] gets picked
     private static final Object[][] PALETTE = { { Blocks.stone, 0 }, { Blocks.cobblestone, 0 }, { Blocks.dirt, 0 },
         { Blocks.planks, 5 }, { Blocks.log, 3 }, { Blocks.wool, 15 }, { Blocks.stained_hardened_clay, 15 },
         { Blocks.hardened_clay, 0 }, { Blocks.glass, 0 }, { Blocks.stained_glass, 15 }, { Blocks.brick_block, 0 },
@@ -35,7 +35,7 @@ public class StressTestTileEntity extends TileEntity {
                     Object[] entry = PALETTE[rand.nextInt(PALETTE.length)];
                     Block block = (Block) entry[0];
                     int meta = rand.nextInt((Integer) entry[1] + 1);
-                    // Flag 2: sync to clients, skip neighbour notifications.
+                    // Flag 2, sync to clients and skip neighbour notifications
                     worldObj.setBlock(xCoord - SIZE / 2 + dx, y, zCoord - SIZE / 2 + dz, block, meta, 2);
                 }
             }

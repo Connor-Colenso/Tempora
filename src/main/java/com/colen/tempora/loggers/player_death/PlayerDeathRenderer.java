@@ -15,7 +15,7 @@ import com.colen.tempora.rendering.events.PlayerGhostRenderer;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-/** Shows each player lying where they died, tinted red, with what killed them. */
+// Each player lying where they died, tinted red, with what killed them
 @SideOnly(Side.CLIENT)
 public class PlayerDeathRenderer extends PlayerGhostRenderer<PlayerDeathEventInfo> {
 
@@ -38,7 +38,7 @@ public class PlayerDeathRenderer extends PlayerGhostRenderer<PlayerDeathEventInf
         return event.rotationPitch;
     }
 
-    // Vanilla draws a dying player tinted red and tipping onto their side, all the way over after 20 ticks of dying.
+    // Vanilla tints a dying player red and tips them onto their side, all the way over after 20 ticks
     @Override
     protected void prepareGhost(EntityOtherPlayerMP ghost, PlayerDeathEventInfo event) {
         ghost.deathTime = 20;

@@ -19,15 +19,12 @@ import cpw.mods.fml.common.gameevent.PlayerEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.common.gameevent.TickEvent.PlayerTickEvent;
 
-// This class logs three items to the same database.
-// 1. Player positions every n ticks. By default, n = 200 ticks.
-// 2. Player teleportation between dimensions. Prevents users from evading the above detector by switching dimensions
-// very quickly.
-// 3. Player login: This prevents the user from being logged into a dimension and quickly switching dimensions, this
-// would cause the dimension to load, which we want to keep track of.
+// Logs three things to the same table
+// 1. Player positions every n ticks, 200 by default
+// 2. Dimension changes, so players can't dodge the above by hopping dimensions quickly
+// 3. Logins, so logging into a dimension and quickly leaving it still shows up, since it loads that dimension
 public class PlayerPositionLogger extends GenericPositionalLogger<PlayerPositionEventInfo> {
 
-    // The player who was there.
     @Override
     protected String playerColumn() {
         return "playerUUID";
@@ -67,8 +64,8 @@ public class PlayerPositionLogger extends GenericPositionalLogger<PlayerPosition
             "How often player location is recorded by Tempora. Measured in ticks (20/second).");
     }
 
-    // Also holds every column /tempora home reads, so it never touches the table: one player's rows are spread across
-    // all of it, and reading them there one by one is slower than not having an index at all.
+    // Also covers every column /tempora home reads so it never touches the table. One player's rows are spread across
+    // all of it and reading them one by one there is slower than having no index at all
     @Override
     protected String playerIndexColumns() {
         return "playerUUID, timestamp, dimensionID, x, z, y";
@@ -108,7 +105,7 @@ public class PlayerPositionLogger extends GenericPositionalLogger<PlayerPosition
         logPlayerPosition(player);
     }
 
-    /** Logs where a player is right now, e.g. straight after teleporting them. */
+    // Logs where a player is right now, e.g. straight after teleporting them
     public void logPlayerPosition(EntityPlayer player) {
         if (!isEnabledByConfig) return;
 

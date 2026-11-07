@@ -10,11 +10,9 @@ import net.minecraft.tileentity.TileEntity;
 
 import com.colen.tempora.mixins.accessors.InventoryLargeChestAccessor;
 
-/**
- * An inventory that exists in the world on its own, i.e. a block entity or an entity such as a chest minecart, as
- * opposed to the player's inventory, a crafting grid, or a mod's wrapper around storage we cannot see into.
- * Container slots backed by one of these can be compared directly, so their changes are logged at their exact position.
- */
+// An inventory that exists in the world on its own (a TE or an entity like a chest minecart), as opposed to the
+// player's inventory, a crafting grid or a mod's wrapper around storage we can't see into. Slots backed by one of these
+// can be compared directly so their changes get logged at the exact position
 public final class WorldStorage {
 
     private final @Nullable TileEntity tileEntity;
@@ -25,7 +23,7 @@ public final class WorldStorage {
         this.entity = entity;
     }
 
-    /** The world storage behind this slot, or null when the slot is backed by anything else. */
+    // World storage behind this slot, null if it's backed by anything else
     public static @Nullable WorldStorage of(Slot slot) {
         return of(slot.inventory, slot.getSlotIndex());
     }
@@ -34,7 +32,7 @@ public final class WorldStorage {
         if (inventory instanceof TileEntity tileEntity) return new WorldStorage(tileEntity, null);
         if (inventory instanceof Entity entity) return new WorldStorage(null, entity);
 
-        // A double chest is two chests glued together, log against the half the slot actually reads from.
+        // Double chest is two chests glued together, log against the half the slot actually reads from
         if (inventory instanceof InventoryLargeChest largeChest) {
             InventoryLargeChestAccessor halves = (InventoryLargeChestAccessor) largeChest;
             IInventory upper = halves.tempora$getUpperChest();

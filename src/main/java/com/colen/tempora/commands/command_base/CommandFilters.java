@@ -17,10 +17,7 @@ import net.minecraft.util.IChatComponent;
 
 import org.jetbrains.annotations.Nullable;
 
-/**
- * Optional "key:value" arguments, e.g. "r:10 t:1d l:break,place". They can come in any order and any of them can be
- * left out.
- */
+// Optional "key:value" args, e.g. "r:10 t:1d l:break,place". Any order, any of them can be left out
 public final class CommandFilters {
 
     private final Map<String, String> values;
@@ -29,9 +26,8 @@ public final class CommandFilters {
         this.values = values;
     }
 
-    // Parses args from index "from" onwards. Null, after telling the sender why and what each of the command's
-    // arguments
-    // does, if one isn't a known key:value.
+    // Parses args from index from onwards. Returns null after telling the sender why and what each arg does if one
+    // isn't a known key:value
     public static @Nullable CommandFilters parse(TemporaSubcommand command, ICommandSender sender, String[] args,
         int from, String... keys) {
         Set<String> allowed = new HashSet<>(Arrays.asList(keys));
@@ -76,10 +72,8 @@ public final class CommandFilters {
         return values.get(key);
     }
 
-    /**
-     * Tab completion for the last argument. Before a colon this suggests keys not used yet ("r:", "t:", ...), after
-     * it the suggestions for that key. Values can be comma separated lists, where only the last item is completed.
-     */
+    // Tab completion for the last arg. Before a colon suggests keys not used yet ("r:", "t:" etc), after it the
+    // suggestions for that key. Values can be comma separated lists where only the last item gets completed
     public static List<String> complete(String[] args, Map<String, ? extends Collection<String>> suggestions) {
         String typed = args[args.length - 1];
         List<String> completions = new ArrayList<>();
@@ -107,7 +101,7 @@ public final class CommandFilters {
                 .toLowerCase(Locale.ROOT));
         if (options == null) return completions;
 
-        // Keep everything up to the last comma, complete the item after it.
+        // Keep everything up to the last comma, complete the item after it
         String value = typed.substring(colon + 1);
         int lastComma = value.lastIndexOf(',');
         String done = typed.substring(0, colon + 1 + lastComma + 1);

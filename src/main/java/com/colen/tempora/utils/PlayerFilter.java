@@ -14,10 +14,8 @@ import net.minecraft.util.IChatComponent;
 import com.colen.tempora.chat.EventChat;
 import com.colen.tempora.loggers.generic.PlayerIDs;
 
-/**
- * Whose events a lookup shows, as a p: filter gives it: comma separated names, each with a leading ! to leave that
- * player out instead. "p:Player1,Player2" is only their events, "p:!Player1,!Player2" everyone's but theirs.
- */
+// Whose events a lookup shows, from a p: filter. Comma separated names, a leading ! leaves that player out instead.
+// "p:Player1,Player2" is only theirs, "p:!Player1,!Player2" everyone's but theirs
 public final class PlayerFilter {
 
     private static final PlayerFilter ANYONE = new PlayerFilter(Collections.emptyList(), Collections.emptyList());
@@ -34,7 +32,7 @@ public final class PlayerFilter {
         return ANYONE;
     }
 
-    // Names or UUIDs. Throws a CommandException, shown to the sender, for a player who has never joined.
+    // Names or UUIDs. Throws a CommandException (shown to the sender) for a player who's never joined
     public static PlayerFilter parse(String filter) {
         List<String> included = new ArrayList<>();
         List<String> excluded = new ArrayList<>();
@@ -53,8 +51,7 @@ public final class PlayerFilter {
         return includedUUIDs.isEmpty() && excludedUUIDs.isEmpty();
     }
 
-    // Whose events these are, to name in a header: "Player1, Player2", "everyone but Player1", or "Player1 except
-    // Player2".
+    // Whose events these are for a header, "Player1, Player2", "everyone but Player1" or "Player1 except Player2"
     public IChatComponent describe() {
         if (excludedUUIDs.isEmpty()) return names(includedUUIDs);
         if (includedUUIDs.isEmpty())
@@ -71,7 +68,7 @@ public final class PlayerFilter {
         return names;
     }
 
-    // E.g. " AND playerUUID IN (?, ?) AND playerUUID NOT IN (?)", to add to a WHERE. Empty for anyone.
+    // E.g. " AND playerUUID IN (?, ?) AND playerUUID NOT IN (?)" to add to a WHERE, empty for anyone
     public String sqlCondition(String column) {
         StringBuilder sql = new StringBuilder();
         if (!includedUUIDs.isEmpty()) sql.append(" AND ")
@@ -87,8 +84,8 @@ public final class PlayerFilter {
         return sql.toString();
     }
 
-    // Fills in sqlCondition's placeholders from index onwards, and returns the index after them. Player columns hold
-    // each player's number, see PlayerIDs.
+    // Fills sqlCondition's placeholders from index on and returns the index after them. Player columns hold each
+    // player's number, see PlayerIDs
     public int bind(PreparedStatement ps, int index) throws SQLException {
         for (String uuid : includedUUIDs) ps.setInt(index++, PlayerIDs.lookupID(uuid));
         for (String uuid : excludedUUIDs) ps.setInt(index++, PlayerIDs.lookupID(uuid));

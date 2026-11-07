@@ -35,17 +35,14 @@ import com.colen.tempora.loggers.generic.TemporaQueries;
 import com.colen.tempora.utils.DatabaseUtils;
 import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 
-/**
- * /tempora status
- * Shows whether each logger is storing events, how many it holds and how old they are, its size on disk and any
- * backlog, then the total size of Tempora's databases and the free space left for them. Works from anywhere, including
- * the server console.
- */
+// /tempora status
+// Whether each logger is storing events, how many it holds and how old, size on disk and any backlog. Then the total
+// size of our dbs and free space left. Works from anywhere, console too
 public class StatusCommand extends TemporaSubcommand {
 
-    // Below this many waiting events a backlog is normal, a batch being written.
+    // Below this many waiting events a backlog is normal, just a batch being written
     private static final int QUEUE_WORTH_SHOWING = 100;
-    // Free space under this is shown in red: a full disk stops every logger storing events.
+    // Free space under this shows red, a full disk stops every logger
     private static final long LOW_FREE_BYTES = 1024L * 1024 * 1024;
 
     public StatusCommand() {
@@ -66,7 +63,7 @@ public class StatusCommand extends TemporaSubcommand {
         TemporaQueries.submit(sender, () -> {
             Map<GenericLogger<?>, Stored> stored = new LinkedHashMap<>();
             for (GenericLogger<?> logger : loggers) {
-                // A logger that is disabled, or failed to start, has no database to read.
+                // Disabled or failed to start, no db to read
                 if (logger.notStarted()) continue;
 
                 stored.put(logger, Stored.read(logger, directory));
@@ -81,14 +78,14 @@ public class StatusCommand extends TemporaSubcommand {
         });
     }
 
-    // E.g. "break [OK] 12,345 events, 1.2 MB, oldest 3.9d ago, newest 5s ago". Stored is null if it isn't started.
+    // E.g. "break [OK] 12,345 events, 1.2 MB, oldest 3.9d ago, newest 5s ago". stored is null if not started
     private static IChatComponent loggerLine(GenericLogger<?> logger, @Nullable Stored stored) {
         IChatComponent name = EventChat.text(logger.getShortName(), EnumChatFormatting.GOLD);
         name.getChatStyle()
             .setChatHoverEvent(
                 new HoverEvent(
                     HoverEvent.Action.SHOW_TEXT,
-                    // How long events are kept is only known once it has started.
+                    // Retention's only known once it's started
                     stored == null ? logger.getDescriptionHover() : logger.getInfoHover()));
 
         if (stored == null) {
@@ -143,7 +140,7 @@ public class StatusCommand extends TemporaSubcommand {
         return line;
     }
 
-    // E.g. "[OK]", with why on hover if there is a reason.
+    // E.g. "[OK]", with why on hover if there's a reason
     private static IChatComponent state(String key, EnumChatFormatting colour, @Nullable String reason) {
         IChatComponent state = new ChatComponentTranslation("tempora.command.status.state." + key);
         IChatComponent hover = reason == null
@@ -155,7 +152,7 @@ public class StatusCommand extends TemporaSubcommand {
         return state;
     }
 
-    // E.g. "1.2 MB", in binary units as file managers show them on Windows.
+    // E.g. "1.2 MB", binary units like Windows file managers show
     static IChatComponent size(long bytes) {
         String[] units = { "B", "KB", "MB", "GB", "TB" };
         double value = bytes;
@@ -176,7 +173,7 @@ public class StatusCommand extends TemporaSubcommand {
         }
     }
 
-    /** What one logger's database holds, read on the query thread. */
+    // What one logger's db holds, read on the query thread
     private static final class Stored {
 
         long events, oldest, newest, bytes;
@@ -186,11 +183,11 @@ public class StatusCommand extends TemporaSubcommand {
         static Stored read(GenericLogger<?> logger, Path directory) {
             Stored stored = new Stored();
             String table = logger.getLoggerName();
-            // With its write-ahead log, which holds the newest events until they are copied into the database.
+            // Plus the WAL, which holds the newest events until they get copied into the db
             stored.bytes = fileSize(directory.resolve(table + ".db")) + fileSize(directory.resolve(table + ".db-wal"));
 
-            // One aggregate per subquery, so SQLite reads each from the end of an index rather than the whole table.
-            // eventIDs count up as events are written and only the oldest are ever deleted, so they give the count.
+            // One aggregate per subquery so SQLite reads each from the end of an index, not the whole table. eventIDs
+            // count up and only the oldest ever get deleted, so they give the count
             String sql = "SELECT (SELECT MIN(timestamp) FROM " + table
                 + "), (SELECT MAX(timestamp) FROM "
                 + table
@@ -204,7 +201,7 @@ public class StatusCommand extends TemporaSubcommand {
                 rs.next();
                 stored.oldest = rs.getLong(1);
                 stored.newest = rs.getLong(2);
-                // NULL, read as 0, when the table is empty.
+                // NULL (read as 0) when the table's empty
                 stored.events = rs.getLong(3);
             } catch (SQLException e) {
                 TemporaQueries.throwIfTimedOut();
@@ -214,7 +211,7 @@ public class StatusCommand extends TemporaSubcommand {
         }
     }
 
-    /** Every started logger's database, and the folder they are in. */
+    // Every started logger's db and the folder they're in
     private static final class Disk {
 
         final Map<GenericLogger<?>, Stored> stored;
@@ -225,7 +222,7 @@ public class StatusCommand extends TemporaSubcommand {
             this.stored = stored;
             this.directory = directory;
 
-            // Every file, so the shared players database and old loggers' files count too.
+            // Every file, so the shared players db and old loggers' files count too
             long total = 0;
             try (Stream<Path> files = Files.list(directory)) {
                 for (Path file : (Iterable<Path>) files::iterator) total += fileSize(file);
@@ -235,7 +232,7 @@ public class StatusCommand extends TemporaSubcommand {
                 .getUsableSpace();
         }
 
-        // E.g. "Total 1.2 GB on disk, 50.3 GB free", with the folder on hover.
+        // E.g. "Total 1.2 GB on disk, 50.3 GB free", folder on hover
         IChatComponent line() {
             IChatComponent where = new ChatComponentText(
                 directory.toAbsolutePath()

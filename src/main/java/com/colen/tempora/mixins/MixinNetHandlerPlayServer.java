@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import com.colen.tempora.TemporaEvents;
 
-// Players leaving, with why, while they are still on the player list.
+// Players leaving and why, while they're still on the player list
 @Mixin(NetHandlerPlayServer.class)
 public abstract class MixinNetHandlerPlayServer {
 
@@ -23,7 +23,7 @@ public abstract class MixinNetHandlerPlayServer {
 
     @Inject(method = "onDisconnect", at = @At("HEAD"))
     private void tempora$logLeave(IChatComponent reason, CallbackInfo ci) {
-        // An exception here would skip the rest of vanilla's disconnect, leaving the player on the player list.
+        // An exception here would skip the rest of vanilla's disconnect and leave the player on the player list
         try {
             TemporaEvents.playerConnectionLogger.onDisconnect(playerEntity, reason);
         } catch (RuntimeException | LinkageError e) {

@@ -1,16 +1,16 @@
-# Every key starts with tempora. except blocks and items, whose keys Minecraft makes from their names.
-# Colours are set in code: text here only says what to show.
+# Every key starts with tempora. except blocks and items, Minecraft makes those keys from their names
+# Colours are set in code, text here only says what to show
 
-# === Blocks and items ===
+# Blocks and items
 item.tempora_wand.name=Tempora Wand
 tile.rendering_error_block.name=Tempora Rendering Error
 tile.temporaStressTestBlock.name=Tempora Stress Test Block
 tempora.tooltip.rendering_error=If you are seeing this, something has likely gone wrong with Tempora's event rendering. Please report it, thanks!
-# Air has no name in vanilla, but block changes can be to or from it.
+# Air has no name in vanilla but block changes can be to or from it
 tempora.block.air=Air
 
-# === Chat building blocks ===
-# How long ago, e.g. "6.4m ago".
+# Chat building blocks
+# How long ago, e.g. "6.4m ago"
 tempora.time.ago.now=just now
 tempora.time.ago.seconds=%ss ago
 tempora.time.ago.minutes=%sm ago
@@ -20,7 +20,7 @@ tempora.time.ago.weeks=%sw ago
 tempora.time.ago.months=%smo ago
 tempora.time.ago.years=%sy ago
 
-# A length of time, e.g. "4 months".
+# A length of time, e.g. "4 months"
 tempora.duration.year.one=%s year
 tempora.duration.year.many=%s years
 tempora.duration.month.one=%s month
@@ -38,33 +38,33 @@ tempora.duration.second.many=%s seconds
 tempora.duration.tick.one=%s tick
 tempora.duration.tick.many=%s ticks
 
-# Hovers on things in a line.
+# Hovers on things in a line
 tempora.chat.closest_player=Closest player, %s blocks away. Not necessarily who did it.
 tempora.chat.id=ID %s:%s
 tempora.chat.dimension_id=Dimension ID %s
 tempora.uuid.display=UUID: %s
 tempora.uuid.click_to_copy=Click to copy UUID.
 
-# Clickable coordinates.
-# Coordinates are in the player's number format (GTNHLib's numberFormatLocale), which needn't match their language,
-# so their separator is chosen in code from that format, e.g. [12,345 64 -2,000] or [12 345, 64, -2 000].
+# Clickable coords
+# Coords use the player's number format (GTNHLib's numberFormatLocale) which doesn't have to match their language,
+# so the separator is picked in code from that format, e.g. [12,345 64 -2,000] or [12 345, 64, -2 000]
 tempora.teleport.display=[%s]
 tempora.teleport.hover=Click to teleport.
 tempora.teleport.dimension=%s (ID %s)
-# Labelled, as these have decimals, and many formats write those with a comma, e.g. 12.345,5.
+# Labelled since these have decimals and lots of formats write those with a comma, e.g. 12.345,5
 tempora.teleport.exact=Exactly X: %s Y: %s Z: %s
 tempora.teleport.done=Teleported to %s in %s.
 tempora.teleport.no_permission=You need permission to use /tempora to teleport.
 
-# Stored with events when who or what did it is unknown, so these keys must keep their names.
+# Stored with events when who or what did it is unknown, so these keys have to keep their names
 tempora.unknown.player=[UNKNOWN PLAYER]
 tempora.unknown.cause=[UNKNOWN CAUSE]
 tempora.unknown.error=[UNKNOWN ERROR]
 
 tempora.dimension.invalid=Dimension %s does not exist.
 
-# === Event lines ===
-# Every line reads: when, who, did what, where. The words here show grey.
+# Event lines
+# Every line reads when, who, did what, where. The words here show grey
 tempora.event.achievement=%s %s earned %s at %s
 tempora.event.block_break=%s %s broke %s at %s
 tempora.event.block_place=%s %s placed %s at %s
@@ -101,20 +101,20 @@ tempora.event.player_connection.invalid=Unknown join or leave %s in the database
 tempora.event.tps=%s TPS %s, mean tick %sms, worst %sms
 tempora.event.weather=%s %s went from %s to %s
 
-# [Trace] on a block change: the end of the stack trace on hover, all of it in chat on click.
+# [Trace] on a block change, end of the stack trace on hover and all of it in chat on click
 tempora.trace.button=[Trace]
 tempora.trace.missing=[No trace]
 tempora.trace.full=Full stack trace
 tempora.trace.hover.title=What changed the block
 tempora.trace.hover.more=Click to see all %s lines.
 
-# === Lookup results ===
-# The header above each logger's events, e.g. "Player block breaks (3) [Info]".
+# Lookup results
+# Header above each logger's events, e.g. "Player block breaks (3) [Info]"
 tempora.command.lookup.header=%s %s %s
 tempora.command.lookup.header.count=(%s)
 tempora.command.lookup.header.latest=(latest %s)
 tempora.command.lookup.header.hover=Click to search only %s.
-# With s:time, the one header above every logger's events, e.g. "Events by time (latest 10)", and the logger before each.
+# With s:time, the one header above every logger's events, e.g. "Events by time (latest 10)", and the logger before each
 tempora.command.lookup.timeline=Events by time
 tempora.command.lookup.tag=[%s]
 tempora.chat.info=[Info]
@@ -122,23 +122,23 @@ tempora.command.lookup.too_many_pending=%s events are still waiting to be saved,
 tempora.command.lookup.query_failed=Database query failed on %s: %s
 tempora.command.lookup.event_failed=[This event couldn't be shown, see the server log]
 tempora.command.lookup.logger_failed=Couldn't show the %s results, see the server log.
-# The line under a lookup's results listing every filter it used, e.g. "Searched r:10 t:3d l:all p:anyone n:5".
+# Line under a lookup's results listing every filter it used, e.g. "Searched r:10 t:3d l:all p:anyone n:5"
 tempora.command.search.searched=Searched %s
 tempora.command.search.nothing_found=Nothing found %s
-# The last line of each filter's hover.
+# Last line of each filter's hover
 tempora.command.search.default=Using default (%s)
 tempora.command.search.overridden=Overridden default of %s with %s
 
-# While a lookup runs on the query thread.
+# While a lookup runs on the query thread
 tempora.query.searching=Searching...
 tempora.query.already_running=Your last lookup is still running, try again once it has finished.
 tempora.query.server_busy=Too many lookups are waiting, try again in a moment.
 tempora.query.timed_out=The lookup hit its time limit (%ss) and was stopped. Try narrowing it down, e.g. with a shorter time.
 tempora.query.failed=The lookup failed: %s
 
-# === Loggers ===
-# Each logger's name, and on hovering [Info], what it records and how the server has it set up. Another mod's logger adds
-# its own tempora.logger.<logger name>.name and .description to its lang file.
+# Loggers
+# Each logger's name, and on hovering [Info] what it records and how the server has it set up. Loggers from other
+# mods add their own tempora.logger.<logger name>.name and .description to their lang file
 tempora.logger.no_description=No description given for this logger.
 tempora.logger.setting.everywhere=Logs everywhere, except in regions that turn it off.
 tempora.logger.setting.regions_only=Only logs inside regions that turn it on.
@@ -184,13 +184,13 @@ tempora.logger.TPSLogger.description=The server's ticks per second and how long 
 tempora.logger.WeatherLogger.name=Weather
 tempora.logger.WeatherLogger.description=Each dimension's weather changing between clear, rain and thunder.
 
-# Weather, as the weather logger stores it.
+# Weather, as the weather logger stores it
 tempora.weather.clear=clear
 tempora.weather.rain=rain
 tempora.weather.thunder=thunderstorm
 
-# === Commands ===
-# Each command has .description, and .arg0, .arg1 ... for its arguments in order, shown by /tempora help.
+# Commands
+# Each command has .description, and .arg0, .arg1 etc for its args in order, shown by /tempora help
 tempora.command.usage=Usage: %s
 tempora.command.usage.hint=See %s for details.
 tempora.command.usage.hint.hover=Click to show it.
@@ -246,7 +246,7 @@ tempora.player_filter.except=%s except %s
 
 # /tempora status
 tempora.command.status.description=Shows whether each logger is storing events, how many it holds and how old they are, how much disk it uses, and any backlog of events waiting to be saved, then the total size of Tempora's databases and the free disk space left. Hover over a logger's name for what it records and how it is set up. Works from anywhere, including the server console.
-# E.g. "break [OK] 12,345 events, 1.2 MB, oldest 3.9d ago, newest 5s ago".
+# E.g. "break [OK] 12,345 events, 1.2 MB, oldest 3.9d ago, newest 5s ago"
 tempora.command.status.logger=%s %s %s, %s, oldest %s, newest %s
 tempora.command.status.events.one=%s event
 tempora.command.status.events.many=%s events
@@ -292,7 +292,7 @@ tempora.command.sql.query_quantity_if_max=Showing the first %s results (server l
 tempora.command.wand.description=Gives you a Tempora wand. Left click a block to see its history, right click a face to see the history of the space in front of it.
 tempora.command.wand.given=You have been given a Tempora wand. Left click a block to see its history, right click a face to see the space in front of it.
 
-# /tempora explode, only in a development environment
+# /tempora explode, dev env only
 tempora.command.explode.description=Creates an explosion at the block you are looking at, for testing that explosions are logged. Only exists in a development environment.
 tempora.command.explode.arg0=Power of the explosion, TNT is %s.
 tempora.command.explode.no_block_in_sight=No block in sight.
@@ -347,32 +347,32 @@ tempora.command.region.check.reason.default=no region rule here, using logByDefa
 tempora.command.region.check.reason.region=rule in region '%s'
 tempora.command.region.check.reason.tie=rule in region '%s', which is the same size as '%s' and ON wins ties
 
-# Shared by the region commands.
+# Shared by the region commands
 tempora.command.region.global_logger=%s isn't tied to a place, so regions don't affect it.
 
-# === Regions ===
+# Regions
 tempora.region.not_found=No region is called '%s'. Use /tempora region list to see them all.
 tempora.region.rules=Rules: %s
 tempora.region.rules.none=No rules, so this region doesn't change what gets logged.
 tempora.region.dimension_banner=-- Regions in %s (ID %s) --
 
-# Drawn in the world.
+# Drawn in the world
 tempora.render.regions.author=Created by %s
 tempora.render.regions.created_on=Created %s
 
-# The regions you are standing in, on the HUD.
+# Regions you're standing in, on the HUD
 tempora.hud.region.inside.one=Currently inside %s region:
 tempora.hud.region.inside.many=Currently inside %s regions:
 tempora.hud.region.entry='%s' - Volume %s blocks.
 tempora.hud.region.and_more=And %s more...
 
-# === Wand ===
+# Wand
 tempora.wand.checking_pos=Checking %s in %s
 tempora.wand.nothing_found=Nothing has been logged at this block.
 tempora.wand.alert=[ALERT]
 tempora.wand.unauthorised=%s %s tried to use a Tempora wand at %s without being an operator.
 
-# === Labels drawn above events in the world ===
+# Labels drawn above events in the world
 tempora.render.event.died=%s died
 tempora.render.event.killed_by=Killed by %s
 tempora.render.event.spawned=%s spawned
@@ -385,7 +385,7 @@ tempora.render.event.picked_up=Picked up %s %s
 tempora.render.event.dropped=Dropped %s %s
 tempora.render.event.death_dropped=Died and dropped %s %s
 
-# === Warnings to operators ===
+# Warnings to ops
 tempora.warning.logger_failing=Tempora: %s can't store events (%s). Nothing it sees is being logged, check the server log urgently.
 tempora.warning.queue_too_large=Warning: %s has %s events pending, Tempora is struggling to keep up. You may be logging too much or a large event has occurred (explosion etc.).
 tempora.warning.events_dropped=%s Tempora: %s dropped %s events it could not store (%s). Each one is in the server log.

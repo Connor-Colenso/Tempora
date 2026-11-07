@@ -18,14 +18,8 @@ import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 
 public class TimeUtils {
 
-    /**
-     * Formats a given timestamp (in milliseconds) to a string saying how long ago it was, e.g. 1.5h ago.
-     * Hovering over it will reveal a string based on the default system timezone.
-     * The format used is "yyyy-MM-dd HH:mm:ss z".
-     *
-     * @param epochMillis The unix epoch timestamp to format, in milliseconds.
-     * @return A formatted date-time string.
-     */
+    // How long ago a timestamp (ms) was, e.g. 1.5h ago. Hover shows the date in the system timezone as "yyyy-MM-dd
+    // HH:mm:ss z"
     public static IChatComponent formatTime(long epochMillis) {
         ChatComponentTimeRelative text = new ChatComponentTimeRelative(epochMillis);
 
@@ -33,14 +27,13 @@ public class TimeUtils {
         hoverText.getChatStyle()
             .setColor(EnumChatFormatting.GRAY);
 
-        // Add hover
         text.getChatStyle()
             .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hoverText));
 
         return text;
     }
 
-    // E.g. 1hour, 2days, 1d, etc...
+    // E.g. 1hour, 2days, 1d etc
     public static long convertToSeconds(String timeDescription) {
         Matcher matcher = Pattern.compile("(\\d+)\\s*([a-zA-Z]+)")
             .matcher(timeDescription);
@@ -51,7 +44,7 @@ public class TimeUtils {
         String raw = matcher.group(2)
             .toLowerCase(Locale.ROOT);
 
-        // Map abbreviation to canonical.
+        // Map the abbreviation to the canonical unit
         String unit = UNIT_ALIASES.get(raw);
 
         if (unit == null) {
@@ -70,7 +63,7 @@ public class TimeUtils {
             default -> throw new IllegalStateException("Unexpected value: " + unit);
         };
 
-        // Anything longer is a typo, and would overflow once turned into milliseconds.
+        // Anything longer is a typo and would overflow once turned into ms
         try {
             long seconds = Math.multiplyExact(Long.parseLong(matcher.group(1)), unitSeconds);
             if (seconds > MAX_SECONDS) throw new ArithmeticException();
@@ -83,7 +76,6 @@ public class TimeUtils {
     private static final int MAX_YEARS = 1000;
     private static final long MAX_SECONDS = MAX_YEARS * 31_557_600L;
 
-    // Utility classes
     public static class DurationParts {
 
         public final double time;
@@ -97,7 +89,7 @@ public class TimeUtils {
 
     private static class TimeUnit {
 
-        public final double inSeconds; // how many seconds this unit represents
+        public final double inSeconds; // Seconds in this unit
         public final String key;
 
         public TimeUnit(double inSeconds, String key) {
@@ -106,13 +98,13 @@ public class TimeUtils {
         }
     }
 
-    // Smallest first. Same unit lengths as convertToSeconds, so "1mo" typed into a command reads back as 1mo ago.
+    // Smallest first. Same unit lengths as convertToSeconds so "1mo" typed into a command reads back as 1mo ago
     private static final TimeUnit[] TIME_UNITS = new TimeUnit[] { new TimeUnit(1, "tempora.time.ago.seconds"),
         new TimeUnit(60, "tempora.time.ago.minutes"), new TimeUnit(3_600, "tempora.time.ago.hours"),
         new TimeUnit(86_400, "tempora.time.ago.days"), new TimeUnit(604_800, "tempora.time.ago.weeks"),
         new TimeUnit(2_592_000, "tempora.time.ago.months"), new TimeUnit(31_557_600, "tempora.time.ago.years") };
 
-    /** How long ago a time was, in the largest unit it has reached at least one of, e.g. 6.4 and "6.4m ago". */
+    // How long ago a time was in the biggest unit it's reached at least one of, e.g. 6.4 and "6.4m ago"
     public static DurationParts relativeTimeAgoFormatter(long pastUnixEpochMillis) {
         double elapsedSeconds = (Instant.now()
             .toEpochMilli() - pastUnixEpochMillis) / 1000.0;
@@ -129,7 +121,7 @@ public class TimeUtils {
         return new DurationParts(elapsedSeconds / unit.inSeconds, unit.key);
     }
 
-    // Conversion map for all our units.
+    // Every unit alias
     private static final Map<String, String> UNIT_ALIASES = new HashMap<>();
     static {
         add("second", "s", "sec", "secs", "second", "seconds");

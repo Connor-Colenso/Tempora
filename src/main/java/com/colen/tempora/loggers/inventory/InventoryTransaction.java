@@ -19,25 +19,22 @@ import net.minecraft.item.ItemStack;
 
 import com.colen.tempora.TemporaEvents;
 
-/**
- * Everything one packet did to a player's items while they had a container open.
- * <p>
- * Almost every item that moves through a GUI passes through the player's inventory or cursor, so the player's own
- * inventory is compared before and after, along with every container slot backed by a block entity or entity. Changes
- * to those slots are logged where they happened. Whatever the player gained or lost that those slots (and the player's
- * own dropped items) don't explain must have come from or gone into the container itself, e.g. an AE2 network or a
- * ModularUI machine whose slots hide what they are backed by, and is logged against the container's host.
- * <p>
- * Items are compared by item, meta and NBT, so a swap shows up as a removal and an addition rather than a change in
- * count.
- */
+// Everything one packet did to a player's items while they had a container open
+//
+// Almost everything moving through a GUI passes through the player's inventory or cursor, so we compare the player's
+// inventory before and after, plus every container slot backed by a TE or entity. Changes to those slots get logged
+// where they happened. Whatever the player gained or lost that those slots (and their own dropped items) don't explain
+// must've come from or gone into the container itself, e.g. an AE2 network or a ModularUI machine whose slots hide
+// what's behind them, and gets logged against the container's host
+//
+// Compared by item, meta and NBT, so a swap shows up as a removal and an addition instead of a count change
 public final class InventoryTransaction {
 
     private final EntityPlayerMP player;
     private final Container container;
-    // A creative middle click copies an item rather than taking it.
+    // Creative middle click copies an item instead of taking it
     private final boolean creativeCopy;
-    // Every non-player slot is backed by a block entity or entity, so nothing can move unseen.
+    // Every non player slot is backed by a TE or entity, so nothing can move unseen
     private final boolean allStorageVisible;
 
     private final List<Slot> storageSlots = new ArrayList<>();
@@ -45,11 +42,11 @@ public final class InventoryTransaction {
     private final List<StackState> playerBefore;
     private final List<StackState> storageBefore;
 
-    // Items that appeared in the world as item entities while this packet was handled.
+    // Items that appeared in the world as item entities while this packet was handled
     private final ItemCounts spawnedInWorld = new ItemCounts();
 
-    // Changes other mods reported through the API while this packet was handled. They are logged already, but still
-    // explain part of the player's change, the same as a visible storage slot would.
+    // Changes other mods reported through the API during this packet. Already logged, but they still explain part of
+    // the player's change same as a visible storage slot
     private final ItemCounts reportedChanges = new ItemCounts();
 
     InventoryTransaction(EntityPlayerMP player, Container container, boolean creativeCopy) {
@@ -59,7 +56,7 @@ public final class InventoryTransaction {
 
         boolean hasOtherSlots = false;
         for (Slot slot : container.inventorySlots) {
-            // The player's own items are compared as a whole below.
+            // Player's own items get compared as a whole below
             if (slot.inventory == player.inventory) continue;
 
             WorldStorage storage = WorldStorage.of(slot);
@@ -93,8 +90,8 @@ public final class InventoryTransaction {
         List<StackState> playerAfter = snapshotPlayer(false);
         List<StackState> storageAfter = snapshotStorage(false);
 
-        // A stack instance that is still around afterwards but whose NBT changed in place (a wireless terminal
-        // spending power, a backpack's contents) is the same item, not one item swapped for another.
+        // A stack instance still around afterwards whose NBT changed in place (wireless terminal using power, backpack
+        // contents) is the same item, not a swap
         Map<ItemStack, ItemKey> keyAfter = new IdentityHashMap<>();
         for (StackState state : playerAfter) if (state != null) keyAfter.put(state.stack, state.key);
         for (StackState state : storageAfter) if (state != null) keyAfter.put(state.stack, state.key);
@@ -102,7 +99,7 @@ public final class InventoryTransaction {
         Map<ItemKey, Long> playerChange = ItemCounts
             .difference(count(playerBefore, keyAfter), count(playerAfter, keyAfter));
 
-        // Per storage, then summed over all of them.
+        // Per storage, then summed
         Map<WorldStorage, ItemCounts> storageCountsBefore = new LinkedHashMap<>();
         Map<WorldStorage, ItemCounts> storageCountsAfter = new LinkedHashMap<>();
         for (int i = 0; i < storageSlots.size(); i++) {
@@ -168,17 +165,15 @@ public final class InventoryTransaction {
         }
     }
 
-    /**
-     * How much of an item went into (positive) or came out of (negative) the container itself, given how much the
-     * player gained, how much the visible storage slots gained, and how much was dropped into the world.
-     */
+    // How much of an item went into (positive) or out of (negative) the container itself, from what the player gained,
+    // what the visible storage slots gained and what got dropped into the world
     static long hostChange(long playerChange, long storageChange, long spawnedInWorld) {
-        // Items the player threw out of their own inventory or cursor never reached the container.
+        // Items the player threw out of their inventory or cursor never reached the container
         long droppedByPlayer = playerChange < 0 ? Math.min(spawnedInWorld, -playerChange) : 0;
         long playerLeft = playerChange + droppedByPlayer;
         long droppedFromContainer = spawnedInWorld - droppedByPlayer;
 
-        // Movement between the player and visible storage slots is already logged against those slots.
+        // Movement between the player and visible storage slots is already logged against those slots
         long storageLeft = storageChange;
         if (playerLeft > 0 && storageLeft < 0) {
             long matched = Math.min(playerLeft, -storageLeft);
@@ -190,7 +185,7 @@ public final class InventoryTransaction {
             storageLeft -= matched;
         }
 
-        // As are items thrown out of those slots.
+        // Same for items thrown out of those slots
         if (droppedFromContainer > 0 && storageLeft < 0) {
             droppedFromContainer -= Math.min(droppedFromContainer, -storageLeft);
         }
@@ -225,7 +220,7 @@ public final class InventoryTransaction {
         counts.add(key != null ? key : state.key, state.size);
     }
 
-    /** A slot's stack at one moment: the stack object itself, what it was then, and how many. */
+    // A slot's stack at one moment, the stack object, what it was then and how many
     private static final class StackState {
 
         final ItemStack stack;

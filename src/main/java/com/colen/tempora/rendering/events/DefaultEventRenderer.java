@@ -14,10 +14,8 @@ import com.colen.tempora.rendering.RenderUtils;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-/**
- * For loggers without a renderer of their own: outlines the block each event happened in, in a colour picked from the
- * logger's name, and labels it with the logger and how long ago.
- */
+// For loggers without their own renderer. Outlines the block each event happened in with a colour picked from the
+// logger name, labelled with the logger and how long ago
 @SideOnly(Side.CLIENT)
 final class DefaultEventRenderer implements EventRenderer<PositionalEventInfo> {
 
@@ -53,7 +51,7 @@ final class DefaultEventRenderer implements EventRenderer<PositionalEventInfo> {
         }
     }
 
-    // The same colour for a logger every time, and usually a different one for each logger.
+    // Same colour for a logger every time, usually different per logger
     private static Color colourOf(String loggerName) {
         float hue = (loggerName.hashCode() & 0xFFFF) / (float) 0xFFFF;
         return Color.getHSBColor(hue, 0.7f, 1f);

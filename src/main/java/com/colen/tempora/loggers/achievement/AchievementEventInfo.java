@@ -19,13 +19,13 @@ import com.colen.tempora.utils.PlayerUtils;
 import cpw.mods.fml.common.network.ByteBufUtils;
 import io.netty.buffer.ByteBuf;
 
-/** A player earning an achievement, where they stood when they earned it. */
+// Player earning an achievement, at where they stood
 public class AchievementEventInfo extends PositionalEventInfo {
 
     @Column(type = ColumnType.PLAYER)
     public String playerUUID = PlayerUtils.UNKNOWN_PLAYER_NAME;
 
-    // The achievement's stat ID, e.g. achievement.mineWood.
+    // Achievement stat ID, e.g. achievement.mineWood
     @Column
     public String achievementID = "";
 
@@ -43,7 +43,7 @@ public class AchievementEventInfo extends PositionalEventInfo {
         ByteBufUtils.writeUTF8String(buf, achievementID);
     }
 
-    /** The achievement this event is for, or null if no mod adds it any more. */
+    // The achievement, or null if no mod adds it any more
     public @Nullable Achievement achievement() {
         StatBase stat = StatList.func_151177_a(achievementID);
         return stat instanceof Achievement achievement ? achievement : null;
@@ -51,8 +51,8 @@ public class AchievementEventInfo extends PositionalEventInfo {
 
     @Override
     public IChatComponent localiseText() {
-        // Shown as vanilla shows it when announcing one, [Name] with its description on hover, translated on the
-        // client. One that is gone is shown by its ID.
+        // Shown like vanilla announces one, [Name] with the description on hover, translated on the client. Missing
+        // ones show by ID
         Achievement achievement = achievement();
         IChatComponent name = achievement != null ? achievement.func_150955_j()
             : EventChat.text("[" + achievementID + "]", EnumChatFormatting.WHITE);

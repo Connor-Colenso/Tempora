@@ -18,13 +18,10 @@ import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
-/**
- * Logs players dying: where, what killed them, and what they stood to lose. What they dropped is logged by the
- * ItemPickupDropLogger.
- */
+// Logs players dying, where, what killed them and what they stood to lose. What they dropped goes in
+// ItemPickupDropLogger
 public class PlayerDeathLogger extends GenericPositionalLogger<PlayerDeathEventInfo> {
 
-    // The player who died.
     @Override
     protected String playerColumn() {
         return "playerUUID";
@@ -61,7 +58,7 @@ public class PlayerDeathLogger extends GenericPositionalLogger<PlayerDeathEventI
         logPlayerDeath(player, event.source);
     }
 
-    // LivingDeathEvent fires before the player drops anything or loses their XP, so both are still as they were.
+    // LivingDeathEvent fires before the player drops anything or loses XP, so both are still as they were
     private void logPlayerDeath(EntityPlayerMP player, @Nullable DamageSource source) {
         PlayerDeathEventInfo eventInfo = new PlayerDeathEventInfo();
         eventInfo.playerUUID = player.getUniqueID()
