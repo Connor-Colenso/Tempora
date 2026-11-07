@@ -1,11 +1,31 @@
 # Tempora
 
-A Forge (Minecraft 1.7.10, GTNH ecosystem) server-side mod for tracking griefing and other
-player activity. It's a slimmed-down alternative to Prism/CoreProtect/LogBlock: block changes
-(inside the regions you choose), player positions, inventory transfers, items picked up and
-dropped, player and mob deaths, mob spawns, explosions, item use, and commands are logged to a local SQLite
-database and can be queried in-game by operators. Server-wide events with no position, such as players
-joining and leaving, weather changes and TPS, are logged too.
+Tempora is a logging tool for server admins, built for GTNH. It records detailed events that took place, for example,
+blocks broken, placed and changed, explosions, deaths, mob spawns, items moving in and out of inventories,
+items picked up and dropped, commands, where players and mobs went, and server-wide events such as players joining and
+leaving, weather and TPS. When something goes wrong (a base griefed, a chest emptied, a machine blown up, the server
+lagging) you can find out who did what, where and when. This mod is designed for the GTNH ecosystem, outside support
+may be provided depending on the request but is not actively maintained for that purpose.
+
+Each kind of event is stored in its own SQLite database in the world folder. Admins search it in game:
+`/tempora lookup` shows what happened around you, the Tempora wand shows a single block's history, and
+`/tempora player` follows one player wherever they went. Results are listed in chat with coordinates you can click to
+teleport to, and drawn in the world for a few seconds as the blocks, mobs and players involved. For anything the
+commands don't cover, `/tempora sql` runs a read-only query on the data directly.
+
+This mod should also work in singleplayer, if enabled in config. Though primary support is for servers due to the nature
+of the mod, but some tooks like e.g. stacktrace logging may be of use in diagnostics.
+
+Before installing:
+
+- **Install it on both the server and the clients, at the same version.** The server does the logging and the client
+  draws the results, so a client without Tempora can't join a server that has it.
+- **It's off until you turn it on.** Set `enabled=true` in `config/tempora/tempora.cfg` and restart. See
+  [Configuration](#configuration).
+- **Only admins can use it.** Every command needs operator permission (level 2), or a permission mod's rank that grants
+  `/tempora`.
+- **Events are kept for 4 months by default**, then deleted, set per logger. Users should ask their server administrator
+- if wanting to understand what events are being logged.
 
 ## Features
 
@@ -156,61 +176,11 @@ each event holds the mob's number in `mobID`. To find one mob's positions with `
 events are older than `oldestDataCutoff`. Other loggers store mobs' UUIDs and names as text, as
 they see most mobs only once or twice.
 
-## API for other mods
+## For other mods
 
-Some actions never reach Tempora by themselves: items put into a drawer or barrel by clicking it,
-blocks broken by a tool that skips Forge's events, explosions that aren't vanilla ones, or blocks
-written straight into chunk storage. Other mods can report these through
-`com.colen.tempora.api.TemporaApi`. Reported events are stored and looked up exactly like the ones
-Tempora logs itself, and follow the same config and region rules.
-
-Compile against Tempora's API jar, from GTNH's Maven, and only call it when Tempora is loaded:
-
-```groovy
-compileOnly("com.github.GTNewHorizons:Tempora:<version>:api")
-```
-
-
-```java
-if (Loader.isModLoaded(TemporaApi.MODID)) {
-    TemporaApi.logItemsAdded(player, insertedStack, inserted, this);
-}
-```
-
-| Method | Logger |
-|---|---|
-| `logItemsAdded`, `logItemsRemoved` | `inventory` |
-| `logBlockBreak` (call before removing the block) | `break` |
-| `logBlockPlace` | `place` |
-| `logBlockChange` (only for changes that bypass `Chunk.func_150807_a`) | `change` |
-| `logExplosion` | `explosion` |
-| `logItemUse` | `use` |
-| `logCommand` | `command` |
-| `logPlayerPosition` | `playerpos` |
-| `logEntitySpawn` | `mobspawn` |
-| `logEntityDeath` | `mobdeath` |
-| `logEntityPosition` | `mobpos` |
-
-Calls only do anything on the server thread, and only while that logger is turned on. Each method's
-Javadoc says what it records and when to call it.
-
-### Adding your own logger
-
-A mod can also add a logger of its own, of either [kind](#logger-kinds). That needs the whole mod
-rather than the API jar, e.g. `implementation("com.github.GTNewHorizons:Tempora:<version>:dev")`.
-Subclass one of these pairs, giving the event `@Column` fields of type `boolean`, `int`, `long`,
-`float`, `double` or `String`:
-
-| Kind | Logger | Event | Log an event with |
-|---|---|---|---|
-| Positional | `GenericPositionalLogger` | `PositionalEventInfo` | `logEvent(event, dimensionID, x, y, z)` |
-| Global | `GenericGlobalLogger` | `GlobalEventInfo` | `logEvent(event)` |
-
-Register it with `TemporaLoggerManager.register(logger, MyEventInfo::new)` while mods load (preInit,
-init or postInit). Both kinds get their own database, config section and `/tempora sql` support; a
-positional logger also gets region rules and `/tempora lookup`, a global one `/tempora global`. Feed
-it events from your own methods, calling its `logEvent` (see `WeatherLogger` and `TPSLogger` for
-global examples):
+Some actions never reach Tempora by themselves or warrant custom loggers. Other mods may register their own loggers or
+interact with the Tempora API to register events in existing loggers. Loggers must have unique registered names, it is
+recommended you use your mod ID as a prefix e.g. tempora:inventoryLogger. See example below:
 
 ```java
 public class ReactorLogger extends GenericGlobalLogger<ReactorEventInfo> {
@@ -250,25 +220,13 @@ public class ReactorLogger extends GenericGlobalLogger<ReactorEventInfo> {
 
 Lookup results are sent to the player's client and drawn in the world for a few seconds. Drawing
 lives apart from the logger, in an `EventRenderer` registered from your **client** proxy, after the
-logger itself:
-
-```java
-EventRenderers.register(myLogger, new MyEventRenderer());
-```
+logger itself.
 
 A renderer is handed only the events in the player's dimension within render distance, farthest
 first, and draws in world coordinates. `BlockEventRenderer`, `EntityEventRenderer` and
 `PlayerGhostRenderer` cover the common cases: draw a block, a mob, or the player who did it. The
 client only knows what the event's `toBytes`/`fromBytes` send, so include the fields your renderer
 needs. A logger without a renderer still shows each event as an outlined block with a label.
-
-## Data collected
-
-For server operators: Tempora records player UUIDs, position history, when players join and
-leave (with where they were and kick messages), block changes (with block NBT such as container
-contents, when `logNBT` is on), inventory transfers, and full command text/arguments, plus
-server-wide weather and TPS, retained for the configured `oldestDataCutoff` window. Any operator can
-query this data via `/tempora sql`, `/tempora lookup` or `/tempora global`.
 
 ## Testing
 
