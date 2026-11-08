@@ -5,10 +5,10 @@ import static com.colen.tempora.Tempora.LOG;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -36,8 +36,10 @@ public final class TemporaRegionRegistry {
     // Copy on write, loggers read these on every event (maybe off the server thread) and commands rarely change them
     private final Map<Integer, List<TemporaWorldRegion>> byDim = new ConcurrentHashMap<>();
 
-    // Loggers with a rule in at least one region, every other logger skips the region lookup
-    private volatile Set<String> loggersWithRules = Collections.emptySet();
+    // logger -> dim -> regions with a rule for that logger, smallest first and ON before OFF at the same size, so the
+    // first one containing a position decides. Rebuilt whole on every change, never edited in place. A logger with no
+    // rules anywhere isn't in it and skips the lookup
+    private volatile Map<String, Map<Integer, RuleEntry[]>> ruleIndex = Collections.emptyMap();
 
     private boolean dirty = false;
 
@@ -173,30 +175,16 @@ public final class TemporaRegionRegistry {
     // default applies. See the class comment for how it's picked
     public static @Nullable TemporaWorldRegion findDecidingRegion(String loggerName, int dimID, double x, double y,
         double z) {
-        TemporaRegionRegistry registry = instance;
-        if (!registry.loggersWithRules.contains(loggerName)) return null;
+        Map<Integer, RuleEntry[]> byDimForLogger = instance.ruleIndex.get(loggerName);
+        if (byDimForLogger == null) return null;
 
-        List<TemporaWorldRegion> regions = registry.byDim.get(dimID);
-        if (regions == null) return null;
+        RuleEntry[] entries = byDimForLogger.get(dimID);
+        if (entries == null) return null;
 
-        TemporaWorldRegion deciding = null;
-        double decidingVolume = Double.MAX_VALUE;
-
-        for (TemporaWorldRegion region : regions) {
-            LogRule rule = region.getRule(loggerName);
-            if (rule == null || !region.contains(dimID, x, y, z)) continue;
-
-            double volume = region.getVolume();
-            boolean smaller = volume < decidingVolume;
-            boolean tieThatOnWins = volume == decidingVolume && rule == LogRule.ON;
-
-            if (smaller || tieThatOnWins) {
-                deciding = region;
-                decidingVolume = volume;
-            }
+        for (RuleEntry entry : entries) {
+            if (entry.contains(x, y, z)) return entry.region;
         }
-
-        return deciding;
+        return null;
     }
 
     private void changed() {
@@ -208,15 +196,31 @@ public final class TemporaRegionRegistry {
     }
 
     private void rebuildRuleIndex() {
-        Set<String> names = new HashSet<>();
-        for (List<TemporaWorldRegion> regions : byDim.values()) {
-            for (TemporaWorldRegion region : regions) {
-                names.addAll(
-                    region.getRules()
-                        .keySet());
+        Map<String, Map<Integer, List<RuleEntry>>> building = new HashMap<>();
+        for (Map.Entry<Integer, List<TemporaWorldRegion>> dim : byDim.entrySet()) {
+            for (TemporaWorldRegion region : dim.getValue()) {
+                for (Map.Entry<String, LogRule> rule : region.getRules()
+                    .entrySet()) {
+                    building.computeIfAbsent(rule.getKey(), l -> new HashMap<>())
+                        .computeIfAbsent(dim.getKey(), d -> new ArrayList<>())
+                        .add(new RuleEntry(region, rule.getValue()));
+                }
             }
         }
-        loggersWithRules = names;
+
+        Map<String, Map<Integer, RuleEntry[]>> index = new HashMap<>();
+        for (Map.Entry<String, Map<Integer, List<RuleEntry>>> logger : building.entrySet()) {
+            Map<Integer, RuleEntry[]> dims = new HashMap<>();
+            for (Map.Entry<Integer, List<RuleEntry>> dim : logger.getValue()
+                .entrySet()) {
+                List<RuleEntry> entries = dim.getValue();
+                // Stable sort, so same size same rule regions keep their order and the first added one decides
+                entries.sort(RuleEntry.DECIDING_ORDER);
+                dims.put(dim.getKey(), entries.toArray(new RuleEntry[0]));
+            }
+            index.put(logger.getKey(), dims);
+        }
+        ruleIndex = index;
     }
 
     private void save() {
@@ -264,6 +268,35 @@ public final class TemporaRegionRegistry {
 
         File root = handler.getWorldDirectory();
         return new File(new File(root, DIR_NAME), FILE_NAME);
+    }
+
+    // Flat copy of a region's box and one of its rules, so the hot loop is a few field reads and compares
+    private static final class RuleEntry {
+
+        static final Comparator<RuleEntry> DECIDING_ORDER = Comparator.<RuleEntry>comparingDouble(e -> e.volume)
+            .thenComparing(e -> e.rule != LogRule.ON);
+
+        final TemporaWorldRegion region;
+        final LogRule rule;
+        final double volume;
+        final double minX, minY, minZ, maxX, maxY, maxZ;
+
+        RuleEntry(TemporaWorldRegion region, LogRule rule) {
+            this.region = region;
+            this.rule = rule;
+            this.volume = region.getVolume();
+            this.minX = region.getMinX();
+            this.minY = region.getMinY();
+            this.minZ = region.getMinZ();
+            this.maxX = region.getMaxX();
+            this.maxY = region.getMaxY();
+            this.maxZ = region.getMaxZ();
+        }
+
+        // Same bounds as TemporaWorldRegion.contains, dim already matched by the index
+        boolean contains(double x, double y, double z) {
+            return x >= minX && x < maxX && y >= minY && y < maxY && z >= minZ && z < maxZ;
+        }
     }
 
 }
