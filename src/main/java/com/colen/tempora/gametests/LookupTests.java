@@ -136,7 +136,7 @@ public class LookupTests {
                             pos.y(),
                             pos.z(),
                             0,
-                            TimeWindow.last(DAY_SECONDS),
+                            TimeWindow.parse("1d"),
                             PlayerFilter.anyone(),
                             LookupCommand.DEFAULT_COUNT)),
                     1))

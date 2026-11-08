@@ -6,6 +6,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -97,7 +98,7 @@ final class TestSupport {
         region.setRegionOriginTimeMs(System.currentTimeMillis());
 
         TemporaRegionRegistry.add(region);
-        TemporaRegionRegistry.setRule(region, loggerName, rule);
+        TemporaRegionRegistry.setRules(region, Collections.singletonList(loggerName), rule);
         helper.afterTest(() -> TemporaRegionRegistry.remove(region));
         return region;
     }

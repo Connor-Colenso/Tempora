@@ -22,7 +22,7 @@ import org.jetbrains.annotations.Nullable;
 public class PlayerUtils {
 
     public static final String UNKNOWN_PLAYER_NAME = "tempora.unknown.player";
-    public static final String UNKNOWN_CAUSE = "tempora.unknown.cause"; // TODO use
+    public static final String UNKNOWN_CAUSE = "tempora.unknown.cause";
     public static final String ERROR = "tempora.unknown.error";
 
     public static String UUIDToName(String UUIDString) {

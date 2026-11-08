@@ -110,11 +110,6 @@ public final class TemporaRegionRegistry {
         return true;
     }
 
-    public static void setRule(TemporaWorldRegion region, String loggerName, LogRule rule) {
-        region.putRule(loggerName, rule);
-        instance.changed();
-    }
-
     // Several loggers at once, saves the file once instead of per logger
     public static void setRules(TemporaWorldRegion region, Iterable<String> loggerNames, LogRule rule) {
         for (String loggerName : loggerNames) region.putRule(loggerName, rule);

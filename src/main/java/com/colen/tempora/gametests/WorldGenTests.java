@@ -6,6 +6,7 @@ import static com.gtnewhorizons.horizonqa.api.TestPos.at;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -596,7 +597,7 @@ public class WorldGenTests {
                 minZ + size + 16,
                 TemporaEvents.BLOCK_CHANGE,
                 LogRule.ON);
-            TemporaRegionRegistry.setRule(region, TemporaEvents.ENTITY_SPAWN, LogRule.ON);
+            TemporaRegionRegistry.setRules(region, Collections.singletonList(TemporaEvents.ENTITY_SPAWN), LogRule.ON);
 
             ChunkProviderServer provider = world.theChunkProviderServer;
             String generated = generatedChunk(world, chunkX, chunkZ);

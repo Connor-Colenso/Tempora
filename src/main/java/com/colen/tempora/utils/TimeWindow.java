@@ -18,11 +18,6 @@ public final class TimeWindow {
         return ALL_TIME;
     }
 
-    // Last so many seconds up to now
-    public static TimeWindow last(long seconds) {
-        return new TimeWindow(seconds, 0);
-    }
-
     // E.g. "3d", or "3d-1d" for between 3 and 1 days ago. Throws a CommandException (shown to the sender) if invalid
     public static TimeWindow parse(String filter) {
         int dash = filter.indexOf('-');

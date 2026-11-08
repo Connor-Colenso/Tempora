@@ -93,7 +93,7 @@ public final class ContainerHosts {
 
     // What this container belongs to. Falls back to the first block or entity inventory it shows, then the player's
     // position under the container's class name
-    static ContainerHost resolve(EntityPlayerMP player, Container container, @Nullable WorldStorage firstStorage) {
+    static ContainerHost resolve(Container container, @Nullable WorldStorage firstStorage) {
         if (AE2_LOADED) {
             ContainerHost ae2Host = AE2ContainerHosts.resolve(container);
             if (ae2Host != null) return ae2Host;

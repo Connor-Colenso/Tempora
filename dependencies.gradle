@@ -17,5 +17,4 @@ dependencies {
 
     // In-game tests (com.colen.tempora.gametests), only present in the dev environment and CI.
     devOnlyNonPublishable("com.github.GTNewHorizons:Horizon-QA:0.15.0:dev")
-//    api('com.github.GTNewHorizons:ServerUtilities:2.4.21:dev')
 }

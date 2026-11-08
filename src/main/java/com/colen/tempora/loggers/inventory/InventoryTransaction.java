@@ -150,7 +150,7 @@ public final class InventoryTransaction {
             if (change == 0) continue;
 
             if (host == null) {
-                host = ContainerHosts.resolve(player, container, slotStorages.isEmpty() ? null : slotStorages.get(0));
+                host = ContainerHosts.resolve(container, slotStorages.isEmpty() ? null : slotStorages.get(0));
             }
 
             logger.logChange(

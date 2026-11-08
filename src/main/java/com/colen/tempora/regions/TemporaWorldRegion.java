@@ -165,7 +165,7 @@ public class TemporaWorldRegion {
         return Collections.unmodifiableMap(loggerRules);
     }
 
-    // Use TemporaRegionRegistry.setRule/clearRule for regions in the registry so the change gets saved
+    // Use TemporaRegionRegistry.setRules/clearRule for regions in the registry so the change gets saved
     void putRule(String loggerName, LogRule rule) {
         loggerRules.put(loggerName, rule);
     }

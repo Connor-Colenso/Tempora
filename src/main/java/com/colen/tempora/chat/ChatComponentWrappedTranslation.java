@@ -48,14 +48,6 @@ public class ChatComponentWrappedTranslation extends AbstractChatComponentBuffer
 
     public ChatComponentWrappedTranslation() {}
 
-    public String getKey() {
-        return key;
-    }
-
-    public List<Object> getArgs() {
-        return args;
-    }
-
     @Override
     public String getUnformattedTextForChat() {
         String text = translate();
