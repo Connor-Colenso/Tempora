@@ -13,11 +13,14 @@ public class FakeWorld implements IBlockAccess {
     public TileEntity tileEntity = new TileEntity();
     public int metadata;
 
-    public int x, y, z;
+    // RenderUtils draws the block at the origin
+    private static boolean isOrigin(int x, int y, int z) {
+        return x == 0 && y == 0 && z == 0;
+    }
 
     @Override
     public Block getBlock(int p_147439_1_, int p_147439_2_, int p_147439_3_) {
-        if (p_147439_1_ == x && p_147439_2_ == y && p_147439_3_ == z) {
+        if (isOrigin(p_147439_1_, p_147439_2_, p_147439_3_)) {
             return block;
         } else {
             return Blocks.air;
@@ -28,7 +31,7 @@ public class FakeWorld implements IBlockAccess {
     // were surrounded by copies of themselves
     @Override
     public TileEntity getTileEntity(int x, int y, int z) {
-        return x == this.x && y == this.y && z == this.z ? tileEntity : null;
+        return isOrigin(x, y, z) ? tileEntity : null;
     }
 
     @Override
@@ -50,7 +53,7 @@ public class FakeWorld implements IBlockAccess {
 
     @Override
     public boolean isAirBlock(int x, int y, int z) {
-        return x != this.x || y != this.y || z != this.z;
+        return !isOrigin(x, y, z);
     }
 
     @Override

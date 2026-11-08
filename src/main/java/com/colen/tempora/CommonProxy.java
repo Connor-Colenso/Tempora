@@ -34,7 +34,7 @@ public class CommonProxy {
         // First so Config.enabled is known from preInit on
         Config.load(event.getModConfigurationDirectory());
         ConfigurationManager.registerConfig(CommandsConfig.class);
-        GameRegistry.registerItem(Tempora.temporaWand, "admin_wand");
+        GameRegistry.registerItem(Tempora.temporaWand, "tempora_wand");
         GameRegistry.registerBlock(renderingErrorBlock, RenderingErrorItemBlock.class, "rendering_error_block");
 
         if (GenericUtils.isDevEnvironment()) {
