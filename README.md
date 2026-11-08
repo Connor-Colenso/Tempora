@@ -179,8 +179,7 @@ they see most mobs only once or twice.
 ## For other mods
 
 Some actions never reach Tempora by themselves or warrant custom loggers. Other mods may register their own loggers or
-interact with the Tempora API to register events in existing loggers. Loggers must have unique registered names, it is
-recommended you use your mod ID as a prefix e.g. tempora:inventoryLogger. See example below:
+interact with the Tempora API to register events in existing loggers. Loggers must have unique registered names.
 
 ```java
 public class ReactorLogger extends GenericGlobalLogger<ReactorEventInfo> {
