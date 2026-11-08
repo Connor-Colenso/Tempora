@@ -119,10 +119,12 @@ public class ReflectionUtils {
             binder = (ps, i, v) -> ps.setLong(i, (Long) v);
             reader = ResultSet::getLong;
         } else if (type == double.class || type == Double.class) {
-            binder = (ps, i, v) -> ps.setDouble(i, (Double) v);
+            // NaN binds as NULL and every column is NOT NULL, so a mod's broken rotation (BoP pixies...) is stored
+            // as 0 instead of losing the event. Positions never get here as NaN, logEvent turns those away
+            binder = (ps, i, v) -> ps.setDouble(i, Double.isNaN((Double) v) ? 0 : (Double) v);
             reader = ResultSet::getDouble;
         } else if (type == float.class || type == Float.class) {
-            binder = (ps, i, v) -> ps.setFloat(i, (Float) v);
+            binder = (ps, i, v) -> ps.setFloat(i, Float.isNaN((Float) v) ? 0 : (Float) v);
             reader = ResultSet::getFloat;
         } else if (type == boolean.class || type == Boolean.class) {
             binder = (ps, i, v) -> ps.setInt(i, ((Boolean) v) ? 1 : 0);

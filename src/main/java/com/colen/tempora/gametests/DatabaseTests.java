@@ -252,6 +252,91 @@ public class DatabaseTests {
         }
     }
 
+    // A mod's broken entity can give a NaN rotation. SQLite binds NaN as NULL and every column is NOT NULL, so the
+    // event has to be stored with 0 there, or it's lost
+    @GameTest
+    public static void notANumberIsStoredAsZero(GameTestHelper helper) throws Exception {
+        NotANumberTestLogger logger = new NotANumberTestLogger();
+        deleteDatabaseFiles(logger.getLoggerName());
+        helper.afterTest(() -> deleteDatabaseFiles(logger.getLoggerName()));
+
+        LoggerDatabase database = logger.getDatabaseManager();
+        database.genericConfig(throwawayConfig(helper));
+        database.initialiseDatabase();
+        try {
+            database.insertBatch(
+                Arrays.asList(notANumberEvent("broken", Float.NaN, Double.NaN), notANumberEvent("fine", 1.5f, 2.5)));
+        } finally {
+            database.shutdownDatabase();
+        }
+
+        try (Connection conn = DriverManager.getConnection(DatabaseUtils.jdbcUrl(logger.getLoggerName() + ".db"));
+            Statement st = conn.createStatement();
+            ResultSet rs = st
+                .executeQuery("SELECT note, yaw, amount FROM " + logger.getLoggerName() + " ORDER BY eventID")) {
+            List<String> rows = new ArrayList<>();
+            while (rs.next()) {
+                rows.add(rs.getString(1) + " " + rs.getDouble(2) + " " + rs.getDouble(3));
+            }
+            helper.assertIterableEquals(Arrays.asList("broken 0.0 0.0", "fine 1.5 2.5"), rows, "rows stored");
+        }
+        helper.succeed();
+    }
+
+    private static NotANumberTestEvent notANumberEvent(String note, float yaw, double amount) {
+        NotANumberTestEvent event = new NotANumberTestEvent();
+        event.timestamp = System.currentTimeMillis();
+        event.note = note;
+        event.yaw = yaw;
+        event.amount = amount;
+        return event;
+    }
+
+    public static class NotANumberTestLogger extends GenericPositionalLogger<NotANumberTestEvent> {
+
+        @Override
+        public @NotNull String getLoggerName() {
+            return "TemporaTestNotANumberLogger";
+        }
+
+        @Override
+        public @NotNull String getShortName() {
+            return "test_not_a_number";
+        }
+
+        @Override
+        public @NotNull NotANumberTestEvent newEventInfo() {
+            return new NotANumberTestEvent();
+        }
+
+        @Override
+        public @NotNull LoggerEventType getLoggerEventType() {
+            return LoggerEventType.None;
+        }
+    }
+
+    public static class NotANumberTestEvent extends PositionalEventInfo {
+
+        @Column
+        public String note = "";
+
+        @Column
+        public float yaw;
+
+        @Column
+        public double amount;
+
+        @Override
+        public IChatComponent localiseText() {
+            return new ChatComponentText(note);
+        }
+
+        @Override
+        public String getLoggerName() {
+            return "TemporaTestNotANumberLogger";
+        }
+    }
+
     // One broken event
 
     // An event whose chat line throws (e.g. a bug in another mod's logger) shows as a placeholder and the rest of the
@@ -357,8 +442,8 @@ public class DatabaseTests {
         }
     }
 
-    // Events SQLite refuses (here a NaN position, which its NOT NULL column refuses) only cost themselves however many
-    // of them lead the batch
+    // Events SQLite refuses (here by a trigger, a real event has no easy way to fail a constraint) only cost themselves
+    // however many of them lead the batch
     @GameTest
     public static void refusedEventsDropOnlyThemselves(GameTestHelper helper) throws Exception {
         RefusedEventTestLogger logger = new RefusedEventTestLogger();
@@ -370,12 +455,19 @@ public class DatabaseTests {
         database.genericConfig(throwawayConfig(helper));
         database.initialiseDatabase();
         try {
+            try (Connection conn = DriverManager.getConnection(DatabaseUtils.jdbcUrl(table + ".db"));
+                Statement st = conn.createStatement()) {
+                st.execute(
+                    "CREATE TRIGGER refuse_event BEFORE INSERT ON " + table
+                        + " WHEN NEW.x < 0 BEGIN SELECT RAISE(ABORT, 'refused'); END");
+            }
+
             List<MigrationTestEvent> events = new ArrayList<>();
             for (int i = 0; i < 8; i++) {
                 MigrationTestEvent event = new MigrationTestEvent();
                 event.timestamp = i + 1;
                 // First three get refused
-                event.x = i < 3 ? Double.NaN : i;
+                event.x = i < 3 ? -1 : i;
                 event.note = "event " + i;
                 events.add(event);
             }
