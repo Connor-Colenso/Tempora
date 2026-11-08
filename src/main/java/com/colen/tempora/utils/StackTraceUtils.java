@@ -62,11 +62,8 @@ public class StackTraceUtils {
         String[] lines = stackTrace.split("->");
         List<IChatComponent> components = new ArrayList<>();
 
-        int index = 0;
-
-        // Reverse, most recent first
-        for (int i = lines.length - 1; i >= 0; i--) {
-            String trimmed = lines[i].trim();
+        for (int index = 0; index < lines.length; index++) {
+            String trimmed = lines[index].trim();
 
             // Format is fully.qualified.Class#method:line
             String className = trimmed;
@@ -104,8 +101,6 @@ public class StackTraceUtils {
 
             IChatComponent fullLine = new ChatComponentTranslation("%s%s", lineNumberComp, lineText);
             components.add(fullLine);
-
-            index++;
         }
 
         return components;

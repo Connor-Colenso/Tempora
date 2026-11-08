@@ -1,7 +1,5 @@
 package com.colen.tempora.chat;
 
-import java.util.List;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiNewChat;
 import net.minecraft.util.ChatComponentTranslation;
@@ -26,9 +24,8 @@ final class ClientStackTracePrinter {
             .setColor(EnumChatFormatting.YELLOW);
         chat.printChatMessage(header);
 
-        List<IChatComponent> lines = StackTraceUtils.toChatLines(trace);
-        for (int i = lines.size() - 1; i >= 0; i--) {
-            chat.printChatMessage(lines.get(i));
+        for (IChatComponent line : StackTraceUtils.toChatLines(trace)) {
+            chat.printChatMessage(line);
         }
     }
 }

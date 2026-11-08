@@ -110,9 +110,8 @@ public class BlockChangeEventInfo extends PositionalEventInfo {
         int maxLines = 7;
         List<IChatComponent> hoverLines = new ArrayList<>();
         int totalLines = stackTraceComponents.size();
-        int start = Math.max(0, totalLines - maxLines);
 
-        for (int i = totalLines - 1; i >= start; i--) {
+        for (int i = 0; i < Math.min(maxLines, totalLines); i++) {
             hoverLines.add(stackTraceComponents.get(i));
         }
 
