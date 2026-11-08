@@ -27,7 +27,6 @@ public abstract class PositionalEventInfo extends GenericEventInfo {
         dimensionID = buf.readInt();
         timestamp = buf.readLong();
         eventID = buf.readLong();
-        // versionID isn't needed on the client
     }
 
     public void toBytes(ByteBuf buf) {
@@ -37,6 +36,5 @@ public abstract class PositionalEventInfo extends GenericEventInfo {
         buf.writeInt(dimensionID);
         buf.writeLong(timestamp);
         buf.writeLong(eventID);
-        // versionID isn't needed on the client
     }
 }

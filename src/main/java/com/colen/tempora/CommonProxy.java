@@ -11,7 +11,6 @@ import com.colen.tempora.blocks.stress.StressTestTileEntity;
 import com.colen.tempora.chat.TemporaChatRegistry;
 import com.colen.tempora.config.CommandsConfig;
 import com.colen.tempora.config.Config;
-import com.colen.tempora.events.OnWorldLoad;
 import com.colen.tempora.loggers.generic.GenericRenderEventPacketHandler;
 import com.colen.tempora.loggers.generic.RenderEventPacket;
 import com.colen.tempora.networking.handlers.PacketRemoveClientRegionByUUID;
@@ -66,7 +65,6 @@ public class CommonProxy {
         // Each logger loads its own config. Loggers other mods register later read theirs when they register
         TemporaLoggerManager.loadConfig();
 
-        MinecraftForge.EVENT_BUS.register(new OnWorldLoad());
         MinecraftForge.EVENT_BUS.register(Tempora.temporaWand);
         MinecraftForge.EVENT_BUS.register(new WorldGenTicks.ChunkSaves());
     }

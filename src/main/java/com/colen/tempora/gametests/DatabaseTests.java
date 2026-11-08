@@ -80,14 +80,14 @@ public class DatabaseTests {
             Statement st = conn.createStatement()) {
             st.execute(
                 "CREATE TABLE " + logger.getLoggerName()
-                    + " (eventID TEXT PRIMARY KEY, timestamp INTEGER NOT NULL, versionID INTEGER NOT NULL,"
+                    + " (eventID TEXT PRIMARY KEY, timestamp INTEGER NOT NULL,"
                     + " dimensionID INTEGER NOT NULL, x REAL NOT NULL, y REAL NOT NULL, z REAL NOT NULL,"
                     + " note TEXT NOT NULL, oldCount INTEGER NOT NULL)");
             st.execute(
                 "INSERT INTO " + logger.getLoggerName()
-                    + " VALUES ('c4b1e0d2-0000-4000-8000-000000000003', 300, 1, 0, 3, 64, 0, 'third', 30),"
-                    + " ('c4b1e0d2-0000-4000-8000-000000000001', 100, 1, 0, 1, 64, 0, 'first', 10),"
-                    + " ('c4b1e0d2-0000-4000-8000-000000000002', 200, 1, 0, 2, 64, 0, 'second', 20)");
+                    + " VALUES ('c4b1e0d2-0000-4000-8000-000000000003', 300, 0, 3, 64, 0, 'third', 30),"
+                    + " ('c4b1e0d2-0000-4000-8000-000000000001', 100, 0, 1, 64, 0, 'first', 10),"
+                    + " ('c4b1e0d2-0000-4000-8000-000000000002', 200, 0, 2, 64, 0, 'second', 20)");
         }
 
         LoggerDatabase database = logger.getDatabaseManager();

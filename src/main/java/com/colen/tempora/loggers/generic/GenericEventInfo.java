@@ -18,9 +18,6 @@ public abstract class GenericEventInfo {
     @Column
     public long eventID;
 
-    @Column
-    public int versionID;
-
     // Only the two kinds extend this directly
     GenericEventInfo() {}
 

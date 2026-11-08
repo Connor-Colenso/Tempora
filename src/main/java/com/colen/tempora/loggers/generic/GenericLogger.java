@@ -325,9 +325,6 @@ public abstract class GenericLogger<EventInfo extends GenericEventInfo> {
         if (!isRunning) return;
         if (!shouldRecord(eventInfo)) return;
 
-        // Fixed per world so just set it here
-        eventInfo.versionID = ModpackVersionData.CURRENT_VERSION;
-
         try {
             if (getQueueSize() >= maxEventsInQueueBeforeServerFreeze) {
                 warnQueueFull();
