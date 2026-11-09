@@ -4,6 +4,7 @@ import java.util.List;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.IChatComponent;
 import net.minecraftforge.common.config.Configuration;
 
@@ -17,7 +18,6 @@ import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.PlayerEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
-import cpw.mods.fml.common.gameevent.TickEvent.PlayerTickEvent;
 
 // Logs three things to the same table
 // 1. Player positions every n ticks, 200 by default
@@ -94,15 +94,17 @@ public class PlayerPositionLogger extends GenericPositionalLogger<PlayerPosition
 
     @SubscribeEvent
     @SuppressWarnings("unused")
-    public void onPlayerTick(final @NotNull PlayerTickEvent event) {
+    public void onServerTick(final @NotNull TickEvent.ServerTickEvent event) {
         if (!isEnabledByConfig) return;
         if (event.phase != TickEvent.Phase.START) return;
-        if (!(event.player instanceof EntityPlayerMP player)) return;
-        if (FMLCommonHandler.instance()
-            .getMinecraftServerInstance()
-            .getTickCounter() % playerPositionLoggingInterval != 0) return;
 
-        logPlayerPosition(player);
+        MinecraftServer server = FMLCommonHandler.instance()
+            .getMinecraftServerInstance();
+        if (server.getTickCounter() % playerPositionLoggingInterval != 0) return;
+
+        for (EntityPlayerMP player : server.getConfigurationManager().playerEntityList) {
+            logPlayerPosition(player);
+        }
     }
 
     // Logs where a player is right now, e.g. straight after teleporting them
