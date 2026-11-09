@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.UUID;
 
 import net.minecraft.command.CommandBase;
+import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.event.ClickEvent;
@@ -55,11 +56,10 @@ public class RegionCreateCommand extends TemporaSubcommand {
         }
 
         EntityPlayerMP player = sender instanceof EntityPlayerMP p ? p : null;
-        int[] coords = new int[6];
+        // Doubles so a relative offset and the + 1 below can't overflow on huge coords
+        double[] coords = new double[6];
         for (int i = 0; i < 6; i++) {
-            Integer coord = parseCoordinate(sender, player, i % 3, args[i + 1]);
-            if (coord == null) return;
-            coords[i] = coord;
+            coords[i] = parseCoordinate(sender, player, i % 3, args[i + 1]);
         }
 
         int dimID = args.length == 8 ? CommandBase.parseInt(sender, args[7])
@@ -125,20 +125,17 @@ public class RegionCreateCommand extends TemporaSubcommand {
         }
     }
 
-    // Block coord, or one relative to the player's block like "~" or "~-50". Axis 0, 1, 2 is x, y, z. Returns null
-    // after telling the sender if a relative coord is used without a player
-    private static @Nullable Integer parseCoordinate(ICommandSender sender, @Nullable EntityPlayerMP player, int axis,
+    // Block coord, or one relative to the player's block like "~" or "~-50". Axis 0, 1, 2 is x, y, z. Throws a
+    // CommandException (shown to the sender) if a relative coord is used without a player
+    private static double parseCoordinate(ICommandSender sender, @Nullable EntityPlayerMP player, int axis,
         String arg) {
         if (!arg.startsWith("~")) return CommandBase.parseInt(sender, arg);
 
-        if (player == null) {
-            sendError(sender, "tempora.command.region.create.relative_needs_player");
-            return null;
-        }
+        if (player == null) throw new CommandException("tempora.command.region.create.relative_needs_player");
 
         double position = axis == 0 ? player.posX : axis == 1 ? player.posY : player.posZ;
         int offset = arg.length() == 1 ? 0 : CommandBase.parseInt(sender, arg.substring(1));
-        return MathHelper.floor_double(position) + offset;
+        return (double) MathHelper.floor_double(position) + offset;
     }
 
     @Override
