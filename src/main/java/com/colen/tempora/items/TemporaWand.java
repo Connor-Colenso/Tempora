@@ -9,10 +9,12 @@ import java.util.UUID;
 import java.util.WeakHashMap;
 
 import net.minecraft.block.Block;
+import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.ChatStyle;
 import net.minecraft.util.EnumChatFormatting;
@@ -94,9 +96,9 @@ public class TemporaWand extends Item {
         return true;
     }
 
-    // Right click
+    // Right click. First so the block doesn't react, otherwise chests and machines open and levers and doors flip
     @Override
-    public boolean onItemUse(ItemStack stack, EntityPlayer player, World world, int x, int y, int z, int side,
+    public boolean onItemUseFirst(ItemStack stack, EntityPlayer player, World world, int x, int y, int z, int side,
         float hitX, float hitY, float hitZ) {
         // A machine holding a wand can't read what it shows, and would alert admins as an unauthorised user
         if (player instanceof FakePlayer) return false;
@@ -105,10 +107,14 @@ public class TemporaWand extends Item {
         int py = y + Facing.offsetsYForSide[side];
         int pz = z + Facing.offsetsZForSide[side];
 
-        // Client outlines the space itself, server does the check
+        // Client outlines the space itself, server does the check. Returning true stops the client telling the server
+        // about the click so it has to do that itself
         if (!(player instanceof EntityPlayerMP entityPlayerMP)) {
             ClientRegionStore.add(outline(player.dimension, px, py, pz));
-            return false;
+            Minecraft.getMinecraft()
+                .getNetHandler()
+                .addToSendQueue(new C08PacketPlayerBlockPlacement(x, y, z, side, stack, hitX, hitY, hitZ));
+            return true;
         }
 
         if (!isRepeatClick(entityPlayerMP, px, py, pz)) {
