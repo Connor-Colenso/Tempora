@@ -53,22 +53,23 @@ public class TeleportRequestHandler implements IMessageHandler<PacketTeleportReq
 
         boolean wasFlying = player.capabilities.isFlying;
 
-        if (player.dimension != targetDim) {
-            WorldServer target = MinecraftServer.getServer()
-                .worldServerForDimension(targetDim);
-            if (target == null) {
-                sendError(player, "tempora.dimension.invalid", new ChatComponentNumber(targetDim));
-                return;
-            }
-
-            // Not the target world's own teleporter, which would build a Nether portal (or the End platform) where the
-            // player lands
-            player.mcServer.getConfigurationManager()
-                .transferPlayerToDimension(player, targetDim, new NoPortalTeleporter(target));
+        WorldServer target = MinecraftServer.getServer()
+            .worldServerForDimension(targetDim);
+        if (target == null) {
+            sendError(player, "tempora.dimension.invalid", new ChatComponentNumber(targetDim));
+            return;
         }
 
         // Most clicked coords are a block's (placed, broken, changed), if that block is solid now stand on it
-        y = standingHeight(player.worldObj, x, y, z);
+        y = standingHeight(target, x, y, z);
+
+        if (player.dimension != targetDim) {
+            // Not the target world's own teleporter, which would build a Nether portal (or the End platform) where the
+            // player lands
+            player.mcServer.getConfigurationManager()
+                .transferPlayerToDimension(player, targetDim, new NoPortalTeleporter(target, x, y, z));
+        }
+
         player.playerNetServerHandler.setPlayerLocation(x, y, z, player.rotationYaw, player.rotationPitch);
 
         // Changing dimension gives the client a new player with the game mode's default abilities, so someone flying
