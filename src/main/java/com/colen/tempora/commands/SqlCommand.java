@@ -9,12 +9,15 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
+
+import org.jetbrains.annotations.Nullable;
 
 import com.colen.tempora.TemporaLoggerManager;
 import com.colen.tempora.commands.command_base.TemporaSubcommand;
@@ -50,13 +53,7 @@ public class SqlCommand extends TemporaSubcommand {
 
         String rawQuery = String.join(" ", args);
 
-        GenericLogger<?> targetLogger = null;
-        for (GenericLogger<?> logger : TemporaLoggerManager.getLoggerList()) {
-            if (rawQuery.contains(logger.getLoggerName())) {
-                targetLogger = logger;
-                break;
-            }
-        }
+        GenericLogger<?> targetLogger = findTargetLogger(rawQuery);
 
         if (targetLogger == null) {
             ChatComponentTranslation msg = new ChatComponentTranslation(
@@ -180,8 +177,31 @@ public class SqlCommand extends TemporaSubcommand {
         }
     }
 
-    // "select *" with any spacing, or "select t.*"
-    private static final Pattern SELECT_STAR = Pattern.compile("\\bselect\\s+(\\w+\\.)?\\*");
+    // "it''s" counts as two strings next to each other, which is fine for blanking them out
+    private static final Pattern STRING_LITERAL = Pattern.compile("'[^']*'");
+
+    // Logger whose db this query reads, the first logger table it names. Each logger has its own db so a query can only
+    // read one. Whatever's inside a string doesn't count, and SQLite ignores the case of table names
+    private static @Nullable GenericLogger<?> findTargetLogger(String sql) {
+        String withoutStrings = STRING_LITERAL.matcher(sql)
+            .replaceAll("''");
+
+        GenericLogger<?> first = null;
+        int firstIndex = Integer.MAX_VALUE;
+        for (GenericLogger<?> logger : TemporaLoggerManager.getLoggerList()) {
+            Matcher name = Pattern
+                .compile("\\b" + Pattern.quote(logger.getLoggerName()) + "\\b", Pattern.CASE_INSENSITIVE)
+                .matcher(withoutStrings);
+            if (name.find() && name.start() < firstIndex) {
+                first = logger;
+                firstIndex = name.start();
+            }
+        }
+        return first;
+    }
+
+    // "select *" with any spacing or none, or "select t.*"
+    private static final Pattern SELECT_STAR = Pattern.compile("\\bselect\\s*(\\w+\\.)?\\*");
 
     private static List<String> findMissingColumns(String sql, List<ColumnDef> required) {
         // SELECT * is fine
