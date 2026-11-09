@@ -1,6 +1,7 @@
 package com.colen.tempora.chat;
 
 import net.minecraft.block.Block;
+import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.PacketBuffer;
@@ -8,6 +9,10 @@ import net.minecraft.util.StatCollector;
 
 import com.gtnewhorizon.gtnhlib.chat.AbstractChatComponentCustom;
 import com.gtnewhorizon.gtnhlib.chat.customcomponents.AbstractChatComponentBuffer;
+
+import cpw.mods.fml.common.Loader;
+import cpw.mods.fml.common.ModContainer;
+import cpw.mods.fml.common.registry.GameRegistry;
 
 // Block (or item) name from ID and meta, resolved on the client. Loads of modded items like GT machines name themselves
 // through getItemStackDisplayName instead of a translation key, so a key alone can't always be localised
@@ -30,18 +35,34 @@ public class ChatComponentBlockName extends AbstractChatComponentBuffer<ChatComp
         if (id == 0) return StatCollector.translateToLocal("tempora.block.air");
 
         Item item = Item.getItemById(id);
+        Block block = null;
         if (item == null) {
-            Block block = Block.getBlockById(id);
+            block = Block.getBlockById(id);
             if (block != null) item = Item.getItemFromBlock(block);
         }
 
-        if (item == null) return "[unknown ID " + id + "]";
+        // Unknown IDs come back as air
+        if (item == null && (block == null || block == Blocks.air)) return "[unknown ID " + id + "]";
 
         try {
-            return new ItemStack(item, 1, meta).getDisplayName();
+            return item != null ? new ItemStack(item, 1, meta).getDisplayName() : nameWithoutItem(block);
         } catch (Exception e) {
             return "[" + id + ":" + meta + "]";
         }
+    }
+
+    // Doors, beds, wires, crops etc have no item of their own. Its translation if it has one, otherwise the mod that
+    // owns it (a Forge Multipart block is any part), otherwise its registry name
+    private static String nameWithoutItem(Block block) {
+        String translated = block.getLocalizedName();
+        if (!translated.equals(block.getUnlocalizedName() + ".name")) return translated;
+
+        GameRegistry.UniqueIdentifier owner = GameRegistry.findUniqueIdentifierFor(block);
+        ModContainer mod = owner == null ? null
+            : Loader.instance()
+                .getIndexedModList()
+                .get(owner.modId);
+        return mod != null ? mod.getName() : Block.blockRegistry.getNameForObject(block);
     }
 
     @Override
