@@ -34,9 +34,13 @@ public final class PlayerFilter {
 
     // Names or UUIDs. Throws a CommandException (shown to the sender) for a player who's never joined
     public static PlayerFilter parse(String filter) {
+        String[] items = filter.split(",");
+        // Nothing but commas splits into no names at all, which would silently mean anyone
+        if (items.length == 0) throw new CommandException("tempora.command.unknown_player", filter);
+
         List<String> included = new ArrayList<>();
         List<String> excluded = new ArrayList<>();
-        for (String item : filter.split(",")) {
+        for (String item : items) {
             boolean exclude = item.startsWith("!");
             String name = exclude ? item.substring(1) : item;
 
