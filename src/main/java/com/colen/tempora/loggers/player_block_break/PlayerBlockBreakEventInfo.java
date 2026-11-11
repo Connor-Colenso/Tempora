@@ -7,6 +7,7 @@ import com.colen.tempora.chat.EventChat;
 import com.colen.tempora.loggers.generic.PositionalEventInfo;
 import com.colen.tempora.loggers.generic.column.Column;
 import com.colen.tempora.loggers.generic.column.ColumnType;
+import com.colen.tempora.loggers.generic.column.names.lookups.ItemNames;
 import com.colen.tempora.utils.CommandUtils;
 import com.colen.tempora.utils.PlayerUtils;
 import com.colen.tempora.utils.nbt.NBTUtils;
@@ -22,10 +23,10 @@ public class PlayerBlockBreakEventInfo extends PositionalEventInfo {
     @Column
     public int metadata;
 
-    @Column
+    @Column(nameRole = ItemNames.class, part = ItemNames.ID)
     public int pickBlockID;
 
-    @Column
+    @Column(nameRole = ItemNames.class, part = ItemNames.META)
     public int pickBlockMeta;
 
     @Column(type = ColumnType.PLAYER)
@@ -62,7 +63,7 @@ public class PlayerBlockBreakEventInfo extends PositionalEventInfo {
             "tempora.event.block_break",
             EventChat.time(timestamp),
             EventChat.player(playerUUID),
-            EventChat.block(pickBlockID, pickBlockMeta, blockID, metadata),
+            EventChat.searchable(EventChat.block(pickBlockID, pickBlockMeta, blockID, metadata)),
             EventChat.where(this, CommandUtils.TeleportType.BLOCK));
     }
 

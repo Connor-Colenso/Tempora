@@ -3,6 +3,7 @@ package com.colen.tempora.chat;
 import static com.gtnewhorizon.gtnhlib.util.numberformatting.NumberFormatUtil.formatNumber;
 
 import java.nio.charset.StandardCharsets;
+import java.util.regex.Pattern;
 
 import javax.annotation.Nullable;
 
@@ -26,14 +27,16 @@ import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 
 /**
  * Bits every event's chat line is built from so all loggers read the same. When (dark grey, date on hover), who
- * (yellow), what (white), where (aqua, click to teleport), joined by grey words from the lang file. Stuff that would
- * make a line wrap, like IDs and UUIDs, goes in hovers
+ * (yellow), what (white, or orange if f: can search it, see {@link #searchable}), where (aqua, click to teleport),
+ * joined
+ * by grey words from the lang file. Stuff that would make a line wrap, like IDs and UUIDs, goes in hovers
  */
 public final class EventChat {
 
     // Chat packets can't carry huge hover text, so big NBT (full backpacks, AE2 cells) isn't shown. Measured in bytes
     // as sent since the JSON turns chars like < into six byte escapes
     private static final int MAX_HOVER_NBT_BYTES = 16384;
+    private static final Pattern FORMATTING_CODE = Pattern.compile("§[0-9a-fk-orA-FK-OR]");
 
     private EventChat() {}
 
@@ -97,8 +100,9 @@ public final class EventChat {
     }
 
     /**
-     * Item someone held or moved, named on the server like vanilla's own item mentions, with its tooltip on hover. NBT
-     * stored by {@link NBTUtils#getEncodedItemNBT} goes in the tooltip unless it's too big to send
+     * Item someone held or moved, with its tooltip on hover. Named on the client from the hover's stack, in the
+     * player's language. NBT stored by {@link NBTUtils#getEncodedItemNBT} goes in
+     * the tooltip unless it's too big to send
      */
     public static IChatComponent item(int itemID, int metadata, String encodedNBT) {
         Item item = Item.getItemById(itemID);
@@ -112,18 +116,40 @@ public final class EventChat {
         NBTTagCompound tag = NBTUtils.decodeItemNBT(encodedNBT);
         if (tag != null) itemStack.setTagCompound(tag);
 
-        IChatComponent name = text(itemStack.getDisplayName(), EnumChatFormatting.WHITE);
-
         IChatComponent hoverNBT = new ChatComponentText(
             itemStack.writeToNBT(new NBTTagCompound())
                 .toString());
-        if (IChatComponent.Serializer.func_150696_a(hoverNBT)
-            .getBytes(StandardCharsets.UTF_8).length <= MAX_HOVER_NBT_BYTES) {
+        boolean fits = IChatComponent.Serializer.func_150696_a(hoverNBT)
+            .getBytes(StandardCharsets.UTF_8).length <= MAX_HOVER_NBT_BYTES;
+
+        // Too big for a hover and renamed, the client can't see the name so it's named here instead
+        IChatComponent name = !fits && itemStack.hasDisplayName()
+            ? text(withoutFormatting(itemStack.getDisplayName()), EnumChatFormatting.WHITE)
+            : new ChatComponentBlockName(itemID, metadata);
+        name.getChatStyle()
+            .setColor(EnumChatFormatting.WHITE);
+        if (fits) {
             name.getChatStyle()
                 .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_ITEM, hoverNBT));
         }
-
         return name;
+    }
+
+    /**
+     * Orange for text the f: filter of /tempora lookup can find, so players can see what they can search by. Only for
+     * text the logger's textFilterCondition really matches, e.g. NameRole columns. Colour codes inside the text would
+     * win over it, so names go through {@link #withoutFormatting} first
+     */
+    public static IChatComponent searchable(IChatComponent component) {
+        component.getChatStyle()
+            .setColor(EnumChatFormatting.GOLD);
+        return component;
+    }
+
+    /** Text with its colour and style codes taken out, e.g. a rarity colour or blue in an item's name */
+    public static String withoutFormatting(String text) {
+        return FORMATTING_CODE.matcher(text)
+            .replaceAll("");
     }
 
     /**

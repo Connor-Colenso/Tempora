@@ -35,8 +35,10 @@ import com.colen.tempora.chat.EventChat;
 import com.colen.tempora.enums.LoggerEventType;
 import com.colen.tempora.loggers.generic.column.ColumnDef;
 import com.colen.tempora.loggers.generic.column.ColumnType;
+import com.colen.tempora.loggers.generic.column.names.NameRole;
 import com.colen.tempora.utils.PlayerFilter;
 import com.colen.tempora.utils.PlayerUtils;
+import com.colen.tempora.utils.TextFilter;
 import com.colen.tempora.utils.TimeWindow;
 import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 
@@ -99,6 +101,9 @@ public abstract class GenericLogger<EventInfo extends GenericEventInfo> {
     private static final int MAX_EVENTS_PER_BATCH = 5000;
     private static final long PRUNE_INTERVAL_MILLISECONDS = TimeUnit.MINUTES.toMillis(10);
     private static final long QUEUE_FULL_WARNING_INTERVAL_MILLISECONDS = TimeUnit.SECONDS.toMillis(10);
+
+    // Worked out once from the NameRole columns
+    private volatile NameColumns nameColumns;
 
     // Only the two kinds extend this directly
     GenericLogger() {}
@@ -242,6 +247,30 @@ public abstract class GenericLogger<EventInfo extends GenericEventInfo> {
      */
     protected @Nullable String playerColumn() {
         return null;
+    }
+
+    /**
+     * The columns the f: filter of /tempora lookup matches, from this logger's {@link NameRole} columns. Worked out and
+     * checked when the logger registers
+     */
+    public final NameColumns nameColumns() {
+        NameColumns found = nameColumns;
+        if (found == null) {
+            found = NameColumns.from(getLoggerName(), getAllTableColumns(this));
+            nameColumns = found;
+        }
+        return found;
+    }
+
+    /**
+     * SQL for the WHERE of an f: search of this logger, true for events naming something {@code filter} matched. Null
+     * if nothing in it could match here, then f: skips this logger. By default it checks the {@link NameRole} columns,
+     * so most loggers only mark those. Override when names are stored some other way, e.g. items in a table of their
+     * own, with {@link TextFilter#condition(Class, String...)} or {@link TextFilter#textCondition}.
+     * Columns without a NameRole aren't in the position index, so check a search like that is still quick on a big db
+     */
+    public @Nullable String textFilterCondition(TextFilter filter) {
+        return filter.condition(nameColumns());
     }
 
     /**
@@ -531,7 +560,22 @@ public abstract class GenericLogger<EventInfo extends GenericEventInfo> {
             }
         }
 
-        databaseManager.checkSql();
+        // f: columns have to fit their roles, otherwise this would only throw on the first f: lookup
+        nameColumns();
+
+        databaseManager.checkSql(checkedTextFilterSql());
+    }
+
+    // Runs textFilterCondition twice. The first makes any role only an override uses, so clients list its names and the
+    // server takes answers for it, and throws on columns that don't fit a role. The second names one thing of each role
+    // so the SQL it gives can be tried on the table
+    private @Nullable String checkedTextFilterSql() {
+        try {
+            textFilterCondition(TextFilter.probe());
+            return textFilterCondition(TextFilter.probe());
+        } catch (RuntimeException e) {
+            throw new IllegalStateException(getLoggerName() + "'s textFilterCondition fails: " + e.getMessage(), e);
+        }
     }
 
     // Index name suffix -> indexed columns. Every logger gets searched by time, positional ones by place too and ones

@@ -18,6 +18,7 @@ import com.colen.tempora.chat.EventChat;
 import com.colen.tempora.loggers.generic.PositionalEventInfo;
 import com.colen.tempora.loggers.generic.column.Column;
 import com.colen.tempora.loggers.generic.column.ColumnType;
+import com.colen.tempora.loggers.generic.column.names.lookups.MobNames;
 import com.colen.tempora.utils.ChunkPositionUtils;
 import com.colen.tempora.utils.CommandUtils;
 import com.colen.tempora.utils.PlayerUtils;
@@ -30,7 +31,7 @@ public class ExplosionEventInfo extends PositionalEventInfo {
 
     @Column
     public float power;
-    @Column
+    @Column(nameRole = MobNames.class)
     public String exploder = PlayerUtils.UNKNOWN_CAUSE;
     @Column(type = ColumnType.PLAYER)
     public String closestPlayerUUID = PlayerUtils.UNKNOWN_PLAYER_NAME;
@@ -93,7 +94,8 @@ public class ExplosionEventInfo extends PositionalEventInfo {
             exploderText.getChatStyle()
                 .setColor(EnumChatFormatting.WHITE);
         } else {
-            exploderText = PlayerUtils.isUUID(exploder) ? EventChat.player(exploder) : EventChat.entityName(exploder);
+            exploderText = PlayerUtils.isUUID(exploder) ? EventChat.player(exploder)
+                : EventChat.searchable(EventChat.entityName(exploder));
         }
 
         // Negative distance means no player was in the world

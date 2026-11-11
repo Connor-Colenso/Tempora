@@ -6,6 +6,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
+import com.colen.tempora.loggers.generic.column.names.NameRole;
+
 public class ColumnDef {
 
     public final String name;
@@ -14,15 +16,22 @@ public class ColumnDef {
     public final String extraCondition;
     public final List<String> renamedFrom;
     public final ColumnAccessor columnAccessor;
+    // For f:, see Column.nameRole. NameRole.class for none
+    public final Class<? extends NameRole> nameRole;
+    public final String part;
+    public final String group;
 
     public ColumnDef(String name, ColumnType columnType, String extraCondition, List<String> renamedFrom,
-        ColumnAccessor columnAccessor) {
+        ColumnAccessor columnAccessor, Class<? extends NameRole> nameRole, String part, String group) {
         this.name = name;
         this.columnType = columnType;
         this.type = columnType.getSqlType();
         this.extraCondition = extraCondition;
         this.renamedFrom = renamedFrom;
         this.columnAccessor = columnAccessor;
+        this.nameRole = nameRole;
+        this.part = part;
+        this.group = group;
     }
 
     public String getName() {

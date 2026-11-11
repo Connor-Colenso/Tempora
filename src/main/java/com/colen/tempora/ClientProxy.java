@@ -24,9 +24,11 @@ import com.colen.tempora.rendering.events.EventRenderers;
 import com.colen.tempora.rendering.events.RenderEventsInWorld;
 import com.colen.tempora.rendering.regions.HudRenderRegionsInWorld;
 import com.colen.tempora.rendering.regions.RenderRegionsInWorld;
+import com.colen.tempora.utils.ClientNameIndex;
 import com.gtnewhorizon.gtnhlib.config.ConfigurationManager;
 
 import codechicken.nei.api.API;
+import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
@@ -49,6 +51,10 @@ public class ClientProxy extends CommonProxy {
 
         registerEventRenderers();
 
+        // Answers f: filter requests from the server, tick events are on FML's bus
+        FMLCommonHandler.instance()
+            .bus()
+            .register(new ClientNameIndex());
         MinecraftForge.EVENT_BUS.register(new RenderEventsInWorld());
         MinecraftForge.EVENT_BUS.register(new RenderRegionsInWorld());
         MinecraftForge.EVENT_BUS.register(new HudRenderRegionsInWorld());

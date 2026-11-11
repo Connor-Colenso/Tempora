@@ -16,6 +16,7 @@ import com.colen.tempora.chat.EventChat;
 import com.colen.tempora.loggers.generic.PositionalEventInfo;
 import com.colen.tempora.loggers.generic.column.Column;
 import com.colen.tempora.loggers.generic.column.ColumnType;
+import com.colen.tempora.loggers.generic.column.names.lookups.ItemNames;
 import com.colen.tempora.utils.CommandUtils;
 import com.colen.tempora.utils.PlayerUtils;
 import com.colen.tempora.utils.StackTraceUtils;
@@ -33,10 +34,10 @@ public class BlockChangeEventInfo extends PositionalEventInfo {
     @Column
     public int beforeMetadata;
 
-    @Column
+    @Column(nameRole = ItemNames.class, part = ItemNames.ID, group = "before")
     public int beforePickBlockID;
 
-    @Column
+    @Column(nameRole = ItemNames.class, part = ItemNames.META, group = "before")
     public int beforePickBlockMeta;
 
     @Column(type = ColumnType.NBT)
@@ -48,10 +49,10 @@ public class BlockChangeEventInfo extends PositionalEventInfo {
     @Column
     public int afterMetadata;
 
-    @Column
+    @Column(nameRole = ItemNames.class, part = ItemNames.ID, group = "after")
     public int afterPickBlockID;
 
-    @Column
+    @Column(nameRole = ItemNames.class, part = ItemNames.META, group = "after")
     public int afterPickBlockMeta;
 
     @Column(type = ColumnType.NBT)
@@ -77,8 +78,10 @@ public class BlockChangeEventInfo extends PositionalEventInfo {
     @Override
     public IChatComponent localiseText() {
         IChatComponent when = EventChat.time(timestamp);
-        IChatComponent before = EventChat.block(beforePickBlockID, beforePickBlockMeta, beforeBlockID, beforeMetadata);
-        IChatComponent after = EventChat.block(afterPickBlockID, afterPickBlockMeta, afterBlockID, afterMetadata);
+        IChatComponent before = EventChat
+            .searchable(EventChat.block(beforePickBlockID, beforePickBlockMeta, beforeBlockID, beforeMetadata));
+        IChatComponent after = EventChat
+            .searchable(EventChat.block(afterPickBlockID, afterPickBlockMeta, afterBlockID, afterMetadata));
         IChatComponent where = EventChat.where(this, CommandUtils.TeleportType.BLOCK);
         IChatComponent trace = traceComponent();
 

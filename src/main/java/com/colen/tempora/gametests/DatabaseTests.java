@@ -42,16 +42,25 @@ import com.colen.tempora.loggers.generic.GenericLogger;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.GlobalEventInfo;
 import com.colen.tempora.loggers.generic.LoggerDatabase;
+import com.colen.tempora.loggers.generic.NameColumns;
 import com.colen.tempora.loggers.generic.PlayerIDs;
 import com.colen.tempora.loggers.generic.PositionalEventInfo;
 import com.colen.tempora.loggers.generic.column.Column;
 import com.colen.tempora.loggers.generic.column.ColumnDef;
 import com.colen.tempora.loggers.generic.column.ColumnType;
+import com.colen.tempora.loggers.generic.column.names.NamePart;
+import com.colen.tempora.loggers.generic.column.names.NameRole;
+import com.colen.tempora.loggers.generic.column.names.ShownNames;
+import com.colen.tempora.loggers.generic.column.names.lookups.AchievementNames;
+import com.colen.tempora.loggers.generic.column.names.lookups.ItemNames;
+import com.colen.tempora.loggers.generic.column.names.lookups.MobNames;
 import com.colen.tempora.loggers.player_block_break.PlayerBlockBreakEventInfo;
 import com.colen.tempora.utils.DatabaseUtils;
 import com.colen.tempora.utils.PlayerFilter;
 import com.colen.tempora.utils.PlayerUtils;
 import com.colen.tempora.utils.ReflectionUtils;
+import com.colen.tempora.utils.ResolvedNames;
+import com.colen.tempora.utils.TextFilter;
 import com.colen.tempora.utils.TimeWindow;
 import com.gtnewhorizons.horizonqa.api.GameTestHelper;
 import com.gtnewhorizons.horizonqa.api.TestPos;
@@ -651,6 +660,288 @@ public class DatabaseTests {
                 .contains("note"),
             "the refusal should name the column, got: " + refused.getMessage());
         helper.succeed();
+    }
+
+    // f: columns come from nameRole on the fields, a group per thing with its columns in part order
+    @GameTest
+    public static void nameRolesGroupUp(GameTestHelper helper) {
+        GenericLogger<?> logger = new CheckedTestLogger<>("TemporaTestNameRoles", NameRolesEvent::new);
+        logger.checkColumns();
+
+        Map<String, List<String>> groups = new HashMap<>();
+        for (NameColumns.Group group : logger.nameColumns()
+            .groups()) {
+            groups.put(
+                group.role.getClass()
+                    .getSimpleName() + "/" + group.name,
+                group.columns);
+        }
+        helper.assertEquals(5, groups.size(), "groups");
+        helper.assertEquals(Arrays.asList("firstID", "firstMeta"), groups.get("ItemNames/first"), "first item");
+        helper.assertEquals(Arrays.asList("secondID", "secondMeta"), groups.get("ItemNames/second"), "second item");
+        helper.assertEquals(Collections.singletonList("mob"), groups.get("MobNames/"), "mob");
+        helper.assertEquals(Collections.singletonList("killer"), groups.get("MobNames/killer"), "second mob");
+        helper.assertEquals(Collections.singletonList("got"), groups.get("AchievementNames/"), "achievement");
+        helper.succeed();
+    }
+
+    // Other mods add their own roles with any number of parts, and those work like the built in ones
+    @GameTest
+    public static void modRolesWorkLikeBuiltIn(GameTestHelper helper) throws Exception {
+        GenericLogger<?> logger = new CheckedTestLogger<>("TemporaTestModRole", MachineEvent::new);
+        logger.checkColumns();
+        helper.assertEquals(
+            Arrays.asList("machineBlock", "machineMeta", "machineTier", "machineMode"),
+            logger.nameColumns()
+                .indexColumns(),
+            "columns in part order");
+
+        ResolvedNames.Builder builder = new ResolvedNames.Builder();
+        builder.add(TestMachineNames.class, 5, NamePart.ANY, 2, "fast");
+        // Covered by the one above, so it doesn't count
+        builder.add(TestMachineNames.class, 5, 3, 2, "fast");
+        builder.add(TestMachineNames.class, 6, 1, 1, "slow");
+        ResolvedNames resolved = builder.build();
+        helper.assertEquals(
+            2,
+            resolved.matches(TestMachineNames.class)
+                .size(),
+            "machines matched");
+
+        String condition = logger.textFilterCondition(TextFilter.of("test", resolved));
+        try (Connection conn = DriverManager.getConnection("jdbc:sqlite::memory:");
+            Statement st = conn.createStatement()) {
+            st.execute(
+                "CREATE TABLE machines (machineBlock INTEGER, machineMeta INTEGER, machineTier INTEGER,"
+                    + " machineMode TEXT)");
+            st.execute(
+                "INSERT INTO machines VALUES (5, 0, 2, 'fast'), (5, 9, 2, 'fast'), (5, 0, 3, 'fast'),"
+                    + " (6, 1, 1, 'slow'), (6, 1, 1, 'fast')");
+            helper.assertEquals(3, count(st, "machines", condition), "machines matched in SQL");
+        }
+        helper.succeed();
+    }
+
+    // f: puts these columns into SQL as numbers or text, and a thing needs all its parts, so anything else is refused
+    // on register instead of breaking the first f: lookup
+    @GameTest
+    public static void missingPartIsRefused(GameTestHelper helper) {
+        assertRefusedAtRegister(helper, new CheckedTestLogger<>("TemporaTestMissingPart", MissingPartEvent::new));
+    }
+
+    @GameTest
+    public static void textItemIDIsRefused(GameTestHelper helper) {
+        assertRefusedAtRegister(helper, new CheckedTestLogger<>("TemporaTestTextItemID", TextItemIDEvent::new));
+    }
+
+    @GameTest
+    public static void numberEntityNameIsRefused(GameTestHelper helper) {
+        assertRefusedAtRegister(helper, new CheckedTestLogger<>("TemporaTestNumberMob", NumberEntityNameEvent::new));
+    }
+
+    @GameTest
+    public static void numberAchievementIsRefused(GameTestHelper helper) {
+        assertRefusedAtRegister(
+            helper,
+            new CheckedTestLogger<>("TemporaTestNumberAchievement", NumberAchievementEvent::new));
+    }
+
+    @GameTest
+    public static void unknownPartIsRefused(GameTestHelper helper) {
+        assertRefusedAtRegister(helper, new CheckedTestLogger<>("TemporaTestUnknownPart", UnknownPartEvent::new));
+    }
+
+    @GameTest
+    public static void unnamedPartIsRefused(GameTestHelper helper) {
+        assertRefusedAtRegister(helper, new CheckedTestLogger<>("TemporaTestUnnamedPart", UnnamedPartEvent::new));
+    }
+
+    @GameTest
+    public static void samePartTwiceIsRefused(GameTestHelper helper) {
+        assertRefusedAtRegister(helper, new CheckedTestLogger<>("TemporaTestSamePartTwice", SamePartTwiceEvent::new));
+    }
+
+    @GameTest
+    public static void roleWithoutConstructorIsRefused(GameTestHelper helper) {
+        assertRefusedAtRegister(helper, new CheckedTestLogger<>("TemporaTestBadRole", BadRoleEvent::new));
+    }
+
+    // What textFilterCondition gives has to pick the right rows in SQLite, both the default from nameRole columns and
+    // TextFilter.condition on columns a logger picks itself (here items in a table of their own)
+    @GameTest
+    public static void nameConditionsMatchInSql(GameTestHelper helper) throws Exception {
+        ResolvedNames.Builder builder = new ResolvedNames.Builder();
+        builder.item(35, 14);
+        builder.item(1, ResolvedNames.ANY_META);
+        builder.entity("O'Brien");
+        TextFilter names = TextFilter.of("test", builder.build());
+
+        ResolvedNames.Builder mobsOnly = new ResolvedNames.Builder();
+        mobsOnly.entity("Zombie");
+
+        try (Connection conn = DriverManager.getConnection("jdbc:sqlite::memory:");
+            Statement st = conn.createStatement()) {
+            st.execute(
+                "CREATE TABLE changes (beforePickBlockID INTEGER, beforePickBlockMeta INTEGER,"
+                    + " afterPickBlockID INTEGER, afterPickBlockMeta INTEGER)");
+            // Red wool before, stone of any meta after, then two that match neither
+            st.execute("INSERT INTO changes VALUES (35, 14, 0, 0), (0, 0, 1, 5), (35, 0, 0, 0), (2, 0, 3, 0)");
+            String byDefault = TemporaEvents.blockChangeLogger.textFilterCondition(names);
+            helper.assertEquals(2, count(st, "changes", byDefault), "block changes matched before or after");
+            helper.assertTrue(
+                TemporaEvents.blockChangeLogger.textFilterCondition(TextFilter.of("test", mobsOnly.build())) == null,
+                "a mob only filter should skip block changes");
+
+            st.execute("CREATE TABLE events (eventID INTEGER)");
+            st.execute("CREATE TABLE drops (eventID INTEGER, id INTEGER, meta INTEGER)");
+            st.execute("INSERT INTO events VALUES (1), (2), (3)");
+            st.execute("INSERT INTO drops VALUES (1, 35, 14), (2, 35, 1), (3, 1, 9)");
+            String custom = "EXISTS (SELECT 1 FROM drops WHERE drops.eventID = events.eventID AND "
+                + names.condition(ItemNames.class, "drops.id", "drops.meta")
+                + ")";
+            helper.assertEquals(2, count(st, "events", custom), "events with a matching drop");
+
+            st.execute("CREATE TABLE mobs (name TEXT)");
+            st.execute("INSERT INTO mobs VALUES ('O''Brien'), ('Zombie')");
+            helper.assertEquals(1, count(st, "mobs", names.condition(MobNames.class, "name")), "mobs matched by name");
+        }
+        helper.succeed();
+    }
+
+    private static int count(Statement st, String table, String condition) throws SQLException {
+        try (ResultSet rs = st.executeQuery("SELECT COUNT(*) FROM " + table + " WHERE " + condition)) {
+            rs.next();
+            return rs.getInt(1);
+        }
+    }
+
+    public static class NameRolesEvent extends CheckedTestEvent {
+
+        @Column(nameRole = ItemNames.class, part = ItemNames.ID, group = "first")
+        public int firstID;
+
+        @Column(nameRole = ItemNames.class, part = ItemNames.META, group = "first")
+        public int firstMeta;
+
+        @Column(nameRole = ItemNames.class, part = ItemNames.ID, group = "second")
+        public int secondID;
+
+        @Column(nameRole = ItemNames.class, part = ItemNames.META, group = "second")
+        public int secondMeta;
+
+        @Column(nameRole = MobNames.class)
+        public String mob = "";
+
+        @Column(nameRole = MobNames.class, group = "killer")
+        public String killer = "";
+
+        @Column(nameRole = AchievementNames.class)
+        public String got = "";
+    }
+
+    // A role like another mod would add, with four parts
+    public static final class TestMachineNames implements NameRole {
+
+        public static final String BLOCK = "block";
+        public static final String META = "meta";
+        public static final String TIER = "tier";
+        public static final String MODE = "mode";
+
+        @Override
+        public List<NamePart> parts() {
+            return Arrays
+                .asList(NamePart.integer(BLOCK), NamePart.integer(META), NamePart.integer(TIER), NamePart.text(MODE));
+        }
+
+        @Override
+        public void shownNames(ShownNames add) {
+            add.add("Fast Machine", 5, NamePart.ANY, 2, "fast");
+            add.add("Slow Machine", 6, 1, 1, "slow");
+        }
+    }
+
+    public static class MachineEvent extends CheckedTestEvent {
+
+        // Out of part order on purpose, the group puts them back in order
+        @Column(nameRole = TestMachineNames.class, part = TestMachineNames.MODE)
+        public String machineMode = "";
+
+        @Column(nameRole = TestMachineNames.class, part = TestMachineNames.BLOCK)
+        public int machineBlock;
+
+        @Column(nameRole = TestMachineNames.class, part = TestMachineNames.TIER)
+        public int machineTier;
+
+        @Column(nameRole = TestMachineNames.class, part = TestMachineNames.META)
+        public int machineMeta;
+    }
+
+    public static class MissingPartEvent extends CheckedTestEvent {
+
+        @Column(nameRole = ItemNames.class, part = ItemNames.ID)
+        public int itemID;
+    }
+
+    public static class TextItemIDEvent extends CheckedTestEvent {
+
+        @Column(nameRole = ItemNames.class, part = ItemNames.ID)
+        public String itemID = "";
+
+        @Column(nameRole = ItemNames.class, part = ItemNames.META)
+        public int itemMeta;
+    }
+
+    public static class NumberEntityNameEvent extends CheckedTestEvent {
+
+        @Column(nameRole = MobNames.class)
+        public int mob;
+    }
+
+    public static class NumberAchievementEvent extends CheckedTestEvent {
+
+        @Column(nameRole = AchievementNames.class)
+        public int achievement;
+    }
+
+    public static class UnknownPartEvent extends CheckedTestEvent {
+
+        @Column(nameRole = MobNames.class, part = "colour")
+        public String mob = "";
+    }
+
+    // Items have two parts, so a column has to say which
+    public static class UnnamedPartEvent extends CheckedTestEvent {
+
+        @Column(nameRole = ItemNames.class)
+        public int itemID;
+    }
+
+    public static class SamePartTwiceEvent extends CheckedTestEvent {
+
+        @Column(nameRole = MobNames.class)
+        public String mob = "";
+
+        @Column(nameRole = MobNames.class)
+        public String otherMob = "";
+    }
+
+    public static final class NoConstructorNames implements NameRole {
+
+        public NoConstructorNames(String unused) {}
+
+        @Override
+        public List<NamePart> parts() {
+            return Collections.singletonList(NamePart.text("name"));
+        }
+
+        @Override
+        public void shownNames(ShownNames add) {}
+    }
+
+    public static class BadRoleEvent extends CheckedTestEvent {
+
+        @Column(nameRole = NoConstructorNames.class)
+        public String thing = "";
     }
 
     public static class PlayerTestLogger extends GenericPositionalLogger<PlayerTestEvent> {

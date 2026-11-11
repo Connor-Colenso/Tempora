@@ -7,6 +7,7 @@ import com.colen.tempora.chat.EventChat;
 import com.colen.tempora.loggers.generic.PositionalEventInfo;
 import com.colen.tempora.loggers.generic.column.Column;
 import com.colen.tempora.loggers.generic.column.ColumnType;
+import com.colen.tempora.loggers.generic.column.names.lookups.ItemNames;
 import com.colen.tempora.utils.CommandUtils;
 import com.colen.tempora.utils.PlayerUtils;
 
@@ -18,10 +19,10 @@ public class ItemUseEventInfo extends PositionalEventInfo {
     @Column(type = ColumnType.PLAYER)
     public String playerUUID = PlayerUtils.UNKNOWN_PLAYER_NAME;
 
-    @Column
+    @Column(nameRole = ItemNames.class, part = ItemNames.ID)
     public int itemID;
 
-    @Column
+    @Column(nameRole = ItemNames.class, part = ItemNames.META)
     public int itemMetadata;
 
     @Override
@@ -57,7 +58,7 @@ public class ItemUseEventInfo extends PositionalEventInfo {
             "tempora.event.item_use",
             EventChat.time(timestamp),
             EventChat.player(playerUUID),
-            EventChat.block(itemID, itemMetadata),
+            EventChat.searchable(EventChat.block(itemID, itemMetadata)),
             where);
     }
 

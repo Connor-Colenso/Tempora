@@ -1,6 +1,8 @@
 package com.colen.tempora.loggers.generic;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -14,6 +16,7 @@ import com.colen.tempora.regions.LogRule;
 import com.colen.tempora.regions.TemporaRegionRegistry;
 import com.colen.tempora.regions.TemporaWorldRegion;
 import com.colen.tempora.utils.PlayerFilter;
+import com.colen.tempora.utils.TextFilter;
 import com.colen.tempora.utils.TimeWindow;
 
 /**
@@ -93,7 +96,11 @@ public abstract class GenericPositionalLogger<EventInfo extends PositionalEventI
     @Override
     final Map<String, String> tableIndexes() {
         Map<String, String> indexes = super.tableIndexes();
-        indexes.put("xyz_dimension_time", "dimensionID, x, y, z, timestamp");
+        // The f: columns on the end so f: gets checked in the index. Otherwise every event in range gets read from the
+        // table just to look at them, 8M rows within r:64 went from ~1s to past the 10s time limit
+        List<String> columns = new ArrayList<>(Arrays.asList("dimensionID", "x", "y", "z", "timestamp"));
+        columns.addAll(nameColumns().indexColumns());
+        indexes.put("xyz_dimension_time", String.join(", ", columns));
         return indexes;
     }
 
@@ -104,10 +111,23 @@ public abstract class GenericPositionalLogger<EventInfo extends PositionalEventI
      */
     public final FoundEvents<EventInfo> findEventsNear(int dimensionId, int centreX, int centreY, int centreZ,
         int radius, TimeWindow window, PlayerFilter players, int limit) {
+        return findEventsNear(dimensionId, centreX, centreY, centreZ, radius, window, players, TextFilter.any(), limit);
+    }
+
+    /** Same but only events with something {@code filter} matches, see {@link TextFilter} */
+    public final FoundEvents<EventInfo> findEventsNear(int dimensionId, int centreX, int centreY, int centreZ,
+        int radius, TimeWindow window, PlayerFilter players, TextFilter filter, int limit) {
 
         // No player column means nothing here can match a player filter
         String playerColumn = playerColumn();
         if (!players.isAnyone() && playerColumn == null) return FoundEvents.none(this);
+        String nameSql = "";
+        if (!filter.isAny()) {
+            String condition = textFilterCondition(filter);
+            // Nothing here that has a name f: matched
+            if (condition == null) return FoundEvents.none(this);
+            nameSql = " AND " + condition;
+        }
 
         // Whole blocks, block n covers n <= x < n + 1 so a mob standing in it (x = n + 0.5) gets found too. The + keeps
         // SQLite off the player index, which would read every event that player has anywhere
@@ -117,10 +137,10 @@ public abstract class GenericPositionalLogger<EventInfo extends PositionalEventI
               AND y >= ? AND y < ?
               AND z >= ? AND z < ?
               AND dimensionID = ?
-              AND timestamp >= ? AND timestamp <= ?%s
+              AND timestamp >= ? AND timestamp <= ?%s%s
             ORDER BY timestamp DESC
             LIMIT ?;
-            """, getLoggerName(), players.isAnyone() ? "" : players.sqlCondition("+" + playerColumn));
+            """, getLoggerName(), players.isAnyone() ? "" : players.sqlCondition("+" + playerColumn), nameSql);
 
         List<EventInfo> events;
         try {

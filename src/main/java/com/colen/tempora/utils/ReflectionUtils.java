@@ -58,7 +58,16 @@ public class ReflectionUtils {
                 constraints = withDefault(sqlLiteral(field, accessor.get(fresh)));
             }
 
-            defs.add(new ColumnDef(name, type, constraints, Arrays.asList(col.renamedFrom()), accessor));
+            defs.add(
+                new ColumnDef(
+                    name,
+                    type,
+                    constraints,
+                    Arrays.asList(col.renamedFrom()),
+                    accessor,
+                    col.nameRole(),
+                    col.part(),
+                    col.group()));
         }
 
         List<ColumnDef> immutable = Collections.unmodifiableList(defs);

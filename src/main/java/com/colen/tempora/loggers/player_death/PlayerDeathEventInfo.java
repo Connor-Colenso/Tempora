@@ -27,10 +27,11 @@ public class PlayerDeathEventInfo extends PositionalEventInfo {
     @Column(type = ColumnType.PLAYER)
     public String killerPlayerUUID = PlayerUtils.UNKNOWN_PLAYER_NAME;
 
+    // A mob in brackets like [Zombie] or a damage type like [fall], see DeathCause. Not an ENTITY_NAME column because
+    // of the brackets, PlayerDeathLogger.textFilterCondition matches it instead
     @Column
     public String killedBy = PlayerUtils.UNKNOWN_CAUSE;
 
-    // XP level they had, dying loses it unless keepInventory is on
     @Column
     public int xpLevel;
 
@@ -78,6 +79,8 @@ public class PlayerDeathEventInfo extends PositionalEventInfo {
             EventChat.text(formatNumber(xpLevel), EnumChatFormatting.WHITE));
 
         IChatComponent killer = DeathCause.killer(killerPlayerUUID, killedBy);
+        // A mob killer is searchable (PlayerDeathLogger), a player one goes by p:
+        if (killer != null && !PlayerUtils.isUUID(killerPlayerUUID)) EventChat.searchable(killer);
         if (killer != null) {
             return EventChat.line("tempora.event.player_death.killed", when, victim, killer, where, level);
         }

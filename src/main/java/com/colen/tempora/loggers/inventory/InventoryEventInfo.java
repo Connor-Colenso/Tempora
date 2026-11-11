@@ -11,6 +11,7 @@ import com.colen.tempora.chat.EventChat;
 import com.colen.tempora.loggers.generic.PositionalEventInfo;
 import com.colen.tempora.loggers.generic.column.Column;
 import com.colen.tempora.loggers.generic.column.ColumnType;
+import com.colen.tempora.loggers.generic.column.names.lookups.ItemNames;
 import com.colen.tempora.utils.CommandUtils;
 import com.colen.tempora.utils.PlayerUtils;
 import com.colen.tempora.utils.nbt.NBTUtils;
@@ -30,10 +31,10 @@ public class InventoryEventInfo extends PositionalEventInfo {
     @Column(type = ColumnType.PLAYER)
     public String playerUUID = PlayerUtils.UNKNOWN_PLAYER_NAME;
 
-    @Column
+    @Column(nameRole = ItemNames.class, part = ItemNames.ID)
     public int itemID;
 
-    @Column
+    @Column(nameRole = ItemNames.class, part = ItemNames.META)
     public int itemMetadata;
 
     @Column
@@ -85,7 +86,8 @@ public class InventoryEventInfo extends PositionalEventInfo {
             .text(formatNumber(amount), added ? EnumChatFormatting.GREEN : EnumChatFormatting.RED);
 
         // Plain text, the name was already worked out on the server and a renamed chest can have a % in it
-        IChatComponent container = EventChat.text(containerName, EnumChatFormatting.WHITE);
+        IChatComponent container = EventChat
+            .searchable(EventChat.text(EventChat.withoutFormatting(containerName), EnumChatFormatting.WHITE));
 
         // Containers carried by a player (backpacks, wireless terminals) are logged at the player, still the right
         // place to teleport to
@@ -94,7 +96,7 @@ public class InventoryEventInfo extends PositionalEventInfo {
             EventChat.time(timestamp),
             EventChat.player(playerUUID),
             count,
-            EventChat.item(itemID, itemMetadata, encodedNBT),
+            EventChat.searchable(EventChat.item(itemID, itemMetadata, encodedNBT)),
             container,
             EventChat.where(this, CommandUtils.TeleportType.BLOCK));
     }

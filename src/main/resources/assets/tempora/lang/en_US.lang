@@ -223,7 +223,11 @@ tempora.command.lookup.arg2=Which loggers to search, comma separated, e.g. break
 tempora.command.lookup.arg3=Whose events to show, comma separated, e.g. Player1,Player2. A ! leaves a player out instead, e.g. !Player1 for everyone but Player1. Block changes and explosions go by the closest player. Loggers with no player, such as mob spawns, are skipped. Default is anyone.
 tempora.command.lookup.arg4=How many events to show from each logger, default %s, or in all with s:time, default %s. This server's limit is %s.
 tempora.command.lookup.arg5=How to list the events: logger shows each logger's under its own header, time shows them all together in the order they happened, newest last. Default is logger.
+tempora.command.lookup.arg6=Filters events key info by this value. Use _ instead of spaces. By default no filter is applied.
 tempora.command.lookup.global_logger=%s isn't tied to a place, so it can't be looked up around you. Use %s instead.
+tempora.command.lookup.name_no_answer=Your client didn't say what f:%s matches, so it can't be searched. See your client log.
+tempora.command.lookup.name_empty=f:%s has nothing to search for.
+tempora.command.lookup.name_too_many=f:%s is too broad and matches %s/%s things. Try a more specific search filter.
 
 # /tempora global
 tempora.command.global.description=Shows the latest events from loggers that aren't tied to a place, such as players joining and leaving, weather and TPS. Works from anywhere, including the server console. Every filter is optional and they can go in any order. By default it shows the last %s events of each, over the last %s days.

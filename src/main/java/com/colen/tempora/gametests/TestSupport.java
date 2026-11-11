@@ -9,9 +9,12 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
+import net.minecraft.command.CommandException;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.management.ItemInWorldManager;
@@ -29,6 +32,8 @@ import com.colen.tempora.regions.LogRule;
 import com.colen.tempora.regions.TemporaRegionRegistry;
 import com.colen.tempora.regions.TemporaWorldRegion;
 import com.colen.tempora.utils.PlayerUtils;
+import com.colen.tempora.utils.ResolvedNames;
+import com.colen.tempora.utils.TextFilter;
 import com.gtnewhorizons.horizonqa.api.GameTestHelper;
 import com.gtnewhorizons.horizonqa.api.TestPos;
 import com.mojang.authlib.GameProfile;
@@ -195,5 +200,21 @@ final class TestSupport {
         helper.assertTrue(
             Arrays.equals(bytes, rewrittenBytes),
             context + ": render packet changed after being read and written again");
+    }
+
+    // What each test player's client last answered for some f: text, standing in for NameRequests' round trip so tests
+    // about what a filter matches don't wait on it. TextFilterTests.askAndAnswer covers the round trip itself
+    private static final Map<String, ResolvedNames> answers = new ConcurrentHashMap<>();
+
+    static void answer(EntityPlayerMP player, String text, ResolvedNames names) {
+        answers.put(player.getUniqueID() + "/" + text, names);
+    }
+
+    // The answer for that text through the same checks a real one goes through. Throws a CommandException like the
+    // command shows if there's none or it named too much
+    static TextFilter answered(EntityPlayerMP player, String text) {
+        ResolvedNames names = answers.get(player.getUniqueID() + "/" + text);
+        if (names == null) throw new CommandException("tempora.command.lookup.name_no_answer", text);
+        return TextFilter.of(text, names);
     }
 }

@@ -7,10 +7,13 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.event.CommandEvent;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.colen.tempora.TemporaEvents;
+import com.colen.tempora.commands.TemporaCommand;
 import com.colen.tempora.enums.LoggerEventType;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
+import com.colen.tempora.utils.TextFilter;
 
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
@@ -30,6 +33,19 @@ public class CommandLogger extends GenericPositionalLogger<CommandEventInfo> {
     @Override
     public @NotNull String getShortName() {
         return "command";
+    }
+
+    // f: matches the command as chat shows it, so f:tp finds /tp Colen. Not lookups for the same text though, or the
+    // lookup being run would always find itself. Only /tempora ones, /me waves f:tpx still matches f:tpx
+    @Override
+    public @Nullable String textFilterCondition(TextFilter filter) {
+        String matches = filter.textCondition("'/' || commandName || ' ' || arguments");
+        if (matches == null) return null;
+        return matches + " AND (commandName <> '"
+            + TemporaCommand.NAME
+            + "' OR "
+            + filter.notSearchedIn("arguments")
+            + ")";
     }
 
     @Override

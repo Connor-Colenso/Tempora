@@ -6,8 +6,10 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import net.minecraft.command.CommandBase;
+import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.EnumChatFormatting;
@@ -27,15 +29,19 @@ import com.colen.tempora.loggers.generic.GenericGlobalLogger;
 import com.colen.tempora.loggers.generic.GenericLogger;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.generic.TemporaQueries;
+import com.colen.tempora.networking.PlayerPackets;
+import com.colen.tempora.utils.NameRequests;
 import com.colen.tempora.utils.PlayerFilter;
 import com.colen.tempora.utils.PlayerUtils;
+import com.colen.tempora.utils.TextFilter;
+import com.colen.tempora.utils.TextFold;
 import com.colen.tempora.utils.TimeUtils;
 import com.colen.tempora.utils.TimeWindow;
 
-// /tempora lookup [r:<radius>] [t:<time>] [l:<logger,...>] [p:<player,...>] [n:<count>] [s:<sort>]
+// /tempora lookup [r:<radius>] [t:<time>] [l:<logger,...>] [p:<player,...>] [n:<count>] [s:<sort>] [f:<text,...>]
 // Latest events around the player from every positional logger unless narrowed with l:, by anyone unless narrowed with
-// p:. Listed under each logger, or with s:time all together in the order they happened. Global loggers have no position
-// so they use /tempora global instead
+// p:, with any text unless narrowed with f: (see TextFilter). Listed under each logger, or with s:time all together in
+// the order they happened. Global loggers have no position so they use /tempora global instead
 public class LookupCommand extends TemporaSubcommand {
 
     private static final String DEFAULT_RADIUS = "10";
@@ -56,7 +62,8 @@ public class LookupCommand extends TemporaSubcommand {
             "[l:<logger,...>]",
             "[p:<player,...>]",
             "[n:<count>]",
-            "[s:<sort>]");
+            "[s:<sort>]",
+            "[f:<text,...>]");
     }
 
     @Override
@@ -68,7 +75,7 @@ public class LookupCommand extends TemporaSubcommand {
     public void execute(ICommandSender sender, String[] args) {
         EntityPlayerMP player = (EntityPlayerMP) sender;
 
-        CommandFilters filters = CommandFilters.parse(this, sender, args, 0, "r", "t", "l", "p", "n", "s");
+        CommandFilters filters = CommandFilters.parse(this, sender, args, 0, "r", "t", "l", "p", "n", "s", "f");
         if (filters == null) return;
 
         SortOrder order = SortOrder.parse(sender, filters.get("s", SortOrder.DEFAULT));
@@ -85,20 +92,46 @@ public class LookupCommand extends TemporaSubcommand {
 
         SearchSummary summary = summarise(filters, order);
 
-        showEvents(
+        // Block the player stands in, rounding would pick the next block over once past its middle. Taken now so a
+        // lookup waiting on f: searches where it was typed
+        int x = MathHelper.floor_double(player.posX);
+        int y = MathHelper.floor_double(player.posY);
+        int z = MathHelper.floor_double(player.posZ);
+
+        Consumer<TextFilter> search = filter -> showEvents(
             player,
             loggers,
-            // Block the player stands in, rounding would pick the next block over once past its middle
-            MathHelper.floor_double(player.posX),
-            MathHelper.floor_double(player.posY),
-            MathHelper.floor_double(player.posZ),
+            x,
+            y,
+            z,
             radius,
             window,
             players,
+            filter,
             count,
             order,
             summary.line(true),
             summary.line(false));
+
+        String text = filters.get("f");
+        if (text == null) {
+            search.accept(TextFilter.any());
+            return;
+        }
+        // f:, would search for nothing and always find nothing
+        if (TextFold.terms(text)
+            .isEmpty()) {
+            throw new CommandException("tempora.command.lookup.name_empty", text);
+        }
+
+        // Names are in the player's language on their client, so ask it what the text names and search once it says
+        NameRequests.ask(
+            player,
+            text,
+            search,
+            error -> {
+                if (PlayerPackets.hasConnection(player)) sendError(player, error.getMessage(), error.getErrorOjbects());
+            });
     }
 
     // Every filter as typed or its default, for the line under the results
@@ -108,7 +141,8 @@ public class LookupCommand extends TemporaSubcommand {
             .add("l", "all")
             .add("p", "anyone")
             .add("n", String.valueOf(defaultCount(order)))
-            .add("s", SortOrder.DEFAULT);
+            .add("s", SortOrder.DEFAULT)
+            .add("f", "anything");
     }
 
     // n: default, per logger or in total with s:time
@@ -148,9 +182,10 @@ public class LookupCommand extends TemporaSubcommand {
 
     // Looks up each logger's latest events near a position in the player's dimension, up to count each, on the query
     // thread. Then shows them followed by afterResults if any, or just nothingFound if nothing had any. Sorted by time,
-    // count is the total. Radius 0 is just that block. Loggers with no player get left out when filtering by player
+    // count is the total. Radius 0 is just that block. Loggers with no player get left out when filtering by player,
+    // and ones f: can't match anything in
     public static void showEvents(EntityPlayerMP player, Collection<GenericPositionalLogger<?>> loggers, int x, int y,
-        int z, int radius, TimeWindow window, PlayerFilter players, int count, SortOrder order,
+        int z, int radius, TimeWindow window, PlayerFilter players, TextFilter filter, int count, SortOrder order,
         @Nullable IChatComponent afterResults, IChatComponent nothingFound) {
         int dimension = player.dimension;
 
@@ -160,7 +195,7 @@ public class LookupCommand extends TemporaSubcommand {
                 // Disabled or failed to start, no db to read
                 if (logger.notStarted()) continue;
 
-                found.add(logger.findEventsNear(dimension, x, y, z, radius, window, players, count));
+                found.add(logger.findEventsNear(dimension, x, y, z, radius, window, players, filter, count));
             }
             return found;
         }, (sender, found) -> {

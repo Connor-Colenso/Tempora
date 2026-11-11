@@ -68,7 +68,7 @@ public class CommandEventInfo extends PositionalEventInfo {
             "tempora.event.command",
             EventChat.time(timestamp),
             EventChat.player(playerUUID),
-            shown,
+            EventChat.searchable(shown),
             EventChat.where(this, CommandUtils.TeleportType.EXACT));
     }
 

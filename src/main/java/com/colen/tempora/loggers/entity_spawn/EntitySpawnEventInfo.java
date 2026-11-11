@@ -6,6 +6,7 @@ import com.colen.tempora.TemporaEvents;
 import com.colen.tempora.chat.EventChat;
 import com.colen.tempora.loggers.generic.PositionalEventInfo;
 import com.colen.tempora.loggers.generic.column.Column;
+import com.colen.tempora.loggers.generic.column.names.lookups.MobNames;
 import com.colen.tempora.utils.CommandUtils;
 
 import cpw.mods.fml.common.network.ByteBufUtils;
@@ -13,7 +14,7 @@ import io.netty.buffer.ByteBuf;
 
 public class EntitySpawnEventInfo extends PositionalEventInfo {
 
-    @Column
+    @Column(nameRole = MobNames.class)
     public String entityName = "";
 
     @Column
@@ -48,7 +49,7 @@ public class EntitySpawnEventInfo extends PositionalEventInfo {
         return EventChat.line(
             "tempora.event.entity_spawn",
             EventChat.time(timestamp),
-            EventChat.entity(entityName, entityUUID),
+            EventChat.searchable(EventChat.entity(entityName, entityUUID)),
             EventChat.where(this, CommandUtils.TeleportType.EXACT));
     }
 

@@ -10,6 +10,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -20,11 +22,13 @@ import java.util.stream.Collectors;
 import net.minecraftforge.common.config.Configuration;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.sqlite.SQLiteConfig;
 import org.sqlite.SQLiteErrorCode;
 
 import com.colen.tempora.Tempora;
 import com.colen.tempora.loggers.generic.column.ColumnDef;
+import com.colen.tempora.utils.TextFold;
 import com.colen.tempora.utils.TimeUtils;
 
 public class LoggerDatabase {
@@ -296,6 +300,8 @@ public class LoggerDatabase {
             }
             // For /tempora sql, which matches players by number
             PlayerIDs.addSqlFunction(conn);
+            // For f: of /tempora lookup, which matches text like commands folded the way names are
+            TextFold.addSqlFunction(conn);
 
             return conn;
         } catch (Exception e) {
@@ -308,11 +314,38 @@ public class LoggerDatabase {
         String tableName = logger.getLoggerName();
 
         try (Statement stmt = dbConnection.createStatement()) {
+            dropChangedIndexes(stmt);
             for (String sql : indexSQL()) {
                 stmt.execute(sql);
             }
         } catch (SQLException e) {
             throw new IllegalStateException("Could not create index for " + tableName, e);
+        }
+    }
+
+    // An index whose columns changed in the code keeps its old columns under IF NOT EXISTS, so it gets dropped here and
+    // remade by createIndexes
+    private void dropChangedIndexes(Statement stmt) throws SQLException {
+        String tableName = logger.getLoggerName();
+        for (Map.Entry<String, String> index : logger.tableIndexes()
+            .entrySet()) {
+            String name = "idx_" + tableName + "_" + index.getKey();
+
+            List<String> existing = new ArrayList<>();
+            try (ResultSet rs = stmt.executeQuery("PRAGMA index_info(" + name + ");")) {
+                while (rs.next()) existing.add(rs.getString("name"));
+            }
+            if (existing.isEmpty()) continue;
+
+            List<String> wanted = Arrays.asList(
+                index.getValue()
+                    .split(",\\s*"));
+            if (!existing.equals(wanted)) {
+                LOG.info(
+                    "Rebuilding index {} since its columns changed, this can take a while on a big database.",
+                    name);
+                stmt.execute("DROP INDEX " + name + ";");
+            }
         }
     }
 
@@ -334,7 +367,7 @@ public class LoggerDatabase {
     // Makes the table and indexes in an empty in-memory db and prepares the insert, so SQL that SQLite refuses (column
     // named after a keyword, duplicate names) fails at registration not on server start. Skipped if SQLite can't load
     // here, then no logger can start and that gets reported anyway
-    void checkSql() {
+    void checkSql(@Nullable String textFilterSql) {
         Connection memory;
         try {
             memory = new SQLiteConfig().createConnection("jdbc:sqlite::memory:");
@@ -357,6 +390,7 @@ public class LoggerDatabase {
             sql = generateInsertSQL();
             conn.prepareStatement(sql)
                 .close();
+            checkTextFilterSql(conn, textFilterSql);
         } catch (SQLException e) {
             throw new IllegalStateException(
                 "SQLite refuses " + logger.getLoggerName()
@@ -366,6 +400,23 @@ public class LoggerDatabase {
                     + sql
                     + " Check that no column is named after an SQL keyword, such as from or order, and that no two"
                     + " columns share a name, ignoring case.",
+                e);
+        }
+    }
+
+    // What textFilterCondition gave for a filter naming one thing of every role, e.g. a column name typed wrong in an
+    // override
+    private void checkTextFilterSql(Connection conn, @Nullable String textFilterSql) {
+        if (textFilterSql == null) return;
+        String sql = "SELECT 1 FROM " + logger.getLoggerName() + " WHERE " + textFilterSql;
+        try {
+            TextFold.addSqlFunction(conn);
+            conn.prepareStatement(sql)
+                .close();
+        } catch (SQLException e) {
+            throw new IllegalStateException(
+                "SQLite refuses what " + logger
+                    .getLoggerName() + "'s textFilterCondition gives: " + e.getMessage() + ", in " + sql,
                 e);
         }
     }

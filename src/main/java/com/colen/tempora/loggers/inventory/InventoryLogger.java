@@ -1,5 +1,6 @@
 package com.colen.tempora.loggers.inventory;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import net.minecraft.entity.item.EntityItem;
@@ -11,10 +12,12 @@ import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.colen.tempora.TemporaEvents;
 import com.colen.tempora.enums.LoggerEventType;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
+import com.colen.tempora.utils.TextFilter;
 import com.colen.tempora.utils.nbt.NBTUtils;
 
 import cpw.mods.fml.common.eventhandler.EventPriority;
@@ -44,6 +47,18 @@ public class InventoryLogger extends GenericPositionalLogger<InventoryEventInfo>
     @Override
     public @NotNull InventoryEventInfo newEventInfo() {
         return new InventoryEventInfo();
+    }
+
+    // The item by its NameRole columns, or the container by the name stored for it. That's text in the server's
+    // language and not in the position index, so with f: every inventory event in range gets read
+    @Override
+    public @Nullable String textFilterCondition(TextFilter filter) {
+        List<String> conditions = new ArrayList<>();
+        String item = super.textFilterCondition(filter);
+        if (item != null) conditions.add(item);
+        String container = filter.textCondition("containerName");
+        if (container != null) conditions.add(container);
+        return TextFilter.anyOf(conditions);
     }
 
     @Override

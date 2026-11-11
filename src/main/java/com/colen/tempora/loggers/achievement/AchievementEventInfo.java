@@ -13,6 +13,7 @@ import com.colen.tempora.chat.EventChat;
 import com.colen.tempora.loggers.generic.PositionalEventInfo;
 import com.colen.tempora.loggers.generic.column.Column;
 import com.colen.tempora.loggers.generic.column.ColumnType;
+import com.colen.tempora.loggers.generic.column.names.lookups.AchievementNames;
 import com.colen.tempora.utils.CommandUtils;
 import com.colen.tempora.utils.PlayerUtils;
 
@@ -26,7 +27,7 @@ public class AchievementEventInfo extends PositionalEventInfo {
     public String playerUUID = PlayerUtils.UNKNOWN_PLAYER_NAME;
 
     // Achievement stat ID, e.g. achievement.mineWood
-    @Column
+    @Column(nameRole = AchievementNames.class)
     public String achievementID = "";
 
     @Override
@@ -61,7 +62,7 @@ public class AchievementEventInfo extends PositionalEventInfo {
             "tempora.event.achievement",
             EventChat.time(timestamp),
             EventChat.player(playerUUID),
-            name,
+            EventChat.searchable(name),
             EventChat.where(this, CommandUtils.TeleportType.EXACT));
     }
 

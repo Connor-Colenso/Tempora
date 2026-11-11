@@ -51,6 +51,10 @@ public final class FoundEvents<EventInfo extends GenericEventInfo> {
         return new FoundEvents<>(logger, Collections.emptyList(), 0, "", e);
     }
 
+    public boolean failed() {
+        return failure != null;
+    }
+
     // Sends them under this logger's header and draws the ones in the sender's dimension. Silent if there are none so
     // callers checking lots of loggers can say so once. Returns how many were shown
     public int show(ICommandSender sender) {

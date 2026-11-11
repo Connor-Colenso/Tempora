@@ -1,6 +1,8 @@
 package com.colen.tempora.gametests;
 
 import static com.colen.tempora.gametests.PositionalLoggerTests.breakBlock;
+import static com.colen.tempora.gametests.TestSupport.answer;
+import static com.colen.tempora.gametests.TestSupport.answered;
 import static com.colen.tempora.gametests.TestSupport.eventsNear;
 import static com.colen.tempora.gametests.TestSupport.player;
 import static com.gtnewhorizons.horizonqa.api.TestPos.at;
@@ -26,6 +28,8 @@ import com.colen.tempora.loggers.generic.PositionalEventInfo;
 import com.colen.tempora.loggers.player_block_break.PlayerBlockBreakEventInfo;
 import com.colen.tempora.loggers.player_block_place.PlayerBlockPlaceEventInfo;
 import com.colen.tempora.utils.PlayerFilter;
+import com.colen.tempora.utils.ResolvedNames;
+import com.colen.tempora.utils.TextFilter;
 import com.colen.tempora.utils.TimeWindow;
 import com.gtnewhorizons.horizonqa.api.GameTestHelper;
 import com.gtnewhorizons.horizonqa.api.TestPos;
@@ -601,6 +605,99 @@ public class LookupTests {
         event.pickBlockID = event.blockID;
         event.playerUUID = PositionalLoggerTests.uuid(player);
         event.encodedNBT = "";
+        return event;
+    }
+
+    // f: finds what the client matched the text to, any meta or exact meta
+    @GameTest(timeoutTicks = TIMEOUT_TICKS)
+    public static void nameFilterLimitsWhatIsFound(GameTestHelper helper) {
+        GenericPositionalLogger<?> logger = TemporaEvents.playerBlockBreakLogger;
+        EntityPlayerMP player = player(helper, "lookup_name");
+        TestPos pos = helper.absolute(at(2, 1, 2));
+        int dim = helper.getWorld().provider.dimensionId;
+        int wool = Block.getIdFromBlock(Blocks.wool);
+        int stoneID = Block.getIdFromBlock(Blocks.stone);
+        int dirtID = Block.getIdFromBlock(Blocks.dirt);
+        Probe<FoundEvents<?>> all = new Probe<>(helper, "nameFilterLimitsWhatIsFound.all");
+        Probe<FoundEvents<?>> stone = new Probe<>(helper, "nameFilterLimitsWhatIsFound.stone");
+        Probe<FoundEvents<?>> stoneOrDirt = new Probe<>(helper, "nameFilterLimitsWhatIsFound.stoneOrDirt");
+        Probe<FoundEvents<?>> redWool = new Probe<>(helper, "nameFilterLimitsWhatIsFound.redWool");
+
+        helper.startSequence()
+            .thenExecute("break stone, dirt, white wool and red wool", () -> {
+                TemporaEvents.playerBlockBreakLogger.queueEventInfo(oldBreak(helper, player, pos, 60, Blocks.stone, 0));
+                TemporaEvents.playerBlockBreakLogger.queueEventInfo(oldBreak(helper, player, pos, 60, Blocks.dirt, 0));
+                TemporaEvents.playerBlockBreakLogger.queueEventInfo(oldBreak(helper, player, pos, 60, Blocks.wool, 0));
+                TemporaEvents.playerBlockBreakLogger.queueEventInfo(oldBreak(helper, player, pos, 60, Blocks.wool, 14));
+            })
+            .thenWaitUntil(
+                "all 4 are found without f:",
+                WRITE_TICKS,
+                () -> assertShown(helper, all.poll(() -> near(logger, dim, pos, TextFilter.any())), 4))
+            .thenWaitUntil(
+                "f:stone (any meta of stone) finds the stone",
+                WRITE_TICKS,
+                () -> assertShown(
+                    helper,
+                    stone.poll(() -> near(logger, dim, pos, sent(player, "stone", stoneID, ResolvedNames.ANY_META))),
+                    1))
+            .thenWaitUntil(
+                "f:stone,dirt finds both",
+                WRITE_TICKS,
+                () -> assertShown(
+                    helper,
+                    stoneOrDirt.poll(
+                        () -> near(
+                            logger,
+                            dim,
+                            pos,
+                            sent(
+                                player,
+                                "stone,dirt",
+                                stoneID,
+                                ResolvedNames.ANY_META,
+                                dirtID,
+                                ResolvedNames.ANY_META))),
+                    2))
+            .thenWaitUntil(
+                "f:red_wool (wool:14) finds only the red wool",
+                WRITE_TICKS,
+                () -> assertShown(
+                    helper,
+                    redWool.poll(() -> near(logger, dim, pos, sent(player, "red_wool", wool, 14))),
+                    1))
+            .thenExecute("f: naming nothing skips breaks, and blocks don't apply to mob loggers", () -> {
+                helper.assertTrue(
+                    logger.textFilterCondition(sent(player, "nothing_is_called_this")) == null,
+                    "text naming no block still searched breaks");
+                helper.assertTrue(
+                    TemporaEvents.entityDeathLogger
+                        .textFilterCondition(sent(player, "stone", stoneID, ResolvedNames.ANY_META)) == null,
+                    "a block filter applied to mob deaths");
+            })
+            .thenSucceed();
+    }
+
+    // A filter as the client would send it for text, id and meta pairs, then the command's view of it
+    private static TextFilter sent(EntityPlayerMP player, String text, int... idsAndMetas) {
+        ResolvedNames.Builder builder = new ResolvedNames.Builder();
+        for (int i = 0; i < idsAndMetas.length; i += 2) builder.item(idsAndMetas[i], idsAndMetas[i + 1]);
+        answer(player, text, builder.build());
+        return answered(player, text);
+    }
+
+    private static FoundEvents<?> near(GenericPositionalLogger<?> logger, int dim, TestPos pos, TextFilter names) {
+        return logger
+            .findEventsNear(dim, pos.x(), pos.y(), pos.z(), 0, TimeWindow.allTime(), PlayerFilter.anyone(), names, 10);
+    }
+
+    private static PlayerBlockBreakEventInfo oldBreak(GameTestHelper helper, EntityPlayerMP player, TestPos pos,
+        long secondsAgo, Block block, int meta) {
+        PlayerBlockBreakEventInfo event = oldBreak(helper, player, pos, secondsAgo);
+        event.blockID = Block.getIdFromBlock(block);
+        event.metadata = meta;
+        event.pickBlockID = event.blockID;
+        event.pickBlockMeta = meta;
         return event;
     }
 

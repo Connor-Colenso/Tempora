@@ -37,6 +37,7 @@ import com.colen.tempora.rendering.regions.RegionRenderMode;
 import com.colen.tempora.utils.CommandUtils;
 import com.colen.tempora.utils.PlayerFilter;
 import com.colen.tempora.utils.PlayerUtils;
+import com.colen.tempora.utils.TextFilter;
 import com.colen.tempora.utils.TimeWindow;
 
 import cpw.mods.fml.common.eventhandler.EventPriority;
@@ -188,6 +189,7 @@ public class TemporaWand extends Item {
                 0,
                 TimeWindow.allTime(),
                 PlayerFilter.anyone(),
+                TextFilter.any(),
                 LookupCommand.DEFAULT_COUNT,
                 SortOrder.LOGGER,
                 null,

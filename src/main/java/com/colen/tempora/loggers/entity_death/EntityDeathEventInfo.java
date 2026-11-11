@@ -7,6 +7,7 @@ import com.colen.tempora.chat.EventChat;
 import com.colen.tempora.loggers.generic.PositionalEventInfo;
 import com.colen.tempora.loggers.generic.column.Column;
 import com.colen.tempora.loggers.generic.column.ColumnType;
+import com.colen.tempora.loggers.generic.column.names.lookups.MobNames;
 import com.colen.tempora.utils.CommandUtils;
 import com.colen.tempora.utils.PlayerUtils;
 
@@ -15,7 +16,7 @@ import io.netty.buffer.ByteBuf;
 
 public class EntityDeathEventInfo extends PositionalEventInfo {
 
-    @Column
+    @Column(nameRole = MobNames.class)
     public String entityName = "";
 
     // See DeathCause
@@ -59,7 +60,8 @@ public class EntityDeathEventInfo extends PositionalEventInfo {
     @Override
     public IChatComponent localiseText() {
         IChatComponent when = EventChat.time(timestamp);
-        IChatComponent victim = EventChat.entity(entityName, entityUUID);
+        // The killer isn't searchable here, only in player deaths
+        IChatComponent victim = EventChat.searchable(EventChat.entity(entityName, entityUUID));
         IChatComponent where = EventChat.where(this, CommandUtils.TeleportType.EXACT);
 
         IChatComponent killer = DeathCause.killer(killerPlayerUUID, killedBy);
