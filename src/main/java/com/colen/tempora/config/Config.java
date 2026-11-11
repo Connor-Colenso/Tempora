@@ -44,7 +44,10 @@ public class Config {
             GENERAL_CATEGORY,
             GenericUtils.isDevEnvironment(),
             "Turns Tempora on, in singleplayer and on servers alike. While off, nothing is logged, no databases are created and /tempora only says how to turn it on. Each logger can also be turned off on its own, in positional_loggers.cfg or global_loggers.cfg. Needs a restart.");
-        // -Dtempora.enabled=true/false beats the file, for test runs in the full pack (see addon.gradle)
+        // Headless Horizon-QA runs (pack CI, runFullPackServerTests) turn it on so the gametests test something. The
+        // pack ships it off. Never saved to the file
+        if ("ci".equalsIgnoreCase(System.getProperty("horizonqa.mode"))) enabled = true;
+        // -Dtempora.enabled=true/false beats both, e.g. to check how the pack behaves with it off
         String enabledOverride = System.getProperty("tempora.enabled");
         if (enabledOverride != null) enabled = Boolean.parseBoolean(enabledOverride);
 

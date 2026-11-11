@@ -29,19 +29,19 @@ Before installing:
 
 ## Features
 
-- **Per-event-type logging** — block changes, player positions, player and mob deaths,
+- **Per-event-type logging** - block changes, player positions, player and mob deaths,
   entity spawns, explosions, inventory transfers, item pickups and drops, item use, and command history, each in
   its own SQLite database file.
-- **Server-wide logging** — players joining and leaving, weather changes and TPS, which belong to
+- **Server-wide logging** - players joining and leaving, weather changes and TPS, which belong to
   the whole server rather than a place. See [Logger kinds](#logger-kinds).
-- **In-game querying** — look up what happened around you (`/tempora lookup`), click blocks with
+- **In-game querying** - look up what happened around you (`/tempora lookup`), click blocks with
   the Tempora wand, see the latest server-wide events (`/tempora global`), or run a read-only SQL
   query directly against a logger's table (`/tempora sql`).
-- **Regions** — turn individual loggers on or off in specific areas of the world, e.g. log every
+- **Regions** - turn individual loggers on or off in specific areas of the world, e.g. log every
   block change around spawn, or stop logging mob deaths in a mob farm. See [Regions](#regions).
-- **Configurable retention** — per-logger data retention window. Old events are deleted in the
+- **Configurable retention** - per-logger data retention window. Old events are deleted in the
   background while the server runs, a few thousand at a time, so it never holds up the server.
-- **Schema evolution support** — the database schema is derived from annotated Java fields and
+- **Schema evolution support** - the database schema is derived from annotated Java fields and
   updates itself on startup (new columns, and explicit renames via `@Column(renamedFrom = ...)`)
   without handwritten migrations.
 
@@ -125,29 +125,30 @@ position and which region (or config option) decided it.
 
 Tempora's config is split across five files in `config/tempora/`:
 
-- `tempora.cfg` — `enabled`, which turns Tempora on at all. It defaults to off, in singleplayer
+- `tempora.cfg` - `enabled`, which turns Tempora on at all. It defaults to off, in singleplayer
   and on servers alike, so the mod does nothing in a pack until someone turns it on (and
   restarts). In the development workspace it defaults to on.
-  `-Dtempora.enabled=true` (or `false`) on the JVM overrides the file.
-- `positional_loggers.cfg` and `global_loggers.cfg` — a section per logger (below), in the file
+  Headless Horizon-QA test runs (`-Dhorizonqa.mode=ci`, as in GTNH's pack CI) turn it on so the
+  gametests have something to test. `-Dtempora.enabled=true` (or `false`) on the JVM beats both.
+- `positional_loggers.cfg` and `global_loggers.cfg` - a section per logger (below), in the file
   for its kind. Loggers added by other mods get their sections here too.
-- `commands.cfg` — the lookup time limit (`queryTimeLimitSeconds`), the most events an `n:` can ask for
+- `commands.cfg` - the lookup time limit (`queryTimeLimitSeconds`), the most events an `n:` can ask for
   from each logger (`maxResultsPerLogger`, 1,000), and how many events
   `/tempora sql` shows (`sqlMaxResults`).
-- `client.cfg` — how far away looked up events are drawn, and client debug rendering.
+- `client.cfg` - how far away looked up events are drawn, and client debug rendering.
 
 Each logger's section has:
 
-- `enabled` — turns the logger off entirely, regardless of regions.
-- `logByDefault` — whether the logger records events where no region has a rule for it.
+- `enabled` - turns the logger off entirely, regardless of regions.
+- `logByDefault` - whether the logger records events where no region has a rule for it.
   Positional loggers only.
-- `oldestDataCutoff` — how long to retain logged events before they're deleted (e.g. `4months`).
-- `databaseCacheSizeMB` — the most memory SQLite may use to cache the logger's database. A bigger
+- `oldestDataCutoff` - how long to retain logged events before they're deleted (e.g. `4months`).
+- `databaseCacheSizeMB` - the most memory SQLite may use to cache the logger's database. A bigger
   cache makes writing to a large database faster.
-- `maxEventsInQueueBeforeServerFreeze` — if this many events are waiting to be written, the server
+- `maxEventsInQueueBeforeServerFreeze` - if this many events are waiting to be written, the server
   stops ticking until the database catches up, so memory use stays bounded. If this happens a lot,
   the logger is recording too much.
-- `maxShutdownTimeoutMilliseconds` — how long the server waits, while stopping, for the logger to
+- `maxShutdownTimeoutMilliseconds` - how long the server waits, while stopping, for the logger to
   write what it still has queued.
 
 Some loggers have options of their own, such as `logNBT` (also store blocks' or items' NBT, on by
@@ -258,4 +259,4 @@ other mods ship (GT5, AE2, ...), on a fresh world, then stops; it fails if a tes
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT - see [LICENSE](LICENSE).
