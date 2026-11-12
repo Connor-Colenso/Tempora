@@ -1,19 +1,19 @@
 package com.colen.tempora.commands.region;
 
-import static com.colen.tempora.Tempora.NETWORK;
-
 import java.util.List;
 
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.event.ClickEvent;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
 import com.colen.tempora.commands.command_base.TemporaSubcommand;
+import com.colen.tempora.networking.PlayerPackets;
 import com.colen.tempora.networking.packets.PacketRemoveRegionFromClient;
 import com.colen.tempora.regions.TemporaRegionRegistry;
 import com.colen.tempora.regions.TemporaWorldRegion;
@@ -70,7 +70,12 @@ public class RegionRemoveCommand extends TemporaSubcommand {
         TemporaRegionRegistry.remove(region);
 
         // Stops it rendering for anyone looking at it
-        NETWORK.sendToAll(new PacketRemoveRegionFromClient(region.getRegionUUID()));
+        for (EntityPlayerMP online : MinecraftServer.getServer()
+            .getConfigurationManager().playerEntityList) {
+            if (CommandUtils.mayUseTempora(online)) {
+                PlayerPackets.sendTo(new PacketRemoveRegionFromClient(region.getRegionUUID()), online);
+            }
+        }
 
         IChatComponent msg = new ChatComponentTranslation(
             "tempora.command.region.remove.removed",
