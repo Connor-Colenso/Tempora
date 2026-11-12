@@ -3,11 +3,14 @@ package com.colen.tempora.rendering.events;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import javax.annotation.Nullable;
 
 import com.colen.tempora.config.ClientConfig;
 import com.colen.tempora.loggers.generic.PositionalEventInfo;
@@ -26,11 +29,24 @@ public final class ClientEventStore {
     // timer resets
     private static final Map<String, Map<Long, ReceivedEvent>> EVENTS = new LinkedHashMap<>();
 
+    // Player UUID -> name, sent with the events. Kept until the world unloads, a server has a few thousand players at
+    // most
+    private static final Map<String, String> PLAYER_NAMES = new HashMap<>();
+
     private ClientEventStore() {}
 
     public static void add(PositionalEventInfo event) {
         EVENTS.computeIfAbsent(event.getLoggerName(), name -> new LinkedHashMap<>())
             .put(event.eventID, new ReceivedEvent(event, System.currentTimeMillis()));
+    }
+
+    public static void addPlayerNames(Map<String, String> names) {
+        PLAYER_NAMES.putAll(names);
+    }
+
+    // Name the server sent for this UUID, null if it didn't send one
+    public static @Nullable String playerName(String uuid) {
+        return PLAYER_NAMES.get(uuid);
     }
 
     public static void expire() {
@@ -48,6 +64,7 @@ public final class ClientEventStore {
 
     public static void clear() {
         EVENTS.clear();
+        PLAYER_NAMES.clear();
     }
 
     public static boolean isEmpty() {

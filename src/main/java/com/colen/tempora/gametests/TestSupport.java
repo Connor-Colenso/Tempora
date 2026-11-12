@@ -183,8 +183,15 @@ final class TestSupport {
     // Catches a field written but not read (or the other way round) here instead of as a garbled event on someone's
     // screen
     static void assertPacketRoundTrips(GameTestHelper helper, PositionalEventInfo event, String context) {
+        RenderEventPacket sent = new RenderEventPacket(event);
+        // Stands in for a name from the server's UsernameCache
+        sent.playerNames.put(
+            UUID.randomUUID()
+                .toString(),
+            "TestPlayer");
+
         ByteBuf written = Unpooled.buffer();
-        new RenderEventPacket(event).toBytes(written);
+        sent.toBytes(written);
         byte[] bytes = new byte[written.readableBytes()];
         written.getBytes(0, bytes);
 
@@ -192,9 +199,12 @@ final class TestSupport {
         read.fromBytes(written);
         helper.assertNotNull(read.eventInfo, context + ": render packet could not be read back");
         helper.assertEquals(0L, written.readableBytes(), context + ": render packet has bytes left over once read");
+        helper.assertEquals(sent.playerNames, read.playerNames, context + ": player names sent with the event");
 
         ByteBuf rewritten = Unpooled.buffer();
-        new RenderEventPacket(read.eventInfo).toBytes(rewritten);
+        RenderEventPacket resent = new RenderEventPacket(read.eventInfo);
+        resent.playerNames.putAll(read.playerNames);
+        resent.toBytes(rewritten);
         byte[] rewrittenBytes = new byte[rewritten.readableBytes()];
         rewritten.getBytes(0, rewrittenBytes);
         helper.assertTrue(

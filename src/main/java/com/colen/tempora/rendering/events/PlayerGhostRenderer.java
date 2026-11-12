@@ -125,7 +125,11 @@ public abstract class PlayerGhostRenderer<E extends PositionalEventInfo> impleme
     }
 
     private @Nullable EntityOtherPlayerMP ghostFor(E event, EventRenderContext context) {
-        if (ghosts.containsKey(event)) return ghosts.get(event);
+        if (ghosts.containsKey(event)) {
+            EntityOtherPlayerMP made = ghosts.get(event);
+            if (made == null || !skinCameIn(made.getGameProfile())) return made;
+            // Otherwise made again with the skin
+        }
 
         EntityOtherPlayerMP ghost = null;
         try {
@@ -142,8 +146,14 @@ public abstract class PlayerGhostRenderer<E extends PositionalEventInfo> impleme
         return ghost;
     }
 
-    // Real player's profile while they're close enough to see so the ghost wears their skin, otherwise a default skin
-    // under their name
+    // Ghost made with the default skin whose real one has since come in from Mojang, see GhostSkins
+    private static boolean skinCameIn(GameProfile madeWith) {
+        if (GhostSkins.hasSkin(madeWith) || madeWith.getId() == null) return false;
+        return GhostSkins.withSkin(madeWith.getId(), madeWith.getName()) != null;
+    }
+
+    // Real player's profile while they're close enough to see, otherwise one with their skin from Mojang once that's
+    // come in. Default skin under their name until then
     private static GameProfile profileOf(String playerUUID) {
         UUID uuid = null;
         try {
@@ -152,11 +162,13 @@ public abstract class PlayerGhostRenderer<E extends PositionalEventInfo> impleme
             // Shown under whatever was stored instead
         }
 
-        if (uuid != null) {
-            EntityPlayer online = EventRenderHelpers.onlinePlayer(uuid);
-            if (online != null) return online.getGameProfile();
-        }
+        String name = EventRenderHelpers.playerName(playerUUID);
+        if (uuid == null) return new GameProfile(null, name);
 
-        return new GameProfile(uuid, EventRenderHelpers.playerName(playerUUID));
+        EntityPlayer online = EventRenderHelpers.onlinePlayer(uuid);
+        if (online != null) return online.getGameProfile();
+
+        GameProfile withSkin = GhostSkins.withSkin(uuid, name);
+        return withSkin != null ? withSkin : new GameProfile(uuid, name);
     }
 }

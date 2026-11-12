@@ -13,6 +13,7 @@ public class GenericRenderEventPacketHandler implements IMessageHandler<RenderEv
     public IMessage onMessage(RenderEventPacket pkt, MessageContext ctx) {
         // Null if this client doesn't have the logger or couldn't read the event
         if (ctx.side == Side.CLIENT && pkt.eventInfo != null) {
+            ClientEventStore.addPlayerNames(pkt.playerNames);
             ClientEventStore.add(pkt.eventInfo);
         }
         return null;

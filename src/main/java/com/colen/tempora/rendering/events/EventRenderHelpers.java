@@ -196,6 +196,10 @@ public final class EventRenderHelpers {
         String cached = UsernameCache.getLastKnownUsername(uuid);
         if (cached != null) return cached;
 
+        // What the server sent with the event, for everyone else
+        String sent = ClientEventStore.playerName(uuidOrCause);
+        if (sent != null) return sent;
+
         EntityPlayer online = onlinePlayer(uuid);
         if (online != null) return online.getCommandSenderName();
 
