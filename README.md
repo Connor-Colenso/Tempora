@@ -14,7 +14,7 @@ teleport to, and drawn in the world for a few seconds as the blocks, mobs and pl
 commands don't cover, `/tempora sql` runs a read-only query on the data directly.
 
 This mod should also work in singleplayer, if enabled in config. Though primary support is for servers due to the nature
-of the mod, but some tooks like e.g. stacktrace logging may be of use in diagnostics.
+of the mod, but some tools like e.g. stacktrace logging may be of use in diagnostics.
 
 Before installing:
 
