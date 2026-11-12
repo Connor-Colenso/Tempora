@@ -52,7 +52,7 @@ public class EntityDeathRenderer extends EntityEventRenderer<EntityDeathEventInf
                 EventRenderHelpers.entityName(event.entityName)),
             EnumChatFormatting.GRAY + StatCollector.translateToLocalFormatted(
                 "tempora.render.event.killed_by",
-                EventRenderHelpers.killerName(event.killerPlayerUUID, event.killedBy)),
+                EventRenderHelpers.killerName(event.killerPlayerUUID, event.killerMob, event.damageType)),
             EnumChatFormatting.GRAY + EventRenderHelpers.timeAgo(event.timestamp));
     }
 }

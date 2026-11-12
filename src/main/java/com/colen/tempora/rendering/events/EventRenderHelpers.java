@@ -26,6 +26,7 @@ import net.minecraftforge.common.UsernameCache;
 
 import org.lwjgl.opengl.GL11;
 
+import com.colen.tempora.loggers.entity_death.DeathCause;
 import com.colen.tempora.loggers.generic.PositionalEventInfo;
 import com.colen.tempora.rendering.RenderUtils;
 import com.colen.tempora.utils.PlayerUtils;
@@ -178,8 +179,8 @@ public final class EventRenderHelpers {
     }
 
     /**
-     * Player name from their UUID. Anything that isn't a UUID (a cause like "[EntityZombie]" or a key like
-     * tempora.unknown.player) is shown as is, translated if it can be
+     * Player name from their UUID. Anything that isn't a UUID (a key like tempora.unknown.player) is shown as is,
+     * translated if it can be
      */
     public static String playerName(@Nullable String uuidOrCause) {
         if (uuidOrCause == null) return "?";
@@ -202,11 +203,14 @@ public final class EventRenderHelpers {
     }
 
     /**
-     * What killed something, from the death loggers' columns (see DeathCause). The player if one did, otherwise the
-     * cause
+     * What killed something, from the death loggers' columns (see DeathCause). The player or mob if one did,
+     * otherwise how it died
      */
-    public static String killerName(String killerPlayerUUID, String killedBy) {
-        return PlayerUtils.isUUID(killerPlayerUUID) ? playerName(killerPlayerUUID) : playerName(killedBy);
+    public static String killerName(String killerPlayerUUID, String killerMob, String damageType) {
+        if (PlayerUtils.isUUID(killerPlayerUUID)) return playerName(killerPlayerUUID);
+        if (!killerMob.isEmpty()) return entityName(killerMob);
+        if (!damageType.isEmpty()) return DeathCause.damageText(damageType);
+        return StatCollector.translateToLocal(PlayerUtils.UNKNOWN_CAUSE);
     }
 
     /** Player with this UUID if they're close enough for this client to see, otherwise null */

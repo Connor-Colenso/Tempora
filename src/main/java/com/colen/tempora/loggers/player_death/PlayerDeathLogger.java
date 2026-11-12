@@ -14,8 +14,6 @@ import com.colen.tempora.TemporaEvents;
 import com.colen.tempora.enums.LoggerEventType;
 import com.colen.tempora.loggers.entity_death.DeathCause;
 import com.colen.tempora.loggers.generic.GenericPositionalLogger;
-import com.colen.tempora.loggers.generic.column.names.lookups.MobNames;
-import com.colen.tempora.utils.TextFilter;
 
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
@@ -49,12 +47,6 @@ public class PlayerDeathLogger extends GenericPositionalLogger<PlayerDeathEventI
         return LoggerEventType.ForgeEvent;
     }
 
-    // f: finds deaths by the mob that killed them, killedBy holds it as [Zombie]
-    @Override
-    public @Nullable String textFilterCondition(TextFilter filter) {
-        return filter.condition(MobNames.class, "substr(killedBy, 2, length(killedBy) - 2)");
-    }
-
     @SubscribeEvent(priority = EventPriority.LOWEST)
     @SuppressWarnings("unused")
     public void onPlayerDeath(LivingDeathEvent event) {
@@ -74,7 +66,8 @@ public class PlayerDeathLogger extends GenericPositionalLogger<PlayerDeathEventI
 
         DeathCause cause = DeathCause.of(source);
         eventInfo.killerPlayerUUID = cause.killerPlayerUUID;
-        eventInfo.killedBy = cause.killedBy;
+        eventInfo.killerMob = cause.killerMob;
+        eventInfo.damageType = cause.damageType;
 
         eventInfo.xpLevel = player.experienceLevel;
         eventInfo.keepInventory = player.worldObj.getGameRules()

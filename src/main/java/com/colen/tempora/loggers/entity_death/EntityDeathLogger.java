@@ -72,7 +72,8 @@ public class EntityDeathLogger extends GenericPositionalLogger<EntityDeathEventI
 
         DeathCause cause = DeathCause.of(source);
         eventInfo.killerPlayerUUID = cause.killerPlayerUUID;
-        eventInfo.killedBy = cause.killedBy;
+        eventInfo.killerMob = cause.killerMob;
+        eventInfo.damageType = cause.damageType;
 
         logEvent(eventInfo, entity.dimension, entity.posX, entity.posY, entity.posZ);
     }

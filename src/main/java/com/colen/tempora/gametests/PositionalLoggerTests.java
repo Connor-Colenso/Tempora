@@ -318,7 +318,8 @@ public class PositionalLoggerTests {
                     .get(0);
                 helper.assertEquals("Pig", event.entityName, "entityName");
                 helper.assertEquals(uuid(player), event.killerPlayerUUID, "killerPlayerUUID");
-                helper.assertEquals("[player]", event.killedBy, "killedBy");
+                helper.assertEquals("", event.killerMob, "killerMob");
+                helper.assertEquals("player", event.damageType, "damageType");
                 assertWellFormed(helper, logger, probe.latest());
             })
             .thenSucceed();

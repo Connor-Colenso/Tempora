@@ -52,7 +52,7 @@ public class PlayerDeathRenderer extends PlayerGhostRenderer<PlayerDeathEventInf
                 EnumChatFormatting.RED
                     + StatCollector.translateToLocalFormatted(
                         "tempora.render.event.killed_by",
-                        EventRenderHelpers.killerName(event.killerPlayerUUID, event.killedBy))
+                        EventRenderHelpers.killerName(event.killerPlayerUUID, event.killerMob, event.damageType))
                     + " "
                     + EnumChatFormatting.GRAY
                     + EventRenderHelpers.timeAgo(event.timestamp));

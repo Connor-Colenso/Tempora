@@ -569,7 +569,7 @@ public class TextFilterTests {
             .thenSucceed();
     }
 
-    // Player deaths go by the mob that killed them, which killedBy holds as [Zombie]
+    // Player deaths go by the mob that killed them
     @GameTest(timeoutTicks = TIMEOUT_TICKS)
     public static void playerDeathsByKiller(GameTestHelper helper) {
         GenericPositionalLogger<?> logger = TemporaEvents.playerDeathLogger;
@@ -586,14 +586,52 @@ public class TextFilterTests {
 
         helper.startSequence()
             .thenExecute("a player dies to a zombie and another to a fall", () -> {
-                TemporaEvents.playerDeathLogger.queueEventInfo(playerDeath(helper, pos, "[Zombie]"));
-                TemporaEvents.playerDeathLogger.queueEventInfo(playerDeath(helper, pos, "[fall]"));
+                TemporaEvents.playerDeathLogger.queueEventInfo(playerDeath(helper, pos, "Zombie", "mob"));
+                TemporaEvents.playerDeathLogger.queueEventInfo(playerDeath(helper, pos, "", "fall"));
             })
             .thenWaitUntil(
                 "zombie finds the zombie death",
                 WRITE_TICKS,
                 () -> helper.assertEquals(
                     1L,
+                    (long) events(helper, zombie.poll(() -> near(logger, dim, pos, answered(player, "zombie")))).size(),
+                    "deaths found"))
+            .thenSucceed();
+    }
+
+    // Mob deaths go by the mob that died or the mob that killed it
+    @GameTest(timeoutTicks = TIMEOUT_TICKS)
+    public static void mobDeathsByVictimOrKiller(GameTestHelper helper) {
+        GenericPositionalLogger<?> logger = TemporaEvents.entityDeathLogger;
+        EntityPlayerMP player = player(helper, "name_mob_killers");
+        TestPos pos = helper.absolute(at(3, 1, 4));
+        int dim = helper.getWorld().provider.dimensionId;
+        Probe<FoundEvents<?>> zombie = new Probe<>(helper, "mobDeathsByVictimOrKiller.zombie");
+
+        answer(
+            player,
+            "zombie",
+            new ResolvedNames.Builder().entity("Zombie")
+                .build());
+
+        helper.startSequence()
+            .thenExecute("a zombie kills a villager, a zombie burns and a pig falls", () -> {
+                EntityDeathEventInfo villager = death(helper, pos, "Villager");
+                villager.killerMob = "Zombie";
+                villager.damageType = "mob";
+                EntityDeathEventInfo burnt = death(helper, pos, "Zombie");
+                burnt.damageType = "onFire";
+                EntityDeathEventInfo pig = death(helper, pos, "Pig");
+                pig.damageType = "fall";
+                TemporaEvents.entityDeathLogger.queueEventInfo(villager);
+                TemporaEvents.entityDeathLogger.queueEventInfo(burnt);
+                TemporaEvents.entityDeathLogger.queueEventInfo(pig);
+            })
+            .thenWaitUntil(
+                "zombie finds the villager it killed and the zombie that burnt",
+                WRITE_TICKS,
+                () -> helper.assertEquals(
+                    2L,
                     (long) events(helper, zombie.poll(() -> near(logger, dim, pos, answered(player, "zombie")))).size(),
                     "deaths found"))
             .thenSucceed();
@@ -758,9 +796,11 @@ public class TextFilterTests {
         return event;
     }
 
-    private static PlayerDeathEventInfo playerDeath(GameTestHelper helper, TestPos pos, String killedBy) {
+    private static PlayerDeathEventInfo playerDeath(GameTestHelper helper, TestPos pos, String killerMob,
+        String damageType) {
         PlayerDeathEventInfo event = placed(helper, pos, new PlayerDeathEventInfo());
-        event.killedBy = killedBy;
+        event.killerMob = killerMob;
+        event.damageType = damageType;
         return event;
     }
 

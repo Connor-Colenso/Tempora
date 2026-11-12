@@ -20,11 +20,15 @@ public class EntityDeathEventInfo extends PositionalEventInfo {
     public String entityName = "";
 
     // See DeathCause
-    @Column(type = ColumnType.PLAYER)
-    public String killerPlayerUUID = PlayerUtils.UNKNOWN_PLAYER_NAME;
+    @Column(nameRole = MobNames.class, group = "killer")
+    public String killerMob = "";
 
     @Column
-    public String killedBy = PlayerUtils.UNKNOWN_CAUSE;
+    public String damageType = "";
+
+    // See DeathCause
+    @Column(type = ColumnType.PLAYER)
+    public String killerPlayerUUID = PlayerUtils.UNKNOWN_PLAYER_NAME;
 
     @Column
     public String entityUUID = "";
@@ -40,7 +44,8 @@ public class EntityDeathEventInfo extends PositionalEventInfo {
         super.fromBytes(buf);
         entityName = ByteBufUtils.readUTF8String(buf);
         killerPlayerUUID = ByteBufUtils.readUTF8String(buf);
-        killedBy = ByteBufUtils.readUTF8String(buf);
+        killerMob = ByteBufUtils.readUTF8String(buf);
+        damageType = ByteBufUtils.readUTF8String(buf);
         entityUUID = ByteBufUtils.readUTF8String(buf);
         rotationYaw = buf.readFloat();
         rotationPitch = buf.readFloat();
@@ -51,7 +56,8 @@ public class EntityDeathEventInfo extends PositionalEventInfo {
         super.toBytes(buf);
         ByteBufUtils.writeUTF8String(buf, entityName);
         ByteBufUtils.writeUTF8String(buf, killerPlayerUUID);
-        ByteBufUtils.writeUTF8String(buf, killedBy);
+        ByteBufUtils.writeUTF8String(buf, killerMob);
+        ByteBufUtils.writeUTF8String(buf, damageType);
         ByteBufUtils.writeUTF8String(buf, entityUUID);
         buf.writeFloat(rotationYaw);
         buf.writeFloat(rotationPitch);
@@ -60,14 +66,13 @@ public class EntityDeathEventInfo extends PositionalEventInfo {
     @Override
     public IChatComponent localiseText() {
         IChatComponent when = EventChat.time(timestamp);
-        // The killer isn't searchable here, only in player deaths
         IChatComponent victim = EventChat.searchable(EventChat.entity(entityName, entityUUID));
         IChatComponent where = EventChat.where(this, CommandUtils.TeleportType.EXACT);
 
-        IChatComponent killer = DeathCause.killer(killerPlayerUUID, killedBy);
+        IChatComponent killer = DeathCause.killer(killerPlayerUUID, killerMob);
         if (killer != null) return EventChat.line("tempora.event.entity_death.killed", when, killer, victim, where);
 
-        IChatComponent damage = DeathCause.damage(killedBy);
+        IChatComponent damage = DeathCause.damage(damageType);
         if (damage != null) return EventChat.line("tempora.event.entity_death.died", when, victim, damage, where);
 
         return EventChat.line("tempora.event.entity_death.unknown", when, victim, where);

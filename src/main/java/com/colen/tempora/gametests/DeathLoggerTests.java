@@ -69,7 +69,8 @@ public class DeathLoggerTests {
                     .get(0);
                 helper.assertEquals(uuid(player), event.playerUUID, "playerUUID");
                 helper.assertEquals(PlayerUtils.UNKNOWN_PLAYER_NAME, event.killerPlayerUUID, "killerPlayerUUID");
-                helper.assertEquals("[Zombie]", event.killedBy, "killedBy");
+                helper.assertEquals("Zombie", event.killerMob, "killerMob");
+                helper.assertEquals("mob", event.damageType, "damageType");
                 helper.assertEquals(7L, event.xpLevel, "xpLevel");
                 helper.assertEquals(keepInventory, event.keepInventory, "keepInventory");
                 assertWellFormed(helper, TemporaEvents.playerDeathLogger, probe.latest());
@@ -104,7 +105,8 @@ public class DeathLoggerTests {
                     .get(0);
                 helper.assertEquals(uuid(victim), event.playerUUID, "playerUUID");
                 helper.assertEquals(uuid(killer), event.killerPlayerUUID, "killerPlayerUUID");
-                helper.assertEquals("[player]", event.killedBy, "killedBy");
+                helper.assertEquals("", event.killerMob, "killerMob");
+                helper.assertEquals("player", event.damageType, "damageType");
             })
             .thenSucceed();
     }

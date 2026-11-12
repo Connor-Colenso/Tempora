@@ -12,6 +12,7 @@ import com.colen.tempora.loggers.entity_death.DeathCause;
 import com.colen.tempora.loggers.generic.PositionalEventInfo;
 import com.colen.tempora.loggers.generic.column.Column;
 import com.colen.tempora.loggers.generic.column.ColumnType;
+import com.colen.tempora.loggers.generic.column.names.lookups.MobNames;
 import com.colen.tempora.utils.CommandUtils;
 import com.colen.tempora.utils.PlayerUtils;
 
@@ -27,10 +28,12 @@ public class PlayerDeathEventInfo extends PositionalEventInfo {
     @Column(type = ColumnType.PLAYER)
     public String killerPlayerUUID = PlayerUtils.UNKNOWN_PLAYER_NAME;
 
-    // A mob in brackets like [Zombie] or a damage type like [fall], see DeathCause. Not an ENTITY_NAME column because
-    // of the brackets, PlayerDeathLogger.textFilterCondition matches it instead
+    // See DeathCause
+    @Column(nameRole = MobNames.class)
+    public String killerMob = "";
+
     @Column
-    public String killedBy = PlayerUtils.UNKNOWN_CAUSE;
+    public String damageType = "";
 
     @Column
     public int xpLevel;
@@ -50,7 +53,8 @@ public class PlayerDeathEventInfo extends PositionalEventInfo {
         super.fromBytes(buf);
         playerUUID = ByteBufUtils.readUTF8String(buf);
         killerPlayerUUID = ByteBufUtils.readUTF8String(buf);
-        killedBy = ByteBufUtils.readUTF8String(buf);
+        killerMob = ByteBufUtils.readUTF8String(buf);
+        damageType = ByteBufUtils.readUTF8String(buf);
         xpLevel = buf.readInt();
         keepInventory = buf.readBoolean();
         rotationYaw = buf.readFloat();
@@ -62,7 +66,8 @@ public class PlayerDeathEventInfo extends PositionalEventInfo {
         super.toBytes(buf);
         ByteBufUtils.writeUTF8String(buf, playerUUID);
         ByteBufUtils.writeUTF8String(buf, killerPlayerUUID);
-        ByteBufUtils.writeUTF8String(buf, killedBy);
+        ByteBufUtils.writeUTF8String(buf, killerMob);
+        ByteBufUtils.writeUTF8String(buf, damageType);
         buf.writeInt(xpLevel);
         buf.writeBoolean(keepInventory);
         buf.writeFloat(rotationYaw);
@@ -78,14 +83,12 @@ public class PlayerDeathEventInfo extends PositionalEventInfo {
             keepInventory ? "tempora.event.player_death.level_kept" : "tempora.event.player_death.level",
             EventChat.text(formatNumber(xpLevel), EnumChatFormatting.WHITE));
 
-        IChatComponent killer = DeathCause.killer(killerPlayerUUID, killedBy);
-        // A mob killer is searchable (PlayerDeathLogger), a player one goes by p:
-        if (killer != null && !PlayerUtils.isUUID(killerPlayerUUID)) EventChat.searchable(killer);
+        IChatComponent killer = DeathCause.killer(killerPlayerUUID, killerMob);
         if (killer != null) {
             return EventChat.line("tempora.event.player_death.killed", when, victim, killer, where, level);
         }
 
-        IChatComponent damage = DeathCause.damage(killedBy);
+        IChatComponent damage = DeathCause.damage(damageType);
         if (damage != null) {
             return EventChat.line("tempora.event.player_death.died", when, victim, damage, where, level);
         }
