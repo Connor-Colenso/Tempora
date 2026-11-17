@@ -1,12 +1,10 @@
 package com.colen.tempora;
 
 import static com.colen.tempora.Tempora.NETWORK;
-import static com.colen.tempora.Tempora.renderingErrorBlock;
 import static com.colen.tempora.Tempora.stressTestBlock;
 
 import net.minecraftforge.common.MinecraftForge;
 
-import com.colen.tempora.blocks.RenderingErrorItemBlock;
 import com.colen.tempora.blocks.stress.StressTestTileEntity;
 import com.colen.tempora.chat.TemporaChatRegistry;
 import com.colen.tempora.config.CommandsConfig;
@@ -37,7 +35,6 @@ public class CommonProxy {
         Config.load(event.getModConfigurationDirectory());
         ConfigurationManager.registerConfig(CommandsConfig.class);
         GameRegistry.registerItem(Tempora.temporaWand, "tempora_wand");
-        GameRegistry.registerBlock(renderingErrorBlock, RenderingErrorItemBlock.class, "rendering_error_block");
 
         if (GenericUtils.isDevEnvironment()) {
             GameRegistry.registerBlock(stressTestBlock, "stressTestBlock");

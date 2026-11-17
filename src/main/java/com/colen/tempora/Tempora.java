@@ -38,6 +38,7 @@ import cpw.mods.fml.common.network.simpleimpl.SimpleNetworkWrapper;
     version = Tags.VERSION,
     name = Tempora.MODNAME,
     acceptedMinecraftVersions = "[1.7.10]",
+    acceptableRemoteVersions = "*",
     dependencies = "required-after:gtnhlib@[0.11.52,);after:appliedenergistics2;after:NotEnoughItems")
 public class Tempora {
 

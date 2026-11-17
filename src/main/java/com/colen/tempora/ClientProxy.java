@@ -1,6 +1,6 @@
 package com.colen.tempora;
 
-import net.minecraft.item.ItemStack;
+import net.minecraftforge.client.event.TextureStitchEvent;
 import net.minecraftforge.common.MinecraftForge;
 
 import com.colen.tempora.config.ClientConfig;
@@ -27,12 +27,11 @@ import com.colen.tempora.rendering.regions.RenderRegionsInWorld;
 import com.colen.tempora.utils.ClientNameIndex;
 import com.gtnewhorizon.gtnhlib.config.ConfigurationManager;
 
-import codechicken.nei.api.API;
 import cpw.mods.fml.common.FMLCommonHandler;
-import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
 @SuppressWarnings("unused")
 public class ClientProxy extends CommonProxy {
@@ -61,6 +60,14 @@ public class ClientProxy extends CommonProxy {
 
         // Debug only
         MinecraftForge.EVENT_BUS.register(new RenderIDsInWorld());
+
+        MinecraftForge.EVENT_BUS.register(this);
+    }
+
+    // The error block isn't registered so the block atlas doesn't load its icon for it
+    @SubscribeEvent
+    public void onTextureStitch(TextureStitchEvent.Pre event) {
+        if (event.map.getTextureType() == 0) Tempora.renderingErrorBlock.registerBlockIcons(event.map);
     }
 
     // How each of our positional loggers draws its events. Runs after the loggers are registered in CommonProxy.init
@@ -84,9 +91,5 @@ public class ClientProxy extends CommonProxy {
     @Override
     public void postInit(FMLPostInitializationEvent event) {
         super.postInit(event);
-        // NEI is optional, without it there's no item list to hide the block from
-        if (Loader.isModLoaded("NotEnoughItems")) {
-            API.hideItem(new ItemStack(Tempora.renderingErrorBlock));
-        }
     }
 }

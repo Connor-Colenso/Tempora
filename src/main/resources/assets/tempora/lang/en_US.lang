@@ -3,9 +3,7 @@
 
 # Blocks and items
 item.tempora_wand.name=Tempora Wand
-tile.rendering_error_block.name=Tempora Rendering Error
 tile.temporaStressTestBlock.name=Tempora Stress Test Block
-tempora.tooltip.rendering_error=If you are seeing this, something has likely gone wrong with Tempora's event rendering. Please report it, thanks!
 # Air has no name in vanilla but block changes can be to or from it
 tempora.block.air=Air
 
