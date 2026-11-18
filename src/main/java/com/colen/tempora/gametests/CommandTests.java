@@ -1,10 +1,15 @@
 package com.colen.tempora.gametests;
 
 import static com.colen.tempora.gametests.PositionalLoggerTests.breakBlock;
+import static com.colen.tempora.gametests.TestSupport.answer;
+import static com.colen.tempora.gametests.TestSupport.answered;
 import static com.colen.tempora.gametests.TestSupport.player;
 import static com.gtnewhorizons.horizonqa.api.TestPos.at;
 
+import java.util.Collections;
+
 import net.minecraft.block.Block;
+import net.minecraft.command.CommandException;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Blocks;
 import net.minecraft.network.rcon.RConConsoleSource;
@@ -19,6 +24,7 @@ import com.colen.tempora.loggers.player_block_break.PlayerBlockBreakEventInfo;
 import com.colen.tempora.regions.TemporaRegionRegistry;
 import com.colen.tempora.regions.TemporaWorldRegion;
 import com.colen.tempora.utils.PlayerFilter;
+import com.colen.tempora.utils.ResolvedNames;
 import com.colen.tempora.utils.TimeWindow;
 import com.gtnewhorizons.horizonqa.api.GameTestHelper;
 import com.gtnewhorizons.horizonqa.api.TestPos;
@@ -79,6 +85,61 @@ public class CommandTests {
             .thenSucceed();
     }
 
+    // f: on /tempora player narrows a player's events to what the client named, wherever they happened
+    @GameTest(timeoutTicks = TIMEOUT_TICKS)
+    public static void playerSearchByText(GameTestHelper helper) {
+        GenericLogger<?> breaks = TemporaEvents.playerBlockBreakLogger;
+        EntityPlayerMP alice = player(helper, "player_text_alice");
+        EntityPlayerMP bob = player(helper, "player_text_bob");
+        PlayerFilter justAlice = PlayerFilter.parse(PositionalLoggerTests.uuid(alice));
+        int stone = Block.getIdFromBlock(Blocks.stone);
+        Probe<FoundEvents<?>> found = new Probe<>(helper, "playerSearchByText.found");
+        Probe<FoundEvents<?>> mobs = new Probe<>(helper, "playerSearchByText.mobs");
+
+        ResolvedNames.Builder stoneNames = new ResolvedNames.Builder();
+        stoneNames.item(stone, ResolvedNames.ANY_META);
+        answer(alice, "stone", stoneNames.build());
+        ResolvedNames.Builder pigNames = new ResolvedNames.Builder();
+        pigNames.entity("Pig");
+        answer(alice, "pig", pigNames.build());
+
+        helper.startSequence()
+            .thenExecute("alice breaks stone and dirt far away, bob breaks stone", () -> {
+                TemporaEvents.playerBlockBreakLogger.queueEventInfo(farBreak(helper, alice, Blocks.stone));
+                TemporaEvents.playerBlockBreakLogger.queueEventInfo(farBreak(helper, alice, Blocks.dirt));
+                TemporaEvents.playerBlockBreakLogger.queueEventInfo(farBreak(helper, bob, Blocks.stone));
+            })
+            .thenWaitUntil("f:stone finds alice's stone only", WRITE_TICKS, () -> {
+                FoundEvents<?> result = found
+                    .poll(() -> breaks.findEventsBy(justAlice, TimeWindow.allTime(), answered(alice, "stone"), 10, ""));
+                LookupTests.assertShown(helper, result, 1);
+                PlayerBlockBreakEventInfo event = (PlayerBlockBreakEventInfo) FoundEvents
+                    .newestAcross(Collections.singletonList(result), 10)
+                    .get(0);
+                helper.assertEquals(stone, event.blockID, "block found");
+            })
+            .thenWaitUntil(
+                "a mob filter finds no block breaks",
+                WRITE_TICKS,
+                () -> LookupTests.assertShown(
+                    helper,
+                    mobs.poll(
+                        () -> breaks.findEventsBy(justAlice, TimeWindow.allTime(), answered(alice, "pig"), 10, "")),
+                    0))
+            .thenSucceed();
+    }
+
+    // f: needs a client to say what the text names, the console has none so it's refused rather than finding nothing
+    @GameTest
+    public static void playerTextNeedsAClient(GameTestHelper helper) {
+        helper.assertThrows(
+            CommandException.class,
+            () -> new TemporaCommand()
+                .processCommand(MinecraftServer.getServer(), new String[] { "player", "Notch", "f:stone" }),
+            "f: from the console was accepted");
+        helper.succeed();
+    }
+
     // RCon runs commands on its own thread and replies before anything we do on the server thread, so /tempora refuses
     // it. Same command from the console still works so the refusal isn't the command itself
     @GameTest
@@ -116,13 +177,17 @@ public class CommandTests {
 
     // A break far from the test, queued on the logger directly
     private static PlayerBlockBreakEventInfo farBreak(GameTestHelper helper, EntityPlayerMP player) {
+        return farBreak(helper, player, Blocks.stone);
+    }
+
+    private static PlayerBlockBreakEventInfo farBreak(GameTestHelper helper, EntityPlayerMP player, Block block) {
         PlayerBlockBreakEventInfo event = new PlayerBlockBreakEventInfo();
         event.timestamp = System.currentTimeMillis();
         event.dimensionID = helper.getWorld().provider.dimensionId;
         event.x = FAR_AWAY;
         event.y = 64;
         event.z = FAR_AWAY;
-        event.blockID = Block.getIdFromBlock(Blocks.stone);
+        event.blockID = Block.getIdFromBlock(block);
         event.pickBlockID = event.blockID;
         event.playerUUID = PositionalLoggerTests.uuid(player);
         event.encodedNBT = "";

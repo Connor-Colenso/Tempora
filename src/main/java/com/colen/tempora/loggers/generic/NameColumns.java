@@ -46,7 +46,7 @@ public final class NameColumns {
         return groups;
     }
 
-    /** All of them, in the order they go on the end of the position index */
+    /** All of them, in the order they go on the end of the position and player indexes */
     public List<String> indexColumns() {
         List<String> columns = new ArrayList<>();
         for (Group group : groups) columns.addAll(group.columns);

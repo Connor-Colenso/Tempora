@@ -24,16 +24,17 @@ import com.colen.tempora.utils.PlayerFilter;
 import com.colen.tempora.utils.PlayerUtils;
 import com.colen.tempora.utils.TimeWindow;
 
-// /tempora player <player,...> [t:<time>] [l:<logger,...>] [n:<count>] [s:<sort>]
+// /tempora player <player,...> [t:<time>] [l:<logger,...>] [n:<count>] [s:<sort>] [f:<text,...>]
 // Latest events of one or more players wherever they happened (a ! leaves a player out, same as p: in a lookup), from
-// every logger that records players unless narrowed with l:. Under each logger or with s:time all together in order.
-// Works from anywhere, console too. Players also get the ones in their dimension drawn in the world
+// every logger that records players unless narrowed with l:, with any text unless narrowed with f: like a lookup. Under
+// each logger or with s:time all together in order. Works from anywhere, console too but without f: since that needs a
+// client to name things. Players also get the ones in their dimension drawn in the world
 public class PlayerCommand extends TemporaSubcommand {
 
     private static final int DEFAULT_COUNT = LookupCommand.DEFAULT_COUNT;
 
     public PlayerCommand() {
-        super("player", "<player>", "[t:<time>]", "[l:<logger,...>]", "[n:<count>]", "[s:<sort>]");
+        super("player", "<player>", "[t:<time>]", "[l:<logger,...>]", "[n:<count>]", "[s:<sort>]", "[f:<text,...>]");
     }
 
     @Override
@@ -45,7 +46,7 @@ public class PlayerCommand extends TemporaSubcommand {
 
         PlayerFilter players = PlayerFilter.parse(args[0]);
 
-        CommandFilters filters = CommandFilters.parse(this, sender, args, 1, "t", "l", "n", "s");
+        CommandFilters filters = CommandFilters.parse(this, sender, args, 1, "t", "l", "n", "s", "f");
         if (filters == null) return;
 
         SortOrder order = SortOrder.parse(sender, filters.get("s", SortOrder.DEFAULT));
@@ -62,15 +63,18 @@ public class PlayerCommand extends TemporaSubcommand {
         SearchSummary summary = new SearchSummary(this, filters).add("t", "all")
             .add("l", "all")
             .add("n", defaultCount)
-            .add("s", SortOrder.DEFAULT);
+            .add("s", SortOrder.DEFAULT)
+            .add("f", "anything");
 
-        TemporaQueries.submit(sender, () -> {
+        LookupCommand.withTextFilter(sender, filters.get("f"), filter -> TemporaQueries.submit(sender, () -> {
             List<FoundEvents<?>> found = new ArrayList<>();
             for (GenericLogger<?> logger : loggers) {
                 // Disabled or failed to start, no db to read
                 if (logger.notStarted()) continue;
 
-                found.add(logger.findEventsBy(players, window, count, command(args[0], "l:" + logger.getShortName())));
+                found.add(
+                    logger
+                        .findEventsBy(players, window, filter, count, command(args[0], "l:" + logger.getShortName())));
             }
             return found;
         }, (target, found) -> {
@@ -79,7 +83,7 @@ public class PlayerCommand extends TemporaSubcommand {
             int shown = LookupCommand.show(target, found, count, order);
 
             target.addChatMessage(summary.line(shown > 0));
-        });
+        }));
     }
 
     // Comma separated logger names, or every logger that records players if null. Returns null after telling the sender

@@ -35,8 +35,8 @@ public class CommandLogger extends GenericPositionalLogger<CommandEventInfo> {
         return "command";
     }
 
-    // f: matches the command as chat shows it, so f:tp finds /tp Colen. Not lookups for the same text though, or the
-    // lookup being run would always find itself. Only /tempora ones, /me waves f:tpx still matches f:tpx
+    // f: matches the command as chat shows it, so f:tp finds /tp Colen. Not searches for the same text though (lookup,
+    // player), or the one being run would always find itself. Only /tempora ones, /me waves f:tpx still matches f:tpx
     @Override
     public @Nullable String textFilterCondition(TextFilter filter) {
         String matches = filter.textCondition("'/' || commandName || ' ' || arguments");

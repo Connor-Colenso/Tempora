@@ -113,7 +113,13 @@ public class LookupCommand extends TemporaSubcommand {
             summary.line(true),
             summary.line(false));
 
-        String text = filters.get("f");
+        withTextFilter(player, filters.get("f"), search);
+    }
+
+    // Runs search with the filter for f:<text>, or for anything if text is null. Names are in the player's language on
+    // their client, so it asks the client what the text names and searches once it says, a few ticks later. The console
+    // and command blocks have no client to ask
+    public static void withTextFilter(ICommandSender sender, @Nullable String text, Consumer<TextFilter> search) {
         if (text == null) {
             search.accept(TextFilter.any());
             return;
@@ -123,8 +129,10 @@ public class LookupCommand extends TemporaSubcommand {
             .isEmpty()) {
             throw new CommandException("tempora.command.lookup.name_empty", text);
         }
+        if (!(sender instanceof EntityPlayerMP player)) {
+            throw new CommandException("tempora.command.lookup.name_no_client", text);
+        }
 
-        // Names are in the player's language on their client, so ask it what the text names and search once it says
         NameRequests.ask(
             player,
             text,

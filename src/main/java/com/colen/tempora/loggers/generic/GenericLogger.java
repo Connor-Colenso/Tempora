@@ -8,6 +8,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -275,10 +276,13 @@ public abstract class GenericLogger<EventInfo extends GenericEventInfo> {
 
     /**
      * Columns of the index on {@link #playerColumn}, must start with it and the timestamp. Override to add more, e.g.
-     * to cover every column one of your own queries reads
+     * to cover every column one of your own queries reads. By default the f: columns go on the end so /tempora player
+     * with f: gets checked in the index, not by reading every event the player has
      */
     protected String playerIndexColumns() {
-        return playerColumn() + ", timestamp";
+        List<String> columns = new ArrayList<>(Arrays.asList(playerColumn(), "timestamp"));
+        columns.addAll(nameColumns().indexColumns());
+        return String.join(", ", columns);
     }
 
     public final boolean hasPlayerColumn() {
@@ -642,17 +646,31 @@ public abstract class GenericLogger<EventInfo extends GenericEventInfo> {
      */
     public final FoundEvents<EventInfo> findEventsBy(PlayerFilter players, TimeWindow window, int limit,
         String narrowCommand) {
+        return findEventsBy(players, window, TextFilter.any(), limit, narrowCommand);
+    }
+
+    /** Same but only events with something {@code filter} matches, see {@link TextFilter} */
+    public final FoundEvents<EventInfo> findEventsBy(PlayerFilter players, TimeWindow window, TextFilter filter,
+        int limit, String narrowCommand) {
         String playerColumn = playerColumn();
         if (playerColumn == null) throw new IllegalStateException(getLoggerName() + " has no player column.");
+
+        String nameSql = "";
+        if (!filter.isAny()) {
+            String condition = textFilterCondition(filter);
+            // Nothing here that has a name f: matched
+            if (condition == null) return FoundEvents.none(this);
+            nameSql = " AND " + condition;
+        }
 
         // One player hits the player index since "IN (?)" turns into "= ?". Only excluding players walks the timestamp
         // index from the newest end instead
         String sql = String.format("""
             SELECT * FROM %s
-            WHERE timestamp >= ? AND timestamp <= ?%s
+            WHERE timestamp >= ? AND timestamp <= ?%s%s
             ORDER BY timestamp DESC
             LIMIT ?;
-            """, getLoggerName(), players.sqlCondition(playerColumn));
+            """, getLoggerName(), players.sqlCondition(playerColumn), nameSql);
 
         List<EventInfo> events;
         try {
