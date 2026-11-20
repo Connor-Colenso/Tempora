@@ -25,6 +25,7 @@ import com.colen.tempora.rendering.events.RenderEventsInWorld;
 import com.colen.tempora.rendering.regions.HudRenderRegionsInWorld;
 import com.colen.tempora.rendering.regions.RenderRegionsInWorld;
 import com.colen.tempora.utils.ClientNameIndex;
+import com.colen.tempora.utils.ServerVersionCheck;
 import com.gtnewhorizon.gtnhlib.config.ConfigurationManager;
 
 import cpw.mods.fml.common.FMLCommonHandler;
@@ -54,6 +55,9 @@ public class ClientProxy extends CommonProxy {
         FMLCommonHandler.instance()
             .bus()
             .register(new ClientNameIndex());
+        FMLCommonHandler.instance()
+            .bus()
+            .register(new ServerVersionCheck());
         MinecraftForge.EVENT_BUS.register(new RenderEventsInWorld());
         MinecraftForge.EVENT_BUS.register(new RenderRegionsInWorld());
         MinecraftForge.EVENT_BUS.register(new HudRenderRegionsInWorld());

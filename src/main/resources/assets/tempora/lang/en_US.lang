@@ -394,3 +394,5 @@ tempora.warning.logger_failing=Tempora: %s can't store events (%s). Nothing it s
 tempora.warning.queue_too_large=Warning: %s has %s events pending, Tempora is struggling to keep up. You may be logging too much or a large event has occurred (explosion etc.).
 tempora.warning.events_dropped=%s Tempora: %s dropped %s events it could not store (%s). Each one is in the server log.
 tempora.warning.regions_unreadable=Tempora could not read its region file when the server started, so no regions are in use. The file was kept as %s in the world's Tempora folder, and the server log has the error.
+tempora.warning.version_mismatch=Your Tempora version (%s) doesn't match the server's (%s), so there may be unintended behaviour. Update your client to the server's version.
+tempora.warning.version_mismatch.reason=You're only getting this message because you have access to Tempora commands.
