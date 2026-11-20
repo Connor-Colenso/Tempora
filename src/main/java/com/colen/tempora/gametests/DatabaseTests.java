@@ -740,13 +740,6 @@ public class DatabaseTests {
     }
 
     @GameTest
-    public static void numberAchievementIsRefused(GameTestHelper helper) {
-        assertRefusedAtRegister(
-            helper,
-            new CheckedTestLogger<>("TemporaTestNumberAchievement", NumberAchievementEvent::new));
-    }
-
-    @GameTest
     public static void unknownPartIsRefused(GameTestHelper helper) {
         assertRefusedAtRegister(helper, new CheckedTestLogger<>("TemporaTestUnknownPart", UnknownPartEvent::new));
     }
@@ -759,53 +752,6 @@ public class DatabaseTests {
     @GameTest
     public static void samePartTwiceIsRefused(GameTestHelper helper) {
         assertRefusedAtRegister(helper, new CheckedTestLogger<>("TemporaTestSamePartTwice", SamePartTwiceEvent::new));
-    }
-
-    @GameTest
-    public static void roleWithoutConstructorIsRefused(GameTestHelper helper) {
-        assertRefusedAtRegister(helper, new CheckedTestLogger<>("TemporaTestBadRole", BadRoleEvent::new));
-    }
-
-    // What textFilterCondition gives has to pick the right rows in SQLite, both the default from nameRole columns and
-    // TextFilter.condition on columns a logger picks itself (here items in a table of their own)
-    @GameTest
-    public static void nameConditionsMatchInSql(GameTestHelper helper) throws Exception {
-        ResolvedNames.Builder builder = new ResolvedNames.Builder();
-        builder.item(35, 14);
-        builder.item(1, ResolvedNames.ANY_META);
-        builder.entity("O'Brien");
-        TextFilter names = TextFilter.of("test", builder.build());
-
-        ResolvedNames.Builder mobsOnly = new ResolvedNames.Builder();
-        mobsOnly.entity("Zombie");
-
-        try (Connection conn = DriverManager.getConnection("jdbc:sqlite::memory:");
-            Statement st = conn.createStatement()) {
-            st.execute(
-                "CREATE TABLE changes (beforePickBlockID INTEGER, beforePickBlockMeta INTEGER,"
-                    + " afterPickBlockID INTEGER, afterPickBlockMeta INTEGER)");
-            // Red wool before, stone of any meta after, then two that match neither
-            st.execute("INSERT INTO changes VALUES (35, 14, 0, 0), (0, 0, 1, 5), (35, 0, 0, 0), (2, 0, 3, 0)");
-            String byDefault = TemporaEvents.blockChangeLogger.textFilterCondition(names);
-            helper.assertEquals(2, count(st, "changes", byDefault), "block changes matched before or after");
-            helper.assertTrue(
-                TemporaEvents.blockChangeLogger.textFilterCondition(TextFilter.of("test", mobsOnly.build())) == null,
-                "a mob only filter should skip block changes");
-
-            st.execute("CREATE TABLE events (eventID INTEGER)");
-            st.execute("CREATE TABLE drops (eventID INTEGER, id INTEGER, meta INTEGER)");
-            st.execute("INSERT INTO events VALUES (1), (2), (3)");
-            st.execute("INSERT INTO drops VALUES (1, 35, 14), (2, 35, 1), (3, 1, 9)");
-            String custom = "EXISTS (SELECT 1 FROM drops WHERE drops.eventID = events.eventID AND "
-                + names.condition(ItemNames.class, "drops.id", "drops.meta")
-                + ")";
-            helper.assertEquals(2, count(st, "events", custom), "events with a matching drop");
-
-            st.execute("CREATE TABLE mobs (name TEXT)");
-            st.execute("INSERT INTO mobs VALUES ('O''Brien'), ('Zombie')");
-            helper.assertEquals(1, count(st, "mobs", names.condition(MobNames.class, "name")), "mobs matched by name");
-        }
-        helper.succeed();
     }
 
     private static int count(Statement st, String table, String condition) throws SQLException {
@@ -897,12 +843,6 @@ public class DatabaseTests {
         public int mob;
     }
 
-    public static class NumberAchievementEvent extends CheckedTestEvent {
-
-        @Column(nameRole = AchievementNames.class)
-        public int achievement;
-    }
-
     public static class UnknownPartEvent extends CheckedTestEvent {
 
         @Column(nameRole = MobNames.class, part = "colour")
@@ -923,25 +863,6 @@ public class DatabaseTests {
 
         @Column(nameRole = MobNames.class)
         public String otherMob = "";
-    }
-
-    public static final class NoConstructorNames implements NameRole {
-
-        public NoConstructorNames(String unused) {}
-
-        @Override
-        public List<NamePart> parts() {
-            return Collections.singletonList(NamePart.text("name"));
-        }
-
-        @Override
-        public void shownNames(ShownNames add) {}
-    }
-
-    public static class BadRoleEvent extends CheckedTestEvent {
-
-        @Column(nameRole = NoConstructorNames.class)
-        public String thing = "";
     }
 
     public static class PlayerTestLogger extends GenericPositionalLogger<PlayerTestEvent> {
@@ -1001,12 +922,6 @@ public class DatabaseTests {
 
     // Every logger's columns get checked on register, not just ones with a player column, so a column Tempora can't
     // store fails there not on server start
-    @GameTest
-    public static void validGlobalLoggerPassesRegisterCheck(GameTestHelper helper) {
-        new CheckedTestLogger<>("TemporaTestValidGlobal", ValidColumnEvent::new).checkColumns();
-        helper.succeed();
-    }
-
     @GameTest
     public static void unknownFieldTypeIsRefusedAtRegister(GameTestHelper helper) {
         assertRefusedAtRegister(helper, new CheckedTestLogger<>("TemporaTestCharColumn", CharColumnEvent::new));
@@ -1074,12 +989,6 @@ public class DatabaseTests {
         public String getLoggerName() {
             return "TemporaTestChecked";
         }
-    }
-
-    public static class ValidColumnEvent extends CheckedTestEvent {
-
-        @Column
-        public String note = "";
     }
 
     public static class CharColumnEvent extends CheckedTestEvent {

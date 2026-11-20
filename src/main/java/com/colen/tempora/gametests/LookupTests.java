@@ -97,57 +97,8 @@ public class LookupTests {
             .thenSucceed();
     }
 
-    @GameTest(timeoutTicks = TIMEOUT_TICKS)
-    public static void timeLimitsWhatIsFound(GameTestHelper helper) {
-        GenericPositionalLogger<?> logger = TemporaEvents.playerBlockBreakLogger;
-        EntityPlayerMP player = player(helper, "lookup_time");
-        TestPos block = at(2, 1, 2);
-        TestPos pos = helper.absolute(block);
-        int dim = helper.getWorld().provider.dimensionId;
-        Probe<FoundEvents<?>> anyTime = new Probe<>(helper, "timeLimitsWhatIsFound.anyTime");
-        Probe<FoundEvents<?>> lastDay = new Probe<>(helper, "timeLimitsWhatIsFound.lastDay");
-
-        helper.startSequence()
-            .thenExecute("a break two days ago, and one now", () -> {
-                TemporaEvents.playerBlockBreakLogger.queueEventInfo(oldBreak(helper, player, pos, 2 * DAY_SECONDS));
-                breakNew(helper, player, block);
-            })
-            .thenWaitUntil(
-                "no time limit finds both",
-                WRITE_TICKS,
-                () -> assertShown(
-                    helper,
-                    anyTime.poll(
-                        () -> logger.findEventsNear(
-                            dim,
-                            pos.x(),
-                            pos.y(),
-                            pos.z(),
-                            0,
-                            TimeWindow.allTime(),
-                            PlayerFilter.anyone(),
-                            LookupCommand.DEFAULT_COUNT)),
-                    2))
-            .thenWaitUntil(
-                "the last day finds one",
-                WRITE_TICKS,
-                () -> assertShown(
-                    helper,
-                    lastDay.poll(
-                        () -> logger.findEventsNear(
-                            dim,
-                            pos.x(),
-                            pos.y(),
-                            pos.z(),
-                            0,
-                            TimeWindow.parse("1d"),
-                            PlayerFilter.anyone(),
-                            LookupCommand.DEFAULT_COUNT)),
-                    1))
-            .thenSucceed();
-    }
-
-    // t:3d-1d only finds what happened between 3 days and 1 day ago, whichever way round the range is written
+    // t:3d leaves out what's older, t:3d-1d only finds what happened between 3 days and 1 day ago. Which way round a
+    // range is written is timeWindowParses
     @GameTest(timeoutTicks = TIMEOUT_TICKS)
     public static void timeRangeLimitsWhatIsFound(GameTestHelper helper) {
         GenericPositionalLogger<PlayerBlockBreakEventInfo> logger = TemporaEvents.playerBlockBreakLogger;
@@ -158,7 +109,6 @@ public class LookupTests {
         int n = LookupCommand.DEFAULT_COUNT;
         Probe<FoundEvents<?>> lastThreeDays = new Probe<>(helper, "timeRangeLimitsWhatIsFound.lastThreeDays");
         Probe<FoundEvents<?>> range = new Probe<>(helper, "timeRangeLimitsWhatIsFound.range");
-        Probe<FoundEvents<?>> reversed = new Probe<>(helper, "timeRangeLimitsWhatIsFound.reversed");
 
         helper.startSequence()
             .thenExecute("breaks five days ago, two days ago, and now", () -> {
@@ -195,22 +145,6 @@ public class LookupTests {
                             pos.z(),
                             0,
                             TimeWindow.parse("3d-1d"),
-                            PlayerFilter.anyone(),
-                            n)),
-                    1))
-            .thenWaitUntil(
-                "1d-3d finds the same",
-                WRITE_TICKS,
-                () -> assertShown(
-                    helper,
-                    reversed.poll(
-                        () -> logger.findEventsNear(
-                            dim,
-                            pos.x(),
-                            pos.y(),
-                            pos.z(),
-                            0,
-                            TimeWindow.parse("1d-3d"),
                             PlayerFilter.anyone(),
                             n)),
                     1))

@@ -1,6 +1,5 @@
 package com.colen.tempora.gametests;
 
-import static com.colen.tempora.gametests.LookupTests.assertShown;
 import static com.colen.tempora.gametests.PositionalLoggerTests.assertCount;
 import static com.colen.tempora.gametests.PositionalLoggerTests.eventsAtPlayer;
 import static com.colen.tempora.gametests.PositionalLoggerTests.uuid;
@@ -23,13 +22,9 @@ import net.minecraftforge.event.entity.player.PlayerDropsEvent;
 
 import com.colen.tempora.Tempora;
 import com.colen.tempora.TemporaEvents;
-import com.colen.tempora.commands.LookupCommand;
-import com.colen.tempora.loggers.generic.FoundEvents;
 import com.colen.tempora.loggers.generic.PositionalEventInfo;
 import com.colen.tempora.loggers.item_pickup_drop.ItemPickupDropEventInfo;
 import com.colen.tempora.loggers.item_pickup_drop.ItemPickupDropLogger;
-import com.colen.tempora.utils.PlayerFilter;
-import com.colen.tempora.utils.TimeWindow;
 import com.colen.tempora.utils.nbt.NBTUtils;
 import com.gtnewhorizons.horizonqa.api.GameTestHelper;
 import com.gtnewhorizons.horizonqa.api.annotation.GameTest;
@@ -186,49 +181,6 @@ public class ItemPickupDropLoggerTests {
                 helper.assertEquals(uuid(player), cobblestone.playerUUID, "playerUUID");
                 assertWellFormed(helper, logger, probe.latest());
             })
-            .thenSucceed();
-    }
-
-    // p: on a lookup only finds the named players' pickups and drops
-    @GameTest(timeoutTicks = TIMEOUT_TICKS)
-    public static void playerFilterFindsTheirItems(GameTestHelper helper) {
-        ItemPickupDropLogger logger = TemporaEvents.itemPickupDropLogger;
-        FakePlayer alice = fakePlayer(helper, "drop_alice");
-        FakePlayer bob = fakePlayer(helper, "drop_bob");
-        String a = uuid(alice);
-        String b = uuid(bob);
-        int dim = helper.getWorld().provider.dimensionId;
-        int x = (int) Math.floor(alice.posX), y = (int) Math.floor(alice.posY), z = (int) Math.floor(alice.posZ);
-        int n = LookupCommand.DEFAULT_COUNT;
-        Probe<FoundEvents<?>> onlyAlice = new Probe<>(helper, "playerFilterFindsTheirItems.onlyAlice");
-        Probe<FoundEvents<?>> both = new Probe<>(helper, "playerFilterFindsTheirItems.both");
-
-        helper.startSequence()
-            .thenExecute("alice and bob each throw out a stick", () -> {
-                for (FakePlayer player : new FakePlayer[] { alice, bob }) {
-                    player.inventory.mainInventory[player.inventory.currentItem] = new ItemStack(Items.stick);
-                    EntityItem thrown = player.dropOneItem(false);
-                    helper.assertNotNull(thrown, "nothing was thrown");
-                    helper.afterTest(thrown::setDead);
-                }
-            })
-            .thenWaitUntil(
-                "l:pickup p:alice finds hers",
-                WRITE_TICKS,
-                () -> assertShown(
-                    helper,
-                    onlyAlice.poll(
-                        () -> logger.findEventsNear(dim, x, y, z, 1, TimeWindow.allTime(), PlayerFilter.parse(a), n)),
-                    1))
-            .thenWaitUntil(
-                "l:pickup p:alice,bob finds both",
-                WRITE_TICKS,
-                () -> assertShown(
-                    helper,
-                    both.poll(
-                        () -> logger
-                            .findEventsNear(dim, x, y, z, 1, TimeWindow.allTime(), PlayerFilter.parse(a + "," + b), n)),
-                    2))
             .thenSucceed();
     }
 

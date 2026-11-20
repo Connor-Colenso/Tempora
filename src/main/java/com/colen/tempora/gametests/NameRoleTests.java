@@ -64,18 +64,6 @@ public class NameRoleTests {
     }
 
     @GameTest
-    public static void enumRoleWorks(GameTestHelper helper) {
-        GenericLogger<?> logger = new CheckedTestLogger<>("TemporaTestRoleEnumRole", EnumRoleEvent::new);
-        try {
-            logger.checkColumns();
-        } catch (RuntimeException e) {
-            helper.fail("an enum singleton role was refused: " + causes(e));
-            return;
-        }
-        helper.succeed();
-    }
-
-    @GameTest
     public static void abstractRoleIsRefused(GameTestHelper helper) {
         refused(helper, new CheckedTestLogger<>("TemporaTestRoleAbstractRole", AbstractRoleEvent::new));
     }
@@ -166,7 +154,8 @@ public class NameRoleTests {
         refused(helper, new CheckedTestLogger<>("TemporaTestRoleTwoConstants", TwoConstantEvent::new));
     }
 
-    // The enum role's answers have to survive the packet under the enum's name, not its constant's class
+    // An enum with one constant works as a role, and its answers survive the packet under the enum's name, not its
+    // constant's class
     @GameTest
     public static void enumRoleSurvivesThePacket(GameTestHelper helper) {
         new CheckedTestLogger<>("TemporaTestRoleEnumPacket", EnumRoleEvent::new).checkColumns();

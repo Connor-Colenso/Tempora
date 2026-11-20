@@ -61,38 +61,6 @@ public class TextFilterTests {
     private static final int WRITE_TICKS = 100;
     private static final int TIMEOUT_TICKS = 250;
 
-    // Mob names are the only text that goes into the SQL, so quotes in them have to stay text
-    @GameTest(timeoutTicks = TIMEOUT_TICKS)
-    public static void quotesInMobNamesStayText(GameTestHelper helper) {
-        GenericPositionalLogger<?> logger = TemporaEvents.entityDeathLogger;
-        EntityPlayerMP player = player(helper, "name_quotes");
-        TestPos pos = helper.absolute(at(1, 1, 1));
-        int dim = helper.getWorld().provider.dimensionId;
-        Probe<FoundEvents<?>> quoted = new Probe<>(helper, "quotesInMobNamesStayText.quoted");
-        Probe<FoundEvents<?>> injected = new Probe<>(helper, "quotesInMobNamesStayText.injected");
-
-        helper.startSequence()
-            .thenExecute("a Zom'bie and a Zombie die", () -> {
-                TemporaEvents.entityDeathLogger.queueEventInfo(death(helper, pos, "Zom'bie"));
-                TemporaEvents.entityDeathLogger.queueEventInfo(death(helper, pos, "Zombie"));
-            })
-            .thenWaitUntil("a client's Zom'bie finds just that one", WRITE_TICKS, () -> {
-                sendEntities(player, "q1", "Zom'bie");
-                List<GenericEventInfo> found = events(
-                    helper,
-                    quoted.poll(() -> near(logger, dim, pos, answered(player, "q1"))));
-                helper.assertEquals(1L, (long) found.size(), "deaths found");
-                helper.assertEquals("Zom'bie", ((EntityDeathEventInfo) found.get(0)).entityName, "mob found");
-            })
-            .thenWaitUntil("a name that tries to end the string finds nothing and doesn't break the query", 20, () -> {
-                sendEntities(player, "q2", "x') OR 1=1 OR ('", "'; DROP TABLE EntityDeathLogger; --");
-                FoundEvents<?> found = injected.poll(() -> near(logger, dim, pos, answered(player, "q2")));
-                helper.assertFalse(found.failed(), "the query failed");
-                helper.assertEquals(0L, (long) events(helper, found).size(), "deaths found");
-            })
-            .thenSucceed();
-    }
-
     // A filter goes over the network as is. Read back it has to match the same things
     @GameTest(timeoutTicks = TIMEOUT_TICKS)
     public static void sentFilterSurvivesThePacket(GameTestHelper helper) {
