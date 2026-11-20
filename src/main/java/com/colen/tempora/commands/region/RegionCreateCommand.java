@@ -30,7 +30,6 @@ import com.colen.tempora.networking.packets.PacketShowRegionInWorld;
 import com.colen.tempora.regions.TemporaRegionRegistry;
 import com.colen.tempora.regions.TemporaWorldRegion;
 import com.colen.tempora.rendering.regions.RegionRenderMode;
-import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 
 // /tempora region create <name> <x1> <y1> <z1> <x2> <y2> <z2> [dim_ID]
 // Box between two corner blocks, both included. Coords can be relative to the player, e.g. ~-50. New regions have no
@@ -65,7 +64,7 @@ public class RegionCreateCommand extends TemporaSubcommand {
         int dimID = args.length == 8 ? CommandBase.parseInt(sender, args[7])
             : sender.getEntityWorld().provider.dimensionId;
         if (!DimensionManager.isDimensionRegistered(dimID)) {
-            sendError(sender, "tempora.dimension.invalid", new ChatComponentNumber(dimID));
+            sendError(sender, "tempora.dimension.invalid", dimID);
             return;
         }
 

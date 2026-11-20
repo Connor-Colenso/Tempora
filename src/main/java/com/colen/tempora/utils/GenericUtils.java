@@ -1,7 +1,5 @@
 package com.colen.tempora.utils;
 
-import static com.gtnewhorizon.gtnhlib.util.numberformatting.NumberFormatUtil.formatNumber;
-
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
 import net.minecraft.launchwrapper.Launch;
@@ -22,13 +20,13 @@ public class GenericUtils {
         try {
             WorldServer loaded = DimensionManager.getWorld(dimID);
             if (loaded != null) return loaded.provider.getDimensionName();
-            if (!DimensionManager.isDimensionRegistered(dimID)) return "Dimension " + formatNumber(dimID);
+            if (!DimensionManager.isDimensionRegistered(dimID)) return "Dimension " + dimID;
 
             WorldProvider provider = DimensionManager.createProviderFor(dimID);
             provider.setDimension(dimID);
             return provider.getDimensionName();
         } catch (RuntimeException e) {
-            return "Dimension " + formatNumber(dimID);
+            return "Dimension " + dimID;
         }
     }
 

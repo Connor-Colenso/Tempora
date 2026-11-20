@@ -23,7 +23,6 @@ import com.colen.tempora.utils.CommandUtils;
 import com.colen.tempora.utils.PlayerUtils;
 import com.colen.tempora.utils.TimeUtils;
 import com.colen.tempora.utils.nbt.NBTUtils;
-import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 
 /**
  * Bits every event's chat line is built from so all loggers read the same. When (dark grey, date on hover), who
@@ -89,10 +88,7 @@ public final class EventChat {
     /** Block named by its pick block item (what players know it as), with the block's own ID and meta on hover */
     public static IChatComponent block(int pickID, int pickMetadata, int blockID, int blockMetadata) {
         IChatComponent name = new ChatComponentBlockName(pickID, pickMetadata);
-        IChatComponent hover = new ChatComponentTranslation(
-            "tempora.chat.id",
-            new ChatComponentNumber(blockID),
-            new ChatComponentNumber(blockMetadata));
+        IChatComponent hover = new ChatComponentTranslation("tempora.chat.id", blockID, blockMetadata);
         name.getChatStyle()
             .setColor(EnumChatFormatting.WHITE)
             .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, grey(hover)));
@@ -107,9 +103,7 @@ public final class EventChat {
     public static IChatComponent item(int itemID, int metadata, String encodedNBT) {
         Item item = Item.getItemById(itemID);
         if (item == null) {
-            return text(
-                "[unknown item " + formatNumber(itemID) + ":" + formatNumber(metadata) + "]",
-                EnumChatFormatting.WHITE);
+            return text("[unknown item " + itemID + ":" + metadata + "]", EnumChatFormatting.WHITE);
         }
 
         ItemStack itemStack = new ItemStack(item, 1, metadata);

@@ -23,7 +23,6 @@ import com.colen.tempora.regions.LogRule;
 import com.colen.tempora.regions.TemporaRegionRegistry;
 import com.colen.tempora.regions.TemporaWorldRegion;
 import com.colen.tempora.utils.CommandUtils;
-import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 
 // /tempora region check [logger]
 // For each positional logger, whether it logs where the player is and what decided that. Global loggers have no
@@ -74,7 +73,7 @@ public class RegionCheckCommand extends TemporaSubcommand {
             "tempora.command.region.check.header",
             CommandUtils.teleportChatComponent(x, y, z, dimID, CommandUtils.TeleportType.EXACT),
             getDimensionName(dimID),
-            new ChatComponentNumber(dimID));
+            dimID);
         header.getChatStyle()
             .setColor(EnumChatFormatting.YELLOW);
         sender.addChatMessage(header);

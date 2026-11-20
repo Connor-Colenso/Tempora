@@ -20,7 +20,6 @@ import com.colen.tempora.networking.PlayerPackets;
 import com.colen.tempora.networking.packets.PacketShowRegionInWorld;
 import com.colen.tempora.regions.TemporaRegionRegistry;
 import com.colen.tempora.regions.TemporaWorldRegion;
-import com.gtnewhorizon.gtnhlib.chat.customcomponents.ChatComponentNumber;
 
 // /tempora region list [dim_ID]
 // Lists every region with its rules and clickable coords to teleport there. Players also get them drawn in the world
@@ -44,7 +43,7 @@ public class RegionListCommand extends TemporaSubcommand {
             int dimFilter = CommandBase.parseInt(sender, args[0]);
 
             if (!DimensionManager.isDimensionRegistered(dimFilter)) {
-                sendError(sender, "tempora.dimension.invalid", new ChatComponentNumber(dimFilter));
+                sendError(sender, "tempora.dimension.invalid", dimFilter);
                 return;
             }
 
@@ -54,7 +53,7 @@ public class RegionListCommand extends TemporaSubcommand {
                     sender,
                     "tempora.command.region.list.no_regions_in_dim",
                     getDimensionName(dimFilter),
-                    new ChatComponentNumber(dimFilter));
+                    dimFilter);
                 return;
             }
         }
@@ -75,7 +74,7 @@ public class RegionListCommand extends TemporaSubcommand {
                 IChatComponent dimBanner = new ChatComponentTranslation(
                     "tempora.region.dimension_banner",
                     getDimensionName(r.getDimID()),
-                    new ChatComponentNumber(r.getDimID()));
+                    r.getDimID());
                 dimBanner.getChatStyle()
                     .setColor(EnumChatFormatting.GRAY);
                 sender.addChatMessage(dimBanner);

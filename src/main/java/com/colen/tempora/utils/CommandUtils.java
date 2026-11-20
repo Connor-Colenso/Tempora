@@ -95,7 +95,7 @@ public class CommandUtils {
         IChatComponent dimension = new ChatComponentTranslation(
             "tempora.teleport.dimension",
             GenericUtils.getDimensionName(dimID),
-            new ChatComponentNumber(dimID));
+            dimID);
         IChatComponent hoverText = teleportType == TeleportType.EXACT ? EventChat.titledHover(
             title,
             dimension,
