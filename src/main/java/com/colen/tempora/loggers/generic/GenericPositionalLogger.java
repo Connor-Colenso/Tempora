@@ -104,6 +104,15 @@ public abstract class GenericPositionalLogger<EventInfo extends PositionalEventI
         return indexes;
     }
 
+    // dimensionID after the timestamp so dim: on /tempora player gets checked in the index, not by reading every event
+    // the player has elsewhere
+    @Override
+    protected String playerIndexColumns() {
+        List<String> columns = new ArrayList<>(Arrays.asList(playerColumn(), "timestamp", "dimensionID"));
+        columns.addAll(nameColumns().indexColumns());
+        return String.join(", ", columns);
+    }
+
     /**
      * Latest events up to {@code limit} in a cube {@code radius} blocks out from a block, on the query thread (see
      * {@link TemporaQueries}). Radius 0 is just that block. Showing them lists them in chat and draws them, silent if

@@ -17,7 +17,6 @@ import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
-import net.minecraftforge.common.DimensionManager;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -269,14 +268,9 @@ public class HomeCommand extends TemporaSubcommand {
             return PlayerUtils.getTabCompletionForPlayerNames(args[0]);
         }
 
-        List<String> dimensions = new ArrayList<>();
-        for (Integer id : DimensionManager.getStaticDimensionIDs()) {
-            dimensions.add(String.valueOf(id));
-        }
-
         Map<String, List<String>> suggestions = new LinkedHashMap<>();
         suggestions.put("t", Arrays.asList("1d", "1w", "3w", "1mo"));
-        suggestions.put("dim", dimensions);
+        suggestions.put("dim", PlayerCommand.dimensionIDs());
         suggestions.put("n", Arrays.asList("1", "3", "5", "10"));
         return CommandFilters.complete(args, suggestions);
     }

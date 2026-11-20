@@ -20,11 +20,13 @@ import com.colen.tempora.TemporaEvents;
 import com.colen.tempora.commands.TemporaCommand;
 import com.colen.tempora.loggers.generic.FoundEvents;
 import com.colen.tempora.loggers.generic.GenericLogger;
+import com.colen.tempora.loggers.generic.GenericPositionalLogger;
 import com.colen.tempora.loggers.player_block_break.PlayerBlockBreakEventInfo;
 import com.colen.tempora.regions.TemporaRegionRegistry;
 import com.colen.tempora.regions.TemporaWorldRegion;
 import com.colen.tempora.utils.PlayerFilter;
 import com.colen.tempora.utils.ResolvedNames;
+import com.colen.tempora.utils.TextFilter;
 import com.colen.tempora.utils.TimeWindow;
 import com.gtnewhorizons.horizonqa.api.GameTestHelper;
 import com.gtnewhorizons.horizonqa.api.TestPos;
@@ -125,6 +127,64 @@ public class CommandTests {
                     helper,
                     mobs.poll(
                         () -> breaks.findEventsBy(justAlice, TimeWindow.allTime(), answered(alice, "pig"), 10, "")),
+                    0))
+            .thenSucceed();
+    }
+
+    // dim: on /tempora player only finds a player's events in that dimension. Global loggers aren't tied to one, so
+    // they find nothing with it
+    @GameTest(timeoutTicks = TIMEOUT_TICKS)
+    public static void playerSearchByDimension(GameTestHelper helper) {
+        GenericPositionalLogger<PlayerBlockBreakEventInfo> breaks = TemporaEvents.playerBlockBreakLogger;
+        EntityPlayerMP alice = player(helper, "player_dim_alice");
+        PlayerFilter justAlice = PlayerFilter.parse(PositionalLoggerTests.uuid(alice));
+        int here = helper.getWorld().provider.dimensionId;
+        int nether = here == -1 ? 1 : -1;
+        Probe<FoundEvents<?>> anywhere = new Probe<>(helper, "playerSearchByDimension.anywhere");
+        Probe<FoundEvents<?>> inHere = new Probe<>(helper, "playerSearchByDimension.here");
+        Probe<FoundEvents<?>> inNether = new Probe<>(helper, "playerSearchByDimension.nether");
+        Probe<FoundEvents<?>> joins = new Probe<>(helper, "playerSearchByDimension.joins");
+
+        helper.startSequence()
+            .thenExecute("alice breaks two blocks here and one in the nether", () -> {
+                breaks.queueEventInfo(farBreak(helper, alice, Blocks.stone));
+                breaks.queueEventInfo(farBreak(helper, alice, Blocks.dirt));
+                PlayerBlockBreakEventInfo inTheNether = farBreak(helper, alice, Blocks.netherrack);
+                inTheNether.dimensionID = nether;
+                breaks.queueEventInfo(inTheNether);
+            })
+            .thenWaitUntil(
+                "no dim: finds all three",
+                WRITE_TICKS,
+                () -> LookupTests.assertShown(
+                    helper,
+                    anywhere.poll(
+                        () -> breaks.findEventsBy(justAlice, TimeWindow.allTime(), TextFilter.any(), null, 10, "")),
+                    3))
+            .thenWaitUntil(
+                "dim: here finds the two here",
+                WRITE_TICKS,
+                () -> LookupTests.assertShown(
+                    helper,
+                    inHere.poll(
+                        () -> breaks.findEventsBy(justAlice, TimeWindow.allTime(), TextFilter.any(), here, 10, "")),
+                    2))
+            .thenWaitUntil(
+                "dim: nether finds the one there",
+                WRITE_TICKS,
+                () -> LookupTests.assertShown(
+                    helper,
+                    inNether.poll(
+                        () -> breaks.findEventsBy(justAlice, TimeWindow.allTime(), TextFilter.any(), nether, 10, "")),
+                    1))
+            .thenWaitUntil(
+                "a global logger finds nothing with dim:",
+                WRITE_TICKS,
+                () -> LookupTests.assertShown(
+                    helper,
+                    joins.poll(
+                        () -> TemporaEvents.playerConnectionLogger
+                            .findEventsBy(PlayerFilter.anyone(), TimeWindow.allTime(), TextFilter.any(), here, 10, "")),
                     0))
             .thenSucceed();
     }

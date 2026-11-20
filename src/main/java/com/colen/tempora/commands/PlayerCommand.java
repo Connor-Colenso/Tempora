@@ -6,7 +6,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
+import net.minecraftforge.common.DimensionManager;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -24,17 +26,26 @@ import com.colen.tempora.utils.PlayerFilter;
 import com.colen.tempora.utils.PlayerUtils;
 import com.colen.tempora.utils.TimeWindow;
 
-// /tempora player <player,...> [t:<time>] [l:<logger,...>] [n:<count>] [s:<sort>] [f:<text,...>]
-// Latest events of one or more players wherever they happened (a ! leaves a player out, same as p: in a lookup), from
-// every logger that records players unless narrowed with l:, with any text unless narrowed with f: like a lookup. Under
-// each logger or with s:time all together in order. Works from anywhere, console too but without f: since that needs a
-// client to name things. Players also get the ones in their dimension drawn in the world
+// /tempora player <player,...> [t:<time>] [dim:<id>] [l:<logger,...>] [n:<count>] [s:<sort>] [f:<text,...>]
+// Latest events of one or more players wherever they happened (a ! leaves a player out, same as p: in a lookup), or
+// only in one dimension with dim:, from every logger that records players unless narrowed with l:, with any text unless
+// narrowed with f: like a lookup. Under each logger or with s:time all together in order. Works from anywhere, console
+// too but without f: since that needs a client to name things. Players also get the ones in their dimension drawn in
+// the world
 public class PlayerCommand extends TemporaSubcommand {
 
     private static final int DEFAULT_COUNT = LookupCommand.DEFAULT_COUNT;
 
     public PlayerCommand() {
-        super("player", "<player>", "[t:<time>]", "[l:<logger,...>]", "[n:<count>]", "[s:<sort>]", "[f:<text,...>]");
+        super(
+            "player",
+            "<player>",
+            "[t:<time>]",
+            "[dim:<id>]",
+            "[l:<logger,...>]",
+            "[n:<count>]",
+            "[s:<sort>]",
+            "[f:<text,...>]");
     }
 
     @Override
@@ -46,7 +57,7 @@ public class PlayerCommand extends TemporaSubcommand {
 
         PlayerFilter players = PlayerFilter.parse(args[0]);
 
-        CommandFilters filters = CommandFilters.parse(this, sender, args, 1, "t", "l", "n", "s", "f");
+        CommandFilters filters = CommandFilters.parse(this, sender, args, 1, "t", "dim", "l", "n", "s", "f");
         if (filters == null) return;
 
         SortOrder order = SortOrder.parse(sender, filters.get("s", SortOrder.DEFAULT));
@@ -54,6 +65,8 @@ public class PlayerCommand extends TemporaSubcommand {
 
         String time = filters.get("t");
         TimeWindow window = time == null ? TimeWindow.allTime() : TimeWindow.parse(time);
+        String dim = filters.get("dim");
+        Integer dimension = dim == null ? null : CommandBase.parseInt(sender, dim);
         String defaultCount = String.valueOf(LookupCommand.defaultCount(order));
         int count = parseCount(sender, filters.get("n", defaultCount), order);
 
@@ -61,6 +74,7 @@ public class PlayerCommand extends TemporaSubcommand {
         if (loggers == null) return;
 
         SearchSummary summary = new SearchSummary(this, filters).add("t", "all")
+            .add("dim", "all")
             .add("l", "all")
             .add("n", defaultCount)
             .add("s", SortOrder.DEFAULT)
@@ -73,8 +87,13 @@ public class PlayerCommand extends TemporaSubcommand {
                 if (logger.notStarted()) continue;
 
                 found.add(
-                    logger
-                        .findEventsBy(players, window, filter, count, command(args[0], "l:" + logger.getShortName())));
+                    logger.findEventsBy(
+                        players,
+                        window,
+                        filter,
+                        dimension,
+                        count,
+                        command(args[0], "l:" + logger.getShortName())));
             }
             return found;
         }, (target, found) -> {
@@ -147,6 +166,7 @@ public class PlayerCommand extends TemporaSubcommand {
 
         Map<String, List<String>> suggestions = new LinkedHashMap<>();
         suggestions.put("t", Arrays.asList("1h", "1d", "3d", "1w", "1mo", "3d-1d"));
+        suggestions.put("dim", dimensionIDs());
         suggestions.put("l", shortNames(playerLoggers()));
         suggestions.put("n", Arrays.asList("5", "10", "25", "50"));
         suggestions.put("s", SortOrder.choices());
@@ -158,9 +178,15 @@ public class PlayerCommand extends TemporaSubcommand {
         return new Object[] { DEFAULT_COUNT };
     }
 
+    static List<String> dimensionIDs() {
+        List<String> dimensions = new ArrayList<>();
+        for (Integer id : DimensionManager.getStaticDimensionIDs()) dimensions.add(String.valueOf(id));
+        return dimensions;
+    }
+
     @Override
     protected Object[] getArgumentArgs(int index) {
-        if (index == 3) return new Object[] { DEFAULT_COUNT, LookupCommand.DEFAULT_COUNT_BY_TIME,
+        if (index == 4) return new Object[] { DEFAULT_COUNT, LookupCommand.DEFAULT_COUNT_BY_TIME,
             CommandsConfig.maxResultsPerLogger };
         return super.getArgumentArgs(index);
     }

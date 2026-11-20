@@ -277,7 +277,8 @@ public abstract class GenericLogger<EventInfo extends GenericEventInfo> {
     /**
      * Columns of the index on {@link #playerColumn}, must start with it and the timestamp. Override to add more, e.g.
      * to cover every column one of your own queries reads. By default the f: columns go on the end so /tempora player
-     * with f: gets checked in the index, not by reading every event the player has
+     * with f: gets checked in the index, not by reading every event the player has. Positional loggers put dimensionID
+     * after the timestamp for dim: the same way
      */
     protected String playerIndexColumns() {
         List<String> columns = new ArrayList<>(Arrays.asList(playerColumn(), "timestamp"));
@@ -652,8 +653,18 @@ public abstract class GenericLogger<EventInfo extends GenericEventInfo> {
     /** Same but only events with something {@code filter} matches, see {@link TextFilter} */
     public final FoundEvents<EventInfo> findEventsBy(PlayerFilter players, TimeWindow window, TextFilter filter,
         int limit, String narrowCommand) {
+        return findEventsBy(players, window, filter, null, limit, narrowCommand);
+    }
+
+    /**
+     * Same but only in {@code dimension} when it isn't null. Global loggers have no dimension, so they find nothing
+     * then
+     */
+    public final FoundEvents<EventInfo> findEventsBy(PlayerFilter players, TimeWindow window, TextFilter filter,
+        @Nullable Integer dimension, int limit, String narrowCommand) {
         String playerColumn = playerColumn();
         if (playerColumn == null) throw new IllegalStateException(getLoggerName() + " has no player column.");
+        if (dimension != null && !(this instanceof GenericPositionalLogger)) return FoundEvents.none(this);
 
         String nameSql = "";
         if (!filter.isAny()) {
@@ -665,12 +676,17 @@ public abstract class GenericLogger<EventInfo extends GenericEventInfo> {
 
         // One player hits the player index since "IN (?)" turns into "= ?". Only excluding players walks the timestamp
         // index from the newest end instead
-        String sql = String.format("""
-            SELECT * FROM %s
-            WHERE timestamp >= ? AND timestamp <= ?%s%s
-            ORDER BY timestamp DESC
-            LIMIT ?;
-            """, getLoggerName(), players.sqlCondition(playerColumn), nameSql);
+        String sql = String.format(
+            """
+                SELECT * FROM %s
+                WHERE timestamp >= ? AND timestamp <= ?%s%s%s
+                ORDER BY timestamp DESC
+                LIMIT ?;
+                """,
+            getLoggerName(),
+            players.sqlCondition(playerColumn),
+            dimension == null ? "" : " AND dimensionID = ?",
+            nameSql);
 
         List<EventInfo> events;
         try {
@@ -679,6 +695,7 @@ public abstract class GenericLogger<EventInfo extends GenericEventInfo> {
                 ps.setLong(1, window.oldestMillis(now));
                 ps.setLong(2, window.newestMillis(now));
                 int index = players.bind(ps, 3);
+                if (dimension != null) ps.setInt(index++, dimension);
                 ps.setInt(index, limit);
             });
         } catch (SQLException e) {
